@@ -149,16 +149,22 @@ if (process.env.DATABASE_URL) {
   console.log("Using memory session store (no DATABASE_URL)");
 }
 
+// Trust proxy for Railway/production
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 app.use(
   session({
     store: sessionStore,
     secret: process.env.SESSION_SECRET || "darkshare-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
+    name: "ds.sid",
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
