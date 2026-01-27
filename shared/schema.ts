@@ -2,7 +2,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } fr
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
+export const users = pgTable("ds_users", {
   id: serial("id").primaryKey(),
   tgId: text("tg_id").notNull().unique(),
   username: text("username"),
@@ -20,7 +20,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const reports = pgTable("reports", {
+export const reports = pgTable("ds_reports", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   objectType: text("object_type").notNull(),
@@ -29,7 +29,7 @@ export const reports = pgTable("reports", {
   generatedAt: timestamp("generated_at").defaultNow(),
 });
 
-export const watches = pgTable("watches", {
+export const watches = pgTable("ds_watches", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   objectType: text("object_type").notNull(),
@@ -40,7 +40,7 @@ export const watches = pgTable("watches", {
   alertsOn: boolean("alerts_on").default(true),
 });
 
-export const payments = pgTable("payments", {
+export const payments = pgTable("ds_payments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   tier: text("tier").notNull(),
@@ -51,7 +51,7 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const referrals = pgTable("referrals", {
+export const referrals = pgTable("ds_referrals", {
   id: serial("id").primaryKey(),
   referrerId: integer("referrer_id").references(() => users.id),
   referredId: integer("referred_id").references(() => users.id),
@@ -59,7 +59,7 @@ export const referrals = pgTable("referrals", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const achievements = pgTable("achievements", {
+export const achievements = pgTable("ds_achievements", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   type: text("type").notNull(), // e.g., 'risk_hunter', 'scam_slayer'

@@ -21,9 +21,9 @@ async function ensureTablesExist() {
   try {
     console.log("Ensuring database tables exist...");
     
-    // Create users table first (no dependencies)
+    // Create ds_users table first (no dependencies) - prefixed to avoid KVITKA conflict
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS ds_users (
         id SERIAL PRIMARY KEY,
         tg_id TEXT NOT NULL UNIQUE,
         username TEXT,
@@ -42,11 +42,11 @@ async function ensureTablesExist() {
       )
     `);
     
-    // Create dependent tables
+    // Create dependent tables with ds_ prefix
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS reports (
+      CREATE TABLE IF NOT EXISTS ds_reports (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES ds_users(id),
         object_type TEXT NOT NULL,
         data_json JSONB,
         pdf_path TEXT,
@@ -55,9 +55,9 @@ async function ensureTablesExist() {
     `);
     
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS watches (
+      CREATE TABLE IF NOT EXISTS ds_watches (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES ds_users(id),
         object_type TEXT NOT NULL,
         value TEXT NOT NULL,
         thresholds_json JSONB,
@@ -68,9 +68,9 @@ async function ensureTablesExist() {
     `);
     
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS payments (
+      CREATE TABLE IF NOT EXISTS ds_payments (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES ds_users(id),
         tier TEXT NOT NULL,
         amount_usdt DECIMAL NOT NULL,
         tx_hash TEXT,
@@ -81,19 +81,19 @@ async function ensureTablesExist() {
     `);
     
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS referrals (
+      CREATE TABLE IF NOT EXISTS ds_referrals (
         id SERIAL PRIMARY KEY,
-        referrer_id INTEGER REFERENCES users(id),
-        referred_id INTEGER REFERENCES users(id),
+        referrer_id INTEGER REFERENCES ds_users(id),
+        referred_id INTEGER REFERENCES ds_users(id),
         paid BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
     
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS achievements (
+      CREATE TABLE IF NOT EXISTS ds_achievements (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
+        user_id INTEGER REFERENCES ds_users(id),
         type TEXT NOT NULL,
         unlocked_at TIMESTAMP DEFAULT NOW()
       )
