@@ -35,7 +35,9 @@ import {
   TrendingUp,
   CheckCircle2,
   XCircle,
-  BarChart3
+  BarChart3,
+  Copy,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +47,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface CheckResult {
   type: string;
@@ -206,15 +215,29 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
   );
 }
 
+const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
+
 export default function Dashboard() {
   const [selectedType, setSelectedType] = useState("ip");
   const [inputValue, setInputValue] = useState("");
   const [result, setResult] = useState<CheckResult | null>(null);
+  const [showSubscription, setShowSubscription] = useState(false);
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
+
+  useEffect(() => {
+    dismiss();
+  }, [location]);
+
+  const copyAddress = async () => {
+    await navigator.clipboard.writeText(TRC20_ADDRESS);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const checkMutation = useMutation({
     mutationFn: async ({ type, value }: { type: string; value: string }) => {
@@ -415,12 +438,7 @@ export default function Dashboard() {
               variant="ghost" 
               size="sm" 
               className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
-              onClick={() => {
-                toast({
-                  title: "Підписка",
-                  description: "Оформіть підписку через Telegram бот @DARKSHAREN1_BOT",
-                });
-              }}
+              onClick={() => setShowSubscription(true)}
               data-testid="button-subscription"
             >
               <Crown className="w-4 h-4 mr-2" />
@@ -802,6 +820,65 @@ export default function Dashboard() {
         </nav>
         <div className="lg:hidden h-20" />
       </div>
+
+      <Dialog open={showSubscription} onOpenChange={setShowSubscription}>
+        <DialogContent className="bg-black/95 border-primary/30 backdrop-blur-xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-display flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary" />
+              Оформити підписку
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Оплатіть підписку на вказаний гаманець і надішліть скріншот через бот @DARKSHAREN1_BOT
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
+              <div className="text-xs text-muted-foreground mb-2">TRC20 (USDT)</div>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-sm font-mono text-primary bg-black/50 p-3 rounded-lg break-all select-all">
+                  {TRC20_ADDRESS}
+                </code>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="flex-shrink-0 border-primary/30 hover:bg-primary/20"
+                  onClick={copyAddress}
+                  data-testid="button-copy-address"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-primary" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Basic (30 днів)</span>
+                <span className="text-white font-medium">$9.99</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Pro (30 днів)</span>
+                <span className="text-white font-medium">$19.99</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Elite (30 днів)</span>
+                <span className="text-white font-medium">$49.99</span>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/10">
+              <p className="text-xs text-muted-foreground">
+                Після оплати надішліть скріншот транзакції або TX Hash боту для активації підписки.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
