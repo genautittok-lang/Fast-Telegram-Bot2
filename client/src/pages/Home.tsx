@@ -133,39 +133,39 @@ export default function Home() {
                   <TerminalText text="System v4.0.1 initialized..." speed={50} />
                 </div>
 
-                <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-white leading-none">
+                <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white">
                   {t.heroTitle} <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-primary/40 filter drop-shadow-[0_0_30px_rgba(var(--primary),0.5)]">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/50 text-glow">
                     {t.heroSubtitle}
                   </span>
                 </h1>
 
-                <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed border-l-2 border-primary/20 pl-6 py-2">
+                <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
                   {t.heroDescription}
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center gap-6 pt-8">
+                <div className="flex flex-col sm:flex-row items-start gap-4 pt-4">
                   <Link href="/login">
                     <div 
-                      className="group relative px-10 py-5 bg-primary text-primary-foreground font-black rounded-2xl text-xl flex items-center gap-3 overflow-hidden transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-[0_0_40px_rgba(var(--primary),0.4)]"
+                      className="group relative px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl text-lg flex items-center gap-2 overflow-hidden transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                       data-testid="button-web-dashboard"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                      <ShieldCheck className="w-6 h-6" />
+                      <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                      <ShieldCheck className="w-5 h-5" />
                       <span>{t.webDashboard}</span>
-                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </Link>
                   <a 
                     href="https://t.me/DARKSHAREN1_BOT" 
                     target="_blank" 
                     rel="noreferrer"
-                    className="group relative px-10 py-5 bg-white/5 border border-white/10 text-white font-bold rounded-2xl text-xl flex items-center gap-3 overflow-hidden transition-all hover:bg-white/10 hover:border-primary/30 active:scale-95 shadow-xl"
+                    className="group relative px-8 py-4 bg-white/10 border border-white/20 text-white font-bold rounded-xl text-lg flex items-center gap-2 overflow-hidden transition-transform hover:scale-105 active:scale-95"
                     data-testid="button-launch-bot"
                   >
-                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Bot className="w-6 h-6 text-primary" />
+                    <Zap className="w-5 h-5" />
                     <span>{t.launchBot}</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </a>
                 </div>
               </motion.div>
