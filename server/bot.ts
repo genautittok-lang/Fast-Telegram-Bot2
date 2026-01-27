@@ -117,9 +117,7 @@ ${t(lang, "common.tipOfDay")}
 
 ${t(lang, "dashboard.selectModule")}`;
 
-    const webUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
-      : "https://darkshare.replit.app";
+    const webUrl = "https://fast-telegram-bot2-production.up.railway.app";
 
     const keyboard = Markup.inlineKeyboard([
       [
