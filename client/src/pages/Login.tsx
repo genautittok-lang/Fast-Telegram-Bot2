@@ -71,6 +71,7 @@ export default function Login() {
       script.setAttribute("data-radius", "8");
       script.setAttribute("data-onauth", "onTelegramAuth(user)");
       script.setAttribute("data-request-access", "write");
+      script.setAttribute("data-userpic", "false");
       script.async = true;
       telegramRef.current.appendChild(script);
     }
