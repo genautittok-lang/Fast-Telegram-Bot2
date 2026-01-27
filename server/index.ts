@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
-import pgSession from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -14,15 +13,29 @@ declare module "http" {
   }
 }
 
-const PgStore = pgSession(session);
+// Configure session store - use memory if no database
+import pgSessionModule from "connect-pg-simple";
+let sessionStore: session.Store | undefined = undefined;
+
+if (process.env.DATABASE_URL) {
+  try {
+    const PgStore = pgSessionModule(session);
+    sessionStore = new PgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+    });
+    console.log("Using PostgreSQL session store");
+  } catch (error) {
+    console.warn("Failed to create PostgreSQL session store, using memory store:", error);
+  }
+} else {
+  console.log("Using memory session store (no DATABASE_URL)");
+}
 
 app.use(
   session({
-    store: new PgStore({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: true,
-    }),
-    secret: process.env.SESSION_SECRET!,
+    store: sessionStore,
+    secret: process.env.SESSION_SECRET || "darkshare-secret-key-change-in-production",
     resave: false,
     saveUninitialized: false,
     cookie: {

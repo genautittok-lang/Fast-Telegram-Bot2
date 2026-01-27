@@ -33,21 +33,25 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
+    if (!db) throw new Error("Database not available");
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
   async getUserByTgId(tgId: string): Promise<User | undefined> {
+    if (!db) throw new Error("Database not available");
     const [user] = await db.select().from(users).where(eq(users.tgId, tgId));
     return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
+    if (!db) throw new Error("Database not available");
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    if (!db) throw new Error("Database not available");
     const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     return user;
   }
@@ -57,42 +61,51 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserLogin(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
     await db.update(users).set({ lastLogin: new Date() }).where(eq(users.id, id));
   }
 
   async createReport(insertReport: any): Promise<Report> {
+    if (!db) throw new Error("Database not available");
     const [report] = await db.insert(reports).values(insertReport).returning();
     return report;
   }
 
   async getReports(userId: number): Promise<Report[]> {
+    if (!db) throw new Error("Database not available");
     return await db.select().from(reports).where(eq(reports.userId, userId));
   }
 
   async getReportById(id: number): Promise<Report | undefined> {
+    if (!db) throw new Error("Database not available");
     const [report] = await db.select().from(reports).where(eq(reports.id, id));
     return report;
   }
 
   async createWatch(insertWatch: any): Promise<Watch> {
+    if (!db) throw new Error("Database not available");
     const [watch] = await db.insert(watches).values(insertWatch).returning();
     return watch;
   }
 
   async getWatches(userId: number): Promise<Watch[]> {
+    if (!db) throw new Error("Database not available");
     return await db.select().from(watches).where(eq(watches.userId, userId));
   }
 
   async updateWatch(id: number, updates: Partial<Watch>): Promise<Watch> {
+    if (!db) throw new Error("Database not available");
     const [watch] = await db.update(watches).set(updates).where(eq(watches.id, id)).returning();
     return watch;
   }
 
   async deleteWatch(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
     await db.delete(watches).where(eq(watches.id, id));
   }
 
   async getStats(): Promise<{ totalUsers: number, activeWatches: number }> {
+    if (!db) throw new Error("Database not available");
     const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
     const [watchCount] = await db.select({ count: sql<number>`count(*)` }).from(watches).where(eq(watches.alertsOn, true));
     return {
@@ -102,23 +115,182 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPayment(insertPayment: any): Promise<Payment> {
+    if (!db) throw new Error("Database not available");
     const [payment] = await db.insert(payments).values(insertPayment).returning();
     return payment;
   }
 
   async getPaymentById(id: number): Promise<Payment | undefined> {
+    if (!db) throw new Error("Database not available");
     const [payment] = await db.select().from(payments).where(eq(payments.id, id));
     return payment;
   }
 
   async getPendingPayments(): Promise<Payment[]> {
+    if (!db) throw new Error("Database not available");
     return await db.select().from(payments).where(eq(payments.status, "pending"));
   }
 
   async updatePaymentStatus(id: number, status: string): Promise<Payment> {
+    if (!db) throw new Error("Database not available");
     const [payment] = await db.update(payments).set({ status }).where(eq(payments.id, id)).returning();
     return payment;
   }
 }
 
-export const storage = new DatabaseStorage();
+// Memory storage fallback when database is not available
+export class MemStorage implements IStorage {
+  private users: Map<number, User> = new Map();
+  private reports: Map<number, Report> = new Map();
+  private watches: Map<number, Watch> = new Map();
+  private payments: Map<number, Payment> = new Map();
+  private nextId = { user: 1, report: 1, watch: 1, payment: 1 };
+
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getUserByTgId(tgId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.tgId === tgId);
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.nextId.user++;
+    const user: User = {
+      id,
+      tgId: insertUser.tgId,
+      username: insertUser.username || null,
+      lang: insertUser.lang || "uk",
+      tier: insertUser.tier || "FREE",
+      requestsLeft: insertUser.requestsLeft ?? 15,
+      streakDays: insertUser.streakDays ?? 0,
+      refCode: insertUser.refCode || null,
+      discountPct: insertUser.discountPct ?? 0,
+      blocked: insertUser.blocked ?? false,
+      theme: insertUser.theme || "dark",
+      notifsOn: insertUser.notifsOn ?? true,
+      digestsOn: insertUser.digestsOn ?? true,
+      lastLogin: new Date(),
+      createdAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) throw new Error("User not found");
+    const updated = { ...user, ...updates };
+    this.users.set(id, updated);
+    return updated;
+  }
+
+  async updateUserLogin(id: number): Promise<void> {
+    const user = this.users.get(id);
+    if (user) {
+      user.lastLogin = new Date();
+      this.users.set(id, user);
+    }
+  }
+
+  async createReport(insertReport: any): Promise<Report> {
+    const id = this.nextId.report++;
+    const report: Report = {
+      id,
+      userId: insertReport.userId,
+      objectType: insertReport.objectType,
+      dataJson: insertReport.dataJson || {},
+      pdfPath: insertReport.pdfPath || null,
+      generatedAt: new Date(),
+    };
+    this.reports.set(id, report);
+    return report;
+  }
+
+  async getReports(userId: number): Promise<Report[]> {
+    return Array.from(this.reports.values()).filter(r => r.userId === userId);
+  }
+
+  async getReportById(id: number): Promise<Report | undefined> {
+    return this.reports.get(id);
+  }
+
+  async createWatch(insertWatch: any): Promise<Watch> {
+    const id = this.nextId.watch++;
+    const watch: Watch = {
+      id,
+      userId: insertWatch.userId,
+      objectType: insertWatch.objectType,
+      value: insertWatch.value,
+      thresholdsJson: insertWatch.thresholdsJson || {},
+      status: insertWatch.status || "low",
+      lastCheck: null,
+      alertsOn: insertWatch.alertsOn ?? true,
+    };
+    this.watches.set(id, watch);
+    return watch;
+  }
+
+  async getWatches(userId: number): Promise<Watch[]> {
+    return Array.from(this.watches.values()).filter(w => w.userId === userId);
+  }
+
+  async updateWatch(id: number, updates: Partial<Watch>): Promise<Watch> {
+    const watch = this.watches.get(id);
+    if (!watch) throw new Error("Watch not found");
+    const updated = { ...watch, ...updates };
+    this.watches.set(id, updated);
+    return updated;
+  }
+
+  async deleteWatch(id: number): Promise<void> {
+    this.watches.delete(id);
+  }
+
+  async createPayment(insertPayment: any): Promise<Payment> {
+    const id = this.nextId.payment++;
+    const payment: Payment = {
+      id,
+      userId: insertPayment.userId,
+      tier: insertPayment.tier,
+      amountUsdt: insertPayment.amountUsdt,
+      txHash: insertPayment.txHash || null,
+      screenshotUrl: insertPayment.screenshotUrl || null,
+      status: insertPayment.status || "pending",
+      createdAt: new Date(),
+    };
+    this.payments.set(id, payment);
+    return payment;
+  }
+
+  async getPaymentById(id: number): Promise<Payment | undefined> {
+    return this.payments.get(id);
+  }
+
+  async getPendingPayments(): Promise<Payment[]> {
+    return Array.from(this.payments.values()).filter(p => p.status === "pending");
+  }
+
+  async updatePaymentStatus(id: number, status: string): Promise<Payment> {
+    const payment = this.payments.get(id);
+    if (!payment) throw new Error("Payment not found");
+    payment.status = status;
+    this.payments.set(id, payment);
+    return payment;
+  }
+
+  async getStats(): Promise<{ totalUsers: number, activeWatches: number }> {
+    return {
+      totalUsers: this.users.size,
+      activeWatches: Array.from(this.watches.values()).filter(w => w.alertsOn).length,
+    };
+  }
+}
+
+// Export the appropriate storage based on database availability
+export const storage: IStorage = db ? new DatabaseStorage() : new MemStorage();
+console.log(`Using ${db ? "PostgreSQL" : "Memory"} storage`);
