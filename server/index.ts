@@ -139,7 +139,7 @@ if (process.env.DATABASE_URL) {
     const PgStore = pgSessionModule(session);
     sessionStore = new PgStore({
       conString: process.env.DATABASE_URL,
-      createTableIfMissing: true,
+      createTableIfMissing: false, // We create session table manually
     });
     console.log("Using PostgreSQL session store");
   } catch (error) {
