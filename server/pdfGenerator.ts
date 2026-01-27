@@ -43,7 +43,7 @@ export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       size: "A4",
-      margin: 40,
+      margin: 25,
       info: {
         Title: `DARKSHARE Report - ${data.moduleType.toUpperCase()}`,
         Author: "DARKSHARE v4.0",
@@ -59,102 +59,100 @@ export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.on("error", reject);
 
     const pageWidth = doc.page.width;
-    const pageHeight = doc.page.height;
-    const margin = 40;
+    const margin = 25;
     const contentWidth = pageWidth - margin * 2;
 
-    doc.rect(0, 0, pageWidth, 140).fill(COLORS.background);
-    doc.rect(0, 140, pageWidth, 4).fill(COLORS.primary);
+    doc.rect(0, 0, pageWidth, 70).fill(COLORS.background);
+    doc.rect(0, 70, pageWidth, 2).fill(COLORS.primary);
 
-    doc.fillColor(COLORS.text).fontSize(32).font("Helvetica-Bold");
-    doc.text("DARKSHARE", margin, 30);
-    doc.fillColor(COLORS.primary).fontSize(14).font("Helvetica");
-    doc.text("RISK INTELLIGENCE PLATFORM", margin, 65);
-    doc.fillColor(COLORS.textMuted).fontSize(10).font("Helvetica");
-    doc.text("Certified Security Analysis Report", margin, 85);
+    doc.fillColor(COLORS.text).fontSize(24).font("Helvetica-Bold");
+    doc.text("DARKSHARE", margin, 15);
+    doc.fillColor(COLORS.primary).fontSize(8).font("Helvetica");
+    doc.text("RISK INTELLIGENCE PLATFORM", margin, 40);
+    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica");
+    doc.text("Certified Security Analysis Report", margin, 50);
 
     const moduleLabel = getModuleLabel(data.moduleType);
-    doc.roundedRect(pageWidth - margin - 140, 30, 140, 40, 6).fill(COLORS.surface);
-    doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
-    doc.text(moduleLabel.toUpperCase(), pageWidth - margin - 130, 42, { width: 120, align: "center" });
-    doc.fillColor(COLORS.textMuted).fontSize(8).font("Helvetica");
-    doc.text("ANALYSIS MODULE", pageWidth - margin - 130, 58, { width: 120, align: "center" });
+    doc.roundedRect(pageWidth - margin - 90, 15, 90, 26, 4).fill(COLORS.surface);
+    doc.fillColor(COLORS.text).fontSize(7).font("Helvetica-Bold");
+    doc.text(moduleLabel.toUpperCase(), pageWidth - margin - 85, 22, { width: 80, align: "center" });
+    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
+    doc.text("ANALYSIS MODULE", pageWidth - margin - 85, 32, { width: 80, align: "center" });
 
     const reportId = `DS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    doc.fillColor(COLORS.textMuted).fontSize(8).font("Helvetica");
-    doc.text(`Document ID: ${reportId}`, pageWidth - margin - 140, 90, { width: 140, align: "right" });
-    doc.text(`Classification: CONFIDENTIAL`, pageWidth - margin - 140, 102, { width: 140, align: "right" });
+    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
+    doc.text(`ID: ${reportId}`, pageWidth - margin - 90, 48, { width: 90, align: "right" });
+    doc.text(`CONFIDENTIAL`, pageWidth - margin - 90, 56, { width: 90, align: "right" });
 
-    let yPosition = 165;
+    let yPosition = 82;
 
-    doc.roundedRect(margin, yPosition, contentWidth, 90, 8).fill(COLORS.surface);
-    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica-Bold");
-    doc.text("SUBJECT OF ANALYSIS", margin + 20, yPosition + 15);
-    doc.fillColor(COLORS.text).fontSize(16).font("Helvetica-Bold");
-    const displayTarget = data.targetValue.length > 45 
-      ? data.targetValue.substring(0, 42) + "..." 
+    doc.roundedRect(margin, yPosition, contentWidth, 40, 4).fill(COLORS.surface);
+    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica-Bold");
+    doc.text("SUBJECT OF ANALYSIS", margin + 10, yPosition + 6);
+    doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
+    const displayTarget = data.targetValue.length > 60 
+      ? data.targetValue.substring(0, 57) + "..." 
       : data.targetValue;
-    doc.text(displayTarget, margin + 20, yPosition + 35);
+    doc.text(displayTarget, margin + 10, yPosition + 16);
 
-    doc.fillColor(COLORS.textMuted).fontSize(8).font("Helvetica");
-    doc.text("ANALYSIS DATE & TIME", margin + 20, yPosition + 60);
-    doc.fillColor(COLORS.text).fontSize(10).font("Helvetica");
+    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
+    doc.text("DATE", margin + 10, yPosition + 30);
+    doc.fillColor(COLORS.text).fontSize(7).font("Helvetica");
     const dateStr = data.timestamp.toLocaleDateString('uk-UA', { 
       year: 'numeric', 
-      month: 'long', 
+      month: 'short', 
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
-    doc.text(dateStr, margin + 20, yPosition + 72);
+    doc.text(dateStr, margin + 35, yPosition + 30);
 
-    yPosition += 110;
+    yPosition += 50;
 
-    doc.roundedRect(margin, yPosition, contentWidth * 0.45, 120, 8).fill(COLORS.surface);
-    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica-Bold");
-    doc.text("RISK ASSESSMENT", margin + 20, yPosition + 15);
+    doc.roundedRect(margin, yPosition, contentWidth * 0.40, 80, 4).fill(COLORS.surface);
+    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica-Bold");
+    doc.text("RISK ASSESSMENT", margin + 10, yPosition + 6);
 
-    const circleX = margin + 60;
-    const circleY = yPosition + 70;
+    const circleX = margin + 35;
+    const circleY = yPosition + 45;
     const riskColor = RISK_COLORS[data.riskLevel];
     
-    doc.circle(circleX, circleY, 35).lineWidth(5).stroke(riskColor);
-    doc.circle(circleX, circleY, 28).fill(COLORS.background);
-    doc.fillColor(riskColor).fontSize(28).font("Helvetica-Bold");
-    doc.text(data.riskScore.toString(), circleX - 20, circleY - 12, { width: 40, align: "center" });
+    doc.circle(circleX, circleY, 20).lineWidth(3).stroke(riskColor);
+    doc.circle(circleX, circleY, 15).fill(COLORS.background);
+    doc.fillColor(riskColor).fontSize(16).font("Helvetica-Bold");
+    doc.text(data.riskScore.toString(), circleX - 10, circleY - 6, { width: 20, align: "center" });
 
-    doc.fillColor(riskColor).fontSize(18).font("Helvetica-Bold");
-    doc.text(data.riskLevel.toUpperCase(), margin + 120, yPosition + 50);
-    doc.fillColor(COLORS.textMuted).fontSize(10).font("Helvetica");
-    doc.text("Risk Classification Level", margin + 120, yPosition + 72);
+    doc.fillColor(riskColor).fontSize(11).font("Helvetica-Bold");
+    doc.text(data.riskLevel.toUpperCase(), margin + 65, yPosition + 30);
+    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica");
+    doc.text("Risk Level", margin + 65, yPosition + 42);
     
-    const riskBar = (data.riskScore / 100) * 100;
-    doc.roundedRect(margin + 120, yPosition + 90, 100, 8, 4).fill(COLORS.border);
-    doc.roundedRect(margin + 120, yPosition + 90, riskBar, 8, 4).fill(riskColor);
+    const riskBar = (data.riskScore / 100) * 60;
+    doc.roundedRect(margin + 65, yPosition + 55, 60, 4, 2).fill(COLORS.border);
+    doc.roundedRect(margin + 65, yPosition + 55, riskBar, 4, 2).fill(riskColor);
 
-    const verdictX = margin + contentWidth * 0.48;
-    doc.roundedRect(verdictX, yPosition, contentWidth * 0.52, 120, 8).fill(COLORS.surface);
-    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica-Bold");
-    doc.text("EXPERT VERDICT", verdictX + 20, yPosition + 15);
+    const verdictX = margin + contentWidth * 0.42;
+    doc.roundedRect(verdictX, yPosition, contentWidth * 0.58, 80, 4).fill(COLORS.surface);
+    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica-Bold");
+    doc.text("EXPERT VERDICT", verdictX + 10, yPosition + 6);
 
     const verdict = getVerdict(data.riskLevel, data.riskScore);
-    doc.fillColor(COLORS.text).fontSize(13).font("Helvetica-Bold");
-    doc.text(verdict.title, verdictX + 20, yPosition + 35, { width: contentWidth * 0.52 - 40 });
-    doc.fillColor(COLORS.textMuted).fontSize(10).font("Helvetica");
-    doc.text(verdict.description, verdictX + 20, yPosition + 58, { width: contentWidth * 0.52 - 40 });
+    doc.fillColor(COLORS.text).fontSize(9).font("Helvetica-Bold");
+    doc.text(verdict.title, verdictX + 10, yPosition + 18, { width: contentWidth * 0.58 - 20 });
+    doc.fillColor(COLORS.textMuted).fontSize(7).font("Helvetica");
+    doc.text(verdict.description, verdictX + 10, yPosition + 32, { width: contentWidth * 0.58 - 20 });
 
-    yPosition += 140;
+    yPosition += 90;
 
-    doc.fillColor(COLORS.text).fontSize(14).font("Helvetica-Bold");
-    doc.text("DETAILED FINDINGS", margin, yPosition);
-    yPosition += 25;
+    doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
+    doc.text("FINDINGS", margin, yPosition);
+    yPosition += 12;
 
-    for (const finding of data.findings) {
-      if (yPosition > pageHeight - 180) {
-        doc.addPage();
-        yPosition = margin;
-      }
+    const findingsToShow = data.findings.slice(0, 5);
+    doc.roundedRect(margin, yPosition, contentWidth, findingsToShow.length * 12 + 8, 4).fill(COLORS.surface);
+    yPosition += 5;
 
+    for (const finding of findingsToShow) {
       const findingColor = {
         info: COLORS.info,
         warning: COLORS.warning,
@@ -162,102 +160,94 @@ export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
         success: COLORS.success,
       }[finding.type];
 
-      doc.roundedRect(margin, yPosition, contentWidth, 55, 6).fill(COLORS.surface);
-      doc.rect(margin, yPosition, 5, 55).fill(findingColor);
-
-      const icon = { info: "[i]", warning: "[!]", danger: "[X]", success: "[OK]" }[finding.type];
-      doc.fillColor(findingColor).fontSize(11).font("Helvetica-Bold");
-      doc.text(`${icon} ${finding.title}`, margin + 20, yPosition + 12);
-      doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
-      doc.text(finding.description, margin + 20, yPosition + 30, { width: contentWidth - 40 });
-
-      yPosition += 65;
+      const icon = { info: "●", warning: "▲", danger: "✕", success: "✓" }[finding.type];
+      doc.fillColor(findingColor).fontSize(8).font("Helvetica-Bold");
+      doc.text(`${icon}`, margin + 8, yPosition + 1);
+      doc.fillColor(COLORS.text).fontSize(8).font("Helvetica");
+      doc.text(finding.title, margin + 20, yPosition + 1, { width: contentWidth - 30 });
+      yPosition += 12;
     }
 
-    yPosition += 15;
+    yPosition += 10;
 
     if (data.metadata && Object.keys(data.metadata).length > 0) {
-      if (yPosition > pageHeight - 180) {
-        doc.addPage();
-        yPosition = margin;
-      }
-
-      doc.fillColor(COLORS.text).fontSize(14).font("Helvetica-Bold");
-      doc.text("TECHNICAL METADATA", margin, yPosition);
-      yPosition += 25;
-
-      const metaHeight = Object.keys(data.metadata).length * 24 + 20;
-      doc.roundedRect(margin, yPosition, contentWidth, metaHeight, 6).fill(COLORS.surface);
+      doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
+      doc.text("METADATA", margin, yPosition);
       yPosition += 12;
 
-      for (const [key, value] of Object.entries(data.metadata)) {
-        doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
-        doc.text(key, margin + 20, yPosition + 3);
-        doc.fillColor(COLORS.text).fontSize(10).font("Helvetica-Bold");
-        doc.text(String(value), margin + 180, yPosition + 3);
-        yPosition += 24;
+      const metaEntries = Object.entries(data.metadata).slice(0, 6);
+      const rows = Math.ceil(metaEntries.length / 2);
+      const metaHeight = rows * 14 + 8;
+      doc.roundedRect(margin, yPosition, contentWidth, metaHeight, 4).fill(COLORS.surface);
+      
+      const colWidth = (contentWidth - 20) / 2;
+      let col = 0;
+      let row = 0;
+      
+      for (const [key, value] of metaEntries) {
+        const xPos = margin + 10 + (col * colWidth);
+        const yPos = yPosition + 6 + (row * 14);
+        
+        doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica");
+        doc.text(key, xPos, yPos);
+        doc.fillColor(COLORS.text).fontSize(7).font("Helvetica-Bold");
+        doc.text(String(value), xPos + 70, yPos);
+        
+        col++;
+        if (col >= 2) {
+          col = 0;
+          row++;
+        }
       }
 
-      yPosition += 20;
+      yPosition += metaHeight + 10;
     }
 
-    if (yPosition > pageHeight - 200) {
-      doc.addPage();
-      yPosition = margin;
-    }
+    doc.fillColor(COLORS.text).fontSize(9).font("Helvetica-Bold");
+    doc.text("SOURCES", margin, yPosition);
+    yPosition += 10;
+    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica");
+    doc.text(data.sources.join(" | "), margin, yPosition, { width: contentWidth * 0.55 });
 
-    doc.fillColor(COLORS.text).fontSize(14).font("Helvetica-Bold");
-    doc.text("DATA SOURCES", margin, yPosition);
-    yPosition += 20;
-    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
-    doc.text(data.sources.join("  |  "), margin, yPosition, { width: contentWidth });
-
-    yPosition += 40;
-
-    const stampX = pageWidth - margin - 120;
-    const stampY = Math.min(yPosition, pageHeight - 180);
+    const stampX = pageWidth - margin - 50;
+    const stampY = yPosition + 10;
     
     doc.save();
-    doc.circle(stampX, stampY, 50).lineWidth(3).stroke(COLORS.primary);
-    doc.circle(stampX, stampY, 42).lineWidth(1.5).stroke(COLORS.primary);
-    doc.circle(stampX, stampY, 38).lineWidth(0.5).stroke(COLORS.primary);
+    doc.circle(stampX, stampY, 40).lineWidth(2).stroke(COLORS.primary);
+    doc.circle(stampX, stampY, 34).lineWidth(1).stroke(COLORS.primary);
+    doc.circle(stampX, stampY, 31).lineWidth(0.5).stroke(COLORS.primary);
     
-    doc.fillColor(COLORS.primary).fontSize(7).font("Helvetica-Bold");
-    doc.text("DARKSHARE INTERNATIONAL", stampX - 35, stampY - 38, { 
-      width: 70, 
-      align: "center" 
-    });
+    doc.fillColor(COLORS.primary).fontSize(5).font("Helvetica-Bold");
+    doc.text("DARKSHARE INTERNATIONAL", stampX - 26, stampY - 26, { width: 52, align: "center" });
     
-    doc.fillColor(COLORS.primary).fontSize(16).font("Helvetica-Bold");
-    doc.text("VERIFIED", stampX - 30, stampY - 8, { width: 60, align: "center" });
+    doc.fillColor(COLORS.primary).fontSize(11).font("Helvetica-Bold");
+    doc.text("VERIFIED", stampX - 22, stampY - 5, { width: 44, align: "center" });
     
-    doc.fillColor(COLORS.primary).fontSize(6).font("Helvetica");
-    doc.text("SECURITY ANALYSIS", stampX - 30, stampY + 10, { width: 60, align: "center" });
+    doc.fillColor(COLORS.primary).fontSize(4).font("Helvetica");
+    doc.text("SECURITY ANALYSIS", stampX - 22, stampY + 7, { width: 44, align: "center" });
     
     const certDate = data.timestamp.toLocaleDateString('en-GB');
-    doc.fillColor(COLORS.primary).fontSize(7).font("Helvetica-Bold");
-    doc.text(certDate, stampX - 25, stampY + 28, { width: 50, align: "center" });
+    doc.fillColor(COLORS.primary).fontSize(5).font("Helvetica-Bold");
+    doc.text(certDate, stampX - 18, stampY + 18, { width: 36, align: "center" });
     
     doc.restore();
 
-    const signY = stampY + 70;
-    doc.moveTo(margin, signY).lineTo(margin + 150, signY).lineWidth(1).stroke(COLORS.border);
-    doc.fillColor(COLORS.textMuted).fontSize(8).font("Helvetica");
-    doc.text("Authorized Signature", margin, signY + 5);
-    doc.fillColor(COLORS.text).fontSize(10).font("Helvetica-Bold");
-    doc.text("DARKSHARE Security Team", margin, signY + 18);
+    yPosition += 55;
 
-    const footerY = pageHeight - 50;
-    doc.rect(0, footerY - 10, pageWidth, 60).fill(COLORS.background);
+    doc.moveTo(margin, yPosition).lineTo(margin + 90, yPosition).lineWidth(0.5).stroke(COLORS.border);
+    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
+    doc.text("Authorized Signature", margin, yPosition + 2);
+    doc.fillColor(COLORS.text).fontSize(7).font("Helvetica-Bold");
+    doc.text("DARKSHARE Security Team", margin, yPosition + 10);
 
-    doc.fillColor(COLORS.textMuted).fontSize(7).font("Helvetica");
-    doc.text("CONFIDENTIAL - This document contains proprietary security analysis data.", margin, footerY);
-    doc.text("Unauthorized distribution or reproduction is strictly prohibited.", margin, footerY + 10);
+    const footerY = doc.page.height - 30;
+    doc.rect(0, footerY - 3, pageWidth, 35).fill(COLORS.background);
 
-    const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 24);
-    doc.text(`Verification Hash: ${hash}`, pageWidth - margin - 180, footerY, { width: 180, align: "right" });
-    doc.text(`Generated by DARKSHARE v4.0`, pageWidth - margin - 180, footerY + 10, { width: 180, align: "right" });
-    doc.text(`Copyright ${new Date().getFullYear()} DARKSHARE INT. All Rights Reserved.`, pageWidth - margin - 180, footerY + 20, { width: 180, align: "right" });
+    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
+    doc.text("CONFIDENTIAL - Unauthorized distribution prohibited.", margin, footerY);
+
+    const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 16);
+    doc.text(`Hash: ${hash} | DARKSHARE v4.0 | © ${new Date().getFullYear()}`, pageWidth - margin - 140, footerY, { width: 140, align: "right" });
 
     doc.end();
   });
@@ -267,7 +257,7 @@ function getModuleLabel(moduleType: string): string {
   const labels: Record<string, string> = {
     ip: "IP/GEO Analysis",
     wallet: "Blockchain Scan",
-    phone: "Phone Intelligence",
+    phone: "Phone Intel",
     email: "Email Security",
     domain: "Domain Intel",
     url: "URL Risk Scan",
@@ -282,24 +272,24 @@ function getVerdict(level: string, score: number): { title: string; description:
   if (level === "critical" || score >= 80) {
     return {
       title: "HIGH RISK - Immediate Action Required",
-      description: "Multiple serious risk indicators detected. Do not proceed with transactions involving this target without additional verification.",
+      description: "Multiple serious risk indicators detected. Do not proceed without verification.",
     };
   }
   if (level === "high" || score >= 60) {
     return {
       title: "ELEVATED RISK - Proceed with Caution",
-      description: "Concerning indicators found. Additional verification strongly recommended before any engagement.",
+      description: "Concerning indicators found. Additional verification recommended.",
     };
   }
   if (level === "medium" || score >= 30) {
     return {
       title: "MODERATE RISK - Standard Precautions",
-      description: "Minor risk indicators present. Apply standard due diligence procedures before proceeding.",
+      description: "Minor risk indicators present. Apply standard due diligence.",
     };
   }
   return {
     title: "LOW RISK - Generally Safe",
-    description: "No significant risk indicators detected. Standard verification still recommended as best practice.",
+    description: "No significant risk indicators. Standard verification recommended.",
   };
 }
 
@@ -354,37 +344,37 @@ export function generateMetadata(moduleType: string): Record<string, string | nu
       "Analysis Duration": "2.3s",
       "Databases Checked": 12,
       "API Integrations": 5,
-      "Last Database Update": new Date().toISOString().split("T")[0],
+      "Last DB Update": new Date().toISOString().split("T")[0],
     },
     wallet: {
-      "Blockchain": "Ethereum Mainnet",
-      "Transactions Analyzed": Math.floor(Math.random() * 500) + 50,
+      "Blockchain": "Ethereum",
+      "TX Analyzed": Math.floor(Math.random() * 500) + 50,
       "First Activity": "2021-03-15",
       "Last Activity": new Date().toISOString().split("T")[0],
     },
     phone: {
       "Carrier Type": "Mobile",
       "Country Code": "+380",
-      "Databases Checked": 8,
-      "Risk Signals Found": Math.floor(Math.random() * 5),
+      "DBs Checked": 8,
+      "Risk Signals": Math.floor(Math.random() * 5),
     },
     email: {
       "MX Records": "Valid",
-      "Breach Databases": 15,
+      "Breach DBs": 15,
       "Account Age": "2+ years",
-      "Disposable Status": "No",
+      "Disposable": "No",
     },
     domain: {
       "Domain Age": "5 years",
-      "Registrar": "Cloudflare Inc.",
-      "SSL Issuer": "Let's Encrypt Authority",
+      "Registrar": "Cloudflare",
+      "SSL Issuer": "Let's Encrypt",
       "DNS Records": 12,
     },
     url: {
       "Response Code": 200,
-      "Redirects Found": Math.floor(Math.random() * 3),
+      "Redirects": Math.floor(Math.random() * 3),
       "Content Type": "text/html",
-      "Scan Engines Used": 70,
+      "Scan Engines": 70,
     },
   };
 

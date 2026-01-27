@@ -414,17 +414,17 @@ export default function Dashboard() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="w-full justify-start text-muted-foreground hover:text-white hover:bg-white/5 transition-all duration-300"
+              className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
               onClick={() => {
                 toast({
-                  title: "Поповнення балансу",
-                  description: "Скористайтесь Telegram ботом @DARKSHAREN1_BOT",
+                  title: "Підписка",
+                  description: "Оформіть підписку через Telegram бот @DARKSHAREN1_BOT",
                 });
               }}
-              data-testid="button-topup"
+              data-testid="button-subscription"
             >
-              <CreditCard className="w-4 h-4 mr-2" />
-              Поповнити
+              <Crown className="w-4 h-4 mr-2" />
+              Підписка
             </Button>
             <Button 
               variant="ghost" 

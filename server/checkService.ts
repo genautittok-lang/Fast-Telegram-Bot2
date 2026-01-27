@@ -39,21 +39,29 @@ export function validateInput(type: string, value: string): { valid: boolean; er
       }
       break;
     case "wallet":
-      // Accept various crypto wallet formats:
+      // Accept various crypto wallet/exchange formats:
       // - Ethereum (0x...) 40+ chars
       // - Bitcoin legacy (1...) 26-35 chars
       // - Bitcoin SegWit (3...) 26-35 chars
       // - Bitcoin Bech32 (bc1...) 42+ chars
       // - Tron (T...) 34 chars
       // - Solana (base58) 32-44 chars
+      // - Bybit/Binance UID (numbers only) 6-12 chars
+      // - Litecoin (L..., M..., ltc1...) 26-43 chars
+      // - Ripple (r...) 25-35 chars
+      // - Dogecoin (D...) 26-34 chars
       const isEth = cleanValue.startsWith("0x") && cleanValue.length >= 40;
       const isBtcLegacy = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(cleanValue);
       const isBtcBech32 = cleanValue.startsWith("bc1") && cleanValue.length >= 40;
       const isTron = cleanValue.startsWith("T") && cleanValue.length === 34;
       const isSolana = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(cleanValue);
+      const isExchangeUID = /^\d{6,12}$/.test(cleanValue); // Bybit, Binance UID
+      const isLitecoin = /^[LM][a-km-zA-HJ-NP-Z1-9]{25,33}$/.test(cleanValue) || (cleanValue.startsWith("ltc1") && cleanValue.length >= 40);
+      const isRipple = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(cleanValue);
+      const isDogecoin = /^D[5-9A-HJ-NP-U][1-9A-HJ-NP-Za-km-z]{24,32}$/.test(cleanValue);
       
-      if (!isEth && !isBtcLegacy && !isBtcBech32 && !isTron && !isSolana) {
-        return { valid: false, error: "Невірний формат гаманця. Підтримуються: ETH, BTC, TRX, SOL" };
+      if (!isEth && !isBtcLegacy && !isBtcBech32 && !isTron && !isSolana && !isExchangeUID && !isLitecoin && !isRipple && !isDogecoin) {
+        return { valid: false, error: "Невірний формат. Підтримуються: ETH, BTC, TRX, SOL, LTC, XRP, DOGE, Bybit/Binance UID" };
       }
       break;
     case "email":
