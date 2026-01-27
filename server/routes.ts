@@ -345,16 +345,20 @@ export async function registerRoutes(
       console.error("Failed to setup bot:", err);
   }
 
-  // Seed data if needed
-  const stats = await storage.getStats();
-  if (stats.totalUsers === 0) {
-      console.log("Seeding initial data...");
-      await storage.createUser({
-          tgId: "123456789",
-          username: "admin_demo",
-          lang: "UA",
-          tier: "PREMIUM"
-      });
+  // Seed data if needed - wrapped in try/catch for first run without tables
+  try {
+    const stats = await storage.getStats();
+    if (stats.totalUsers === 0) {
+        console.log("Seeding initial data...");
+        await storage.createUser({
+            tgId: "123456789",
+            username: "admin_demo",
+            lang: "UA",
+            tier: "PREMIUM"
+        });
+    }
+  } catch (err) {
+    console.log("Database tables not ready yet - skipping seed (run db:push to create tables)");
   }
 
   return httpServer;

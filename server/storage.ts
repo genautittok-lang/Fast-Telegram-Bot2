@@ -106,12 +106,18 @@ export class DatabaseStorage implements IStorage {
 
   async getStats(): Promise<{ totalUsers: number, activeWatches: number }> {
     if (!db) throw new Error("Database not available");
-    const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
-    const [watchCount] = await db.select({ count: sql<number>`count(*)` }).from(watches).where(eq(watches.alertsOn, true));
-    return {
-      totalUsers: Number(userCount?.count || 0),
-      activeWatches: Number(watchCount?.count || 0),
-    };
+    try {
+      const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      const [watchCount] = await db.select({ count: sql<number>`count(*)` }).from(watches).where(eq(watches.alertsOn, true));
+      return {
+        totalUsers: Number(userCount?.count || 0),
+        activeWatches: Number(watchCount?.count || 0),
+      };
+    } catch (err) {
+      // Tables may not exist yet
+      console.warn("Database tables not ready:", (err as Error).message);
+      return { totalUsers: 0, activeWatches: 0 };
+    }
   }
 
   async createPayment(insertPayment: any): Promise<Payment> {

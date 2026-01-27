@@ -15,7 +15,11 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --only=production
+COPY drizzle.config.ts ./
+COPY shared ./shared
+
+# Install all dependencies (need drizzle-kit for migrations)
+RUN npm ci
 
 COPY --from=builder /app/dist ./dist
 
@@ -24,4 +28,5 @@ EXPOSE 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 
-CMD ["npm", "start"]
+# Run migrations then start the app
+CMD ["sh", "-c", "npm run db:push && node dist/index.cjs"]
