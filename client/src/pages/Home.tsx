@@ -33,18 +33,21 @@ import { translations } from "@/lib/i18n";
 
 export default function Home() {
   const [lang, setLang] = useState<"UA" | "RU" | "EN">("UA");
+  const [langSelected, setLangSelected] = useState(false);
   const t = translations[lang as keyof typeof translations];
 
   useEffect(() => {
     const savedLang = localStorage.getItem("lang") as keyof typeof translations;
     if (savedLang && translations[savedLang]) {
       setLang(savedLang);
+      setLangSelected(true);
     }
   }, []);
 
   const toggleLang = (newLang: "UA" | "RU" | "EN") => {
     setLang(newLang);
     localStorage.setItem("lang", newLang);
+    setLangSelected(true);
   };
   
   const { data: stats } = useStats();
@@ -99,17 +102,19 @@ export default function Home() {
             <span className="font-display font-bold text-sm sm:text-lg md:text-2xl tracking-tighter text-white truncate">DARKSHARE <span className="text-primary">v4.0</span></span>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-            <div className="flex bg-white/5 rounded-lg p-0.5 sm:p-1 border border-white/10">
-              {(["UA", "RU", "EN"] as const).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => toggleLang(l)}
-                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold rounded ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
+            {!langSelected && (
+              <div className="flex bg-white/5 rounded-lg p-0.5 sm:p-1 border border-white/10">
+                {(["UA", "RU", "EN"] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => toggleLang(l)}
+                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold rounded ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            )}
             <StatusBadge status="online" />
             <span className="text-xs text-muted-foreground font-mono hidden sm:block">
               Uptime: {stats?.uptime?.toFixed(1) || '99.9'}%
