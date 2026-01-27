@@ -8,21 +8,21 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-// Auto-run database migrations on startup - v2
-async function runDatabaseMigrations() {
+// Run database migrations in background (don't block server startup)
+function runDatabaseMigrationsInBackground() {
   if (!process.env.DATABASE_URL) {
     console.log("No DATABASE_URL - skipping migrations");
     return;
   }
-  try {
-    console.log("Running database migrations...");
-    const { stdout, stderr } = await execAsync("npx drizzle-kit push --force");
-    if (stdout) console.log("Migration output:", stdout);
-    if (stderr) console.log("Migration stderr:", stderr);
-    console.log("Database migrations completed successfully");
-  } catch (error: any) {
-    console.warn("Database migration warning:", error.message);
-  }
+  console.log("Starting database migrations in background...");
+  execAsync("npx drizzle-kit push --force")
+    .then(({ stdout, stderr }) => {
+      if (stdout) console.log("Migration output:", stdout);
+      console.log("Database migrations completed successfully");
+    })
+    .catch((error: any) => {
+      console.warn("Database migration warning:", error.message);
+    });
 }
 
 const app = express();
@@ -116,8 +116,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Run database migrations first
-  await runDatabaseMigrations();
+  // Run database migrations in background (don't block startup)
+  runDatabaseMigrationsInBackground();
   
   await registerRoutes(httpServer, app);
 
