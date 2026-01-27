@@ -8,7 +8,7 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-// Auto-run database migrations on startup
+// Auto-run database migrations on startup - v2
 async function runDatabaseMigrations() {
   if (!process.env.DATABASE_URL) {
     console.log("No DATABASE_URL - skipping migrations");
