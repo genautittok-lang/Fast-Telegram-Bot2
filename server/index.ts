@@ -8,21 +8,91 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-// Run database migrations in background (don't block server startup)
-function runDatabaseMigrationsInBackground() {
+// Create tables directly via SQL (more reliable than drizzle-kit on Railway)
+async function ensureTablesExist() {
   if (!process.env.DATABASE_URL) {
-    console.log("No DATABASE_URL - skipping migrations");
+    console.log("No DATABASE_URL - skipping table creation");
     return;
   }
-  console.log("Starting database migrations in background...");
-  execAsync("npx drizzle-kit push --force")
-    .then(({ stdout, stderr }) => {
-      if (stdout) console.log("Migration output:", stdout);
-      console.log("Database migrations completed successfully");
-    })
-    .catch((error: any) => {
-      console.warn("Database migration warning:", error.message);
-    });
+  
+  const { Pool } = await import("pg");
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  
+  try {
+    console.log("Ensuring database tables exist...");
+    
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        tg_id TEXT NOT NULL UNIQUE,
+        username TEXT,
+        lang TEXT DEFAULT 'uk',
+        tier TEXT DEFAULT 'FREE',
+        requests_left INTEGER DEFAULT 15,
+        streak_days INTEGER DEFAULT 0,
+        ref_code TEXT UNIQUE,
+        discount_pct INTEGER DEFAULT 0,
+        blocked BOOLEAN DEFAULT false,
+        theme TEXT DEFAULT 'dark',
+        notifs_on BOOLEAN DEFAULT true,
+        digests_on BOOLEAN DEFAULT true,
+        last_login TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      
+      CREATE TABLE IF NOT EXISTS reports (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        object_type TEXT NOT NULL,
+        data_json JSONB,
+        pdf_path TEXT,
+        generated_at TIMESTAMP DEFAULT NOW()
+      );
+      
+      CREATE TABLE IF NOT EXISTS watches (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        object_type TEXT NOT NULL,
+        value TEXT NOT NULL,
+        thresholds_json JSONB,
+        status TEXT DEFAULT 'low',
+        last_check TIMESTAMP,
+        alerts_on BOOLEAN DEFAULT true
+      );
+      
+      CREATE TABLE IF NOT EXISTS payments (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        tier TEXT NOT NULL,
+        amount_usdt DECIMAL NOT NULL,
+        tx_hash TEXT,
+        screenshot_url TEXT,
+        status TEXT DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      
+      CREATE TABLE IF NOT EXISTS referrals (
+        id SERIAL PRIMARY KEY,
+        referrer_id INTEGER REFERENCES users(id),
+        referred_id INTEGER REFERENCES users(id),
+        paid BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      
+      CREATE TABLE IF NOT EXISTS achievements (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        type TEXT NOT NULL,
+        unlocked_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    
+    console.log("Database tables ready!");
+  } catch (error: any) {
+    console.error("Error creating tables:", error.message);
+  } finally {
+    await pool.end();
+  }
 }
 
 const app = express();
@@ -116,8 +186,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Run database migrations in background (don't block startup)
-  runDatabaseMigrationsInBackground();
+  // Create tables before starting server
+  await ensureTablesExist();
   
   await registerRoutes(httpServer, app);
 
