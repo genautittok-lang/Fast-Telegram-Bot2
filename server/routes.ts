@@ -29,6 +29,20 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
+  // Health check endpoint for Railway
+  app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+  
+  app.get("/", (req, res, next) => {
+    // If it's an API call or accepts HTML, let it through to frontend
+    if (req.accepts("html")) {
+      next();
+    } else {
+      res.status(200).json({ status: "ok", service: "DARKSHARE API" });
+    }
+  });
+
   // API Routes for the landing page
   app.get(api.stats.get.path, async (req, res) => {
     const uptime = Math.floor((Date.now() - serverStartTime) / 1000);
