@@ -3,6 +3,27 @@ import session from "express-session";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+// Auto-run database migrations on startup
+async function runDatabaseMigrations() {
+  if (!process.env.DATABASE_URL) {
+    console.log("No DATABASE_URL - skipping migrations");
+    return;
+  }
+  try {
+    console.log("Running database migrations...");
+    const { stdout, stderr } = await execAsync("npx drizzle-kit push --force");
+    if (stdout) console.log("Migration output:", stdout);
+    if (stderr) console.log("Migration stderr:", stderr);
+    console.log("Database migrations completed successfully");
+  } catch (error: any) {
+    console.warn("Database migration warning:", error.message);
+  }
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -95,6 +116,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Run database migrations first
+  await runDatabaseMigrations();
+  
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

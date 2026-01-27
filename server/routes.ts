@@ -135,17 +135,23 @@ export async function registerRoutes(
       return res.status(400).json({ error: "Missing Telegram ID" });
     }
 
-    let user = await storage.getUserByTgId(tgId);
-    
-    if (!user) {
-      user = await storage.createUser({
-        tgId,
-        username,
-        lang: "UA",
-        tier: "FREE",
-      });
-    } else {
-      await storage.updateUserLogin(user.id);
+    let user;
+    try {
+      user = await storage.getUserByTgId(tgId);
+      
+      if (!user) {
+        user = await storage.createUser({
+          tgId,
+          username,
+          lang: "UA",
+          tier: "FREE",
+        });
+      } else {
+        await storage.updateUserLogin(user.id);
+      }
+    } catch (dbError: any) {
+      console.error("Database error during auth:", dbError.message);
+      return res.status(500).json({ error: "Database not ready. Please try again in a moment." });
     }
 
     const finalUser = user;
