@@ -11,30 +11,36 @@ import {
   Building,
   Search,
   AlertTriangle,
-  CheckCircle,
   Clock,
   FileText,
   ChevronRight,
   Loader2,
-  ArrowLeft,
   Download,
   Eye,
-  X,
   LogOut,
   User,
   CreditCard,
   Zap,
-  Crown
+  Crown,
+  Home,
+  History,
+  Activity,
+  AlertCircle,
+  ShieldAlert,
+  ShieldCheck,
+  Terminal,
+  Scan,
+  Database,
+  Radio
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface CheckResult {
   type: string;
@@ -49,13 +55,140 @@ interface CheckResult {
 }
 
 const checkTypes = [
-  { id: "ip", label: "IP/GEO", icon: Globe, placeholder: "8.8.8.8", description: "Перевірка IP адреси" },
-  { id: "wallet", label: "Wallet", icon: Wallet, placeholder: "0x1234...abcd", description: "Аналіз криптогаманця" },
-  { id: "email", label: "Email", icon: Mail, placeholder: "user@example.com", description: "Перевірка email на витоки" },
-  { id: "phone", label: "Phone", icon: Phone, placeholder: "+380501234567", description: "Аналіз номера телефону" },
-  { id: "domain", label: "Domain", icon: Building, placeholder: "example.com", description: "Перевірка домену" },
-  { id: "url", label: "URL", icon: Link2, placeholder: "https://example.com/path", description: "Аналіз посилання" },
+  { 
+    id: "ip", 
+    label: "IP/GEO", 
+    icon: Globe, 
+    placeholder: "8.8.8.8", 
+    description: "Геолокація, провайдер, чорні списки",
+    gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
+    iconColor: "text-blue-400",
+    borderColor: "border-blue-500/30 hover:border-blue-400/50"
+  },
+  { 
+    id: "wallet", 
+    label: "Crypto Wallet", 
+    icon: Wallet, 
+    placeholder: "0x1234...abcd", 
+    description: "Транзакції, mixers, санкції",
+    gradient: "from-orange-500/20 via-yellow-500/10 to-transparent",
+    iconColor: "text-orange-400",
+    borderColor: "border-orange-500/30 hover:border-orange-400/50"
+  },
+  { 
+    id: "email", 
+    label: "Email OSINT", 
+    icon: Mail, 
+    placeholder: "user@example.com", 
+    description: "Витоки даних, пов'язані акаунти",
+    gradient: "from-purple-500/20 via-pink-500/10 to-transparent",
+    iconColor: "text-purple-400",
+    borderColor: "border-purple-500/30 hover:border-purple-400/50"
+  },
+  { 
+    id: "phone", 
+    label: "Phone Lookup", 
+    icon: Phone, 
+    placeholder: "+380501234567", 
+    description: "Оператор, регіон, спам-рейтинг",
+    gradient: "from-green-500/20 via-emerald-500/10 to-transparent",
+    iconColor: "text-green-400",
+    borderColor: "border-green-500/30 hover:border-green-400/50"
+  },
+  { 
+    id: "domain", 
+    label: "Domain Intel", 
+    icon: Building, 
+    placeholder: "example.com", 
+    description: "WHOIS, DNS, репутація",
+    gradient: "from-indigo-500/20 via-violet-500/10 to-transparent",
+    iconColor: "text-indigo-400",
+    borderColor: "border-indigo-500/30 hover:border-indigo-400/50"
+  },
+  { 
+    id: "url", 
+    label: "URL Scanner", 
+    icon: Link2, 
+    placeholder: "https://example.com/path", 
+    description: "Malware, фішинг, редиректи",
+    gradient: "from-red-500/20 via-rose-500/10 to-transparent",
+    iconColor: "text-red-400",
+    borderColor: "border-red-500/30 hover:border-red-400/50"
+  },
 ];
+
+const navItems = [
+  { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
+  { id: "history", label: "Історія", icon: History, href: "/history" },
+  { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
+];
+
+function TierBadge({ tier }: { tier: string }) {
+  const config = {
+    FREE: { 
+      icon: Zap, 
+      className: "bg-zinc-800 text-zinc-300 border-zinc-700",
+      glow: ""
+    },
+    PRO: { 
+      icon: Crown, 
+      className: "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-blue-400/50",
+      glow: "shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+    },
+    ELITE: { 
+      icon: ShieldAlert, 
+      className: "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-purple-400/50",
+      glow: "shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+    },
+  };
+  
+  const { icon: Icon, className, glow } = config[tier as keyof typeof config] || config.FREE;
+  
+  return (
+    <Badge className={`${className} ${glow} border px-2 py-0.5 text-xs font-bold tracking-wider`}>
+      <Icon className="w-3 h-3 mr-1" />
+      {tier}
+    </Badge>
+  );
+}
+
+function RiskBadge({ level, score }: { level: string; score: number }) {
+  const config = {
+    critical: {
+      className: "bg-gradient-to-r from-red-600 to-rose-500 text-white border-red-400/50",
+      glow: "shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse",
+      icon: AlertCircle,
+      label: "КРИТИЧНИЙ"
+    },
+    high: {
+      className: "bg-gradient-to-r from-orange-600 to-amber-500 text-white border-orange-400/50",
+      glow: "shadow-[0_0_15px_rgba(249,115,22,0.4)]",
+      icon: AlertTriangle,
+      label: "ВИСОКИЙ"
+    },
+    medium: {
+      className: "bg-gradient-to-r from-yellow-600 to-amber-400 text-black border-yellow-400/50",
+      glow: "shadow-[0_0_12px_rgba(234,179,8,0.3)]",
+      icon: Clock,
+      label: "СЕРЕДНІЙ"
+    },
+    low: {
+      className: "bg-gradient-to-r from-green-600 to-emerald-500 text-white border-green-400/50",
+      glow: "shadow-[0_0_12px_rgba(34,197,94,0.3)]",
+      icon: ShieldCheck,
+      label: "НИЗЬКИЙ"
+    },
+  };
+  
+  const { className, glow, icon: Icon, label } = config[level as keyof typeof config] || config.low;
+  
+  return (
+    <Badge className={`${className} ${glow} border px-3 py-1 text-sm font-bold tracking-wide`}>
+      <Icon className="w-4 h-4 mr-1.5" />
+      {label} — {score}/100
+    </Badge>
+  );
+}
 
 export default function Dashboard() {
   const [selectedType, setSelectedType] = useState("ip");
@@ -65,7 +198,7 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   const checkMutation = useMutation({
     mutationFn: async ({ type, value }: { type: string; value: string }) => {
@@ -97,7 +230,6 @@ export default function Dashboard() {
   };
 
   const handleCheck = () => {
-    // Use inputRef value as fallback for Playwright compatibility
     const value = inputValue.trim() || inputRef.current?.value?.trim() || "";
     if (!value) {
       toast({
@@ -110,34 +242,18 @@ export default function Dashboard() {
     checkMutation.mutate({ type: selectedType, value });
   };
 
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case "critical": return "bg-red-500/20 text-red-500 border-red-500/50";
-      case "high": return "bg-orange-500/20 text-orange-500 border-orange-500/50";
-      case "medium": return "bg-yellow-500/20 text-yellow-500 border-yellow-500/50";
-      case "low": return "bg-green-500/20 text-green-500 border-green-500/50";
-      default: return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const getRiskIcon = (level: string) => {
-    switch (level) {
-      case "critical":
-      case "high":
-        return <AlertTriangle className="w-5 h-5" />;
-      case "medium":
-        return <Clock className="w-5 h-5" />;
-      default:
-        return <CheckCircle className="w-5 h-5" />;
-    }
-  };
-
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="text-muted-foreground font-mono text-sm">Завантаження системи...</p>
+        </div>
       </div>
     );
   }
@@ -147,317 +263,418 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-      
-      <header className="border-b border-white/10 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" data-testid="button-back-home">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-primary" />
-              <span className="font-display font-bold text-xl">DARKSHARE</span>
-              <Badge variant="outline" className="text-xs">Dashboard</Badge>
+    <div className="min-h-screen bg-background flex">
+      <aside className="hidden lg:flex flex-col w-64 border-r border-white/5 bg-black/40 backdrop-blur-xl">
+        <div className="p-6 border-b border-white/5">
+          <Link href="/">
+            <div className="flex items-center gap-3 group cursor-pointer">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)] group-hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all">
+                <Shield className="w-5 h-5 text-black" />
+              </div>
+              <div>
+                <h1 className="font-display font-bold text-lg tracking-tight">DARKSHARE</h1>
+                <p className="text-[10px] text-muted-foreground tracking-widest">SECURITY OSINT</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+        
+        <nav className="flex-1 p-4 space-y-1">
+          {navItems.map((item) => {
+            const isActive = location === item.href;
+            return (
+              <Link key={item.id} href={item.href}>
+                <button
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                    isActive 
+                      ? "bg-primary/20 text-primary border border-primary/30" 
+                      : "text-muted-foreground hover:text-white hover:bg-white/5"
+                  }`}
+                  data-testid={`nav-${item.id}`}
+                >
+                  <item.icon className="w-5 h-5" />
+                  {item.label}
+                </button>
+              </Link>
+            );
+          })}
+        </nav>
+        
+        <div className="p-4 border-t border-white/5">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-transparent to-transparent border border-primary/20">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar className="w-12 h-12 border-2 border-primary/30">
+                <AvatarImage src={user?.photoUrl} />
+                <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                  {user?.username?.slice(0, 2).toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm truncate">@{user?.username}</p>
+                <TierBadge tier={user?.tier || "FREE"} />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Запитів</span>
+                <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}</span>
+              </div>
+              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(((user?.requestsLeft ?? 0) / 15) * 100, 100)}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/history">
-              <Button variant="ghost" size="sm" data-testid="button-history">
-                <FileText className="w-4 h-4 mr-2" />
-                Історія
-              </Button>
-            </Link>
-            <Link href="/monitoring">
-              <Button variant="ghost" size="sm" data-testid="button-monitoring">
-                <Eye className="w-4 h-4 mr-2" />
-                Моніторинг
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2 pl-3 border-l border-white/10">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">@{user?.username}</span>
-                <Badge variant="secondary" className="text-xs">{user?.tier}</Badge>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleLogout}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
+          
+          <div className="mt-3 space-y-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-muted-foreground hover:text-white"
+              onClick={() => {
+                toast({
+                  title: "Поповнення балансу",
+                  description: "Скористайтесь Telegram ботом @DARKSHAREN1_BOT",
+                });
+              }}
+              data-testid="button-topup"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Поповнити
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-muted-foreground hover:text-red-400"
+              onClick={handleLogout}
+              data-testid="button-logout"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Вийти
+            </Button>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-black/40 border-white/10">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Search className="w-5 h-5 text-primary" />
-                  Нова перевірка
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {checkTypes.map((type) => (
-                    <button
+      <div className="flex-1 flex flex-col min-h-screen">
+        <header className="lg:hidden sticky top-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-black" />
+              </div>
+              <span className="font-display font-bold">DARKSHARE</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TierBadge tier={user?.tier || "FREE"} />
+              <Avatar className="w-8 h-8 border border-white/10">
+                <AvatarImage src={user?.photoUrl} />
+                <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                  {user?.username?.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+          <div className="max-w-6xl mx-auto space-y-8">
+            <div className="hidden lg:flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-display font-bold flex items-center gap-3">
+                  <Scan className="w-8 h-8 text-primary" />
+                  Security Scanner
+                </h1>
+                <p className="text-muted-foreground mt-1">Виберіть тип перевірки та введіть дані для аналізу</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+                  <Radio className="w-4 h-4 text-green-400 animate-pulse" />
+                  <span className="text-sm text-muted-foreground">Система активна</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
+                {checkTypes.map((type) => {
+                  const isSelected = selectedType === type.id;
+                  return (
+                    <motion.button
                       key={type.id}
                       onClick={() => {
                         setSelectedType(type.id);
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`p-4 rounded-lg border transition-all flex flex-col items-center gap-2 ${
-                        selectedType === type.id
-                          ? "bg-primary/20 border-primary text-primary"
-                          : "bg-white/5 border-white/10 hover:border-white/20 text-muted-foreground hover:text-white"
+                      className={`relative p-4 lg:p-5 rounded-xl border transition-all overflow-hidden group ${
+                        isSelected
+                          ? `${type.borderColor.replace('hover:', '')} bg-gradient-to-br ${type.gradient}`
+                          : `border-white/10 hover:border-white/20 bg-black/40`
                       }`}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
                       data-testid={`button-check-type-${type.id}`}
                     >
-                      <type.icon className="w-6 h-6" />
-                      <span className="text-sm font-medium">{type.label}</span>
-                    </button>
-                  ))}
-                </div>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${type.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                      <div className="relative flex flex-col items-center gap-2 lg:gap-3">
+                        <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center ${
+                          isSelected ? 'bg-white/10' : 'bg-white/5 group-hover:bg-white/10'
+                        } transition-colors`}>
+                          <type.icon className={`w-5 h-5 lg:w-6 lg:h-6 ${isSelected ? type.iconColor : 'text-muted-foreground group-hover:' + type.iconColor} transition-colors`} />
+                        </div>
+                        <span className={`text-xs lg:text-sm font-medium text-center ${isSelected ? 'text-white' : 'text-muted-foreground group-hover:text-white'} transition-colors`}>
+                          {type.label}
+                        </span>
+                      </div>
+                      {isSelected && (
+                        <motion.div
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-t-full"
+                          layoutId="activeIndicator"
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
 
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">{selectedCheck?.description}</p>
-                  <div className="flex gap-2">
-                    <Input
-                      ref={inputRef}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder={selectedCheck?.placeholder}
-                      className="bg-white/5 border-white/10 flex-1"
-                      onKeyDown={(e) => e.key === "Enter" && handleCheck()}
-                      data-testid="input-check-value"
-                    />
+              <motion.div
+                className="relative"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className={`p-6 lg:p-8 rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} backdrop-blur-sm`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    {selectedCheck && <selectedCheck.icon className={`w-6 h-6 ${selectedCheck.iconColor}`} />}
+                    <div>
+                      <h3 className="font-display font-semibold text-lg">{selectedCheck?.label}</h3>
+                      <p className="text-sm text-muted-foreground">{selectedCheck?.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        ref={inputRef}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder={selectedCheck?.placeholder}
+                        className="h-14 pl-12 pr-4 text-lg font-mono bg-black/60 border-white/10 focus:border-primary/50 rounded-xl placeholder:text-muted-foreground/50"
+                        onKeyDown={(e) => e.key === "Enter" && handleCheck()}
+                        data-testid="input-check-value"
+                      />
+                    </div>
                     <Button 
                       onClick={handleCheck} 
                       disabled={checkMutation.isPending}
+                      className="h-14 px-8 text-lg font-semibold bg-gradient-to-r from-primary to-emerald-400 hover:from-primary/90 hover:to-emerald-400/90 text-black rounded-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_40px_rgba(34,197,94,0.5)] transition-all"
                       data-testid="button-perform-check"
                     >
                       {checkMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
-                          <Search className="w-4 h-4 mr-2" />
-                          Перевірити
+                          <Search className="w-5 h-5 mr-2" />
+                          Сканувати
                         </>
                       )}
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </motion.div>
+            </div>
 
             <AnimatePresence mode="wait">
               {result && (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="space-y-6"
                 >
-                  <Card className="bg-black/40 border-white/10">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          {getRiskIcon(result.riskLevel)}
-                          Результат аналізу
-                        </CardTitle>
-                        <Badge className={`${getRiskColor(result.riskLevel)} border`}>
-                          {result.riskLevel.toUpperCase()} - {result.riskScore}/100
-                        </Badge>
+                  <div className="p-6 lg:p-8 rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/10">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                          result.riskLevel === 'critical' ? 'bg-red-500/20' :
+                          result.riskLevel === 'high' ? 'bg-orange-500/20' :
+                          result.riskLevel === 'medium' ? 'bg-yellow-500/20' :
+                          'bg-green-500/20'
+                        }`}>
+                          {result.riskLevel === 'critical' || result.riskLevel === 'high' ? (
+                            <AlertTriangle className={`w-7 h-7 ${result.riskLevel === 'critical' ? 'text-red-400' : 'text-orange-400'}`} />
+                          ) : result.riskLevel === 'medium' ? (
+                            <Clock className="w-7 h-7 text-yellow-400" />
+                          ) : (
+                            <ShieldCheck className="w-7 h-7 text-green-400" />
+                          )}
+                        </div>
+                        <div>
+                          <h2 className="text-xl lg:text-2xl font-display font-bold">Результат аналізу</h2>
+                          <p className="text-sm text-muted-foreground font-mono">{result.timestamp}</p>
+                        </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-                        <p className="text-sm text-muted-foreground mb-1">Ціль</p>
-                        <p className="font-mono text-lg break-all">{result.target}</p>
-                      </div>
+                      <RiskBadge level={result.riskLevel} score={result.riskScore} />
+                    </div>
 
-                      <div>
-                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                          Знахідки
-                        </h4>
-                        <div className="space-y-2">
-                          {result.findings.map((finding, idx) => (
-                            <div 
-                              key={idx} 
-                              className={`p-3 rounded-lg text-sm flex items-start gap-2 ${
-                                finding.includes("КРИТИЧНО") ? "bg-red-500/10 text-red-400" :
-                                finding.includes("УВАГА") ? "bg-orange-500/10 text-orange-400" :
-                                finding.includes("не виявлено") || finding.includes("Чиста") || finding.includes("Безпечн") ? "bg-green-500/10 text-green-400" :
-                                "bg-yellow-500/10 text-yellow-400"
+                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-6">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                        <Database className="w-4 h-4" />
+                        Ціль сканування
+                      </div>
+                      <p className="font-mono text-lg lg:text-xl break-all text-primary">{result.target}</p>
+                    </div>
+
+                    <div className="mb-6">
+                      <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                        Знахідки ({result.findings.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {result.findings.map((finding, idx) => {
+                          const isCritical = finding.includes("КРИТИЧНО");
+                          const isWarning = finding.includes("УВАГА");
+                          const isSafe = finding.includes("не виявлено") || finding.includes("Чиста") || finding.includes("Безпечн");
+                          
+                          return (
+                            <motion.div 
+                              key={idx}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.1 }}
+                              className={`p-4 rounded-xl text-sm flex items-start gap-3 border ${
+                                isCritical ? "bg-red-500/10 border-red-500/30 text-red-300" :
+                                isWarning ? "bg-orange-500/10 border-orange-500/30 text-orange-300" :
+                                isSafe ? "bg-green-500/10 border-green-500/30 text-green-300" :
+                                "bg-yellow-500/10 border-yellow-500/30 text-yellow-300"
                               }`}
                             >
                               <ChevronRight className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                              {finding}
-                            </div>
-                          ))}
-                        </div>
+                              <span>{finding}</span>
+                            </motion.div>
+                          );
+                        })}
                       </div>
+                    </div>
 
-                      <div>
-                        <h4 className="text-sm font-semibold mb-3">Деталі</h4>
-                        <div className="grid grid-cols-2 gap-3">
-                          {Object.entries(result.details).map(([key, value]) => (
-                            <div key={key} className="p-3 rounded-lg bg-white/5 border border-white/5">
-                              <p className="text-xs text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
-                              <p className="font-mono text-sm mt-1 break-all">
-                                {typeof value === "boolean" ? (value ? "Так" : "Ні") : 
-                                 typeof value === "object" ? JSON.stringify(value) : 
-                                 String(value)}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
+                    <div className="mb-6">
+                      <h4 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                        <Terminal className="w-4 h-4 text-primary" />
+                        Технічні деталі
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {Object.entries(result.details).map(([key, value], idx) => (
+                          <motion.div 
+                            key={key}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 + idx * 0.05 }}
+                            className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors"
+                          >
+                            <p className="text-xs text-muted-foreground capitalize mb-1">
+                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                            </p>
+                            <p className="font-mono text-sm break-all">
+                              {typeof value === "boolean" ? (
+                                <Badge variant={value ? "destructive" : "secondary"} className="text-xs">
+                                  {value ? "Так" : "Ні"}
+                                </Badge>
+                              ) : typeof value === "object" ? 
+                                JSON.stringify(value) : 
+                                String(value)}
+                            </p>
+                          </motion.div>
+                        ))}
                       </div>
+                    </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                        <div className="text-xs text-muted-foreground">
-                          Джерела: {result.sources.join(", ")}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" data-testid="button-download-pdf">
-                            <Download className="w-4 h-4 mr-2" />
-                            PDF
-                          </Button>
-                          <Button variant="outline" size="sm" data-testid="button-add-to-monitor">
-                            <Eye className="w-4 h-4 mr-2" />
-                            Моніторити
-                          </Button>
-                        </div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 border-t border-white/10">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Database className="w-4 h-4" />
+                        Джерела: {result.sources.join(", ")}
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="rounded-lg" data-testid="button-download-pdf">
+                          <Download className="w-4 h-4 mr-2" />
+                          Експорт PDF
+                        </Button>
+                        <Button variant="outline" size="sm" className="rounded-lg" data-testid="button-add-to-monitor">
+                          <Eye className="w-4 h-4 mr-2" />
+                          Моніторити
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {!result && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { icon: Shield, label: "Перевірок", value: "12.4K+", color: "text-primary" },
+                  { icon: AlertTriangle, label: "Загроз виявлено", value: "847", color: "text-orange-400" },
+                  { icon: Database, label: "Баз даних", value: "50+", color: "text-blue-400" },
+                  { icon: Activity, label: "Uptime", value: "99.9%", color: "text-green-400" },
+                ].map((stat, idx) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="p-5 rounded-xl border border-white/10 bg-black/40 hover:border-white/20 transition-all group"
+                  >
+                    <stat.icon className={`w-6 h-6 ${stat.color} mb-3 group-hover:scale-110 transition-transform`} />
+                    <p className="text-2xl font-display font-bold">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
+        </main>
 
-          <div className="space-y-4">
-            <Card className="bg-black/40 border-white/10">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Профіль
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">@{user?.username}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                        {user?.tier === "PRO" || user?.tier === "ELITE" ? (
-                          <Crown className="w-3 h-3" />
-                        ) : (
-                          <Zap className="w-3 h-3" />
-                        )}
-                        {user?.tier}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">Запитів залишилось</span>
-                    <span className="font-mono text-sm">{user?.requestsLeft ?? 0}</span>
-                  </div>
-                  <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${Math.min(((user?.requestsLeft ?? 0) / 15) * 100, 100)}%` }}
-                    />
-                  </div>
-                </div>
-
-                <Button 
-                  className="w-full" 
-                  data-testid="button-topup"
-                  onClick={() => {
-                    toast({
-                      title: "Поповнення балансу",
-                      description: (
-                        <div className="space-y-2">
-                          <p>Для поповнення балансу скористайтесь Telegram ботом.</p>
-                          <a 
-                            href="https://t.me/DARKSHAREN1_BOT" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-primary hover:underline"
-                          >
-                            Відкрити бота
-                          </a>
-                        </div>
-                      ),
-                    });
-                  }}
-                >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Поповнити
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-black/40 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-sm">Швидкі дії</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <Link href="/history" data-testid="link-view-history">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Переглянути історію
-                  </Link>
-                </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <Link href="/monitoring" data-testid="link-view-monitoring">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Активні монітори
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-black/40 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-sm">Підказки</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-3">
-                <p>
-                  <strong className="text-white">IP/GEO:</strong> Перевіряє геолокацію, провайдера та чорні списки.
-                </p>
-                <p>
-                  <strong className="text-white">Wallet:</strong> Аналізує транзакції, взаємодію з mixers та санкції.
-                </p>
-                <p>
-                  <strong className="text-white">Email:</strong> Шукає витоки даних у відомих базах.
-                </p>
-                <p>
-                  <strong className="text-white">URL:</strong> Перевіряє на malware та фішинг.
-                </p>
-              </CardContent>
-            </Card>
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 border-t border-white/5 bg-black/90 backdrop-blur-xl z-50">
+          <div className="flex items-center justify-around py-2">
+            {navItems.map((item) => {
+              const isActive = location === item.href;
+              return (
+                <Link key={item.id} href={item.href}>
+                  <button
+                    className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+                      isActive 
+                        ? "text-primary" 
+                        : "text-muted-foreground"
+                    }`}
+                    data-testid={`mobile-nav-${item.id}`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="text-xs">{item.label}</span>
+                  </button>
+                </Link>
+              );
+            })}
+            <button
+              onClick={handleLogout}
+              className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg text-muted-foreground"
+              data-testid="mobile-nav-logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-xs">Вийти</span>
+            </button>
           </div>
-        </div>
-      </main>
+        </nav>
+        <div className="lg:hidden h-16" />
+      </div>
     </div>
   );
 }
