@@ -155,25 +155,27 @@ export async function registerRoutes(
     }
 
     const finalUser = user;
-    req.session.regenerate((err) => {
+    
+    // Simple session assignment without regenerate (more compatible)
+    req.session.userId = finalUser.id;
+    req.session.tgId = tgId;
+    
+    req.session.save((err) => {
       if (err) {
-        return res.status(500).json({ error: "Session error" });
-      }
-      req.session.userId = finalUser.id;
-      req.session.tgId = tgId;
-      req.session.save((err) => {
-        if (err) {
+        console.error("Session save error:", err);
+        if (!res.headersSent) {
           return res.status(500).json({ error: "Session save error" });
         }
-        res.json({
-          id: finalUser.id,
-          tgId: finalUser.tgId,
-          username: finalUser.username,
-          tier: finalUser.tier,
-          requestsLeft: finalUser.requestsLeft,
-          firstName,
-          photoUrl,
-        });
+        return;
+      }
+      res.json({
+        id: finalUser.id,
+        tgId: finalUser.tgId,
+        username: finalUser.username,
+        tier: finalUser.tier,
+        requestsLeft: finalUser.requestsLeft,
+        firstName,
+        photoUrl,
       });
     });
   });
