@@ -21,6 +21,7 @@ async function ensureTablesExist() {
   try {
     console.log("Ensuring database tables exist...");
     
+    // Create users table first (no dependencies)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -38,8 +39,11 @@ async function ensureTablesExist() {
         digests_on BOOLEAN DEFAULT true,
         last_login TIMESTAMP DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT NOW()
-      );
-      
+      )
+    `);
+    
+    // Create dependent tables
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS reports (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
@@ -47,8 +51,10 @@ async function ensureTablesExist() {
         data_json JSONB,
         pdf_path TEXT,
         generated_at TIMESTAMP DEFAULT NOW()
-      );
-      
+      )
+    `);
+    
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS watches (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
@@ -58,8 +64,10 @@ async function ensureTablesExist() {
         status TEXT DEFAULT 'low',
         last_check TIMESTAMP,
         alerts_on BOOLEAN DEFAULT true
-      );
-      
+      )
+    `);
+    
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS payments (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
@@ -69,22 +77,26 @@ async function ensureTablesExist() {
         screenshot_url TEXT,
         status TEXT DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW()
-      );
-      
+      )
+    `);
+    
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS referrals (
         id SERIAL PRIMARY KEY,
         referrer_id INTEGER REFERENCES users(id),
         referred_id INTEGER REFERENCES users(id),
         paid BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW()
-      );
-      
+      )
+    `);
+    
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS achievements (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         type TEXT NOT NULL,
         unlocked_at TIMESTAMP DEFAULT NOW()
-      );
+      )
     `);
     
     console.log("Database tables ready!");
