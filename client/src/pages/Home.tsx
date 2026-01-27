@@ -133,38 +133,38 @@ export default function Home() {
                   <TerminalText text="System v4.0.1 initialized..." speed={50} />
                 </div>
 
-                <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white leading-[0.85] uppercase">
+                <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-white leading-none">
                   {t.heroTitle} <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-primary/40 filter drop-shadow-[0_0_50px_rgba(var(--primary),0.6)]">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary/80 to-primary/40 filter drop-shadow-[0_0_30px_rgba(var(--primary),0.5)]">
                     {t.heroSubtitle}
                   </span>
                 </h1>
 
-                <p className="text-2xl text-muted-foreground max-w-2xl leading-relaxed border-l-4 border-primary pl-8 py-4 bg-white/5 backdrop-blur-sm rounded-r-2xl">
+                <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed border-l-2 border-primary/20 pl-6 py-2">
                   {t.heroDescription}
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center gap-8 pt-12">
+                <div className="flex flex-col sm:flex-row items-center gap-6 pt-8">
                   <Link href="/login">
                     <div 
-                      className="group relative px-12 py-6 bg-primary text-primary-foreground font-black rounded-2xl text-2xl flex items-center gap-4 overflow-hidden transition-all hover:scale-110 hover:rotate-1 active:scale-95 cursor-pointer shadow-[0_0_60px_rgba(var(--primary),0.5)]"
+                      className="group relative px-10 py-5 bg-primary text-primary-foreground font-black rounded-2xl text-xl flex items-center gap-3 overflow-hidden transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-[0_0_40px_rgba(var(--primary),0.4)]"
                       data-testid="button-web-dashboard"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                      <ShieldCheck className="w-8 h-8" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                      <ShieldCheck className="w-6 h-6" />
                       <span>{t.webDashboard}</span>
-                      <ChevronRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </Link>
                   <a 
                     href="https://t.me/DARKSHAREN1_BOT" 
                     target="_blank" 
                     rel="noreferrer"
-                    className="group relative px-12 py-6 bg-white/5 border-2 border-white/10 text-white font-black rounded-2xl text-2xl flex items-center gap-4 overflow-hidden transition-all hover:bg-primary/20 hover:border-primary/50 hover:scale-105 active:scale-95 shadow-2xl"
+                    className="group relative px-10 py-5 bg-white/5 border border-white/10 text-white font-bold rounded-2xl text-xl flex items-center gap-3 overflow-hidden transition-all hover:bg-white/10 hover:border-primary/30 active:scale-95 shadow-xl"
                     data-testid="button-launch-bot"
                   >
-                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Bot className="w-8 h-8 text-primary group-hover:animate-bounce" />
+                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Bot className="w-6 h-6 text-primary" />
                     <span>{t.launchBot}</span>
                   </a>
                 </div>
