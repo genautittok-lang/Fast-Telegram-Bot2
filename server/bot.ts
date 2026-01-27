@@ -6,7 +6,7 @@ import { t, Language, languageNames } from "./i18n";
 
 interface BotContext extends Context {}
 
-const ADMIN_IDS = ["123456789"];
+const ADMIN_IDS = ["7820995179"];
 
 function getUserLang(langCode: string | null | undefined): Language {
   if (!langCode) return "uk";
