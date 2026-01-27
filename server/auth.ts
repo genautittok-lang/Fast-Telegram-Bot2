@@ -17,27 +17,45 @@ export function verifyTelegramAuth(
   data: Record<string, any>,
   botToken: string
 ): boolean {
-  const hash = String(data.hash || "");
-  if (!hash) return false;
+  try {
+    const hash = String(data.hash || "");
+    if (!hash) {
+      console.log("Telegram auth: missing hash");
+      return false;
+    }
 
-  const checkArr = Object.keys(data)
-    .filter((k) => k !== "hash")
-    .sort()
-    .map((k) => `${k}=${String(data[k])}`);
-  const checkString = checkArr.join("\n");
+    // Filter and sort data for verification
+    const checkArr = Object.keys(data)
+      .filter((k) => k !== "hash")
+      .sort()
+      .map((k) => `${k}=${String(data[k])}`);
+    const checkString = checkArr.join("\n");
 
-  const secretKey = crypto.createHash("sha256").update(botToken).digest();
-  const hmac = crypto.createHmac("sha256", secretKey).update(checkString).digest("hex");
+    // Create HMAC using bot token
+    const secretKey = crypto.createHash("sha256").update(botToken).digest();
+    const hmac = crypto.createHmac("sha256", secretKey).update(checkString).digest("hex");
 
-  if (hmac !== hash) return false;
+    if (hmac !== hash) {
+      console.log("Telegram auth: hash mismatch");
+      console.log("Expected:", hmac.substring(0, 16) + "...");
+      console.log("Got:", hash.substring(0, 16) + "...");
+      return false;
+    }
 
-  const authDate = parseInt(String(data.auth_date || "0"), 10);
-  const now = Math.floor(Date.now() / 1000);
-  if (now - authDate > 86400) {
+    // Check auth date (allow 24 hours)
+    const authDate = parseInt(String(data.auth_date || "0"), 10);
+    const now = Math.floor(Date.now() / 1000);
+    if (now - authDate > 86400) {
+      console.log("Telegram auth: expired (auth_date too old)");
+      return false;
+    }
+
+    console.log("Telegram auth: verified successfully for user", data.id);
+    return true;
+  } catch (err) {
+    console.error("Telegram auth verification error:", err);
     return false;
   }
-
-  return true;
 }
 
 export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
