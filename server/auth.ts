@@ -42,10 +42,10 @@ export function verifyTelegramAuth(
       return true;
     }
 
-    // Check auth date (allow 24 hours)
+    // Check auth date (allow 30 days for better persistence)
     const authDate = parseInt(String(data.auth_date || "0"), 10);
     const now = Math.floor(Date.now() / 1000);
-    if (now - authDate > 86400) {
+    if (now - authDate > 2592000) {
       console.log("Telegram auth: expired (auth_date too old)");
       return false;
     }
