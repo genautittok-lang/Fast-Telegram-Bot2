@@ -730,8 +730,20 @@ ${findingsText}
   });
 
   console.log("Starting bot polling...");
-  bot.launch({ dropPendingUpdates: true })
-    .catch((err: Error) => console.error("Bot error:", err.message));
+  
+  const startBot = () => {
+    bot.launch({ dropPendingUpdates: true })
+      .catch((err: Error) => {
+        console.error("Bot error:", err.message);
+        // If conflict error (409), retry after delay
+        if (err.message.includes("409") || err.message.includes("Conflict")) {
+          console.log("Bot conflict detected, retrying in 5 seconds...");
+          setTimeout(startBot, 5000);
+        }
+      });
+  };
+  
+  startBot();
 
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
