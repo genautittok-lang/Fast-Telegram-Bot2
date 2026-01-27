@@ -21,6 +21,20 @@ async function ensureTablesExist() {
   try {
     console.log("Ensuring database tables exist...");
     
+    // Create session table for connect-pg-simple
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL,
+        PRIMARY KEY ("sid")
+      )
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire")
+    `);
+    
     // Create ds_users table first (no dependencies) - prefixed to avoid KVITKA conflict
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_users (
