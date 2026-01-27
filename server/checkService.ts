@@ -28,35 +28,58 @@ async function fetchWithTimeout(url: string, timeout = 5000): Promise<Response> 
 }
 
 export function validateInput(type: string, value: string): { valid: boolean; error?: string } {
+  // Clean value for validation
+  const cleanValue = value.trim();
+  
   switch (type) {
     case "ip":
-      if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(value)) {
+      // Accept IPv4 addresses
+      if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(cleanValue)) {
         return { valid: false, error: "Невірний формат IP. Приклад: 8.8.8.8" };
       }
       break;
     case "wallet":
-      if (!value.startsWith("0x") || value.length < 20) {
-        return { valid: false, error: "Невірний формат гаманця. Приклад: 0x1234...abcd" };
+      // Accept various crypto wallet formats:
+      // - Ethereum (0x...) 40+ chars
+      // - Bitcoin legacy (1...) 26-35 chars
+      // - Bitcoin SegWit (3...) 26-35 chars
+      // - Bitcoin Bech32 (bc1...) 42+ chars
+      // - Tron (T...) 34 chars
+      // - Solana (base58) 32-44 chars
+      const isEth = cleanValue.startsWith("0x") && cleanValue.length >= 40;
+      const isBtcLegacy = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/.test(cleanValue);
+      const isBtcBech32 = cleanValue.startsWith("bc1") && cleanValue.length >= 40;
+      const isTron = cleanValue.startsWith("T") && cleanValue.length === 34;
+      const isSolana = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(cleanValue);
+      
+      if (!isEth && !isBtcLegacy && !isBtcBech32 && !isTron && !isSolana) {
+        return { valid: false, error: "Невірний формат гаманця. Підтримуються: ETH, BTC, TRX, SOL" };
       }
       break;
     case "email":
-      if (!value.includes("@") || !value.includes(".")) {
+      // Basic email validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanValue)) {
         return { valid: false, error: "Невірний email. Приклад: user@example.com" };
       }
       break;
     case "domain":
-      if (!value.includes(".") || value.length < 4) {
+      // Domain validation (with or without protocol)
+      const domainOnly = cleanValue.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+      if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/.test(domainOnly) && domainOnly.length < 4) {
         return { valid: false, error: "Невірний домен. Приклад: example.com" };
       }
       break;
     case "url":
-      if (!value.startsWith("http://") && !value.startsWith("https://")) {
+      // More flexible URL validation
+      if (!cleanValue.match(/^https?:\/\/.+\..+/)) {
         return { valid: false, error: "URL має починатися з http:// або https://" };
       }
       break;
     case "phone":
-      if (value.length < 6) {
-        return { valid: false, error: "Невірний номер телефону" };
+      // Accept various phone formats: +380..., 380..., 0..., with/without spaces/dashes
+      const phoneClean = cleanValue.replace(/[\s\-\(\)]/g, '');
+      if (!/^[\+]?[0-9]{6,15}$/.test(phoneClean)) {
+        return { valid: false, error: "Невірний номер. Приклад: +380501234567" };
       }
       break;
   }
