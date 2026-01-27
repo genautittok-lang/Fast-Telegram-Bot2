@@ -192,8 +192,8 @@ export default function Login() {
 
             <Card className="bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
               <CardHeader className="text-center pb-2 pt-8">
-                <div className="mx-auto mb-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-                  <Lock className="w-9 h-9 text-primary" />
+                <div className="mx-auto mb-4 w-24 h-24 rounded-3xl overflow-hidden border-2 border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.2)]">
+                  <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
                 </div>
                 <h2 className="text-2xl font-display font-bold">{t.loginTitle}</h2>
                 <p className="text-muted-foreground text-sm mt-2">
