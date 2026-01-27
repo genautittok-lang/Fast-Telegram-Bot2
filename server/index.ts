@@ -120,6 +120,9 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "8080", 10);
+  
+  console.log(`Starting HTTP server on port ${port}...`);
+  
   httpServer.listen(
     {
       port,
@@ -127,7 +130,15 @@ app.use((req, res, next) => {
       reusePort: true,
     },
     () => {
+      console.log(`HTTP server is listening on port ${port}`);
       log(`serving on port ${port}`);
     },
   );
-})();
+  
+  httpServer.on('error', (err) => {
+    console.error('HTTP server error:', err);
+  });
+})().catch((err) => {
+  console.error('Failed to start application:', err);
+  process.exit(1);
+});
