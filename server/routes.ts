@@ -145,6 +145,9 @@ export async function registerRoutes(
           username,
           lang: "UA",
           tier: "FREE",
+          requestsLeft: 15,
+          streakDays: 1,
+          refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
       } else {
         await storage.updateUserLogin(user.id);
