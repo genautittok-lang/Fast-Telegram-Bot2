@@ -37,7 +37,30 @@ import {
   XCircle,
   BarChart3,
   Copy,
-  Check
+  Check,
+  MapPin,
+  Server,
+  Ban,
+  Fingerprint,
+  Shuffle,
+  Coins,
+  AtSign,
+  Trash2,
+  Lock,
+  Signal,
+  Hash,
+  FileCheck,
+  Globe2,
+  Type,
+  ExternalLink,
+  LinkIcon,
+  Bug,
+  Info,
+  Bot,
+  Key,
+  Users,
+  MessageSquare,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,66 +96,126 @@ const checkTypes = [
     label: "IP/GEO", 
     icon: Globe, 
     placeholder: "8.8.8.8", 
-    description: "Геолокація, провайдер, чорні списки",
+    description: "Аналіз IP-адреси через ip-api.com для визначення геолокації, ISP провайдера та виявлення VPN/Proxy сервісів",
+    shortDescription: "Геолокація, провайдер, чорні списки",
     gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
     iconColor: "text-blue-400",
     borderColor: "border-blue-500/30 hover:border-blue-400/50",
-    glowColor: "shadow-blue-500/20"
+    glowColor: "shadow-blue-500/20",
+    services: [
+      { name: "Геолокація", icon: MapPin, desc: "Країна, місто, координати" },
+      { name: "ISP Info", icon: Server, desc: "Провайдер, ASN, організація" },
+      { name: "Proxy/VPN", icon: ShieldAlert, desc: "Виявлення проксі та VPN" },
+      { name: "Blacklists", icon: Ban, desc: "Перевірка спам-листів" },
+    ]
   },
   { 
     id: "wallet", 
     label: "Crypto Wallet", 
     icon: Wallet, 
     placeholder: "0x1234...abcd", 
-    description: "Транзакції, mixers, санкції",
+    description: "Аналіз криптовалютних гаманців: патерни адрес, виявлення mixer-сервісів, підтримка ETH/BTC/TRX/SOL/LTC/XRP/DOGE та Bybit/Binance UID",
+    shortDescription: "Транзакції, mixers, санкції",
     gradient: "from-orange-500/20 via-yellow-500/10 to-transparent",
     iconColor: "text-orange-400",
     borderColor: "border-orange-500/30 hover:border-orange-400/50",
-    glowColor: "shadow-orange-500/20"
+    glowColor: "shadow-orange-500/20",
+    services: [
+      { name: "Pattern Analysis", icon: Fingerprint, desc: "Аналіз формату адреси" },
+      { name: "Mixer Detection", icon: Shuffle, desc: "Виявлення Tornado Cash та ін." },
+      { name: "Multi-Chain", icon: Coins, desc: "ETH, BTC, TRX, SOL, LTC, XRP, DOGE" },
+      { name: "Exchange UID", icon: Hash, desc: "Bybit, Binance UID перевірка" },
+    ]
   },
   { 
     id: "email", 
     label: "Email OSINT", 
     icon: Mail, 
     placeholder: "user@example.com", 
-    description: "Витоки даних, пов'язані акаунти",
+    description: "OSINT-аналіз email: валідація домену, виявлення disposable-адрес, перевірка на витоки даних (breaches)",
+    shortDescription: "Витоки даних, пов'язані акаунти",
     gradient: "from-purple-500/20 via-pink-500/10 to-transparent",
     iconColor: "text-purple-400",
     borderColor: "border-purple-500/30 hover:border-purple-400/50",
-    glowColor: "shadow-purple-500/20"
+    glowColor: "shadow-purple-500/20",
+    services: [
+      { name: "Domain Check", icon: AtSign, desc: "Валідація MX та домену" },
+      { name: "Disposable", icon: Trash2, desc: "Виявлення тимчасових email" },
+      { name: "Breach Check", icon: Lock, desc: "Перевірка на витоки даних" },
+      { name: "OSINT Scan", icon: Search, desc: "Пошук пов'язаних акаунтів" },
+    ]
   },
   { 
     id: "phone", 
     label: "Phone Lookup", 
     icon: Phone, 
     placeholder: "+380501234567", 
-    description: "Оператор, регіон, спам-рейтинг",
+    description: "Аналіз телефонних номерів: визначення коду країни, ідентифікація оператора зв'язку, валідація формату",
+    shortDescription: "Оператор, регіон, спам-рейтинг",
     gradient: "from-green-500/20 via-emerald-500/10 to-transparent",
     iconColor: "text-green-400",
     borderColor: "border-green-500/30 hover:border-green-400/50",
-    glowColor: "shadow-green-500/20"
+    glowColor: "shadow-green-500/20",
+    services: [
+      { name: "Country Code", icon: Globe2, desc: "Визначення країни за кодом" },
+      { name: "Carrier ID", icon: Signal, desc: "Ідентифікація оператора" },
+      { name: "Format Check", icon: FileCheck, desc: "Валідація формату номера" },
+      { name: "Type Detection", icon: Phone, desc: "Мобільний / стаціонарний" },
+    ]
   },
   { 
     id: "domain", 
     label: "Domain Intel", 
     icon: Building, 
     placeholder: "example.com", 
-    description: "WHOIS, DNS, репутація",
+    description: "Інтелект по домену: аналіз TLD, виявлення typosquatting-атак, пошук підозрілих патернів у назві",
+    shortDescription: "WHOIS, DNS, репутація",
     gradient: "from-indigo-500/20 via-violet-500/10 to-transparent",
     iconColor: "text-indigo-400",
     borderColor: "border-indigo-500/30 hover:border-indigo-400/50",
-    glowColor: "shadow-indigo-500/20"
+    glowColor: "shadow-indigo-500/20",
+    services: [
+      { name: "TLD Analysis", icon: Globe, desc: "Аналіз доменної зони" },
+      { name: "Typosquatting", icon: Type, desc: "Виявлення схожих доменів" },
+      { name: "Patterns", icon: AlertTriangle, desc: "Підозрілі патерни в назві" },
+      { name: "Reputation", icon: ShieldCheck, desc: "Перевірка репутації" },
+    ]
   },
   { 
     id: "url", 
     label: "URL Scanner", 
     icon: Link2, 
     placeholder: "https://example.com/path", 
-    description: "Malware, фішинг, редиректи",
+    description: "Сканування URL: аналіз протоколу, виявлення shortener-сервісів, детекція фішингових патернів",
+    shortDescription: "Malware, фішинг, редиректи",
     gradient: "from-red-500/20 via-rose-500/10 to-transparent",
     iconColor: "text-red-400",
     borderColor: "border-red-500/30 hover:border-red-400/50",
-    glowColor: "shadow-red-500/20"
+    glowColor: "shadow-red-500/20",
+    services: [
+      { name: "Protocol", icon: LinkIcon, desc: "Аналіз HTTP/HTTPS протоколу" },
+      { name: "Shorteners", icon: ExternalLink, desc: "Виявлення bit.ly, t.co та ін." },
+      { name: "Phishing", icon: Bug, desc: "Детекція фішингових URL" },
+      { name: "Redirect Scan", icon: ChevronRight, desc: "Аналіз редиректів" },
+    ]
+  },
+  { 
+    id: "bot", 
+    label: "Bot Token", 
+    icon: Bot, 
+    placeholder: "123456789:ABC-DEF...", 
+    description: "Перевірка Telegram Bot Token: валідація через API, інформація про бота, аналіз можливостей та безпеки токену",
+    shortDescription: "Валідність, права, безпека",
+    gradient: "from-cyan-500/20 via-teal-500/10 to-transparent",
+    iconColor: "text-cyan-400",
+    borderColor: "border-cyan-500/30 hover:border-cyan-400/50",
+    glowColor: "shadow-cyan-500/20",
+    services: [
+      { name: "Token Verify", icon: Key, desc: "Перевірка валідності токену" },
+      { name: "Bot Info", icon: Bot, desc: "Username, ім'я, ID бота" },
+      { name: "Permissions", icon: Users, desc: "Права доступу до груп" },
+      { name: "Capabilities", icon: Sparkles, desc: "Inline, WebApp, бізнес" },
+    ]
   },
 ];
 
@@ -495,26 +578,53 @@ export default function Dashboard() {
       </aside>
 
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <header className="lg:hidden sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-2xl">
-          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-          <div className="flex items-center justify-between p-3 max-w-full overflow-hidden">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-4 h-4 text-black" />
-              </div>
-              <span className="font-display font-bold text-sm truncate">DARKSHARE</span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <TierBadge tier={user?.tier || "FREE"} />
-              <Avatar className="w-7 h-7 border border-white/10">
-                <AvatarImage src={user?.photoUrl} />
-                <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                  {user?.username?.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+        <motion.header 
+          className="lg:hidden sticky top-0 z-50 bg-gradient-to-b from-black via-black/95 to-black/90 backdrop-blur-2xl"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-purple-500/5" />
+          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="relative flex items-center justify-between px-4 py-3 max-w-full">
+            <Link href="/">
+              <motion.div 
+                className="flex items-center gap-2.5 min-w-0"
+                whileTap={{ scale: 0.97 }}
+              >
+                <motion.div 
+                  className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] flex-shrink-0"
+                  whileHover={{ rotate: 5, scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
+                  <Shield className="w-4.5 h-4.5 text-black" />
+                </motion.div>
+                <div className="flex flex-col">
+                  <span className="font-display font-bold text-sm tracking-tight bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">DARKSHARE</span>
+                  <span className="text-[8px] text-primary/60 tracking-[0.15em] font-medium">SECURITY OSINT</span>
+                </div>
+              </motion.div>
+            </Link>
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              <motion.div 
+                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gradient-to-r from-green-500/10 to-transparent border border-green-500/20"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-[9px] font-medium text-green-400 hidden xs:inline">Online</span>
+              </motion.div>
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Avatar className="w-8 h-8 border-2 border-primary/30 shadow-[0_0_12px_rgba(34,197,94,0.2)]">
+                  <AvatarImage src={user?.photoUrl} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary text-xs font-bold">
+                    {user?.username?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </motion.div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
           <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
@@ -551,7 +661,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4 lg:space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-4">
+              <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-4">
                 {checkTypes.map((type, idx) => {
                   const isSelected = selectedType === type.id;
                   return (
@@ -562,42 +672,42 @@ export default function Dashboard() {
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative p-3 lg:p-6 rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group ${
+                      className={`relative p-2.5 lg:p-6 rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group touch-manipulation ${
                         isSelected
                           ? `${type.borderColor.replace('hover:', '')} bg-gradient-to-br ${type.gradient} backdrop-blur-xl shadow-lg ${type.glowColor}`
-                          : `border-white/10 hover:border-white/20 bg-black/40 backdrop-blur-sm hover:bg-black/60`
+                          : `border-white/10 active:border-white/30 bg-black/40 backdrop-blur-sm active:bg-black/60`
                       }`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05, duration: 0.4 }}
-                      whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.3 } }}
-                      whileTap={{ scale: 0.97 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.04, duration: 0.3, type: "spring", stiffness: 300 }}
+                      whileTap={{ scale: 0.95 }}
                       data-testid={`button-check-type-${type.id}`}
                     >
-                      <div className={`absolute inset-0 bg-gradient-to-br ${type.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                      <motion.div 
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                        style={{
-                          background: `radial-gradient(circle at 50% 50%, ${type.iconColor.includes('blue') ? 'rgba(59,130,246,0.1)' : type.iconColor.includes('orange') ? 'rgba(249,115,22,0.1)' : type.iconColor.includes('purple') ? 'rgba(168,85,247,0.1)' : type.iconColor.includes('green') ? 'rgba(34,197,94,0.1)' : type.iconColor.includes('indigo') ? 'rgba(99,102,241,0.1)' : 'rgba(239,68,68,0.1)'} 0%, transparent 70%)`
-                        }}
-                      />
-                      <div className="relative flex flex-col items-center gap-2 lg:gap-4">
+                      {isSelected && (
+                        <motion.div
+                          className={`absolute inset-0 bg-gradient-to-br ${type.gradient}`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      )}
+                      <div className="relative flex flex-col items-center gap-1.5 lg:gap-4">
                         <motion.div 
-                          className={`w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${
-                            isSelected ? 'bg-white/15 shadow-inner' : 'bg-white/5 group-hover:bg-white/10'
+                          className={`w-9 h-9 lg:w-14 lg:h-14 rounded-lg lg:rounded-2xl flex items-center justify-center ${
+                            isSelected ? 'bg-white/15 shadow-inner' : 'bg-white/5'
                           } transition-all duration-300`}
-                          whileHover={{ rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 0.5 }}
+                          animate={isSelected ? { scale: [1, 1.05, 1] } : {}}
+                          transition={{ duration: 0.4 }}
                         >
-                          <type.icon className={`w-5 h-5 lg:w-7 lg:h-7 ${isSelected ? type.iconColor : 'text-muted-foreground group-hover:' + type.iconColor} transition-colors duration-300`} />
+                          <type.icon className={`w-4.5 h-4.5 lg:w-7 lg:h-7 ${isSelected ? type.iconColor : 'text-muted-foreground'} transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
                         </motion.div>
-                        <span className={`text-[10px] lg:text-sm font-medium text-center leading-tight ${isSelected ? 'text-white' : 'text-muted-foreground group-hover:text-white'} transition-colors duration-300`}>
+                        <span className={`text-[9px] lg:text-sm font-medium text-center leading-tight ${isSelected ? 'text-white' : 'text-muted-foreground'} transition-colors duration-300`}>
                           {type.label}
                         </span>
                       </div>
                       {isSelected && (
                         <motion.div
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-full"
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 lg:w-12 h-0.5 lg:h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-t-full"
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />
@@ -613,52 +723,102 @@ export default function Dashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <div className={`p-4 lg:p-8 rounded-xl lg:rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    {selectedCheck && (
-                      <motion.div
-                        key={selectedType}
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <selectedCheck.icon className={`w-5 h-5 lg:w-6 lg:h-6 ${selectedCheck.iconColor}`} />
-                      </motion.div>
-                    )}
-                    <div>
-                      <h3 className="font-display font-semibold text-base lg:text-lg">{selectedCheck?.label}</h3>
-                      <p className="text-xs lg:text-sm text-muted-foreground">{selectedCheck?.description}</p>
-                    </div>
-                  </div>
+                <div className={`p-3.5 lg:p-8 rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
+                  <AnimatePresence mode="wait">
+                    <motion.div 
+                      key={selectedType}
+                      className="flex items-center gap-2.5 mb-3 lg:mb-4"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {selectedCheck && (
+                        <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-sm`}>
+                          <selectedCheck.icon className={`w-4 h-4 lg:w-5 lg:h-5 ${selectedCheck.iconColor}`} />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display font-semibold text-sm lg:text-lg truncate">{selectedCheck?.label}</h3>
+                        <p className="text-[10px] lg:text-sm text-muted-foreground">{selectedCheck?.shortDescription}</p>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                   
-                  <div className="flex flex-col gap-3">
+                  {selectedCheck?.services && (
+                    <motion.div 
+                      key={`services-${selectedType}`}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.3 }}
+                      className="mb-3 lg:mb-4"
+                    >
+                      <div className="p-3 lg:p-4 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <Info className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider">Що аналізується</span>
+                        </div>
+                        <p className="text-[10px] lg:text-xs text-muted-foreground/80 mb-3 leading-relaxed">
+                          {selectedCheck.description}
+                        </p>
+                        <div className="grid grid-cols-2 gap-1.5 lg:gap-2">
+                          {selectedCheck.services.map((service, idx) => (
+                            <motion.div
+                              key={service.name}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: idx * 0.05, duration: 0.2 }}
+                              className="flex items-start gap-2 p-2 lg:p-2.5 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors"
+                            >
+                              <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center flex-shrink-0 ${selectedCheck.iconColor.replace('text-', 'bg-').replace('400', '500/20')}`}>
+                                <service.icon className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${selectedCheck.iconColor}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] lg:text-xs font-medium truncate">{service.name}</p>
+                                <p className="text-[9px] lg:text-[10px] text-muted-foreground/70 leading-tight">{service.desc}</p>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  <div className="flex flex-col gap-2.5 lg:gap-3">
                     <div className="relative w-full">
-                      <Terminal className="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground" />
+                      <Terminal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground pointer-events-none" />
                       <Input
                         ref={inputRef}
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder={selectedCheck?.placeholder}
-                        className="h-12 lg:h-14 pl-10 lg:pl-12 pr-4 text-sm lg:text-lg font-mono bg-black/60 border-white/10 focus:border-primary/50 rounded-xl placeholder:text-muted-foreground/50 w-full max-w-full"
+                        className="h-11 lg:h-14 pl-9 lg:pl-12 pr-3 lg:pr-4 text-sm lg:text-lg font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full max-w-full touch-manipulation"
                         onKeyDown={(e) => e.key === "Enter" && handleCheck()}
                         data-testid="input-check-value"
                       />
                     </div>
-                    <Button 
-                      onClick={handleCheck} 
-                      disabled={checkMutation.isPending}
-                      className="h-12 lg:h-14 px-6 lg:px-8 text-base lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 text-black rounded-xl shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] transition-all duration-500 w-full"
-                      data-testid="button-perform-check"
-                    >
-                      {checkMutation.isPending ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <>
-                          <Search className="w-5 h-5 mr-2" />
-                          Сканувати
-                        </>
-                      )}
-                    </Button>
+                    <motion.div whileTap={{ scale: 0.98 }}>
+                      <Button 
+                        onClick={handleCheck} 
+                        disabled={checkMutation.isPending}
+                        className="h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation"
+                        data-testid="button-perform-check"
+                      >
+                        {checkMutation.isPending ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Loader2 className="w-5 h-5" />
+                          </motion.div>
+                        ) : (
+                          <>
+                            <Search className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+                            Сканувати
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
@@ -667,51 +827,61 @@ export default function Dashboard() {
             <AnimatePresence mode="wait">
               {result && (
                 <motion.div
-                  initial={{ opacity: 0, y: 30, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="space-y-4 lg:space-y-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="space-y-3 lg:space-y-6"
                 >
-                  <div className="p-4 lg:p-8 rounded-xl lg:rounded-2xl border border-white/10 bg-black/60 backdrop-blur-2xl shadow-[0_0_60px_rgba(0,0,0,0.3)]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/10">
-                      <div className="flex items-center gap-3 lg:gap-4">
-                        <div className={`w-12 h-12 lg:w-14 lg:h-14 rounded-xl flex items-center justify-center ${
-                          result.riskLevel === 'critical' ? 'bg-red-500/20' :
-                          result.riskLevel === 'high' ? 'bg-orange-500/20' :
-                          result.riskLevel === 'medium' ? 'bg-yellow-500/20' :
-                          'bg-green-500/20'
-                        }`}>
+                  <div className="p-3.5 lg:p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)]">
+                    <div className="flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/10">
+                      <div className="flex items-center gap-3">
+                        <motion.div 
+                          className={`w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${
+                            result.riskLevel === 'critical' ? 'bg-red-500/20' :
+                            result.riskLevel === 'high' ? 'bg-orange-500/20' :
+                            result.riskLevel === 'medium' ? 'bg-yellow-500/20' :
+                            'bg-green-500/20'
+                          }`}
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.3, type: "spring" }}
+                        >
                           {result.riskLevel === 'critical' || result.riskLevel === 'high' ? (
-                            <AlertTriangle className={`w-6 h-6 lg:w-7 lg:h-7 ${result.riskLevel === 'critical' ? 'text-red-400' : 'text-orange-400'}`} />
+                            <AlertTriangle className={`w-5 h-5 lg:w-7 lg:h-7 ${result.riskLevel === 'critical' ? 'text-red-400' : 'text-orange-400'}`} />
                           ) : result.riskLevel === 'medium' ? (
-                            <Clock className="w-6 h-6 lg:w-7 lg:h-7 text-yellow-400" />
+                            <Clock className="w-5 h-5 lg:w-7 lg:h-7 text-yellow-400" />
                           ) : (
-                            <ShieldCheck className="w-6 h-6 lg:w-7 lg:h-7 text-green-400" />
+                            <ShieldCheck className="w-5 h-5 lg:w-7 lg:h-7 text-green-400" />
                           )}
-                        </div>
-                        <div>
-                          <h2 className="text-lg lg:text-2xl font-display font-bold">Результат аналізу</h2>
-                          <p className="text-xs lg:text-sm text-muted-foreground font-mono">{result.timestamp}</p>
+                        </motion.div>
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-base lg:text-2xl font-display font-bold">Результат аналізу</h2>
+                          <p className="text-[10px] lg:text-sm text-muted-foreground font-mono">{result.timestamp}</p>
                         </div>
                       </div>
                       <RiskBadge level={result.riskLevel} score={result.riskScore} />
                     </div>
 
-                    <div className="p-3 lg:p-4 rounded-xl bg-white/5 border border-white/10 mb-4 lg:mb-6">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                        <Database className="w-4 h-4" />
+                    <motion.div 
+                      className="p-3 lg:p-4 rounded-xl bg-white/5 border border-white/10 mb-3 lg:mb-6"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                    >
+                      <div className="flex items-center gap-2 text-[10px] lg:text-xs text-muted-foreground mb-1.5 lg:mb-2">
+                        <Database className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                         Ціль сканування
                       </div>
-                      <p className="font-mono text-sm lg:text-xl break-all text-primary">{result.target}</p>
-                    </div>
+                      <p className="font-mono text-xs lg:text-xl break-all text-primary leading-relaxed">{result.target}</p>
+                    </motion.div>
 
-                    <div className="mb-4 lg:mb-6">
-                      <h4 className="text-sm font-semibold mb-3 lg:mb-4 flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <div className="mb-3 lg:mb-6">
+                      <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-500" />
                         Знахідки ({result.findings.length})
                       </h4>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5 lg:space-y-2">
                         {result.findings.map((finding, idx) => {
                           const isCritical = finding.includes("КРИТИЧНО");
                           const isWarning = finding.includes("УВАГА");
@@ -720,44 +890,44 @@ export default function Dashboard() {
                           return (
                             <motion.div 
                               key={idx}
-                              initial={{ opacity: 0, x: -20 }}
+                              initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.08, duration: 0.4 }}
-                              className={`p-3 lg:p-4 rounded-xl text-xs lg:text-sm flex items-start gap-3 border ${
+                              transition={{ delay: idx * 0.05, duration: 0.3 }}
+                              className={`p-2.5 lg:p-4 rounded-xl text-[11px] lg:text-sm flex items-start gap-2 lg:gap-3 border ${
                                 isCritical ? "bg-red-500/10 border-red-500/30 text-red-300" :
                                 isWarning ? "bg-orange-500/10 border-orange-500/30 text-orange-300" :
                                 isSafe ? "bg-green-500/10 border-green-500/30 text-green-300" :
                                 "bg-yellow-500/10 border-yellow-500/30 text-yellow-300"
                               }`}
                             >
-                              <ChevronRight className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                              <span>{finding}</span>
+                              <ChevronRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 mt-0.5 flex-shrink-0" />
+                              <span className="leading-relaxed">{finding}</span>
                             </motion.div>
                           );
                         })}
                       </div>
                     </div>
 
-                    <div className="mb-4 lg:mb-6">
-                      <h4 className="text-sm font-semibold mb-3 lg:mb-4 flex items-center gap-2">
-                        <Terminal className="w-4 h-4 text-primary" />
+                    <div className="mb-3 lg:mb-6">
+                      <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
+                        <Terminal className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
                         Технічні деталі
                       </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
                         {Object.entries(result.details).map(([key, value], idx) => (
                           <motion.div 
                             key={key}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 + idx * 0.04, duration: 0.4 }}
-                            className="p-3 lg:p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/15 transition-all duration-300"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.15 + idx * 0.03, duration: 0.3 }}
+                            className="p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-white/5 border border-white/5 active:border-white/20 transition-all duration-300"
                           >
-                            <p className="text-[10px] lg:text-xs text-muted-foreground capitalize mb-1">
+                            <p className="text-[9px] lg:text-xs text-muted-foreground capitalize mb-0.5 lg:mb-1 truncate">
                               {key.replace(/([A-Z])/g, ' $1').trim()}
                             </p>
-                            <p className="font-mono text-xs lg:text-sm break-all">
+                            <p className="font-mono text-[10px] lg:text-sm break-all leading-relaxed">
                               {typeof value === "boolean" ? (
-                                <Badge variant={value ? "destructive" : "secondary"} className="text-xs">
+                                <Badge variant={value ? "destructive" : "secondary"} className="text-[9px] lg:text-xs px-1.5">
                                   {value ? "Так" : "Ні"}
                                 </Badge>
                               ) : typeof value === "object" ? 
@@ -769,20 +939,24 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 lg:gap-4 pt-4 lg:pt-6 border-t border-white/10">
-                      <div className="flex items-center gap-2 text-[10px] lg:text-xs text-muted-foreground">
-                        <Database className="w-3 h-3 lg:w-4 lg:h-4" />
-                        Джерела: {result.sources.join(", ")}
+                    <div className="flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/10">
+                      <div className="flex items-center gap-1.5 text-[9px] lg:text-xs text-muted-foreground">
+                        <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
+                        <span className="truncate">Джерела: {result.sources.join(", ")}</span>
                       </div>
-                      <div className="flex gap-2 w-full sm:w-auto">
-                        <Button variant="outline" size="sm" className="rounded-lg flex-1 sm:flex-initial text-xs lg:text-sm" data-testid="button-download-pdf">
-                          <Download className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                          PDF
-                        </Button>
-                        <Button variant="outline" size="sm" className="rounded-lg flex-1 sm:flex-initial text-xs lg:text-sm" data-testid="button-add-to-monitor">
-                          <Eye className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2" />
-                          Моніторити
-                        </Button>
+                      <div className="flex gap-2 w-full">
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-xs lg:text-sm border-white/10 hover:border-white/20 hover:bg-white/5 touch-manipulation" data-testid="button-download-pdf">
+                            <Download className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                            PDF
+                          </Button>
+                        </motion.div>
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-xs lg:text-sm border-primary/30 hover:border-primary/50 hover:bg-primary/10 text-primary touch-manipulation" data-testid="button-add-to-monitor">
+                            <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                            Моніторити
+                          </Button>
+                        </motion.div>
                       </div>
                     </div>
                   </div>
@@ -821,49 +995,88 @@ export default function Dashboard() {
           </div>
         </main>
 
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 border-t border-white/10 bg-black/95 backdrop-blur-2xl z-50 safe-area-inset-bottom">
-          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="flex items-center justify-around py-2 px-2">
-            {navItems.map((item) => {
+        <motion.nav 
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom"
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.2 }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/98 to-black/95 backdrop-blur-2xl" />
+          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/3 via-transparent to-cyan-500/3 pointer-events-none" />
+          <div className="relative flex items-center justify-around py-2 px-3">
+            {navItems.map((item, idx) => {
               const isActive = location === item.href;
               return (
                 <Link key={item.id} href={item.href}>
                   <motion.button
-                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${
+                    className={`relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl transition-all duration-300 ${
                       isActive 
-                        ? "text-primary bg-primary/10" 
-                        : "text-muted-foreground"
+                        ? "text-primary" 
+                        : "text-muted-foreground active:text-white"
                     }`}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.9 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05, duration: 0.3 }}
                     data-testid={`mobile-nav-${item.id}`}
                   >
-                    <item.icon className="w-5 h-5" />
-                    <span className="text-[10px] font-medium">{item.label}</span>
+                    {isActive && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/10 to-transparent rounded-2xl"
+                        layoutId="mobileNavActive"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-primary/20' : ''}`}>
+                      <item.icon className={`w-5 h-5 transition-all duration-300 ${isActive ? 'drop-shadow-[0_0_6px_rgba(34,197,94,0.8)]' : ''}`} />
+                    </div>
+                    <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'text-primary' : ''}`}>
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <motion.div
+                        className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full"
+                        initial={{ scaleX: 0, opacity: 0 }}
+                        animate={{ scaleX: 1, opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
                   </motion.button>
                 </Link>
               );
             })}
             <motion.button
               onClick={() => setShowProfile(true)}
-              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-muted-foreground"
-              whileTap={{ scale: 0.95 }}
+              className="relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl text-muted-foreground active:text-cyan-400 transition-all duration-300"
+              whileTap={{ scale: 0.9 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.3 }}
               data-testid="mobile-nav-profile"
             >
-              <User className="w-5 h-5" />
+              <div className="p-1.5 rounded-xl">
+                <User className="w-5 h-5" />
+              </div>
               <span className="text-[10px] font-medium">Профіль</span>
             </motion.button>
             <motion.button
               onClick={() => setShowSubscription(true)}
-              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-muted-foreground"
-              whileTap={{ scale: 0.95 }}
+              className="relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl text-muted-foreground active:text-yellow-400 transition-all duration-300"
+              whileTap={{ scale: 0.9 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
               data-testid="mobile-nav-subscription"
             >
-              <Crown className="w-5 h-5" />
+              <div className="p-1.5 rounded-xl">
+                <Crown className="w-5 h-5" />
+              </div>
               <span className="text-[10px] font-medium">Підписка</span>
             </motion.button>
           </div>
-        </nav>
-        <div className="lg:hidden h-20" />
+        </motion.nav>
+        <div className="lg:hidden h-24" />
       </div>
 
       <Dialog open={showProfile} onOpenChange={setShowProfile}>

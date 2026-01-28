@@ -253,6 +253,7 @@ function getModuleLabel(moduleType: string): string {
     email: "Email Security",
     domain: "Domain Intel",
     url: "URL Risk Scan",
+    bot: "Bot Token Audit",
     cve: "CVE/Vuln Scan",
     iot: "IoT Fingerprint",
     cloud: "Cloud Resources",
@@ -323,6 +324,12 @@ export function generateFindings(moduleType: string, riskLevel: string): Finding
       { type: riskLevel === "high" ? "danger" : "success", title: "Phishing Assessment", description: riskLevel === "high" ? "Matches phishing patterns." : "No phishing indicators." },
       { type: "info", title: "Redirect Chain Analysis", description: "URL redirect chain analyzed." },
     ],
+    bot: [
+      { type: "info", title: "Token Validation", description: "Bot token validated via Telegram API." },
+      { type: "info", title: "Bot Info Retrieved", description: "Username and capabilities identified." },
+      { type: riskLevel === "high" ? "warning" : "success", title: "Permission Check", description: riskLevel === "high" ? "Elevated permissions detected." : "Standard permissions." },
+      { type: riskLevel === "high" ? "danger" : "success", title: "Security Analysis", description: riskLevel === "high" ? "Suspicious bot patterns found." : "No security issues found." },
+    ],
   };
 
   return baseFindingsByModule[moduleType] || [
@@ -338,6 +345,7 @@ export function generateMetadata(moduleType: string): Record<string, string | nu
     email: { "MX": "Valid", "Breach DBs": 15, "Age": "2+ years" },
     domain: { "Age": "5 years", "Registrar": "Cloudflare", "DNS": 12 },
     url: { "Status": 200, "Redirects": Math.floor(Math.random() * 3), "Engines": 70 },
+    bot: { "API": "Telegram", "Validation": "Live", "Checks": 4 },
   };
 
   return baseMetadata[moduleType] || { "Type": moduleType };

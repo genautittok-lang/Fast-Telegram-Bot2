@@ -90,6 +90,12 @@ export function validateInput(type: string, value: string): { valid: boolean; er
         return { valid: false, error: "Невірний номер. Приклад: +380501234567" };
       }
       break;
+    case "bot":
+      // Telegram bot token format: number:alphanumeric (e.g., 123456789:ABCdefGHIjklMNOpqrsTUVwxyz)
+      if (!/^\d{8,12}:[A-Za-z0-9_-]{35}$/.test(cleanValue)) {
+        return { valid: false, error: "Невірний формат токену. Приклад: 123456789:ABCdefGHI..." };
+      }
+      break;
   }
   return { valid: true };
 }
@@ -110,6 +116,8 @@ export async function performCheck(type: string, value: string): Promise<CheckRe
       return await checkDomain(value, timestamp);
     case "url":
       return await checkURL(value, timestamp);
+    case "bot":
+      return await checkBot(value, timestamp);
     default:
       throw new Error(`Unknown check type: ${type}`);
   }
@@ -916,6 +924,151 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
     riskLevel,
     summary: `URL — ${riskLevel.toUpperCase()} ризик (${Math.min(riskScore, 100)}/100)`,
     details: urlData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+async function checkBot(value: string, timestamp: Date): Promise<CheckResult> {
+  let riskScore = 10;
+  const findings: string[] = [];
+  const sources: string[] = ["Telegram Bot API"];
+  const botData: any = {};
+  
+  const token = value.trim();
+  botData.tokenMasked = `${token.slice(0, 8)}...${token.slice(-8)}`;
+  
+  // Extract bot ID from token
+  const botIdMatch = token.match(/^(\d+):/);
+  if (botIdMatch) {
+    botData.botId = botIdMatch[1];
+  }
+  
+  // Validate token with Telegram API
+  try {
+    const response = await fetchWithTimeout(`https://api.telegram.org/bot${token}/getMe`, 10000);
+    const data = await response.json();
+    
+    if (data.ok && data.result) {
+      const bot = data.result;
+      botData.isValid = true;
+      botData.username = bot.username;
+      botData.firstName = bot.first_name;
+      botData.botId = bot.id.toString();
+      botData.canJoinGroups = bot.can_join_groups ?? false;
+      botData.canReadAllGroupMessages = bot.can_read_all_group_messages ?? false;
+      botData.supportsInlineQueries = bot.supports_inline_queries ?? false;
+      botData.canConnectToBusiness = bot.can_connect_to_business ?? false;
+      botData.hasMainWebApp = bot.has_main_web_app ?? false;
+      
+      findings.push(`✅ Токен валідний — @${bot.username}`);
+      findings.push(`🤖 Ім'я бота: ${bot.first_name}`);
+      findings.push(`🆔 Bot ID: ${bot.id}`);
+      
+      // Risk scoring based on capabilities
+      if (bot.can_join_groups) {
+        riskScore += 5;
+        findings.push("📂 Може приєднуватися до груп");
+      }
+      
+      if (bot.can_read_all_group_messages) {
+        riskScore += 15;
+        findings.push("👁️ Може читати всі повідомлення в групах");
+      }
+      
+      if (bot.supports_inline_queries) {
+        findings.push("🔍 Підтримує inline-запити");
+      }
+      
+      if (bot.can_connect_to_business) {
+        riskScore += 5;
+        findings.push("💼 Може підключатися до бізнес-акаунтів");
+      }
+      
+      if (bot.has_main_web_app) {
+        findings.push("🌐 Має веб-застосунок");
+      }
+      
+      // Check if it's a premium bot (has many capabilities)
+      const capabilityCount = [
+        bot.can_join_groups,
+        bot.can_read_all_group_messages,
+        bot.supports_inline_queries,
+        bot.can_connect_to_business,
+        bot.has_main_web_app
+      ].filter(Boolean).length;
+      
+      if (capabilityCount >= 4) {
+        riskScore += 10;
+        findings.push("⚡ Бот з розширеними можливостями");
+        botData.isPowerful = true;
+      }
+      
+      // Username analysis
+      const suspiciousPatterns = ["admin", "support", "official", "helper", "service", "bank", "wallet", "crypto", "trade", "invest"];
+      const usernameLower = bot.username.toLowerCase();
+      const foundPatterns = suspiciousPatterns.filter(p => usernameLower.includes(p));
+      if (foundPatterns.length > 0) {
+        riskScore += 20;
+        findings.push(`⚠️ Підозріла назва: містить ${foundPatterns.join(", ")}`);
+        botData.hasSuspiciousName = true;
+      }
+      
+    } else {
+      // Token is invalid or revoked
+      botData.isValid = false;
+      riskScore = 70;
+      
+      if (data.error_code === 401) {
+        findings.push("🔴 Токен НЕДІЙСНИЙ або відкликаний");
+        botData.errorType = "unauthorized";
+      } else if (data.error_code === 404) {
+        findings.push("🔴 Бот не знайдений");
+        botData.errorType = "not_found";
+      } else {
+        findings.push(`🔴 Помилка API: ${data.description || "Unknown error"}`);
+        botData.errorType = "api_error";
+        botData.errorDescription = data.description;
+      }
+      
+      findings.push("⚠️ Можливо токен вже скомпрометований");
+    }
+    
+  } catch (error: any) {
+    botData.isValid = false;
+    riskScore = 50;
+    
+    if (error.name === "AbortError") {
+      findings.push("⚠️ Telegram API не відповідає (таймаут)");
+      botData.errorType = "timeout";
+    } else {
+      findings.push("⚠️ Не вдалось перевірити токен");
+      botData.errorType = "network_error";
+    }
+  }
+  
+  // Security recommendations
+  if (botData.isValid) {
+    findings.push("🔐 Рекомендація: Не діліться токеном публічно");
+    if (botData.canReadAllGroupMessages) {
+      findings.push("🛡️ Увага: Бот має доступ до всіх повідомлень");
+    }
+  } else {
+    findings.push("💡 Якщо це ваш бот — створіть новий токен через @BotFather");
+  }
+  
+  const riskLevel = getRiskLevel(riskScore);
+  
+  return {
+    type: "bot",
+    target: botData.tokenMasked,
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: botData.isValid 
+      ? `Bot @${botData.username} — ${riskLevel.toUpperCase()} ризик (${Math.min(riskScore, 100)}/100)`
+      : `Bot Token — ${riskLevel.toUpperCase()} ризик (НЕДІЙСНИЙ)`,
+    details: botData,
     findings,
     sources,
     timestamp,

@@ -643,7 +643,13 @@ ${findingsText}
     const user = await storage.getUserById(payment.userId!);
     if (user) {
       const newTier = payment.tier;
-      await storage.updateUser(user.id, { tier: newTier, requestsLeft: 9999 });
+      const tierLimits: Record<string, number> = {
+        "pro": 50,
+        "enterprise": 9999,
+        "basic": 30
+      };
+      const newLimit = tierLimits[newTier.toLowerCase()] || 50;
+      await storage.updateUser(user.id, { tier: newTier, requestsLeft: newLimit });
       
       const userLang = getUserLang(user.lang);
       const expiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString();
