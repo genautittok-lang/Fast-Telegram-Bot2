@@ -42,6 +42,7 @@ async function ensureTablesExist() {
         tg_id TEXT NOT NULL UNIQUE,
         username TEXT,
         lang TEXT DEFAULT 'uk',
+        lang_set BOOLEAN DEFAULT false,
         tier TEXT DEFAULT 'FREE',
         requests_left INTEGER DEFAULT 15,
         streak_days INTEGER DEFAULT 0,
@@ -54,6 +55,11 @@ async function ensureTablesExist() {
         last_login TIMESTAMP DEFAULT NOW(),
         created_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+    
+    // Add lang_set column if missing (for existing databases)
+    await pool.query(`
+      ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS lang_set BOOLEAN DEFAULT false
     `);
     
     // Create dependent tables with ds_ prefix
