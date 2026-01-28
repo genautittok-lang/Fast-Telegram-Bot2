@@ -52,6 +52,7 @@ export const translations = {
       coupon: "🎁 Купон",
       language: "🌍 Мова",
       exit: "⬅️ Вийти",
+      copyAddress: "Скопіювати адресу",
     },
     
     validation: {
@@ -98,8 +99,9 @@ export const translations = {
     payment: {
       title: "💳 Оплата {tier}",
       amount: "Сума: ${amount} USDT (TRC20)",
-      address: "Адреса: TRYbty7cEgk4ioFqBt5x5aFwqowhk7hJAm",
+      address: "`TRYbty4Ew9knf61brdrixeY5M34mQTt3zY`",
       instructions: "Після оплати надішли:\n• TX Hash (текстом)\n• АБО скріншот оплати\n\nТвій запит буде перевірено модератором.",
+      addressCopied: "Адресу скопійовано!",
       created: "✅ Запит на оплату #{id} створено!",
       pending: "Очікуйте підтвердження від модератора.",
       approved: "✅ Оплату #{id} підтверджено!\n\nТвій тариф: {tier}\nДійсний до: {expiry}\n\nДякуємо за підтримку!",
@@ -247,6 +249,7 @@ Select a module for analysis:`,
       coupon: "🎁 Coupon",
       language: "🌍 Language",
       exit: "⬅️ Exit",
+      copyAddress: "Copy Address",
     },
     
     validation: {
@@ -293,8 +296,9 @@ Select a module for analysis:`,
     payment: {
       title: "💳 Payment {tier}",
       amount: "Amount: ${amount} USDT (TRC20)",
-      address: "Address: TRYbty7cEgk4ioFqBt5x5aFwqowhk7hJAm",
+      address: "`TRYbty4Ew9knf61brdrixeY5M34mQTt3zY`",
       instructions: "After payment send:\n• TX Hash (as text)\n• OR payment screenshot\n\nYour request will be verified by moderator.",
+      addressCopied: "Address copied!",
       created: "✅ Payment request #{id} created!",
       pending: "Awaiting moderator confirmation.",
       approved: "✅ Payment #{id} approved!\n\nYour tier: {tier}\nValid until: {expiry}\n\nThank you for your support!",
@@ -442,6 +446,7 @@ Select a module for analysis:`,
       coupon: "🎁 Купон",
       language: "🌍 Язык",
       exit: "⬅️ Выход",
+      copyAddress: "Скопировать адрес",
     },
     
     validation: {
@@ -488,8 +493,9 @@ Select a module for analysis:`,
     payment: {
       title: "💳 Оплата {tier}",
       amount: "Сумма: ${amount} USDT (TRC20)",
-      address: "Адрес: TRYbty7cEgk4ioFqBt5x5aFwqowhk7hJAm",
+      address: "`TRYbty4Ew9knf61brdrixeY5M34mQTt3zY`",
       instructions: "После оплаты отправь:\n• TX Hash (текстом)\n• ИЛИ скриншот оплаты\n\nТвой запрос будет проверен модератором.",
+      addressCopied: "Адрес скопирован!",
       created: "✅ Запрос на оплату #{id} создан!",
       pending: "Ожидайте подтверждения от модератора.",
       approved: "✅ Оплата #{id} подтверждена!\n\nТвой тариф: {tier}\nДействителен до: {expiry}\n\nСпасибо за поддержку!",

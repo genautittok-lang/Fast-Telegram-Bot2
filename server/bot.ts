@@ -61,7 +61,10 @@ export async function setupBot(storage: IStorage) {
     const text = ctx.message.text;
     const refMatch = text.match(/start=ref_(\w+)/);
     const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    const isNewUser = !user?.langSet;
     
     let welcomeText = t(lang, "welcome", { 
       username: ctx.from.first_name || ctx.from.username || "User",
@@ -72,15 +75,18 @@ export async function setupBot(storage: IStorage) {
       welcomeText += "\n\n" + t(lang, "common.referralBonus");
     }
 
-    welcomeText += "\n\n" + t(lang, "common.selectLanguage");
-
-    await ctx.reply(welcomeText, Markup.inlineKeyboard([
-      [
-        Markup.button.callback("🇺🇦 Українська", "lang_uk"),
-        Markup.button.callback("🇬🇧 English", "lang_en"),
-        Markup.button.callback("🇷🇺 Русский", "lang_ru")
-      ]
-    ]));
+    if (isNewUser) {
+      welcomeText += "\n\n" + t(lang, "common.selectLanguage");
+      await ctx.reply(welcomeText, Markup.inlineKeyboard([
+        [
+          Markup.button.callback("🇺🇦 Українська", "lang_uk"),
+          Markup.button.callback("🇬🇧 English", "lang_en"),
+          Markup.button.callback("🇷🇺 Русский", "lang_ru")
+        ]
+      ]));
+    } else {
+      await showDashboard(ctx, tgId, false);
+    }
   });
 
   bot.action(/^lang_/, async (ctx) => {
@@ -88,7 +94,7 @@ export async function setupBot(storage: IStorage) {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     if (user) {
-      await storage.updateUser(user.id, { lang: langCode });
+      await storage.updateUser(user.id, { lang: langCode, langSet: true });
     }
     await ctx.answerCbQuery(t(langCode, "settings.languageChanged"));
     
@@ -511,7 +517,7 @@ ${findingsText}
     const user = await storage.getUserByTgId(tgId);
     
     if (user) {
-      await storage.updateUser(user.id, { lang: newLang });
+      await storage.updateUser(user.id, { lang: newLang, langSet: true });
     }
     
     await ctx.answerCbQuery(t(newLang, "settings.languageChanged"));
@@ -559,8 +565,20 @@ ${findingsText}
     const text = `${t(lang, "payment.title", { tier })}\n\n${t(lang, "payment.amount", { amount })}\n\n${t(lang, "payment.address")}\n\n${t(lang, "payment.instructions")}`;
 
     await ctx.reply(text, 
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]])
+      Markup.inlineKeyboard([
+        [Markup.button.callback("📋 " + t(lang, "buttons.copyAddress"), "copy_address")],
+        [Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]
+      ])
     );
+  });
+
+  const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
+
+  bot.action("copy_address", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    await ctx.answerCbQuery(t(lang, "payment.addressCopied"), { show_alert: false });
+    await ctx.reply(`\`${TRC20_ADDRESS}\``, { parse_mode: "Markdown" });
   });
 
   bot.on("photo", async (ctx) => {
