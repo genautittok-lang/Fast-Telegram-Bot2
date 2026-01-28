@@ -222,6 +222,7 @@ export default function Dashboard() {
   const [inputValue, setInputValue] = useState("");
   const [result, setResult] = useState<CheckResult | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast, dismiss } = useToast();
@@ -462,12 +463,22 @@ export default function Dashboard() {
             <Button 
               variant="ghost" 
               size="sm" 
+              className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-300"
+              onClick={() => setShowProfile(true)}
+              data-testid="button-profile"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
               className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
               onClick={() => setShowSubscription(true)}
               data-testid="button-subscription"
             >
               <Crown className="w-4 h-4 mr-2" />
-              Підписка
+              Subscription
             </Button>
             <Button 
               variant="ghost" 
@@ -477,7 +488,7 @@ export default function Dashboard() {
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Вийти
+              Exit
             </Button>
           </div>
         </div>
@@ -846,23 +857,107 @@ export default function Dashboard() {
         <div className="lg:hidden h-20" />
       </div>
 
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="bg-black/95 border-cyan-500/30 backdrop-blur-xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-display flex items-center gap-2">
+              <User className="w-5 h-5 text-cyan-400" />
+              My Profile
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Account synced between bot and website
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
+                <div className="text-[10px] text-muted-foreground mb-1">Telegram ID</div>
+                <div className="font-mono text-cyan-400 text-sm">{user?.tgId || "—"}</div>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
+                <div className="text-[10px] text-muted-foreground mb-1">Username</div>
+                <div className="font-mono text-primary text-sm">@{user?.username || "—"}</div>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20">
+                <div className="text-[10px] text-muted-foreground mb-1">Tier</div>
+                <div className="font-mono text-yellow-400 text-sm">{user?.tier || "FREE"}</div>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
+                <div className="text-[10px] text-muted-foreground mb-1">Requests Left</div>
+                <div className="font-mono text-blue-400 text-sm">{user?.requestsLeft ?? 0}/15</div>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
+                <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
+                  <Zap className="w-3 h-3" /> Streak
+                </div>
+                <div className="font-mono text-orange-400 text-sm">{user?.streakDays ?? 0} days</div>
+              </div>
+              <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
+                <div className="text-[10px] text-muted-foreground mb-1">Ref. Code</div>
+                <div className="font-mono text-purple-400 text-sm">{user?.refCode || "—"}</div>
+              </div>
+            </div>
+            
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs text-emerald-400">Bot sync active</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showSubscription} onOpenChange={setShowSubscription}>
         <DialogContent className="bg-black/95 border-primary/30 backdrop-blur-xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary" />
-              Оформити підписку
+              Subscription Plans
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Оплатіть підписку на вказаний гаманець і надішліть скріншот через бот @DARKSHAREN1_BOT
+              Choose a plan and send payment screenshot to @DARKSHAREN1_BOT
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-blue-400 flex items-center gap-2">
+                      <Shield className="w-4 h-4" />
+                      PRO
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">50 requests/day, priority support</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-white">$10</div>
+                    <div className="text-[10px] text-muted-foreground">30 days</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/30 hover:border-purple-400/50 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-purple-400 flex items-center gap-2">
+                      <Crown className="w-4 h-4" />
+                      ENTERPRISE
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">Unlimited requests, API access, VIP</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-white">$50</div>
+                    <div className="text-[10px] text-muted-foreground">30 days</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
-              <div className="text-xs text-muted-foreground mb-2">TRC20 (USDT)</div>
+              <div className="text-xs text-muted-foreground mb-2">Payment Address (TRC20 USDT)</div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-sm font-mono text-primary bg-black/50 p-3 rounded-lg break-all select-all">
+                <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
                   {TRC20_ADDRESS}
                 </code>
                 <Button
@@ -881,24 +976,9 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex justify-between">
-                <span>Basic (30 днів)</span>
-                <span className="text-white font-medium">$9.99</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Pro (30 днів)</span>
-                <span className="text-white font-medium">$19.99</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Elite (30 днів)</span>
-                <span className="text-white font-medium">$49.99</span>
-              </div>
-            </div>
-
             <div className="pt-2 border-t border-white/10">
-              <p className="text-xs text-muted-foreground">
-                Після оплати надішліть скріншот транзакції або TX Hash боту для активації підписки.
+              <p className="text-xs text-muted-foreground text-center">
+                After payment, send screenshot or TX Hash to bot for activation
               </p>
             </div>
           </div>
