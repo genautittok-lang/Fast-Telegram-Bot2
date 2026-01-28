@@ -404,7 +404,7 @@ export default function Dashboard() {
         
         <div className="p-4 border-t border-white/5 mt-auto">
           <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/20 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <Avatar className="w-12 h-12 border-2 border-primary/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
                 <AvatarImage src={user?.photoUrl} />
                 <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold">
@@ -414,6 +414,24 @@ export default function Dashboard() {
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">@{user?.username}</p>
                 <TierBadge tier={user?.tier || "FREE"} />
+              </div>
+            </div>
+            
+            <div className="space-y-1.5 mb-3 text-[10px]">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Telegram ID</span>
+                <span className="font-mono text-cyan-400">{user?.tgId || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Ref. code</span>
+                <span className="font-mono text-primary">{user?.refCode || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-orange-400" />
+                  Streak
+                </span>
+                <span className="font-mono text-orange-400">{user?.streakDays ?? 0}</span>
               </div>
             </div>
             
@@ -429,6 +447,13 @@ export default function Dashboard() {
                   animate={{ width: `${Math.min(((user?.requestsLeft ?? 0) / 15) * 100, 100)}%` }}
                   transition={{ duration: 1.2, ease: "easeOut" }}
                 />
+              </div>
+            </div>
+            
+            <div className="mt-2 pt-2 border-t border-white/5">
+              <div className="flex items-center gap-1.5 text-[9px] text-emerald-400">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>Bot sync OK</span>
               </div>
             </div>
           </div>

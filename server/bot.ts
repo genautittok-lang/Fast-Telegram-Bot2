@@ -152,7 +152,7 @@ ${t(lang, "dashboard.selectModule")}`;
         Markup.button.callback(t(lang, "buttons.referrals"), "referrals")
       ],
       [
-        Markup.button.callback(t(lang, "buttons.coupon"), "coupon"),
+        Markup.button.callback(t(lang, "buttons.profile"), "profile"),
         Markup.button.callback(t(lang, "buttons.achievements"), "achievements")
       ],
       [
@@ -698,6 +698,29 @@ ${findingsText}
     await ctx.reply(t(lang, "coupon.enter"), 
       Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
     );
+  });
+
+  bot.action("profile", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    const username = user?.username?.replace(/[_*`\[\]]/g, "\\$&") || "—";
+    const refCode = user?.refCode?.replace(/[_*`\[\]]/g, "\\$&") || "—";
+    
+    const text = `${t(lang, "profile.title")}\n\n` +
+      `${t(lang, "profile.tgId")}: ${tgId}\n` +
+      `${t(lang, "profile.username")}: @${username}\n` +
+      `${t(lang, "profile.tier")}: ${user?.tier || "FREE"}\n` +
+      `${t(lang, "profile.requestsLeft")}: ${user?.requestsLeft ?? 15}\n` +
+      `${t(lang, "profile.streakDays")}: ${user?.streakDays ?? 0}\n` +
+      `${t(lang, "profile.refCode")}: ${refCode}\n\n` +
+      `${t(lang, "profile.syncInfo")}`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
+    });
   });
 
   bot.action("achievements", async (ctx) => {

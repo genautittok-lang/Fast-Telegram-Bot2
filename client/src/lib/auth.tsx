@@ -7,6 +7,8 @@ interface User {
   username: string;
   tier: string;
   requestsLeft: number;
+  streakDays?: number;
+  refCode?: string;
   firstName?: string;
   photoUrl?: string;
 }

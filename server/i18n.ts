@@ -53,6 +53,18 @@ export const translations = {
       language: "🌍 Мова",
       exit: "⬅️ Вийти",
       copyAddress: "Скопіювати адресу",
+      profile: "Профіль",
+    },
+    
+    profile: {
+      title: "Мій профіль",
+      tgId: "Telegram ID",
+      username: "Нікнейм",
+      tier: "Тариф",
+      requestsLeft: "Залишок запитів",
+      streakDays: "Днів поспіль",
+      refCode: "Реф. код",
+      syncInfo: "Цей профіль синхронізований між ботом та сайтом",
     },
     
     validation: {
@@ -250,6 +262,18 @@ Select a module for analysis:`,
       language: "🌍 Language",
       exit: "⬅️ Exit",
       copyAddress: "Copy Address",
+      profile: "Profile",
+    },
+    
+    profile: {
+      title: "My Profile",
+      tgId: "Telegram ID",
+      username: "Username",
+      tier: "Tier",
+      requestsLeft: "Requests left",
+      streakDays: "Streak days",
+      refCode: "Ref. code",
+      syncInfo: "This profile is synced between bot and website",
     },
     
     validation: {
@@ -447,6 +471,18 @@ Select a module for analysis:`,
       language: "🌍 Язык",
       exit: "⬅️ Выход",
       copyAddress: "Скопировать адрес",
+      profile: "Профиль",
+    },
+    
+    profile: {
+      title: "Мой профиль",
+      tgId: "Telegram ID",
+      username: "Никнейм",
+      tier: "Тариф",
+      requestsLeft: "Остаток запросов",
+      streakDays: "Дней подряд",
+      refCode: "Реф. код",
+      syncInfo: "Этот профиль синхронизирован между ботом и сайтом",
     },
     
     validation: {
