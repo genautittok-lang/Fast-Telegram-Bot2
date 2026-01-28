@@ -307,11 +307,38 @@ export default function Dashboard() {
   const [showSubscription, setShowSubscription] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [txHash, setTxHash] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
+
+  const paymentMutation = useMutation({
+    mutationFn: async ({ tier, txHash }: { tier: string; txHash?: string }) => {
+      const res = await apiRequest("POST", "/api/payment-request", { tier, txHash: txHash || undefined });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Заявку відправлено!",
+        description: `Заявка #${data.paymentId} створена. Очікуйте підтвердження від адміністратора.`,
+      });
+      setTxHash("");
+      setShowSubscription(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Помилка",
+        description: error.message || "Не вдалося відправити заявку",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePaymentRequest = (tier: "pro" | "enterprise") => {
+    paymentMutation.mutate({ tier, txHash: txHash.trim() || undefined });
+  };
 
   useEffect(() => {
     dismiss();
@@ -1074,6 +1101,20 @@ export default function Dashboard() {
               </div>
               <span className="text-[10px] font-medium">Підписка</span>
             </motion.button>
+            <motion.button
+              onClick={handleLogout}
+              className="relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl text-red-400 active:text-red-300 transition-all duration-300"
+              whileTap={{ scale: 0.9 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+              data-testid="mobile-nav-logout"
+            >
+              <div className="p-1.5 rounded-xl">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-medium">Вийти</span>
+            </motion.button>
           </div>
         </motion.nav>
         <div className="lg:hidden h-24" />
@@ -1137,53 +1178,11 @@ export default function Dashboard() {
               Тарифні плани
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Оберіть план та надішліть скріншот оплати в @DARKSHAREN1_BOT
+              Оберіть план та подайте заявку на активацію
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full p-4 h-auto rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/20 transition-all"
-                data-testid="button-plan-pro"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="text-left">
-                    <div className="font-semibold text-blue-400 flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      PRO
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">50 запитів/день, пріоритетна підтримка</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-white">$10</div>
-                    <div className="text-[10px] text-muted-foreground">30 днів</div>
-                  </div>
-                </div>
-              </Button>
-              
-              <Button
-                variant="ghost"
-                className="w-full p-4 h-auto rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/20 transition-all"
-                data-testid="button-plan-enterprise"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <div className="text-left">
-                    <div className="font-semibold text-purple-400 flex items-center gap-2">
-                      <Crown className="w-4 h-4" />
-                      ENTERPRISE
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">Безліміт запитів, API доступ, VIP</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-white">$50</div>
-                    <div className="text-[10px] text-muted-foreground">30 днів</div>
-                  </div>
-                </div>
-              </Button>
-            </div>
-            
             <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
               <div className="text-xs text-muted-foreground mb-2">Адреса оплати (TRC20 USDT)</div>
               <div className="flex items-center gap-2">
@@ -1205,10 +1204,57 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
+            
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">TX Hash (опціонально)</label>
+              <Input
+                placeholder="Введіть TX Hash транзакції..."
+                value={txHash}
+                onChange={(e) => setTxHash(e.target.value)}
+                className="bg-black/50 border-white/10 focus:border-primary/50"
+                data-testid="input-tx-hash"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Button
+                onClick={() => handlePaymentRequest("pro")}
+                disabled={paymentMutation.isPending}
+                className="w-full p-4 h-auto rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border border-blue-500/30 transition-all"
+                data-testid="button-submit-pro"
+              >
+                {paymentMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Shield className="w-4 h-4 mr-2" />
+                )}
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-semibold">Подати заявку на PRO</span>
+                  <span className="text-sm opacity-80">$10</span>
+                </div>
+              </Button>
+              
+              <Button
+                onClick={() => handlePaymentRequest("enterprise")}
+                disabled={paymentMutation.isPending}
+                className="w-full p-4 h-auto rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 border border-purple-500/30 transition-all"
+                data-testid="button-submit-enterprise"
+              >
+                {paymentMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Crown className="w-4 h-4 mr-2" />
+                )}
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-semibold">Подати заявку на ENTERPRISE</span>
+                  <span className="text-sm opacity-80">$50</span>
+                </div>
+              </Button>
+            </div>
 
             <div className="pt-2 border-t border-white/10">
               <p className="text-xs text-muted-foreground text-center">
-                Після оплати надішліть скріншот або TX Hash боту для активації
+                Заявка буде відправлена адміністратору в Telegram для підтвердження
               </p>
             </div>
           </div>

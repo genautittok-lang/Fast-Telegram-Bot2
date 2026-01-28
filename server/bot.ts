@@ -6,7 +6,9 @@ import { t, Language, languageNames } from "./i18n";
 
 interface BotContext extends Context {}
 
-const ADMIN_IDS = ["7820995179"];
+export const ADMIN_IDS = ["7820995179"];
+
+export let botInstance: Telegraf<BotContext> | null = null;
 
 function getUserLang(langCode: string | null | undefined): Language {
   if (!langCode) return "uk";
@@ -26,6 +28,7 @@ export async function setupBot(storage: IStorage) {
   console.log("Token found, creating bot instance...");
 
   const bot = new Telegraf<BotContext>(token);
+  botInstance = bot;
 
   bot.telegram.getMe()
     .then((botInfo) => console.log("Bot info:", botInfo.username))

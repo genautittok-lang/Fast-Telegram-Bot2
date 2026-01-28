@@ -1,12 +1,13 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupBot } from "./bot";
+import { setupBot, botInstance, ADMIN_IDS } from "./bot";
 import { api } from "@shared/routes";
 import { performCheck, validateInput } from "./checkService";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
+import { Markup } from "telegraf";
 
 // Server start time for uptime calculation
 const serverStartTime = Date.now();
@@ -346,6 +347,59 @@ export async function registerRoutes(
       res.json({ message: "Monitor deleted" });
     } catch (err) {
       res.status(404).json({ error: "Monitor not found" });
+    }
+  });
+
+  // Payment request endpoint (requires auth)
+  app.post("/api/payment-request", loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
+    const { tier, txHash } = req.body;
+    
+    if (!tier || !["pro", "enterprise", "PRO", "ENTERPRISE"].includes(tier)) {
+      return res.status(400).json({ error: "Invalid tier. Must be 'pro' or 'enterprise'" });
+    }
+
+    const normalizedTier = tier.toUpperCase();
+    const amount = normalizedTier === "PRO" ? "10" : "50";
+
+    try {
+      const payment = await storage.createPayment({
+        userId: req.user!.id,
+        tier: normalizedTier,
+        amountUsdt: amount,
+        txHash: txHash || null,
+        status: "pending",
+      });
+
+      if (botInstance) {
+        const user = req.user!;
+        const messageText = `🆕 Нова заявка на оплату #${payment.id}\n\n` +
+          `👤 Користувач: @${user.username || "—"}\n` +
+          `🔢 TG ID: ${user.tgId}\n` +
+          `📦 Тариф: ${normalizedTier}\n` +
+          `💰 Сума: $${amount} USDT\n` +
+          `${txHash ? `📝 TX Hash: ${txHash}` : "📝 TX Hash: не вказано"}\n` +
+          `📍 Джерело: Web`;
+
+        for (const adminId of ADMIN_IDS) {
+          try {
+            await botInstance.telegram.sendMessage(adminId, messageText, {
+              reply_markup: Markup.inlineKeyboard([
+                [
+                  Markup.button.callback("✅ Підтвердити", `approve_pay_${payment.id}`),
+                  Markup.button.callback("❌ Відхилити", `reject_pay_${payment.id}`)
+                ]
+              ]).reply_markup
+            });
+          } catch (e) {
+            console.log(`Failed to notify admin ${adminId}:`, e);
+          }
+        }
+      }
+
+      res.json({ success: true, paymentId: payment.id });
+    } catch (err: any) {
+      console.error("Payment request error:", err);
+      res.status(500).json({ error: "Failed to create payment request" });
     }
   });
 
