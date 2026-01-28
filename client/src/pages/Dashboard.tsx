@@ -829,7 +829,7 @@ export default function Dashboard() {
               return (
                 <Link key={item.id} href={item.href}>
                   <motion.button
-                    className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
+                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${
                       isActive 
                         ? "text-primary bg-primary/10" 
                         : "text-muted-foreground"
@@ -844,13 +844,22 @@ export default function Dashboard() {
               );
             })}
             <motion.button
-              onClick={handleLogout}
-              className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-muted-foreground"
+              onClick={() => setShowProfile(true)}
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-muted-foreground"
               whileTap={{ scale: 0.95 }}
-              data-testid="mobile-nav-logout"
+              data-testid="mobile-nav-profile"
             >
-              <LogOut className="w-5 h-5" />
-              <span className="text-[10px] font-medium">Вийти</span>
+              <User className="w-5 h-5" />
+              <span className="text-[10px] font-medium">Профіль</span>
+            </motion.button>
+            <motion.button
+              onClick={() => setShowSubscription(true)}
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-muted-foreground"
+              whileTap={{ scale: 0.95 }}
+              data-testid="mobile-nav-subscription"
+            >
+              <Crown className="w-5 h-5" />
+              <span className="text-[10px] font-medium">Підписка</span>
             </motion.button>
           </div>
         </nav>
