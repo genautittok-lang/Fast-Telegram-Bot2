@@ -468,7 +468,7 @@ export default function Dashboard() {
               data-testid="button-profile"
             >
               <User className="w-4 h-4 mr-2" />
-              Profile
+              Профіль
             </Button>
             <Button 
               variant="ghost" 
@@ -478,7 +478,7 @@ export default function Dashboard() {
               data-testid="button-subscription"
             >
               <Crown className="w-4 h-4 mr-2" />
-              Subscription
+              Підписка
             </Button>
             <Button 
               variant="ghost" 
@@ -488,7 +488,7 @@ export default function Dashboard() {
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Exit
+              Вийти
             </Button>
           </div>
         </div>
@@ -862,10 +862,10 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <User className="w-5 h-5 text-cyan-400" />
-              My Profile
+              Мій профіль
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Account synced between bot and website
+              Акаунт синхронізований з ботом
             </DialogDescription>
           </DialogHeader>
           
@@ -873,35 +873,35 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-lg bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1">Telegram ID</div>
-                <div className="font-mono text-cyan-400 text-sm">{user?.tgId || "—"}</div>
+                <div className="font-mono text-cyan-400 text-sm" data-testid="text-tg-id">{user?.tgId || "—"}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
                 <div className="text-[10px] text-muted-foreground mb-1">Username</div>
-                <div className="font-mono text-primary text-sm">@{user?.username || "—"}</div>
+                <div className="font-mono text-primary text-sm" data-testid="text-username">@{user?.username || "—"}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Tier</div>
-                <div className="font-mono text-yellow-400 text-sm">{user?.tier || "FREE"}</div>
+                <div className="text-[10px] text-muted-foreground mb-1">Тариф</div>
+                <div className="font-mono text-yellow-400 text-sm" data-testid="text-tier">{user?.tier || "FREE"}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Requests Left</div>
-                <div className="font-mono text-blue-400 text-sm">{user?.requestsLeft ?? 0}/15</div>
+                <div className="text-[10px] text-muted-foreground mb-1">Залишилось</div>
+                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{user?.requestsLeft ?? 0}/15</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Streak
+                  <Zap className="w-3 h-3" /> Серія
                 </div>
-                <div className="font-mono text-orange-400 text-sm">{user?.streakDays ?? 0} days</div>
+                <div className="font-mono text-orange-400 text-sm" data-testid="text-streak">{user?.streakDays ?? 0} днів</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Ref. Code</div>
-                <div className="font-mono text-purple-400 text-sm">{user?.refCode || "—"}</div>
+                <div className="text-[10px] text-muted-foreground mb-1">Реф. код</div>
+                <div className="font-mono text-purple-400 text-sm" data-testid="text-ref-code">{user?.refCode || "—"}</div>
               </div>
             </div>
             
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2" data-testid="status-bot-sync">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs text-emerald-400">Bot sync active</span>
+              <span className="text-xs text-emerald-400">Синхронізація з ботом активна</span>
             </div>
           </div>
         </DialogContent>
@@ -912,50 +912,58 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary" />
-              Subscription Plans
+              Тарифні плани
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Choose a plan and send payment screenshot to @DARKSHAREN1_BOT
+              Оберіть план та надішліть скріншот оплати в @DARKSHAREN1_BOT
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 mt-4">
             <div className="space-y-2">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer group">
-                <div className="flex items-center justify-between">
-                  <div>
+              <Button
+                variant="ghost"
+                className="w-full p-4 h-auto rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/20 transition-all"
+                data-testid="button-plan-pro"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="text-left">
                     <div className="font-semibold text-blue-400 flex items-center gap-2">
                       <Shield className="w-4 h-4" />
                       PRO
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">50 requests/day, priority support</div>
+                    <div className="text-xs text-muted-foreground mt-1">50 запитів/день, пріоритетна підтримка</div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold text-white">$10</div>
-                    <div className="text-[10px] text-muted-foreground">30 days</div>
+                    <div className="text-[10px] text-muted-foreground">30 днів</div>
                   </div>
                 </div>
-              </div>
+              </Button>
               
-              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/30 hover:border-purple-400/50 transition-all cursor-pointer group">
-                <div className="flex items-center justify-between">
-                  <div>
+              <Button
+                variant="ghost"
+                className="w-full p-4 h-auto rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/20 transition-all"
+                data-testid="button-plan-enterprise"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="text-left">
                     <div className="font-semibold text-purple-400 flex items-center gap-2">
                       <Crown className="w-4 h-4" />
                       ENTERPRISE
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">Unlimited requests, API access, VIP</div>
+                    <div className="text-xs text-muted-foreground mt-1">Безліміт запитів, API доступ, VIP</div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold text-white">$50</div>
-                    <div className="text-[10px] text-muted-foreground">30 days</div>
+                    <div className="text-[10px] text-muted-foreground">30 днів</div>
                   </div>
                 </div>
-              </div>
+              </Button>
             </div>
             
             <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
-              <div className="text-xs text-muted-foreground mb-2">Payment Address (TRC20 USDT)</div>
+              <div className="text-xs text-muted-foreground mb-2">Адреса оплати (TRC20 USDT)</div>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
                   {TRC20_ADDRESS}
@@ -978,7 +986,7 @@ export default function Dashboard() {
 
             <div className="pt-2 border-t border-white/10">
               <p className="text-xs text-muted-foreground text-center">
-                After payment, send screenshot or TX Hash to bot for activation
+                Після оплати надішліть скріншот або TX Hash боту для активації
               </p>
             </div>
           </div>
