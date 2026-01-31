@@ -22,9 +22,10 @@ The application consists of:
 ### Routes
 - `/` - Landing page with "Web Dashboard" and "Telegram Bot" buttons
 - `/login` - Telegram authentication page
-- `/dashboard` - Check form with 6 check types (protected route)
+- `/dashboard` - Check form with 10 check types (protected route)
 - `/history` - Report history with PDF download (protected route)
 - `/monitoring` - Watchlist management (protected route)
+- `/referral` - Referral program with stats and share links (protected route)
 
 ### API Endpoints
 
@@ -40,6 +41,7 @@ The application consists of:
 - `GET /api/watches` - Lists user's monitors
 - `POST /api/watches` - Creates a new monitor
 - `DELETE /api/watches/:id` - Deletes a monitor
+- `GET /api/referrals` - Gets user's referral stats and referred users
 
 ### Shared Check Service
 The `server/checkService.ts` module provides:
