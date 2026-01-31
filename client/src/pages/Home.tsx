@@ -99,9 +99,9 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
             {description}
           </p>
           {apis && apis.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-0.5 sm:pt-1">
+            <div className="flex flex-wrap gap-1 pt-0.5 sm:pt-1 min-w-0 overflow-hidden">
               {apis.map((api, idx) => (
-                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono">
+                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono truncate">
                   {api}
                 </span>
               ))}
@@ -233,13 +233,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden flex flex-col bg-background">
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
       <nav className="relative z-10 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
@@ -270,8 +270,8 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="flex-grow relative z-10">
-        <section className="pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-16 md:pb-24 px-4 sm:px-6 max-w-7xl mx-auto w-full">
+      <main className="flex-grow relative z-10 overflow-hidden">
+        <section className="pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-16 md:pb-24 px-4 sm:px-6 max-w-7xl mx-auto w-full overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12">
             <div className="lg:col-span-3 space-y-5 sm:space-y-6 md:space-y-8">
               <motion.div
@@ -285,14 +285,14 @@ export default function Home() {
                   <span>{lang === "UA" ? "Професійна OSINT Платформа" : lang === "RU" ? "Профессиональная OSINT Платформа" : "Professional OSINT Platform"}</span>
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1]">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1] overflow-hidden">
                   {lang === "UA" ? "Кібербезпека та" : lang === "RU" ? "Кибербезопасность и" : "Cybersecurity &"} <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-blue-400">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-blue-400 overflow-hidden">
                     {lang === "UA" ? "Розвідка Загроз" : lang === "RU" ? "Разведка Угроз" : "Threat Intelligence"}
                   </span>
                 </h1>
 
-                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed overflow-hidden">
                   {lang === "UA" 
                     ? "10+ модулів для комплексного аналізу: IP, домени, гаманці, email, телефони, malware, CVE та leak databases. Інтеграція з провідними API безпеки."
                     : lang === "RU"
@@ -427,8 +427,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-10 sm:py-14 md:py-16 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <section className="py-10 sm:py-14 md:py-16 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -631,8 +631,8 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-white/5 bg-card/30 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16">
+      <footer className="border-t border-white/5 bg-card/30 relative z-10 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16 overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center gap-3">

@@ -712,7 +712,7 @@ export default function Dashboard() {
                   <Button 
                     size="icon" 
                     variant="ghost" 
-                    className="w-11 h-11 rounded-xl border border-white/10 bg-white/5"
+                    className="rounded-xl border border-white/10 bg-white/5"
                     data-testid="button-hamburger-menu"
                   >
                     <Menu className="w-5 h-5" />
@@ -766,7 +766,7 @@ export default function Dashboard() {
                                   : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
                               }`}
                               whileTap={{ scale: 0.98 }}
-                              data-testid={`mobile-nav-${item.id}`}
+                              data-testid={`nav-mobile-${item.id}`}
                             >
                               <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
                               {item.label}
@@ -787,7 +787,8 @@ export default function Dashboard() {
                     <div className="pt-4 border-t border-white/10 space-y-1 mt-auto">
                       <Button 
                         variant="ghost" 
-                        className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 h-12 rounded-xl text-base"
+                        size="lg"
+                        className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl"
                         onClick={() => {
                           setShowMobileMenu(false);
                           setShowProfile(true);
@@ -799,7 +800,8 @@ export default function Dashboard() {
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 h-12 rounded-xl text-base"
+                        size="lg"
+                        className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl"
                         onClick={() => {
                           setShowMobileMenu(false);
                           setShowSubscription(true);
@@ -811,7 +813,8 @@ export default function Dashboard() {
                       </Button>
                       <Button 
                         variant="ghost" 
-                        className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 h-12 rounded-xl text-base"
+                        size="lg"
+                        className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl"
                         onClick={() => {
                           setShowMobileMenu(false);
                           handleLogout();
