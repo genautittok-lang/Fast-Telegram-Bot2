@@ -1,5 +1,4 @@
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
@@ -136,45 +135,9 @@ declare module "http" {
   }
 }
 
-// Configure session store - use memory if no database
-import pgSessionModule from "connect-pg-simple";
-let sessionStore: session.Store | undefined = undefined;
-
-if (process.env.DATABASE_URL) {
-  try {
-    const PgStore = pgSessionModule(session);
-    sessionStore = new PgStore({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: false, // We create session table manually
-    });
-    console.log("Using PostgreSQL session store");
-  } catch (error) {
-    console.warn("Failed to create PostgreSQL session store, using memory store:", error);
-  }
-} else {
-  console.log("Using memory session store (no DATABASE_URL)");
-}
-
-// Trust proxy for Railway/production
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
-}
-
-app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || "darkshare-secret-key-change-in-production",
-    resave: false,
-    saveUninitialized: false,
-    name: "ds.sid",
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  })
-);
+// Session is configured by Replit Auth in routes.ts via setupAuth
+// PostgreSQL session store is used with table "sessions"
+console.log("Using PostgreSQL session store");
 
 app.use(
   express.json({
