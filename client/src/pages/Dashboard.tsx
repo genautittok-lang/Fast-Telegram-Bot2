@@ -713,7 +713,7 @@ export default function Dashboard() {
                     size="icon" 
                     variant="ghost" 
                     className="w-9 h-9 rounded-xl border border-white/10 bg-white/5"
-                    data-testid="button-mobile-menu"
+                    data-testid="button-hamburger-menu"
                   >
                     <Menu className="w-5 h-5" />
                   </Button>
@@ -1192,7 +1192,7 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05, duration: 0.3 }}
-                    data-testid={`mobile-nav-${item.id}`}
+                    data-testid={`nav-mobile-${item.id}`}
                   >
                     {isActive && (
                       <motion.div

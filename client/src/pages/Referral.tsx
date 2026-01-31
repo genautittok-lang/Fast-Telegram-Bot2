@@ -156,23 +156,39 @@ export default function Referral() {
   const referralLink = `https://darkshare.app/r/${referralCode}`;
 
   const copyCode = async () => {
-    await navigator.clipboard.writeText(referralCode);
-    setCopiedCode(true);
-    toast({
-      title: "Скопійовано!",
-      description: "Реферальний код скопійовано в буфер обміну",
-    });
-    setTimeout(() => setCopiedCode(false), 2000);
+    try {
+      await navigator.clipboard.writeText(referralCode);
+      setCopiedCode(true);
+      toast({
+        title: "Скопійовано!",
+        description: "Реферальний код скопійовано в буфер обміну",
+      });
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Помилка копіювання",
+        description: "Не вдалося скопіювати код. Спробуйте ще раз.",
+        variant: "destructive",
+      });
+    }
   };
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(referralLink);
-    setCopiedLink(true);
-    toast({
-      title: "Скопійовано!",
-      description: "Реферальне посилання скопійовано в буфер обміну",
-    });
-    setTimeout(() => setCopiedLink(false), 2000);
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      setCopiedLink(true);
+      toast({
+        title: "Скопійовано!",
+        description: "Реферальне посилання скопійовано в буфер обміну",
+      });
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Помилка копіювання",
+        description: "Не вдалося скопіювати посилання. Спробуйте ще раз.",
+        variant: "destructive",
+      });
+    }
   };
 
   const shareToTelegram = () => {
@@ -670,7 +686,7 @@ export default function Referral() {
                         : "text-muted-foreground active:text-white"
                     }`}
                     whileTap={{ scale: 0.9 }}
-                    data-testid={`mobile-nav-${item.id}`}
+                    data-testid={`nav-mobile-${item.id}`}
                   >
                     <item.icon className={`w-5 h-5 ${isActive ? 'drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]' : ''}`} />
                     <span className="text-[10px] font-medium">{item.label}</span>
