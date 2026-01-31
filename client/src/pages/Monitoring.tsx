@@ -26,6 +26,7 @@ import { Link, useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
+import { MobileMenu } from "@/components/MobileMenu";
 
 interface Watch {
   id: number;
@@ -140,16 +141,17 @@ export default function Monitoring() {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="icon" data-testid="button-back-dashboard">
+              <Button variant="ghost" size="icon" className="hidden sm:flex" data-testid="button-back-dashboard">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div className="flex items-center gap-2">
               <Shield className="w-6 h-6 text-primary" />
-              <span className="font-display font-bold text-xl">DARKSHARE</span>
-              <Badge variant="outline" className="text-xs">Моніторинг</Badge>
+              <span className="font-display font-bold text-lg sm:text-xl">DARKSHARE</span>
+              <Badge variant="outline" className="text-xs hidden sm:inline-flex">Моніторинг</Badge>
             </div>
           </div>
+          <MobileMenu lang="UA" isAuthenticated={true} />
         </div>
       </header>
 

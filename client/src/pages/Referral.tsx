@@ -31,6 +31,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SiTelegram } from "react-icons/si";
+import { MobileMenu } from "@/components/MobileMenu";
 
 interface ReferralStats {
   referralCode: string;
@@ -351,6 +352,7 @@ export default function Referral() {
                   </AvatarFallback>
                 </Avatar>
               </motion.div>
+              <MobileMenu lang="UA" isAuthenticated={true} onLogout={logout} />
             </div>
           </div>
         </motion.header>
