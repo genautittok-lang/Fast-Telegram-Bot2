@@ -153,7 +153,7 @@ export default function Referral() {
   };
 
   const referralCode = referralStats?.referralCode || user?.refCode || "DARK-XXXXXX";
-  const referralLink = `https://darkshare.app/r/${referralCode}`;
+  const referralLink = `https://www.darkshare.store/r/${referralCode}`;
 
   const copyCode = async () => {
     try {

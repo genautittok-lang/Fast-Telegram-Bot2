@@ -31,7 +31,12 @@ import {
   Server,
   ExternalLink,
   Send,
-  ChevronDown
+  ChevronDown,
+  Menu,
+  X,
+  Smartphone,
+  Star,
+  Gift
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -46,6 +51,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { translations } from "@/lib/i18n";
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
@@ -248,7 +254,7 @@ export default function Home() {
       </div>
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
-      <nav className="relative z-10 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
+      <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.3)] flex-shrink-0">
@@ -256,22 +262,24 @@ export default function Home() {
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-base sm:text-lg tracking-tight text-white">DARKSHARE</span>
-              <span className="text-[10px] text-primary font-mono -mt-0.5">v4.0 OSINT Platform</span>
+              <span className="text-[10px] text-primary font-mono -mt-0.5 hidden sm:block">v4.0 OSINT Platform</span>
             </div>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+          
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            <StatusBadge status="online" className="hidden sm:flex" />
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="bg-white/5 border border-white/10 hover:bg-white/10 px-2 sm:px-3 gap-1 sm:gap-2"
+                  className="bg-white/5 border border-white/10 hover:bg-white/10 px-2 sm:px-3 gap-1"
                   data-testid="button-lang-dropdown"
                 >
-                  <span className="text-base sm:text-lg">
+                  <span className="text-lg">
                     {lang === "UA" ? "🇺🇦" : lang === "RU" ? "🇷🇺" : "🇬🇧"}
                   </span>
-                  <span className="text-xs font-bold hidden sm:inline">{lang}</span>
                   <ChevronDown className="w-3 h-3 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
@@ -302,7 +310,106 @@ export default function Home() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <StatusBadge status="online" />
+            
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="sm:hidden bg-white/5 border border-white/10"
+                  data-testid="button-mobile-menu"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-xl border-l border-white/10 p-0">
+                <div className="flex flex-col h-full">
+                  <div className="p-4 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.3)]">
+                        <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <span className="font-display font-bold text-lg text-white">DARKSHARE</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-primary font-mono">v4.0</span>
+                          <StatusBadge status="online" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-2">
+                      {lang === "UA" ? "Навігація" : lang === "RU" ? "Навигация" : "Navigation"}
+                    </p>
+                    
+                    <SheetClose asChild>
+                      <Link href="/dashboard">
+                        <Button variant="ghost" className="w-full justify-start gap-3 h-12" data-testid="link-mobile-dashboard">
+                          <Shield className="w-5 h-5 text-primary" />
+                          <span>{lang === "UA" ? "Панель Керування" : lang === "RU" ? "Панель Управления" : "Dashboard"}</span>
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                    
+                    <SheetClose asChild>
+                      <a href="https://t.me/shareposchukbot" target="_blank" rel="noopener noreferrer">
+                        <Button variant="ghost" className="w-full justify-start gap-3 h-12" data-testid="link-mobile-bot">
+                          <SiTelegram className="w-5 h-5 text-[#2AABEE]" />
+                          <span>Telegram Bot</span>
+                        </Button>
+                      </a>
+                    </SheetClose>
+                    
+                    <div className="pt-4 border-t border-white/10 mt-4">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 px-2">
+                        {lang === "UA" ? "Можливості" : lang === "RU" ? "Возможности" : "Features"}
+                      </p>
+                      
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3 px-2 py-2 text-sm text-muted-foreground">
+                          <Globe className="w-4 h-4 text-primary/70" />
+                          <span>{lang === "UA" ? "10 модулів аналізу" : lang === "RU" ? "10 модулей анализа" : "10 analysis modules"}</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-2 py-2 text-sm text-muted-foreground">
+                          <FileText className="w-4 h-4 text-primary/70" />
+                          <span>{lang === "UA" ? "PDF звіти" : lang === "RU" ? "PDF отчеты" : "PDF reports"}</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-2 py-2 text-sm text-muted-foreground">
+                          <Eye className="w-4 h-4 text-primary/70" />
+                          <span>{lang === "UA" ? "Моніторинг 24/7" : lang === "RU" ? "Мониторинг 24/7" : "24/7 monitoring"}</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-2 py-2 text-sm text-muted-foreground">
+                          <Gift className="w-4 h-4 text-primary/70" />
+                          <span>{lang === "UA" ? "Реферальна програма" : lang === "RU" ? "Реферальная программа" : "Referral program"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 border-t border-white/10 bg-primary/5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Star className="w-5 h-5 text-yellow-500" />
+                      <span className="font-semibold text-white">
+                        {lang === "UA" ? "Безкоштовний старт" : lang === "RU" ? "Бесплатный старт" : "Free start"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {lang === "UA" ? "15 безкоштовних перевірок щодня" : lang === "RU" ? "15 бесплатных проверок ежедневно" : "15 free checks daily"}
+                    </p>
+                    <SheetClose asChild>
+                      <Link href="/dashboard">
+                        <Button className="w-full gap-2" data-testid="button-mobile-start">
+                          <Zap className="w-4 h-4" />
+                          {lang === "UA" ? "Почати" : lang === "RU" ? "Начать" : "Get Started"}
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>

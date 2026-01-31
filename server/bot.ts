@@ -132,7 +132,7 @@ ${t(lang, "dashboard.selectModule")}`;
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
-    const keyboard = Markup.inlineKeyboard([
+    const keyboardRows = [
       [
         Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
         Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
@@ -165,7 +165,13 @@ ${t(lang, "dashboard.selectModule")}`;
       [
         Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl)
       ]
-    ]);
+    ];
+    
+    if (isAdmin(tgId)) {
+      keyboardRows.push([Markup.button.callback("🛡️ ADMIN PANEL", "open_admin_panel")]);
+    }
+    
+    const keyboard = Markup.inlineKeyboard(keyboardRows);
 
     try {
       if (isEdit) {
@@ -952,6 +958,48 @@ ${findingsText}
           Markup.button.callback("📢 Розсилка", "admin_broadcast")
         ],
         [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
+      ])
+    });
+  });
+
+  bot.action("open_admin_panel", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const stats = await storage.getStats();
+
+    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
+      `📊 *Статистика:*\n` +
+      `👥 Користувачів: ${stats.totalUsers}\n` +
+      `📄 Звітів: ${stats.totalReports || 0}\n` +
+      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
+      `👁 Активних моніторів: ${stats.activeWatches}\n` +
+      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
+      `Виберіть дію:`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [
+          Markup.button.callback("📊 Статистика", "admin_stats"),
+          Markup.button.callback("👥 Користувачі", "admin_users")
+        ],
+        [
+          Markup.button.callback("🔍 Пошук", "admin_search_user"),
+          Markup.button.callback("🚫 Блокування", "admin_block_user")
+        ],
+        [
+          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
+          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+        ],
+        [
+          Markup.button.callback("💳 Платежі", "admin_payments"),
+          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+        ],
+        [Markup.button.callback("⬅️ Назад", "back_to_dashboard")]
       ])
     });
   });
