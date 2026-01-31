@@ -83,3 +83,6 @@ export type Report = typeof reports.$inferSelect;
 export type Watch = typeof watches.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Achievement = typeof achievements.$inferSelect;
+
+// Note: Replit Auth tables are in shared/models/auth.ts
+// Import them directly where needed to avoid type conflicts

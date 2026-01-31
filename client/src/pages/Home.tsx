@@ -10,6 +10,7 @@ import {
   Zap, 
   Terminal,
   Lock,
+  LogIn,
   ChevronRight,
   TrendingUp,
   Users,
@@ -327,6 +328,18 @@ export default function Home() {
                     >
                       <SiTelegram className="w-5 h-5 mr-2" />
                       {t.launchBot}
+                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </a>
+                  <a href="/api/login">
+                    <Button 
+                      variant="outline"
+                      size="lg"
+                      className="w-full sm:w-auto text-base px-6 py-6 group border-primary/30 hover:border-primary/50"
+                      data-testid="button-login-oauth"
+                    >
+                      <LogIn className="w-5 h-5 mr-2" />
+                      {t.signInGoogle}
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </a>

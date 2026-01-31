@@ -60,6 +60,10 @@ export async function setupBot(storage: IStorage) {
     return getUserLang(user?.lang);
   }
 
+  function isAdmin(tgId: string): boolean {
+    return ADMIN_IDS.includes(tgId);
+  }
+
   bot.command("start", async (ctx) => {
     const text = ctx.message.text;
     const refMatch = text.match(/start=ref_(\w+)/);
@@ -231,6 +235,27 @@ ${t(lang, "dashboard.selectModule")}`;
     const lang = getUserLang(user?.lang);
     const state = userStates.get(tgId);
 
+    if (state?.module === "admin_broadcast" && state?.step === "awaiting_message") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply("⛔ Доступ заборонено");
+      }
+      
+      const broadcastText = text.trim();
+      userStates.set(tgId, { module: "admin_broadcast", step: "confirm", data: { message: broadcastText } });
+      
+      await ctx.reply(`📢 *Підтвердження розсилки*\n\n*Повідомлення:*\n${broadcastText}\n\nПідтвердіть розсилку:`, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [
+            Markup.button.callback("✅ Відправити", "admin_broadcast_confirm"),
+            Markup.button.callback("❌ Скасувати", "admin_broadcast_cancel")
+          ]
+        ])
+      });
+      return;
+    }
+
     if (state?.module === "payment" && state?.step === "awaiting_proof") {
       if (!user) return;
       
@@ -394,6 +419,7 @@ ${findingsText}
       const findings = generateFindings(module, checkResult.riskLevel);
       const metadata = generateMetadata(module);
       
+      const verificationId = `DS-${Date.now().toString(36).toUpperCase()}`;
       const pdfBuffer = await generateDetailedPDF({
         moduleType: module,
         targetValue: target,
@@ -403,7 +429,8 @@ ${findingsText}
         userId: user.id.toString(),
         findings,
         sources: checkResult.sources,
-        metadata
+        metadata,
+        verificationId
       });
 
       const filename = `darkshare_${module}_${Date.now()}.pdf`;
@@ -767,23 +794,378 @@ ${findingsText}
 
   bot.command("admin", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.reply("⛔ Доступ заборонено. Ви не є адміністратором.");
+    }
+    
     const stats = await storage.getStats();
 
-    const text = `${t("uk", "admin.title")}\n\n${t("uk", "admin.stats")}\n${t("uk", "admin.totalUsers", { count: stats.totalUsers.toString() })}\n${t("uk", "admin.activeWatches", { count: stats.activeWatches.toString() })}\n${t("uk", "admin.mrr", { amount: "0" })}\n\n${t("uk", "admin.selectAction")}`;
+    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
+      `📊 *Статистика:*\n` +
+      `👥 Користувачів: ${stats.totalUsers}\n` +
+      `📄 Звітів: ${stats.totalReports || 0}\n` +
+      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
+      `👁 Активних моніторів: ${stats.activeWatches}\n` +
+      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
+      `Виберіть дію:`;
 
-    await ctx.reply(text, 
-      Markup.inlineKeyboard([
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
         [
-          Markup.button.callback(t("uk", "admin.users"), "admin_users"),
-          Markup.button.callback(t("uk", "admin.analytics"), "admin_analytics")
+          Markup.button.callback("📊 Статистика", "admin_stats"),
+          Markup.button.callback("👥 Користувачі", "admin_users")
         ],
         [
-          Markup.button.callback(t("uk", "admin.broadcast"), "admin_broadcast"),
-          Markup.button.callback(t("uk", "admin.coupons"), "admin_coupons")
+          Markup.button.callback("💳 Платежі", "admin_payments"),
+          Markup.button.callback("📢 Розсилка", "admin_broadcast")
         ],
-        [Markup.button.callback(t("uk", "buttons.exit"), "back_to_dashboard")]
+        [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
       ])
-    );
+    });
+  });
+
+  bot.action("admin_stats", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const stats = await storage.getStats();
+    const allUsers = await storage.getAllUsers();
+    
+    const freeUsers = allUsers.filter(u => u.tier === "FREE").length;
+    const proUsers = allUsers.filter(u => u.tier === "PRO").length;
+    const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const blockedUsers = allUsers.filter(u => u.blocked).length;
+    
+    const text = `📊 *ДЕТАЛЬНА СТАТИСТИКА*\n\n` +
+      `👥 *Користувачі:*\n` +
+      `├ Всього: ${stats.totalUsers}\n` +
+      `├ FREE: ${freeUsers}\n` +
+      `├ PRO: ${proUsers}\n` +
+      `├ ENTERPRISE: ${enterpriseUsers}\n` +
+      `└ Заблоковано: ${blockedUsers}\n\n` +
+      `📄 *Звіти:*\n` +
+      `├ Всього: ${stats.totalReports || 0}\n` +
+      `└ Сьогодні: ${stats.checksToday || 0}\n\n` +
+      `👁 *Моніторинг:*\n` +
+      `└ Активних: ${stats.activeWatches}\n\n` +
+      `💳 *Платежі:*\n` +
+      `└ Pending: ${stats.pendingPayments || 0}`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🔄 Оновити", "admin_stats")],
+        [Markup.button.callback("⬅️ Назад", "admin_back")]
+      ])
+    });
+  });
+
+  bot.action("admin_users", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const latestUsers = await storage.getLatestUsers(10);
+    
+    let text = `👥 *ОСТАННІ 10 КОРИСТУВАЧІВ*\n\n`;
+    
+    if (latestUsers.length === 0) {
+      text += "Користувачів ще немає.";
+    } else {
+      latestUsers.forEach((u, i) => {
+        const username = u.username ? `@${u.username}` : "—";
+        const blockedIcon = u.blocked ? "🔴" : "🟢";
+        const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString("uk-UA") : "—";
+        text += `${i + 1}. ${blockedIcon} ${username}\n`;
+        text += `   ID: \`${u.tgId}\` | ${u.tier} | ${date}\n`;
+      });
+    }
+    
+    text += `\n_Для блокування відправте ID користувача_`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🔄 Оновити", "admin_users")],
+        [Markup.button.callback("⬅️ Назад", "admin_back")]
+      ])
+    });
+  });
+
+  bot.action("admin_payments", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const pendingPayments = await storage.getPendingPayments();
+    
+    let text = `💳 *PENDING ПЛАТЕЖІ*\n\n`;
+    
+    if (pendingPayments.length === 0) {
+      text += "Немає pending платежів.";
+    } else {
+      for (const p of pendingPayments) {
+        const user = await storage.getUserById(p.userId!);
+        const username = user?.username ? `@${user.username}` : user?.tgId || "—";
+        const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString("uk-UA") : "—";
+        text += `#${p.id} | ${username}\n`;
+        text += `   ${p.tier} | $${p.amountUsdt} | ${date}\n\n`;
+      }
+    }
+
+    const buttons: any[][] = [];
+    
+    pendingPayments.slice(0, 5).forEach(p => {
+      buttons.push([
+        Markup.button.callback(`✅ #${p.id}`, `approve_pay_${p.id}`),
+        Markup.button.callback(`❌ #${p.id}`, `reject_pay_${p.id}`)
+      ]);
+    });
+    
+    buttons.push([Markup.button.callback("🔄 Оновити", "admin_payments")]);
+    buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action("admin_broadcast", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    userStates.set(tgId, { module: "admin_broadcast", step: "awaiting_message" });
+    
+    const stats = await storage.getStats();
+    
+    const text = `📢 *РОЗСИЛКА*\n\n` +
+      `Буде відправлено: ${stats.totalUsers} користувачам\n\n` +
+      `Відправте текст повідомлення для розсилки.\n` +
+      `Підтримується Markdown форматування.`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("❌ Скасувати", "admin_back")]
+      ])
+    });
+  });
+
+  bot.action("admin_back", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    userStates.delete(tgId);
+    
+    const stats = await storage.getStats();
+
+    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
+      `📊 *Статистика:*\n` +
+      `👥 Користувачів: ${stats.totalUsers}\n` +
+      `📄 Звітів: ${stats.totalReports || 0}\n` +
+      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
+      `👁 Активних моніторів: ${stats.activeWatches}\n` +
+      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
+      `Виберіть дію:`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [
+          Markup.button.callback("📊 Статистика", "admin_stats"),
+          Markup.button.callback("👥 Користувачі", "admin_users")
+        ],
+        [
+          Markup.button.callback("💳 Платежі", "admin_payments"),
+          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+        ],
+        [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
+      ])
+    });
+  });
+
+  bot.action("admin_broadcast_confirm", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const state = userStates.get(tgId);
+    if (!state?.data?.message) {
+      return ctx.answerCbQuery("Повідомлення не знайдено");
+    }
+    
+    const broadcastMessage = state.data.message;
+    userStates.delete(tgId);
+    
+    const allUsers = await storage.getAllUsers();
+    let successCount = 0;
+    let failCount = 0;
+    
+    await ctx.editMessageText("📢 Розсилка почалася...");
+    
+    for (const u of allUsers) {
+      if (u.blocked) continue;
+      
+      try {
+        await ctx.telegram.sendMessage(u.tgId, broadcastMessage, { parse_mode: "Markdown" });
+        successCount++;
+      } catch (e) {
+        failCount++;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    
+    await ctx.reply(`✅ *Розсилка завершена!*\n\n📤 Відправлено: ${successCount}\n❌ Помилки: ${failCount}`, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+    });
+  });
+
+  bot.action("admin_broadcast_cancel", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    userStates.delete(tgId);
+    await ctx.answerCbQuery("Розсилку скасовано");
+    
+    const stats = await storage.getStats();
+
+    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
+      `📊 *Статистика:*\n` +
+      `👥 Користувачів: ${stats.totalUsers}\n` +
+      `📄 Звітів: ${stats.totalReports || 0}\n` +
+      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
+      `👁 Активних моніторів: ${stats.activeWatches}\n` +
+      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
+      `Виберіть дію:`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [
+          Markup.button.callback("📊 Статистика", "admin_stats"),
+          Markup.button.callback("👥 Користувачі", "admin_users")
+        ],
+        [
+          Markup.button.callback("💳 Платежі", "admin_payments"),
+          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+        ],
+        [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
+      ])
+    });
+  });
+
+  bot.action(/^admin_block_(\d+)$/, async (ctx) => {
+    const adminTgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(adminTgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const userId = parseInt(ctx.match[1]);
+    const user = await storage.getUserById(userId);
+    
+    if (!user) {
+      return ctx.answerCbQuery("Користувача не знайдено");
+    }
+    
+    const newBlockedStatus = !user.blocked;
+    await storage.updateUser(userId, { blocked: newBlockedStatus });
+    
+    const statusText = newBlockedStatus ? "заблоковано" : "розблоковано";
+    await ctx.answerCbQuery(`Користувача ${statusText}`);
+    
+    try {
+      await ctx.telegram.sendMessage(user.tgId, 
+        newBlockedStatus 
+          ? "⛔ Ваш акаунт було заблоковано адміністратором."
+          : "✅ Ваш акаунт було розблоковано."
+      );
+    } catch (e) {
+      console.log("Failed to notify user about block status:", e);
+    }
+  });
+
+  bot.command("block", async (ctx) => {
+    const adminTgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(adminTgId)) {
+      return ctx.reply("⛔ Доступ заборонено.");
+    }
+    
+    const args = ctx.message.text.split(" ");
+    if (args.length < 2) {
+      return ctx.reply("Використання: /block <tg_id>\nНаприклад: /block 123456789");
+    }
+    
+    const targetTgId = args[1];
+    const user = await storage.getUserByTgId(targetTgId);
+    
+    if (!user) {
+      return ctx.reply(`Користувача з ID ${targetTgId} не знайдено.`);
+    }
+    
+    await storage.updateUser(user.id, { blocked: true });
+    
+    await ctx.reply(`✅ Користувача @${user.username || targetTgId} заблоковано.`);
+    
+    try {
+      await ctx.telegram.sendMessage(targetTgId, "⛔ Ваш акаунт було заблоковано адміністратором.");
+    } catch (e) {
+      console.log("Failed to notify user about block:", e);
+    }
+  });
+
+  bot.command("unblock", async (ctx) => {
+    const adminTgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(adminTgId)) {
+      return ctx.reply("⛔ Доступ заборонено.");
+    }
+    
+    const args = ctx.message.text.split(" ");
+    if (args.length < 2) {
+      return ctx.reply("Використання: /unblock <tg_id>\nНаприклад: /unblock 123456789");
+    }
+    
+    const targetTgId = args[1];
+    const user = await storage.getUserByTgId(targetTgId);
+    
+    if (!user) {
+      return ctx.reply(`Користувача з ID ${targetTgId} не знайдено.`);
+    }
+    
+    await storage.updateUser(user.id, { blocked: false });
+    
+    await ctx.reply(`✅ Користувача @${user.username || targetTgId} розблоковано.`);
+    
+    try {
+      await ctx.telegram.sendMessage(targetTgId, "✅ Ваш акаунт було розблоковано.");
+    } catch (e) {
+      console.log("Failed to notify user about unblock:", e);
+    }
   });
 
   bot.catch((err, ctx) => {

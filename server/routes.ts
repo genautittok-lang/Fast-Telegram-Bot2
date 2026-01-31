@@ -114,19 +114,21 @@ export async function registerRoutes(
   });
 
   // Auth middleware to load user
-  const loadUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const loadUser = async (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as AuthenticatedRequest;
     if (req.session?.userId) {
       const user = await storage.getUserById(req.session.userId);
       if (user) {
-        req.user = user;
+        authReq.user = user;
       }
     }
     next();
   };
 
   // Require auth middleware
-  const requireAuth = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.session?.userId || !req.user) {
+  const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!req.session?.userId || !authReq.user) {
       return res.status(401).json({ error: "Unauthorized. Please login with Telegram." });
     }
     next();
@@ -203,17 +205,18 @@ export async function registerRoutes(
   });
 
   // Get current user
-  app.get("/api/auth/me", loadUser, async (req: AuthenticatedRequest, res) => {
-    if (!req.user) {
+  app.get("/api/auth/me", loadUser, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
     res.json({
-      id: req.user.id,
-      tgId: req.user.tgId,
-      username: req.user.username,
-      tier: req.user.tier,
-      requestsLeft: req.user.requestsLeft,
+      id: authReq.user.id,
+      tgId: authReq.user.tgId,
+      username: authReq.user.username,
+      tier: authReq.user.tier,
+      requestsLeft: authReq.user.requestsLeft,
     });
   });
 
@@ -228,7 +231,8 @@ export async function registerRoutes(
   });
 
   // Web check endpoint (requires auth)
-  app.post(api.check.perform.path, loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post(api.check.perform.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
     const { type, value } = req.body;
     
     if (!type || !value) {
@@ -251,7 +255,7 @@ export async function registerRoutes(
 
       // Store report using authenticated user
       await storage.createReport({
-        userId: req.user!.id,
+        userId: authReq.user!.id,
         objectType: type,
         verificationId,
         dataJson: {
@@ -275,8 +279,9 @@ export async function registerRoutes(
   });
 
   // Reports list endpoint (requires auth)
-  app.get(api.reports.list.path, loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
-    const reports = await storage.getReports(req.user!.id);
+  app.get(api.reports.list.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const reports = await storage.getReports(authReq.user!.id);
     res.json(reports.map(r => {
       const data = r.dataJson as any || {};
       return {
@@ -291,7 +296,8 @@ export async function registerRoutes(
   });
 
   // PDF download endpoint (requires auth)
-  app.get(api.reports.download.path, loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.get(api.reports.download.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
     const id = parseInt(req.params.id);
     const report = await storage.getReportById(id);
     
@@ -299,7 +305,7 @@ export async function registerRoutes(
       return res.status(404).json({ error: "Report not found" });
     }
 
-    if (report.userId !== req.user!.id) {
+    if (report.userId !== authReq.user!.id) {
       return res.status(403).json({ error: "Access denied" });
     }
 
@@ -317,7 +323,7 @@ export async function registerRoutes(
         riskLevel,
         riskScore,
         timestamp: report.generatedAt || new Date(),
-        userId: req.user!.username || 'user',
+        userId: authReq.user!.username || 'user',
         findings: data.findings || generateFindings(report.objectType || 'unknown', riskLevel),
         sources: data.sources || ["DARKSHARE Intel"],
         metadata: generateMetadata(report.objectType || 'unknown'),
@@ -365,8 +371,9 @@ export async function registerRoutes(
   });
 
   // Watches list endpoint (requires auth)
-  app.get(api.watches.list.path, loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
-    const watches = await storage.getWatches(req.user!.id);
+  app.get(api.watches.list.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const watches = await storage.getWatches(authReq.user!.id);
     res.json(watches.map(w => ({
       id: w.id,
       objectType: w.objectType,
@@ -378,7 +385,8 @@ export async function registerRoutes(
   });
 
   // Create watch endpoint (requires auth)
-  app.post(api.watches.create.path, loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post(api.watches.create.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
     const { type, value, threshold } = req.body;
     
     if (!type || !value) {
@@ -387,7 +395,7 @@ export async function registerRoutes(
 
     try {
       const watch = await storage.createWatch({
-        userId: req.user!.id,
+        userId: authReq.user!.id,
         objectType: type,
         value,
         thresholdsJson: { scoreThreshold: threshold || 50 },
@@ -400,7 +408,8 @@ export async function registerRoutes(
   });
 
   // Delete watch endpoint (requires auth)
-  app.delete(api.watches.delete.path, loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.delete(api.watches.delete.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
     const id = parseInt(req.params.id);
     try {
       await storage.deleteWatch(id);
@@ -411,7 +420,8 @@ export async function registerRoutes(
   });
 
   // Payment request endpoint (requires auth)
-  app.post("/api/payment-request", loadUser, requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/payment-request", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
     const { tier, txHash } = req.body;
     
     if (!tier || !["pro", "enterprise", "PRO", "ENTERPRISE"].includes(tier)) {
@@ -423,7 +433,7 @@ export async function registerRoutes(
 
     try {
       const payment = await storage.createPayment({
-        userId: req.user!.id,
+        userId: authReq.user!.id,
         tier: normalizedTier,
         amountUsdt: amount,
         txHash: txHash || null,
@@ -431,7 +441,7 @@ export async function registerRoutes(
       });
 
       if (botInstance) {
-        const user = req.user!;
+        const user = authReq.user!;
         const messageText = `🆕 Нова заявка на оплату #${payment.id}\n\n` +
           `👤 Користувач: @${user.username || "—"}\n` +
           `🔢 TG ID: ${user.tgId}\n` +

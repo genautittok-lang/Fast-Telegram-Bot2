@@ -1,0 +1,36 @@
+import { authUsers, type AuthUser, type UpsertAuthUser } from "@shared/models/auth";
+import { db } from "../../db";
+import { eq } from "drizzle-orm";
+
+// Interface for auth storage operations
+// (IMPORTANT) These user operations are mandatory for Replit Auth.
+export interface IAuthStorage {
+  getUser(id: string): Promise<AuthUser | undefined>;
+  upsertUser(user: UpsertAuthUser): Promise<AuthUser>;
+}
+
+class AuthStorage implements IAuthStorage {
+  async getUser(id: string): Promise<AuthUser | undefined> {
+    if (!db) throw new Error("Database not configured");
+    const [user] = await db.select().from(authUsers).where(eq(authUsers.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertAuthUser): Promise<AuthUser> {
+    if (!db) throw new Error("Database not configured");
+    const [user] = await db
+      .insert(authUsers)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: authUsers.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+}
+
+export const authStorage = new AuthStorage();

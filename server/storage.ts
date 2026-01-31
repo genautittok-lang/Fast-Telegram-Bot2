@@ -1,6 +1,6 @@
 import { users, reports, watches, payments, referrals, type User, type InsertUser, type Report, type Watch, type Payment } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, desc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -29,7 +29,11 @@ export interface IStorage {
   updatePaymentStatus(id: number, status: string): Promise<Payment>;
   
   // Stats
-  getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number }>;
+  getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }>;
+  
+  // Admin methods
+  getLatestUsers(limit: number): Promise<User[]>;
+  getAllUsers(): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -111,12 +115,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(watches).where(eq(watches.id, id));
   }
 
-  async getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number }> {
+  async getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }> {
     if (!db) throw new Error("Database not available");
     try {
       const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
       const [watchCount] = await db.select({ count: sql<number>`count(*)` }).from(watches).where(eq(watches.alertsOn, true));
       const [reportCount] = await db.select({ count: sql<number>`count(*)` }).from(reports);
+      const [pendingCount] = await db.select({ count: sql<number>`count(*)` }).from(payments).where(eq(payments.status, "pending"));
       
       // Count reports from today
       const todayStart = new Date();
@@ -130,13 +135,23 @@ export class DatabaseStorage implements IStorage {
         activeWatches: Number(watchCount?.count || 0),
         totalReports: Number(reportCount?.count || 0),
         checksToday: Number(todayCount?.count || 0),
-        threatsBlocked: Math.floor(Number(reportCount?.count || 0) * 0.1), // Estimate based on 10% threat rate
+        threatsBlocked: Math.floor(Number(reportCount?.count || 0) * 0.1),
+        pendingPayments: Number(pendingCount?.count || 0),
       };
     } catch (err) {
-      // Tables may not exist yet
       console.warn("Database tables not ready:", (err as Error).message);
-      return { totalUsers: 0, activeWatches: 0, totalReports: 0, checksToday: 0, threatsBlocked: 0 };
+      return { totalUsers: 0, activeWatches: 0, totalReports: 0, checksToday: 0, threatsBlocked: 0, pendingPayments: 0 };
     }
+  }
+
+  async getLatestUsers(limit: number): Promise<User[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(users).orderBy(desc(users.createdAt)).limit(limit);
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(users);
   }
 
   async createPayment(insertPayment: any): Promise<Payment> {
@@ -314,12 +329,13 @@ export class MemStorage implements IStorage {
     return payment;
   }
 
-  async getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number }> {
+  async getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }> {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     
     const allReports = Array.from(this.reports.values());
     const todayReports = allReports.filter(r => r.generatedAt && r.generatedAt >= todayStart);
+    const pendingPayments = Array.from(this.payments.values()).filter(p => p.status === "pending");
     
     return {
       totalUsers: this.users.size,
@@ -327,7 +343,17 @@ export class MemStorage implements IStorage {
       totalReports: allReports.length,
       checksToday: todayReports.length,
       threatsBlocked: Math.floor(allReports.length * 0.1),
+      pendingPayments: pendingPayments.length,
     };
+  }
+
+  async getLatestUsers(limit: number): Promise<User[]> {
+    const allUsers = Array.from(this.users.values());
+    return allUsers.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)).slice(0, limit);
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
   }
 }
 
