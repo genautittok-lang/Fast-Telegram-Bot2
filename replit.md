@@ -48,13 +48,17 @@ The `server/checkService.ts` module provides:
 - Risk scoring (0-100) with levels: low, medium, high, critical
 - Detailed findings and metadata generation
 
-**Check Types & APIs:**
-- **IP Check**: Uses ip-api.com (free) for real geolocation, ISP, proxy/VPN detection
-- **Wallet Check**: Local pattern analysis, known mixer address detection
-- **Email Check**: Domain validation, disposable email detection, format analysis
-- **Domain Check**: TLD analysis, typosquatting detection, suspicious patterns
-- **Phone Check**: Country code detection, format validation, carrier hints
-- **URL Check**: Protocol analysis, shortener detection, phishing pattern detection
+**Check Types & APIs (v2.0):**
+- **IP Check**: Uses ip-api.com, ipinfo.io, Shodan InternetDB (ports/vulns), GreyNoise, DNS blacklists (Spamhaus, Spamcop)
+- **Wallet Check**: EVM/BTC/TRX/SOL support, Blockscout API, Blockchain.com API, sanctions check, known mixer detection
+- **Email Check**: MX validation via dns.google, disposable email detection, Hunter.io integration (optional)
+- **Domain Check**: RDAP/WHOIS via rdap.org, DNS checks, SSL certificates via crt.sh, typosquatting detection, domain age analysis
+- **Phone Check**: Country detection, VOIP patterns, Numverify integration (optional)
+- **URL Check**: urlscan.io API, Google Safe Browsing (optional), phishing patterns, dangerous extensions
+- **CVE Check (NEW)**: NVD NIST API, CVSS scoring, CISA KEV catalog, CVE Details integration
+- **Hash Check (NEW)**: VirusTotal API (optional), MalwareBazaar, URLhaus - file malware detection
+- **Username Check (NEW)**: GitHub API, cross-platform existence check, pattern analysis
+- **Bot Token Check**: Telegram Bot API validation, capability analysis
 
 ### Payment Verification System
 Manual payment workflow with moderator approval:

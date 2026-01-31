@@ -82,7 +82,7 @@ export const api = {
       method: 'POST' as const,
       path: '/api/check',
       input: z.object({
-        type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url']),
+        type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url', 'bot', 'cve', 'hash', 'username']),
         value: z.string().min(1),
       }),
       responses: {

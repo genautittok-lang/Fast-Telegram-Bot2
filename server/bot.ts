@@ -140,9 +140,9 @@ ${t(lang, "dashboard.selectModule")}`;
         Markup.button.callback(t(lang, "modules.url"), "mod_url")
       ],
       [
-        Markup.button.callback(t(lang, "modules.cve") + " 🔒", "mod_cve"),
-        Markup.button.callback(t(lang, "modules.iot") + " 🔒", "mod_iot"),
-        Markup.button.callback(t(lang, "modules.cloud") + " 🔒", "mod_cloud")
+        Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
+        Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
+        Markup.button.callback(t(lang, "modules.username"), "mod_username")
       ],
       [
         Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring"),
@@ -184,14 +184,17 @@ ${t(lang, "dashboard.selectModule")}`;
     await showDashboard(ctx, tgId, false);
   });
 
-  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url"];
+  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username"];
   const moduleMap: Record<string, string> = {
     "mod_ip": "ip",
     "mod_wallet": "wallet", 
     "mod_phone": "phone",
     "mod_email": "email",
     "mod_business": "domain",
-    "mod_url": "url"
+    "mod_url": "url",
+    "mod_cve": "cve",
+    "mod_hash": "hash",
+    "mod_username": "username"
   };
 
   for (const action of moduleActions) {
@@ -206,7 +209,7 @@ ${t(lang, "dashboard.selectModule")}`;
     });
   }
 
-  bot.action(["mod_cve", "mod_iot", "mod_cloud"], async (ctx) => {
+  bot.action(["mod_iot", "mod_cloud"], async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
     await ctx.answerCbQuery(t(lang, "premium.locked"));
