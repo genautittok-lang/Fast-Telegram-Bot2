@@ -82,24 +82,24 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
-      className="group relative p-4 sm:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
+      className="group relative p-3 sm:p-4 md:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
       
-      <div className="relative z-10 space-y-3">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+      <div className="relative z-10 space-y-2 sm:space-y-3">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
           {icon}
         </div>
         
-        <div className="space-y-1.5">
-          <h3 className="text-sm font-bold group-hover:text-primary transition-colors">
+        <div className="space-y-1 sm:space-y-1.5">
+          <h3 className="text-xs sm:text-sm font-bold group-hover:text-primary transition-colors leading-tight">
             {title}
           </h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
+          <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
             {description}
           </p>
           {apis && apis.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-1">
+            <div className="flex flex-wrap gap-1 pt-0.5 sm:pt-1">
               {apis.map((api, idx) => (
                 <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono">
                   {api}
@@ -271,28 +271,28 @@ export default function Home() {
       </nav>
 
       <main className="flex-grow relative z-10">
-        <section className="pt-12 sm:pt-16 md:pt-24 pb-16 sm:pb-20 md:pb-32 px-4 max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-            <div className="lg:col-span-3 space-y-6 sm:space-y-8">
+        <section className="pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-16 md:pb-24 px-4 sm:px-6 max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12">
+            <div className="lg:col-span-3 space-y-5 sm:space-y-6 md:space-y-8">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-5 md:space-y-6"
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary">
-                  <Shield className="w-4 h-4" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 border border-primary/20 text-xs sm:text-sm font-medium text-primary">
+                  <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{lang === "UA" ? "Професійна OSINT Платформа" : lang === "RU" ? "Профессиональная OSINT Платформа" : "Professional OSINT Platform"}</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1]">
                   {lang === "UA" ? "Кібербезпека та" : lang === "RU" ? "Кибербезопасность и" : "Cybersecurity &"} <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-blue-400">
                     {lang === "UA" ? "Розвідка Загроз" : lang === "RU" ? "Разведка Угроз" : "Threat Intelligence"}
                   </span>
                 </h1>
 
-                <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
+                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed">
                   {lang === "UA" 
                     ? "10+ модулів для комплексного аналізу: IP, домени, гаманці, email, телефони, malware, CVE та leak databases. Інтеграція з провідними API безпеки."
                     : lang === "RU"
@@ -300,14 +300,14 @@ export default function Home() {
                     : "10+ modules for comprehensive analysis: IPs, domains, wallets, emails, phones, malware, CVE & leak databases. Integration with leading security APIs."}
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <Link href="/login">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-base px-6 py-6 group"
+                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group"
                       data-testid="button-web-dashboard"
                     >
-                      <ShieldCheck className="w-5 h-5 mr-2" />
+                      <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       {t.webDashboard}
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
@@ -320,17 +320,17 @@ export default function Home() {
                     <Button 
                       variant="outline"
                       size="lg"
-                      className="w-full sm:w-auto text-base px-6 py-6 group border-primary/30 hover:border-primary/50"
+                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group border-primary/30 hover:border-primary/50"
                       data-testid="button-launch-bot"
                     >
-                      <SiTelegram className="w-5 h-5 mr-2" />
+                      <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       {t.launchBot}
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </a>
                 </div>
 
-                <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-4 text-xs sm:text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500" />
                     <span>{lang === "UA" ? "Безкоштовний старт" : lang === "RU" ? "Бесплатный старт" : "Free to start"}</span>
@@ -427,47 +427,47 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
-          <div className="max-w-7xl mx-auto px-4 w-full">
+        <section className="py-10 sm:py-14 md:py-16 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
             >
-              <div className="text-center space-y-1">
-                <div className="text-3xl sm:text-4xl font-bold text-white">
+              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                   <AnimatedNumber value={stats?.totalUsers ?? 14582} />
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-primary" />
+                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
                   {t.users}
                 </div>
               </div>
-              <div className="text-center space-y-1">
-                <div className="text-3xl sm:text-4xl font-bold text-white">
+              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                   <AnimatedNumber value={stats?.activeWatches ?? 3841} />
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-primary" />
+                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                  <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
                   {t.monitors}
                 </div>
               </div>
-              <div className="text-center space-y-1">
-                <div className="text-3xl sm:text-4xl font-bold text-white">
+              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                   <AnimatedNumber value={stats?.threatsBlocked ?? 12459} />
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-primary" />
+                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                  <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
                   {t.threats}
                 </div>
               </div>
-              <div className="text-center space-y-1">
-                <div className="text-3xl sm:text-4xl font-bold text-white">
+              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
                   <AnimatedNumber value={stats?.checksToday ?? 842} />
                 </div>
-                <div className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                  <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
                   {t.today}
                 </div>
               </div>
@@ -475,22 +475,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20 md:py-24">
-          <div className="max-w-7xl mx-auto px-4 w-full">
+        <section className="py-12 sm:py-16 md:py-20 lg:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-10 sm:mb-14 space-y-3"
+              className="text-center mb-8 sm:mb-10 md:mb-14 space-y-2 sm:space-y-3"
             >
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Terminal className="w-3 h-3" />
                 {lang === "UA" ? "10 Модулів" : lang === "RU" ? "10 Модулей" : "10 Modules"}
               </span>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
                 {lang === "UA" ? "Повний Арсенал OSINT" : lang === "RU" ? "Полный Арсенал OSINT" : "Complete OSINT Arsenal"}
               </h2>
-              <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
                 {lang === "UA" 
                   ? "Кожен модуль інтегрований з провідними API для максимальної точності та актуальності даних"
                   : lang === "RU"
@@ -499,7 +499,7 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               {modules.map((module, idx) => (
                 <ModuleCard 
                   key={idx}
@@ -511,22 +511,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20 bg-card/30 border-y border-white/5">
-          <div className="max-w-7xl mx-auto px-4 w-full">
+        <section className="py-12 sm:py-16 md:py-20 bg-card/30 border-y border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-10 sm:mb-12 space-y-3"
+              className="text-center mb-8 sm:mb-10 md:mb-12 space-y-2 sm:space-y-3"
             >
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Server className="w-3 h-3" />
                 {lang === "UA" ? "API Інтеграції" : lang === "RU" ? "API Интеграции" : "API Integrations"}
               </span>
-              <h2 className="text-2xl sm:text-3xl font-bold">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold px-2">
                 {lang === "UA" ? "Джерела Даних" : lang === "RU" ? "Источники Данных" : "Data Sources"}
               </h2>
-              <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto px-2">
                 {lang === "UA" 
                   ? "Інтеграція з найкращими API безпеки для актуальних та достовірних даних"
                   : lang === "RU"
@@ -535,7 +535,7 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {apiSources.map((source, idx) => (
                 <motion.div
                   key={idx}
@@ -543,22 +543,22 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.05 }}
-                  className="group p-4 sm:p-5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-300 text-center"
+                  className="group p-3 sm:p-4 md:p-5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-300 text-center"
                 >
-                  <div className="w-10 h-10 mx-auto mb-3 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                    <Database className="w-5 h-5" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 sm:mb-3 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                    <Database className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="font-bold text-sm mb-1 group-hover:text-primary transition-colors">{source.name}</h3>
-                  <p className="text-[11px] text-muted-foreground">{source.description}</p>
+                  <h3 className="font-bold text-xs sm:text-sm mb-0.5 sm:mb-1 group-hover:text-primary transition-colors">{source.name}</h3>
+                  <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-tight">{source.description}</p>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="py-12 sm:py-16 max-w-5xl mx-auto px-4 w-full">
+        <section className="py-10 sm:py-12 md:py-16 max-w-5xl mx-auto px-3 sm:px-4 w-full">
           <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-primary/5">
-            <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/10">
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border-b border-white/10">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
@@ -566,10 +566,10 @@ export default function Home() {
               </div>
               <div className="flex-1 text-center font-mono text-xs text-muted-foreground">darkshare_cli — v4.0</div>
             </div>
-            <div className="p-4 sm:p-6 font-mono text-xs sm:text-sm space-y-3 h-[280px] sm:h-[320px] overflow-hidden relative">
+            <div className="p-3 sm:p-4 md:p-6 font-mono text-[10px] sm:text-xs md:text-sm space-y-2 sm:space-y-3 h-[240px] sm:h-[280px] md:h-[320px] overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a] z-10 pointer-events-none" />
               
-              <div className="text-green-500/70">$ darkshare scan --target 0x1234...5678 --type wallet</div>
+              <div className="text-green-500/70 break-all">$ darkshare scan --target 0x1234...5678 --type wallet</div>
               <div className="space-y-1.5 text-muted-foreground">
                 <TerminalText text="[INIT] Connecting to blockchain nodes..." delay={500} speed={25} cursor={false} />
                 <br />
@@ -589,28 +589,28 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-16 sm:py-20 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
-          <div className="max-w-4xl mx-auto px-4 text-center w-full">
+        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-6"
+              className="space-y-4 sm:space-y-6"
             >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
                 {lang === "UA" ? "Готові почати?" : lang === "RU" ? "Готовы начать?" : "Ready to Start?"}
               </h2>
-              <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto px-2">
                 {lang === "UA" 
                   ? "Приєднуйтесь до тисяч користувачів, які довіряють DARKSHARE для своєї кібербезпеки"
                   : lang === "RU"
                   ? "Присоединяйтесь к тысячам пользователей, которые доверяют DARKSHARE для своей кибербезопасности"
                   : "Join thousands of users who trust DARKSHARE for their cybersecurity needs"}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
                 <Link href="/login">
-                  <Button size="lg" className="w-full sm:w-auto px-8" data-testid="button-dashboard-cta">
-                    <ShieldCheck className="w-5 h-5 mr-2" />
+                  <Button size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base" data-testid="button-dashboard-cta">
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {t.webDashboard}
                   </Button>
                 </Link>
@@ -619,10 +619,10 @@ export default function Home() {
                   target="_blank" 
                   rel="noreferrer"
                 >
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 border-primary/30" data-testid="button-launch-bot-cta">
-                    <SiTelegram className="w-5 h-5 mr-2" />
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base border-primary/30" data-testid="button-launch-bot-cta">
+                    <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Telegram Bot
-                    <ExternalLink className="w-4 h-4 ml-2" />
+                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
                   </Button>
                 </a>
               </div>
@@ -632,7 +632,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-white/5 bg-card/30 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center gap-3">

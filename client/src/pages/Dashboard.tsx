@@ -712,38 +712,38 @@ export default function Dashboard() {
                   <Button 
                     size="icon" 
                     variant="ghost" 
-                    className="w-9 h-9 rounded-xl border border-white/10 bg-white/5"
+                    className="w-11 h-11 rounded-xl border border-white/10 bg-white/5"
                     data-testid="button-hamburger-menu"
                   >
                     <Menu className="w-5 h-5" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent 
-                  side="right" 
-                  className="w-[280px] bg-black/95 border-l border-white/10 backdrop-blur-2xl p-0"
+                  side="left" 
+                  className="w-[300px] bg-black/98 border-r border-white/10 backdrop-blur-2xl p-0"
                 >
-                  <SheetHeader className="p-4 border-b border-white/10">
+                  <SheetHeader className="p-5 border-b border-white/10 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5">
                     <SheetTitle className="flex items-center gap-3">
-                      <Avatar className="w-10 h-10 border-2 border-primary/40">
+                      <Avatar className="w-12 h-12 border-2 border-primary/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
                         <AvatarImage src={user?.photoUrl} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold">
+                        <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold text-lg">
                           {user?.username?.slice(0, 2).toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-semibold text-sm truncate text-white">@{user?.username}</p>
+                        <p className="font-semibold text-base truncate text-white">@{user?.username}</p>
                         <TierBadge tier={user?.tier || "FREE"} />
                       </div>
                     </SheetTitle>
                   </SheetHeader>
                   
-                  <div className="p-4 space-y-2">
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 mb-4">
-                      <div className="flex items-center justify-between text-xs mb-2">
+                  <div className="p-4 space-y-1 flex flex-col h-[calc(100%-100px)]">
+                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                      <div className="flex items-center justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Залишилось запитів</span>
                         <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}/15</span>
                       </div>
-                      <div className="h-2 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                      <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
                         <motion.div 
                           className="h-full bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 rounded-full"
                           initial={{ width: 0 }}
@@ -753,35 +753,65 @@ export default function Dashboard() {
                       </div>
                     </div>
                     
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 h-12 rounded-xl"
-                      onClick={() => {
-                        setShowMobileMenu(false);
-                        setShowProfile(true);
-                      }}
-                      data-testid="menu-button-profile"
-                    >
-                      <User className="w-5 h-5 mr-3" />
-                      Профіль
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 h-12 rounded-xl"
-                      onClick={() => {
-                        setShowMobileMenu(false);
-                        setShowSubscription(true);
-                      }}
-                      data-testid="menu-button-subscription"
-                    >
-                      <Crown className="w-5 h-5 mr-3" />
-                      Підписка
-                    </Button>
+                    <nav className="space-y-1">
+                      {navItems.map((item) => {
+                        const isActive = location === item.href;
+                        return (
+                          <Link key={item.id} href={item.href}>
+                            <motion.button
+                              onClick={() => setShowMobileMenu(false)}
+                              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-medium transition-all duration-300 min-h-[48px] ${
+                                isActive 
+                                  ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30" 
+                                  : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
+                              }`}
+                              whileTap={{ scale: 0.98 }}
+                              data-testid={`mobile-nav-${item.id}`}
+                            >
+                              <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
+                              {item.label}
+                              {isActive && (
+                                <motion.div
+                                  className="ml-auto w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.8)]"
+                                  layoutId="mobileNavIndicator"
+                                />
+                              )}
+                            </motion.button>
+                          </Link>
+                        );
+                      })}
+                    </nav>
                     
-                    <div className="pt-2 border-t border-white/10 mt-4">
+                    <div className="flex-1" />
+                    
+                    <div className="pt-4 border-t border-white/10 space-y-1 mt-auto">
                       <Button 
                         variant="ghost" 
-                        className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 h-12 rounded-xl"
+                        className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 h-12 rounded-xl text-base"
+                        onClick={() => {
+                          setShowMobileMenu(false);
+                          setShowProfile(true);
+                        }}
+                        data-testid="menu-button-profile"
+                      >
+                        <User className="w-5 h-5 mr-3" />
+                        Профіль
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 h-12 rounded-xl text-base"
+                        onClick={() => {
+                          setShowMobileMenu(false);
+                          setShowSubscription(true);
+                        }}
+                        data-testid="menu-button-subscription"
+                      >
+                        <Crown className="w-5 h-5 mr-3" />
+                        Підписка
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 h-12 rounded-xl text-base"
                         onClick={() => {
                           setShowMobileMenu(false);
                           handleLogout();
@@ -834,7 +864,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4 lg:space-y-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-2 lg:gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 lg:gap-3">
                 {checkTypes.map((type, idx) => {
                   const isSelected = selectedType === type.id;
                   return (
@@ -845,7 +875,7 @@ export default function Dashboard() {
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative p-2 sm:p-3 lg:p-5 rounded-lg sm:rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group touch-manipulation ${
+                      className={`relative p-3 sm:p-3.5 lg:p-5 rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group touch-manipulation min-h-[72px] sm:min-h-[80px] lg:min-h-[100px] ${
                         isSelected
                           ? `${type.borderColor.replace('hover:', '')} bg-gradient-to-br ${type.gradient} backdrop-blur-xl shadow-lg ${type.glowColor}`
                           : `border-white/10 active:border-white/30 bg-black/40 backdrop-blur-sm active:bg-black/60`
@@ -853,7 +883,7 @@ export default function Dashboard() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: idx * 0.04, duration: 0.3, type: "spring", stiffness: 300 }}
-                      whileTap={{ scale: 0.95 }}
+                      whileTap={{ scale: 0.97 }}
                       data-testid={`button-check-type-${type.id}`}
                     >
                       {isSelected && (
@@ -864,23 +894,23 @@ export default function Dashboard() {
                           transition={{ duration: 0.3 }}
                         />
                       )}
-                      <div className="relative flex flex-col items-center gap-1 sm:gap-1.5 lg:gap-3">
+                      <div className="relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 lg:gap-3 h-full">
                         <motion.div 
-                          className={`w-7 h-7 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-md sm:rounded-lg lg:rounded-xl flex items-center justify-center ${
+                          className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center ${
                             isSelected ? 'bg-white/15 shadow-inner' : 'bg-white/5'
                           } transition-all duration-300`}
                           animate={isSelected ? { scale: [1, 1.05, 1] } : {}}
                           transition={{ duration: 0.4 }}
                         >
-                          <type.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-6 lg:h-6 ${isSelected ? type.iconColor : 'text-muted-foreground'} transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
+                          <type.icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-6 lg:h-6 ${isSelected ? type.iconColor : 'text-muted-foreground'} transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
                         </motion.div>
-                        <span className={`text-[8px] sm:text-[9px] lg:text-xs font-medium text-center leading-tight line-clamp-1 ${isSelected ? 'text-white' : 'text-muted-foreground'} transition-colors duration-300`}>
+                        <span className={`text-[10px] sm:text-[11px] lg:text-xs font-medium text-center leading-tight line-clamp-2 ${isSelected ? 'text-white' : 'text-muted-foreground'} transition-colors duration-300`}>
                           {type.label}
                         </span>
                       </div>
                       {isSelected && (
                         <motion.div
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 lg:w-12 h-0.5 lg:h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-t-full"
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 lg:h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-t-full"
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />
@@ -1168,60 +1198,6 @@ export default function Dashboard() {
           </div>
         </main>
 
-        <motion.nav 
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom"
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut", delay: 0.2 }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/98 to-black/95 backdrop-blur-2xl" />
-          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/3 via-transparent to-cyan-500/3 pointer-events-none" />
-          <div className="relative flex items-center justify-around py-2 px-3">
-            {navItems.map((item, idx) => {
-              const isActive = location === item.href;
-              return (
-                <Link key={item.id} href={item.href}>
-                  <motion.button
-                    className={`relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl transition-all duration-300 ${
-                      isActive 
-                        ? "text-primary" 
-                        : "text-muted-foreground active:text-white"
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05, duration: 0.3 }}
-                    data-testid={`nav-mobile-${item.id}`}
-                  >
-                    {isActive && (
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/10 to-transparent rounded-2xl"
-                        layoutId="mobileNavActive"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                    <div className={`relative p-1.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-primary/20' : ''}`}>
-                      <item.icon className={`w-5 h-5 transition-all duration-300 ${isActive ? 'drop-shadow-[0_0_6px_rgba(34,197,94,0.8)]' : ''}`} />
-                    </div>
-                    <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'text-primary' : ''}`}>
-                      {item.label}
-                    </span>
-                    {isActive && (
-                      <motion.div
-                        className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full"
-                        initial={{ scaleX: 0, opacity: 0 }}
-                        animate={{ scaleX: 1, opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    )}
-                  </motion.button>
-                </Link>
-              );
-            })}
-          </div>
-        </motion.nav>
-        <div className="lg:hidden h-20" />
       </div>
 
       <Dialog open={showProfile} onOpenChange={setShowProfile}>

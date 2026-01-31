@@ -69,8 +69,14 @@ async function ensureTablesExist() {
         object_type TEXT NOT NULL,
         data_json JSONB,
         pdf_path TEXT,
+        verification_id TEXT,
         generated_at TIMESTAMP DEFAULT NOW()
       )
+    `);
+    
+    // Add verification_id column if missing (for existing databases)
+    await pool.query(`
+      ALTER TABLE ds_reports ADD COLUMN IF NOT EXISTS verification_id TEXT
     `);
     
     await pool.query(`
