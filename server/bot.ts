@@ -130,7 +130,7 @@ ${t(lang, "common.tipOfDay")}
 
 ${t(lang, "dashboard.selectModule")}`;
 
-    const webUrl = "https://fast-telegram-bot2-production.up.railway.app";
+    const webUrl = process.env.WEB_DOMAIN || "https://darkshare.store";
 
     const keyboard = Markup.inlineKeyboard([
       [
