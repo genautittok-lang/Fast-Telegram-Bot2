@@ -1,5 +1,13 @@
 // Enhanced OSINT Check Service v2.0
 // Uses multiple free APIs for comprehensive analysis
+import { generateAIAnalysis } from "./aiAnalyzer";
+
+export interface AIInsights {
+  summary: string;
+  recommendations: string[];
+  threatLevel: string;
+  verdict: string;
+}
 
 export interface CheckResult {
   type: string;
@@ -11,6 +19,7 @@ export interface CheckResult {
   findings: string[];
   sources: string[];
   timestamp: Date;
+  aiInsights?: AIInsights;
 }
 
 async function fetchWithTimeout(url: string, timeout = 5000, options?: RequestInit): Promise<Response> {
@@ -103,30 +112,59 @@ export function validateInput(type: string, value: string): { valid: boolean; er
 export async function performCheck(type: string, value: string): Promise<CheckResult> {
   const timestamp = new Date();
   
+  let result: CheckResult;
+  
   switch (type) {
     case "ip":
-      return await checkIP(value, timestamp);
+      result = await checkIP(value, timestamp);
+      break;
     case "wallet":
-      return await checkWallet(value, timestamp);
+      result = await checkWallet(value, timestamp);
+      break;
     case "phone":
-      return await checkPhone(value, timestamp);
+      result = await checkPhone(value, timestamp);
+      break;
     case "email":
-      return await checkEmail(value, timestamp);
+      result = await checkEmail(value, timestamp);
+      break;
     case "domain":
-      return await checkDomain(value, timestamp);
+      result = await checkDomain(value, timestamp);
+      break;
     case "url":
-      return await checkURL(value, timestamp);
+      result = await checkURL(value, timestamp);
+      break;
     case "bot":
-      return await checkBot(value, timestamp);
+      result = await checkBot(value, timestamp);
+      break;
     case "cve":
-      return await checkCVE(value, timestamp);
+      result = await checkCVE(value, timestamp);
+      break;
     case "hash":
-      return await checkHash(value, timestamp);
+      result = await checkHash(value, timestamp);
+      break;
     case "username":
-      return await checkUsername(value, timestamp);
+      result = await checkUsername(value, timestamp);
+      break;
     default:
       throw new Error(`Unknown check type: ${type}`);
   }
+  
+  // Add AI analysis
+  try {
+    const aiInsights = await generateAIAnalysis({
+      type: result.type,
+      target: result.target,
+      riskScore: result.riskScore,
+      riskLevel: result.riskLevel,
+      findings: result.findings,
+      details: result.details,
+    });
+    result.aiInsights = aiInsights;
+  } catch (error) {
+    console.error("AI analysis failed:", error);
+  }
+  
+  return result;
 }
 
 function getRiskLevel(score: number): "low" | "medium" | "high" | "critical" {

@@ -86,3 +86,6 @@ export type Achievement = typeof achievements.$inferSelect;
 
 // Note: Replit Auth tables are in shared/models/auth.ts
 // Import them directly where needed to avoid type conflicts
+
+// Re-export chat models for AI integrations
+export * from "./models/chat";

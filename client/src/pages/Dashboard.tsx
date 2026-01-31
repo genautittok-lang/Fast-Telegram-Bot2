@@ -87,6 +87,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+interface AIInsights {
+  summary: string;
+  recommendations: string[];
+  threatLevel: string;
+  verdict: string;
+}
+
 interface CheckResult {
   type: string;
   target: string;
@@ -97,6 +104,7 @@ interface CheckResult {
   findings: string[];
   sources: string[];
   timestamp: string;
+  aiInsights?: AIInsights;
 }
 
 const checkTypes = [
@@ -1124,6 +1132,44 @@ export default function Dashboard() {
                         })}
                       </div>
                     </div>
+
+                    {/* AI INSIGHTS SECTION */}
+                    {result.aiInsights && (
+                      <motion.div 
+                        className="mb-3 lg:mb-6 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/30"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3, duration: 0.4 }}
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
+                          <h4 className="text-xs lg:text-sm font-semibold">AI Аналіз</h4>
+                          <Badge 
+                            className={`text-[9px] lg:text-xs ml-auto ${
+                              result.aiInsights.threatLevel === "КРИТИЧНО" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                              result.aiInsights.threatLevel === "НЕБЕЗПЕЧНО" ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                              result.aiInsights.threatLevel === "УВАГА" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
+                              "bg-green-500/20 text-green-400 border-green-500/30"
+                            }`}
+                          >
+                            {result.aiInsights.threatLevel}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-[10px] lg:text-sm font-semibold text-primary mb-2">{result.aiInsights.verdict}</p>
+                        <p className="text-[10px] lg:text-xs text-muted-foreground mb-3 leading-relaxed">{result.aiInsights.summary}</p>
+                        
+                        <div className="space-y-1.5">
+                          <p className="text-[9px] lg:text-xs font-semibold text-white/70">Рекомендації:</p>
+                          {result.aiInsights.recommendations.slice(0, 3).map((rec, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-[9px] lg:text-xs text-muted-foreground">
+                              <CheckCircle2 className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
+                              <span>{rec}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
 
                     <div className="mb-3 lg:mb-6">
                       <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">

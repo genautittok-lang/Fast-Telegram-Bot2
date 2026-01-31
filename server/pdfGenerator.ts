@@ -1,6 +1,13 @@
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 
+interface AIInsights {
+  summary: string;
+  recommendations: string[];
+  threatLevel: string;
+  verdict: string;
+}
+
 interface ReportData {
   moduleType: string;
   targetValue: string;
@@ -12,6 +19,7 @@ interface ReportData {
   sources: string[];
   metadata?: Record<string, string | number>;
   verificationId: string;
+  aiInsights?: AIInsights;
 }
 
 interface Finding {
@@ -243,6 +251,49 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       });
 
       y += metaHeight + 15;
+    }
+
+    // AI INSIGHTS SECTION
+    if (data.aiInsights) {
+      doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
+      doc.text("AI SECURITY ANALYSIS", margin, y);
+      y += 18;
+
+      const aiHeight = 70;
+      doc.roundedRect(margin, y, contentWidth, aiHeight, 6).fill(COLORS.surface);
+      
+      // Threat level badge
+      const threatColors: Record<string, string> = {
+        "БЕЗПЕЧНО": COLORS.success,
+        "УВАГА": COLORS.warning,
+        "НЕБЕЗПЕЧНО": "#f97316",
+        "КРИТИЧНО": COLORS.danger,
+      };
+      const threatColor = threatColors[data.aiInsights.threatLevel] || COLORS.warning;
+      doc.roundedRect(margin + 12, y + 10, 80, 20, 4).fill(threatColor);
+      doc.fillColor(COLORS.background).fontSize(8).font("Helvetica-Bold");
+      doc.text(data.aiInsights.threatLevel, margin + 14, y + 15, { width: 76, align: "center" });
+
+      // Verdict
+      doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
+      doc.text(data.aiInsights.verdict, margin + 100, y + 14, { width: contentWidth - 115 });
+
+      // Summary (compact)
+      const shortSummary = data.aiInsights.summary.length > 140 
+        ? data.aiInsights.summary.substring(0, 137) + "..."
+        : data.aiInsights.summary;
+      doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
+      doc.text(shortSummary, margin + 12, y + 38, { width: contentWidth - 24 });
+
+      // Top 2 recommendations
+      const topRecs = data.aiInsights.recommendations.slice(0, 2);
+      if (topRecs.length > 0) {
+        doc.fillColor(COLORS.textDim).fontSize(8).font("Helvetica");
+        const recsText = topRecs.map((r, i) => `${i + 1}. ${r}`).join("  ");
+        doc.text(recsText.substring(0, 100), margin + 12, y + 55, { width: contentWidth - 24 });
+      }
+
+      y += aiHeight + 15;
     }
 
     doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
