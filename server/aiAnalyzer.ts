@@ -1,9 +1,16 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+// Lazy initialization - only create client when needed and credentials exist
+function getOpenAIClient(): OpenAI | null {
+  const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  const baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+  
+  if (!apiKey || !baseURL) {
+    return null;
+  }
+  
+  return new OpenAI({ apiKey, baseURL });
+}
 
 interface AnalysisInput {
   type: string;
@@ -22,6 +29,18 @@ interface AIAnalysis {
 }
 
 export async function generateAIAnalysis(input: AnalysisInput): Promise<AIAnalysis> {
+  const openai = getOpenAIClient();
+  
+  // If no AI credentials, return default analysis
+  if (!openai) {
+    return {
+      summary: getDefaultSummary(input),
+      recommendations: getDefaultRecommendations(input.riskLevel),
+      threatLevel: mapRiskLevel(input.riskLevel),
+      verdict: getDefaultVerdict(input.riskLevel),
+    };
+  }
+  
   try {
     const prompt = `You are a cybersecurity expert analyzing security data. Analyze this ${input.type} check result and provide a professional assessment.
 
