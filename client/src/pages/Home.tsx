@@ -186,16 +186,16 @@ export default function Home() {
       apis: ["urlscan.io", "Google Safe"]
     },
     {
-      icon: <Database className="w-5 h-5" />,
-      title: lang === "UA" ? "Leak Database" : lang === "RU" ? "База Утечек" : "Leak Database",
-      description: lang === "UA" ? "Пошук у базах витоків та компрометованих даних" : lang === "RU" ? "Поиск в базах утечек и скомпрометированных данных" : "Search breach databases & compromised data",
-      apis: ["DeHashed", "IntelX"]
+      icon: <Bot className="w-5 h-5" />,
+      title: lang === "UA" ? "Bot Token" : lang === "RU" ? "Bot Token" : "Bot Token",
+      description: lang === "UA" ? "Перевірка Telegram Bot API токенів на валідність" : lang === "RU" ? "Проверка Telegram Bot API токенов на валидность" : "Validate Telegram Bot API tokens",
+      apis: ["Telegram API"]
     },
     {
-      icon: <Eye className="w-5 h-5" />,
-      title: lang === "UA" ? "Monitoring" : lang === "RU" ? "Мониторинг" : "Monitoring",
-      description: lang === "UA" ? "Автоматичні сповіщення про зміни та загрози" : lang === "RU" ? "Автоматические уведомления об изменениях и угрозах" : "Auto alerts on changes & threat detection",
-      apis: ["Real-time", "Webhooks"]
+      icon: <Search className="w-5 h-5" />,
+      title: lang === "UA" ? "Username OSINT" : lang === "RU" ? "Username OSINT" : "Username OSINT",
+      description: lang === "UA" ? "Пошук профілів по username на різних платформах" : lang === "RU" ? "Поиск профилей по username на разных платформах" : "Search profiles by username across platforms",
+      apis: ["GitHub", "Social"]
     }
   ];
 

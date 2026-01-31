@@ -83,7 +83,7 @@ export default function Login() {
 
   const featuresList = [
     { icon: Shield, title: t.features.shield, desc: lang === "UA" ? "Аналіз загроз в реальному часі" : lang === "EN" ? "Real-time threat analysis" : "Анализ угроз в реальном времени" },
-    { icon: Globe, title: t.features.modules, desc: "IP, Wallet, Email, Phone, Domain, URL" },
+    { icon: Globe, title: t.features.modules, desc: "IP, Wallet, Email, Phone, Domain, URL, CVE, Hash, Username, Bot" },
     { icon: Zap, title: t.features.instant, desc: lang === "UA" ? "Результат за секунди" : lang === "EN" ? "Result in seconds" : "Результат за секунды" },
   ];
 

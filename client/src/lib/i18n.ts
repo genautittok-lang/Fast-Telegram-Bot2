@@ -15,7 +15,7 @@ export const translations = {
     backHome: "На головну",
     features: {
       shield: "Повний захист",
-      modules: "6+ модулів",
+      modules: "10 модулів",
       instant: "Миттєва перевірка"
     }
   },
@@ -35,7 +35,7 @@ export const translations = {
     backHome: "На главную",
     features: {
       shield: "Полная защита",
-      modules: "6+ модулей",
+      modules: "10 модулей",
       instant: "Мгновенная проверка"
     }
   },
@@ -55,7 +55,7 @@ export const translations = {
     backHome: "Back Home",
     features: {
       shield: "Full Protection",
-      modules: "6+ Modules",
+      modules: "10 Modules",
       instant: "Instant Check"
     }
   }
