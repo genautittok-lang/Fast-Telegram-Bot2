@@ -253,20 +253,18 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-            {!langSelected && (
-              <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
-                {(["UA", "RU", "EN"] as const).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => toggleLang(l)}
-                    className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                    data-testid={`button-lang-${l}`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
+              {(["UA", "RU", "EN"] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => toggleLang(l)}
+                  className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
+                  data-testid={`button-lang-${l}`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
             <StatusBadge status="online" />
           </div>
         </div>
