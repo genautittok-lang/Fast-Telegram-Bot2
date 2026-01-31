@@ -445,6 +445,17 @@ export default function Dashboard() {
   };
 
   const handleCheck = () => {
+    // Перевірка чи залишились запити
+    if (user && (user.requestsLeft ?? 0) <= 0) {
+      setShowSubscription(true);
+      toast({
+        title: "Ліміт вичерпано",
+        description: "Ваші безкоштовні запити закінчились. Оберіть тарифний план для продовження.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const value = inputValue.trim() || inputRef.current?.value?.trim() || "";
     if (!value) {
       toast({
