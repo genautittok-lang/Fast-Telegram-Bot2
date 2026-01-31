@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe, Languages } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
@@ -208,6 +209,26 @@ export default function Login() {
                     data-testid="telegram-login-widget"
                   />
                 </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/10" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="px-2 bg-card/80 text-muted-foreground">{lang === "UA" ? "Або" : lang === "RU" ? "Или" : "Or"}</span>
+                  </div>
+                </div>
+
+                <a href="/api/login" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-white/10 hover:border-primary/30"
+                    data-testid="button-sign-in-google"
+                  >
+                    <SiGoogle className="w-5 h-5 mr-2" />
+                    {lang === "UA" ? "Увійти через Google" : lang === "RU" ? "Войти через Google" : "Sign In with Google"}
+                  </Button>
+                </a>
               </CardContent>
             </Card>
           </motion.div>

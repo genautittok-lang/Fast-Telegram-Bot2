@@ -34,6 +34,8 @@ export interface IStorage {
   // Admin methods
   getLatestUsers(limit: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
+  blockUser(userId: number, blocked: boolean): Promise<User>;
+  searchUsers(query: string): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -152,6 +154,22 @@ export class DatabaseStorage implements IStorage {
   async getAllUsers(): Promise<User[]> {
     if (!db) throw new Error("Database not available");
     return await db.select().from(users);
+  }
+
+  async blockUser(userId: number, blocked: boolean): Promise<User> {
+    if (!db) throw new Error("Database not available");
+    const [user] = await db.update(users).set({ blocked }).where(eq(users.id, userId)).returning();
+    return user;
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    if (!db) throw new Error("Database not available");
+    const lowercaseQuery = query.toLowerCase();
+    const allUsers = await db.select().from(users);
+    return allUsers.filter(u => 
+      u.tgId.includes(query) || 
+      (u.username && u.username.toLowerCase().includes(lowercaseQuery))
+    );
   }
 
   async createPayment(insertPayment: any): Promise<Payment> {
@@ -354,6 +372,22 @@ export class MemStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
+  }
+
+  async blockUser(userId: number, blocked: boolean): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("User not found");
+    user.blocked = blocked;
+    this.users.set(userId, user);
+    return user;
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    const lowercaseQuery = query.toLowerCase();
+    return Array.from(this.users.values()).filter(u => 
+      u.tgId.includes(query) || 
+      (u.username && u.username.toLowerCase().includes(lowercaseQuery))
+    );
   }
 }
 

@@ -256,6 +256,128 @@ ${t(lang, "dashboard.selectModule")}`;
       return;
     }
 
+    if (state?.module === "admin_block_user" && state?.step === "awaiting_tgid") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply("⛔ Доступ заборонено");
+      }
+      
+      const targetTgId = text.trim();
+      const targetUser = await storage.getUserByTgId(targetTgId);
+      
+      if (!targetUser) {
+        return ctx.reply(`❌ Користувача з ID \`${targetTgId}\` не знайдено.`, {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+        });
+      }
+      
+      userStates.delete(tgId);
+      
+      const statusEmoji = targetUser.blocked ? "🔴" : "🟢";
+      const resultText = `👤 *Користувач знайдений:*\n\n` +
+        `${statusEmoji} ${targetUser.username ? `@${targetUser.username}` : targetUser.tgId}\n` +
+        `Тариф: ${targetUser.tier}\n` +
+        `Статус: ${targetUser.blocked ? "Заблокований" : "Активний"}\n\n` +
+        `Виберіть дію:`;
+      
+      await ctx.reply(resultText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(targetUser.blocked ? "✅ Розблокувати" : "🚫 Заблокувати", `admin_toggle_block_${targetUser.id}`)],
+          [Markup.button.callback("📋 Детальніше", `admin_user_info_${targetUser.id}`)],
+          [Markup.button.callback("⬅️ Назад", "admin_back")]
+        ])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_change_tier" && state?.step === "awaiting_tgid") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply("⛔ Доступ заборонено");
+      }
+      
+      const targetTgId = text.trim();
+      const targetUser = await storage.getUserByTgId(targetTgId);
+      
+      if (!targetUser) {
+        return ctx.reply(`❌ Користувача з ID \`${targetTgId}\` не знайдено.`, {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+        });
+      }
+      
+      userStates.delete(tgId);
+      
+      const tierEmoji = targetUser.tier === "ENTERPRISE" ? "👑" : targetUser.tier === "PRO" ? "⭐" : "🆓";
+      const resultText = `📊 *ЗМІНА ТАРИФУ*\n\n` +
+        `👤 ${targetUser.username ? `@${targetUser.username}` : targetUser.tgId}\n` +
+        `${tierEmoji} Поточний тариф: ${targetUser.tier}\n\n` +
+        `Виберіть новий тариф:`;
+      
+      await ctx.reply(resultText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [
+            Markup.button.callback("🆓 FREE", `admin_set_tier_${targetUser.id}_FREE`),
+            Markup.button.callback("⭐ PRO", `admin_set_tier_${targetUser.id}_PRO`),
+            Markup.button.callback("👑 ENTERPRISE", `admin_set_tier_${targetUser.id}_ENTERPRISE`)
+          ],
+          [Markup.button.callback("⬅️ Назад", "admin_back")]
+        ])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_search_user" && state?.step === "awaiting_query") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply("⛔ Доступ заборонено");
+      }
+      
+      const query = text.trim();
+      const foundUsers = await storage.searchUsers(query);
+      
+      userStates.delete(tgId);
+      
+      if (foundUsers.length === 0) {
+        return ctx.reply(`🔍 *Результати пошуку*\n\nПо запиту "${query}" нічого не знайдено.`, {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("🔍 Новий пошук", "admin_search_user")],
+            [Markup.button.callback("⬅️ Назад", "admin_back")]
+          ])
+        });
+      }
+      
+      let resultText = `🔍 *Результати пошуку* (${foundUsers.length})\n\n`;
+      
+      foundUsers.slice(0, 10).forEach((u, i) => {
+        const statusEmoji = u.blocked ? "🔴" : "🟢";
+        const tierEmoji = u.tier === "ENTERPRISE" ? "👑" : u.tier === "PRO" ? "⭐" : "🆓";
+        resultText += `${i + 1}. ${statusEmoji} ${tierEmoji} ${u.username ? `@${u.username}` : "—"}\n`;
+        resultText += `   ID: \`${u.tgId}\`\n`;
+      });
+      
+      if (foundUsers.length > 10) {
+        resultText += `\n_...та ще ${foundUsers.length - 10} результатів_`;
+      }
+      
+      const buttons: any[][] = [];
+      foundUsers.slice(0, 5).forEach(u => {
+        buttons.push([Markup.button.callback(`👤 ${u.username || u.tgId}`, `admin_user_info_${u.id}`)]);
+      });
+      buttons.push([Markup.button.callback("🔍 Новий пошук", "admin_search_user")]);
+      buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+      
+      await ctx.reply(resultText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard(buttons)
+      });
+      return;
+    }
+
     if (state?.module === "payment" && state?.step === "awaiting_proof") {
       if (!user) return;
       
@@ -818,6 +940,14 @@ ${findingsText}
           Markup.button.callback("👥 Користувачі", "admin_users")
         ],
         [
+          Markup.button.callback("🔍 Пошук", "admin_search_user"),
+          Markup.button.callback("🚫 Блокування", "admin_block_user")
+        ],
+        [
+          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
+          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+        ],
+        [
           Markup.button.callback("💳 Платежі", "admin_payments"),
           Markup.button.callback("📢 Розсилка", "admin_broadcast")
         ],
@@ -992,6 +1122,14 @@ ${findingsText}
           Markup.button.callback("👥 Користувачі", "admin_users")
         ],
         [
+          Markup.button.callback("🔍 Пошук", "admin_search_user"),
+          Markup.button.callback("🚫 Блокування", "admin_block_user")
+        ],
+        [
+          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
+          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+        ],
+        [
           Markup.button.callback("💳 Платежі", "admin_payments"),
           Markup.button.callback("📢 Розсилка", "admin_broadcast")
         ],
@@ -1069,6 +1207,14 @@ ${findingsText}
           Markup.button.callback("👥 Користувачі", "admin_users")
         ],
         [
+          Markup.button.callback("🔍 Пошук", "admin_search_user"),
+          Markup.button.callback("🚫 Блокування", "admin_block_user")
+        ],
+        [
+          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
+          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+        ],
+        [
           Markup.button.callback("💳 Платежі", "admin_payments"),
           Markup.button.callback("📢 Розсилка", "admin_broadcast")
         ],
@@ -1105,6 +1251,269 @@ ${findingsText}
       );
     } catch (e) {
       console.log("Failed to notify user about block status:", e);
+    }
+  });
+
+  bot.action("admin_block_user", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    userStates.set(tgId, { module: "admin_block_user", step: "awaiting_tgid" });
+    
+    const text = `🚫 *БЛОКУВАННЯ КОРИСТУВАЧА*\n\n` +
+      `Відправте Telegram ID користувача для блокування/розблокування.\n\n` +
+      `_Формат: числовий ID (наприклад: 123456789)_`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback("❌ Скасувати", "admin_back")]])
+    });
+  });
+
+  bot.action("admin_change_tier", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    userStates.set(tgId, { module: "admin_change_tier", step: "awaiting_tgid" });
+    
+    const text = `📊 *ЗМІНА ТАРИФУ*\n\n` +
+      `Відправте Telegram ID користувача для зміни тарифу.\n\n` +
+      `_Формат: числовий ID (наприклад: 123456789)_`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback("❌ Скасувати", "admin_back")]])
+    });
+  });
+
+  bot.action(/^admin_set_tier_(\d+)_(\w+)$/, async (ctx) => {
+    const adminTgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(adminTgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const userId = parseInt(ctx.match[1]);
+    const newTier = ctx.match[2];
+    
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return ctx.answerCbQuery("Користувача не знайдено");
+    }
+    
+    await storage.updateUser(userId, { tier: newTier });
+    await ctx.answerCbQuery(`Тариф змінено на ${newTier}`);
+    
+    try {
+      await ctx.telegram.sendMessage(user.tgId, 
+        `✅ Ваш тариф було змінено на *${newTier}*.`,
+        { parse_mode: "Markdown" }
+      );
+    } catch (e) {
+      console.log("Failed to notify user about tier change:", e);
+    }
+    
+    const text = `✅ *Тариф змінено!*\n\n` +
+      `Користувач: @${user.username || user.tgId}\n` +
+      `Новий тариф: ${newTier}`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+    });
+  });
+
+  bot.action("admin_search_user", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    userStates.set(tgId, { module: "admin_search_user", step: "awaiting_query" });
+    
+    const text = `🔍 *ПОШУК КОРИСТУВАЧА*\n\n` +
+      `Відправте:\n` +
+      `• Telegram ID (числовий)\n` +
+      `• Username (без @)\n\n` +
+      `_Приклад: 123456789 або darkuser_`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback("❌ Скасувати", "admin_back")]])
+    });
+  });
+
+  bot.action("admin_settings", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const stats = await storage.getStats();
+    const allUsers = await storage.getAllUsers();
+    const proUsers = allUsers.filter(u => u.tier === "PRO").length;
+    const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const blockedUsers = allUsers.filter(u => u.blocked).length;
+    
+    const text = `⚙️ *НАЛАШТУВАННЯ СИСТЕМИ*\n\n` +
+      `📊 *Ліміти:*\n` +
+      `├ FREE: 15 запитів/день\n` +
+      `├ PRO: Необмежено\n` +
+      `└ ENTERPRISE: Необмежено + API\n\n` +
+      `💰 *Ціни:*\n` +
+      `├ PRO: $10 USDT\n` +
+      `└ ENTERPRISE: $50 USDT\n\n` +
+      `📈 *Статистика тарифів:*\n` +
+      `├ FREE: ${stats.totalUsers - proUsers - enterpriseUsers}\n` +
+      `├ PRO: ${proUsers}\n` +
+      `├ ENTERPRISE: ${enterpriseUsers}\n` +
+      `└ Заблоковано: ${blockedUsers}\n\n` +
+      `🔐 *Адміни:* ${ADMIN_IDS.length}`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🔄 Оновити", "admin_settings")],
+        [Markup.button.callback("⬅️ Назад", "admin_back")]
+      ])
+    });
+  });
+
+  bot.action(/^admin_user_info_(\d+)$/, async (ctx) => {
+    const adminTgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(adminTgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const userId = parseInt(ctx.match[1]);
+    const user = await storage.getUserById(userId);
+    
+    if (!user) {
+      return ctx.answerCbQuery("Користувача не знайдено");
+    }
+    
+    const reports = await storage.getReports(user.id);
+    const watches = await storage.getWatches(user.id);
+    
+    const statusEmoji = user.blocked ? "🔴" : "🟢";
+    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    
+    const text = `👤 *ІНФОРМАЦІЯ ПРО КОРИСТУВАЧА*\n\n` +
+      `${statusEmoji} *Статус:* ${user.blocked ? "Заблокований" : "Активний"}\n` +
+      `${tierEmoji} *Тариф:* ${user.tier}\n\n` +
+      `📋 *Дані:*\n` +
+      `├ ID: \`${user.id}\`\n` +
+      `├ TG ID: \`${user.tgId}\`\n` +
+      `├ Username: ${user.username ? `@${user.username}` : "—"}\n` +
+      `├ Мова: ${user.lang?.toUpperCase() || "UK"}\n` +
+      `├ Залишок запитів: ${user.requestsLeft}\n` +
+      `├ Streak: ${user.streakDays} днів\n` +
+      `├ Реф. код: \`${user.refCode || "—"}\`\n` +
+      `├ Знижка: ${user.discountPct || 0}%\n` +
+      `└ Реєстрація: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString("uk-UA") : "—"}\n\n` +
+      `📊 *Активність:*\n` +
+      `├ Звітів: ${reports.length}\n` +
+      `└ Моніторів: ${watches.length}`;
+
+    const buttons: any[][] = [];
+    
+    buttons.push([
+      Markup.button.callback(user.blocked ? "✅ Розблокувати" : "🚫 Заблокувати", `admin_toggle_block_${user.id}`),
+    ]);
+    
+    buttons.push([
+      Markup.button.callback("🆓 FREE", `admin_set_tier_${user.id}_FREE`),
+      Markup.button.callback("⭐ PRO", `admin_set_tier_${user.id}_PRO`),
+      Markup.button.callback("👑 ENT", `admin_set_tier_${user.id}_ENTERPRISE`),
+    ]);
+    
+    buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action(/^admin_toggle_block_(\d+)$/, async (ctx) => {
+    const adminTgId = ctx.from!.id.toString();
+    
+    if (!isAdmin(adminTgId)) {
+      return ctx.answerCbQuery("⛔ Доступ заборонено");
+    }
+    
+    const userId = parseInt(ctx.match[1]);
+    const user = await storage.getUserById(userId);
+    
+    if (!user) {
+      return ctx.answerCbQuery("Користувача не знайдено");
+    }
+    
+    const newBlockedStatus = !user.blocked;
+    await storage.blockUser(userId, newBlockedStatus);
+    
+    const statusText = newBlockedStatus ? "заблоковано" : "розблоковано";
+    await ctx.answerCbQuery(`Користувача ${statusText}`);
+    
+    try {
+      await ctx.telegram.sendMessage(user.tgId, 
+        newBlockedStatus 
+          ? "⛔ Ваш акаунт було заблоковано адміністратором."
+          : "✅ Ваш акаунт було розблоковано."
+      );
+    } catch (e) {
+      console.log("Failed to notify user about block status:", e);
+    }
+    
+    const updatedUser = await storage.getUserById(userId);
+    if (updatedUser) {
+      const reports = await storage.getReports(updatedUser.id);
+      const watches = await storage.getWatches(updatedUser.id);
+      
+      const statusEmoji = updatedUser.blocked ? "🔴" : "🟢";
+      const tierEmoji = updatedUser.tier === "ENTERPRISE" ? "👑" : updatedUser.tier === "PRO" ? "⭐" : "🆓";
+      
+      const text = `👤 *ІНФОРМАЦІЯ ПРО КОРИСТУВАЧА*\n\n` +
+        `${statusEmoji} *Статус:* ${updatedUser.blocked ? "Заблокований" : "Активний"}\n` +
+        `${tierEmoji} *Тариф:* ${updatedUser.tier}\n\n` +
+        `📋 *Дані:*\n` +
+        `├ ID: \`${updatedUser.id}\`\n` +
+        `├ TG ID: \`${updatedUser.tgId}\`\n` +
+        `├ Username: ${updatedUser.username ? `@${updatedUser.username}` : "—"}\n` +
+        `├ Мова: ${updatedUser.lang?.toUpperCase() || "UK"}\n` +
+        `├ Залишок запитів: ${updatedUser.requestsLeft}\n` +
+        `├ Streak: ${updatedUser.streakDays} днів\n` +
+        `├ Реф. код: \`${updatedUser.refCode || "—"}\`\n` +
+        `├ Знижка: ${updatedUser.discountPct || 0}%\n` +
+        `└ Реєстрація: ${updatedUser.createdAt ? new Date(updatedUser.createdAt).toLocaleDateString("uk-UA") : "—"}\n\n` +
+        `📊 *Активність:*\n` +
+        `├ Звітів: ${reports.length}\n` +
+        `└ Моніторів: ${watches.length}`;
+
+      const buttons: any[][] = [];
+      buttons.push([
+        Markup.button.callback(updatedUser.blocked ? "✅ Розблокувати" : "🚫 Заблокувати", `admin_toggle_block_${updatedUser.id}`),
+      ]);
+      buttons.push([
+        Markup.button.callback("🆓 FREE", `admin_set_tier_${updatedUser.id}_FREE`),
+        Markup.button.callback("⭐ PRO", `admin_set_tier_${updatedUser.id}_PRO`),
+        Markup.button.callback("👑 ENT", `admin_set_tier_${updatedUser.id}_ENTERPRISE`),
+      ]);
+      buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+
+      await ctx.editMessageText(text, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard(buttons)
+      });
     }
   });
 
