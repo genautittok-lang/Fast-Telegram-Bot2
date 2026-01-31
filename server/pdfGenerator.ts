@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import QRCode from "qrcode";
 
 interface ReportData {
   moduleType: string;
@@ -10,6 +11,7 @@ interface ReportData {
   findings: Finding[];
   sources: string[];
   metadata?: Record<string, string | number>;
+  verificationId: string;
 }
 
 interface Finding {
@@ -21,35 +23,55 @@ interface Finding {
 
 const COLORS = {
   primary: "#22c55e",
+  primaryDark: "#16a34a",
   background: "#0a0a0f",
-  surface: "#16161d",
-  border: "#27272a",
-  text: "#fafafa",
+  surface: "#13131a",
+  surfaceLight: "#1a1a24",
+  text: "#ffffff",
+  textSecondary: "#e4e4e7",
   textMuted: "#a1a1aa",
+  textDim: "#71717a",
   success: "#22c55e",
-  warning: "#eab308",
+  warning: "#f59e0b",
   danger: "#ef4444",
   info: "#3b82f6",
 };
 
 const RISK_COLORS = {
   low: "#22c55e",
-  medium: "#eab308",
+  medium: "#f59e0b",
   high: "#f97316",
   critical: "#ef4444",
 };
 
-export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
+async function generateQRDataURL(text: string): Promise<string> {
+  return QRCode.toDataURL(text, {
+    width: 100,
+    margin: 1,
+    color: {
+      dark: "#22c55e",
+      light: "#0a0a0f",
+    },
+  });
+}
+
+export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
+  const reportId = data.verificationId;
+  const verificationUrl = `/verify/${reportId}`;
+  
+  const qrDataUrl = await generateQRDataURL(verificationUrl);
+  const qrBuffer = Buffer.from(qrDataUrl.split(",")[1], "base64");
+
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       size: "A4",
-      margin: 30,
+      margin: 40,
       bufferPages: true,
       info: {
         Title: `DARKSHARE Report - ${data.moduleType.toUpperCase()}`,
         Author: "DARKSHARE v4.0",
         Subject: `Risk Assessment for ${data.targetValue}`,
-        Keywords: "risk, assessment, security, darkshare",
+        Keywords: "risk, assessment, security, darkshare, osint",
         CreationDate: data.timestamp,
       },
     });
@@ -61,94 +83,109 @@ export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
 
     const pageWidth = doc.page.width;
     const pageHeight = doc.page.height;
-    const margin = 30;
+    const margin = 40;
     const contentWidth = pageWidth - margin * 2;
-    const reportId = `DS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-    doc.rect(0, 0, pageWidth, 55).fill(COLORS.background);
-    doc.rect(0, 55, pageWidth, 2).fill(COLORS.primary);
+    doc.rect(0, 0, pageWidth, pageHeight).fill(COLORS.background);
 
-    doc.fillColor(COLORS.text).fontSize(20).font("Helvetica-Bold");
-    doc.text("DARKSHARE", margin, 12);
-    doc.fillColor(COLORS.primary).fontSize(7).font("Helvetica");
-    doc.text("RISK INTELLIGENCE PLATFORM", margin, 32);
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
-    doc.text("Certified Security Analysis Report", margin, 40);
+    doc.rect(0, 0, pageWidth, 70).fill(COLORS.surface);
+
+    doc.fillColor(COLORS.primary).fontSize(24).font("Helvetica-Bold");
+    doc.text("DARKSHARE", margin, 20);
+    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
+    doc.text("RISK INTELLIGENCE PLATFORM", margin, 46);
+
+    const dateStr = data.timestamp.toLocaleDateString('en-GB', { 
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+    const timeStr = data.timestamp.toLocaleTimeString('en-GB', { 
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    doc.fillColor(COLORS.textMuted).fontSize(8).font("Helvetica");
+    doc.text(`Report ID: ${reportId}`, pageWidth - margin - 150, 22, { width: 150, align: "right" });
+    doc.text(`${dateStr} ${timeStr}`, pageWidth - margin - 150, 34, { width: 150, align: "right" });
 
     const moduleLabel = getModuleLabel(data.moduleType);
-    doc.roundedRect(pageWidth - margin - 80, 12, 80, 22, 3).fill(COLORS.surface);
-    doc.fillColor(COLORS.text).fontSize(6).font("Helvetica-Bold");
-    doc.text(moduleLabel.toUpperCase(), pageWidth - margin - 75, 17, { width: 70, align: "center" });
-    doc.fillColor(COLORS.textMuted).fontSize(4).font("Helvetica");
-    doc.text("ANALYSIS MODULE", pageWidth - margin - 75, 26, { width: 70, align: "center" });
+    doc.roundedRect(pageWidth - margin - 100, 48, 100, 18, 4).fill(COLORS.primary);
+    doc.fillColor(COLORS.background).fontSize(9).font("Helvetica-Bold");
+    doc.text(moduleLabel.toUpperCase(), pageWidth - margin - 95, 53, { width: 90, align: "center" });
 
-    doc.fillColor(COLORS.textMuted).fontSize(4).font("Helvetica");
-    doc.text(`ID: ${reportId}`, pageWidth - margin - 80, 38, { width: 80, align: "right" });
+    let y = 85;
 
-    let y = 65;
+    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
+    doc.text("SUBJECT OF ANALYSIS", margin, y);
+    y += 18;
 
-    doc.roundedRect(margin, y, contentWidth, 32, 3).fill(COLORS.surface);
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica-Bold");
-    doc.text("SUBJECT OF ANALYSIS", margin + 8, y + 5);
-    doc.fillColor(COLORS.text).fontSize(9).font("Helvetica-Bold");
-    const displayTarget = data.targetValue.length > 70 
-      ? data.targetValue.substring(0, 67) + "..." 
+    doc.roundedRect(margin, y, contentWidth, 45, 6).fill(COLORS.surface);
+    
+    const displayTarget = data.targetValue.length > 60 
+      ? data.targetValue.substring(0, 57) + "..." 
       : data.targetValue;
-    doc.text(displayTarget, margin + 8, y + 14);
+    doc.fillColor(COLORS.text).fontSize(14).font("Helvetica-Bold");
+    doc.text(displayTarget, margin + 15, y + 14, { width: contentWidth - 30 });
 
-    const dateStr = data.timestamp.toLocaleDateString('uk-UA', { 
-      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-    doc.fillColor(COLORS.textMuted).fontSize(4).font("Helvetica");
-    doc.text("DATE: " + dateStr, pageWidth - margin - 100, y + 24, { width: 92, align: "right" });
+    y += 60;
 
-    y += 40;
+    const riskBoxWidth = contentWidth * 0.42;
+    const verdictBoxWidth = contentWidth * 0.55;
+    const gap = contentWidth - riskBoxWidth - verdictBoxWidth;
 
-    const riskBoxWidth = contentWidth * 0.35;
-    const verdictBoxWidth = contentWidth * 0.63;
+    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
+    doc.text("RISK ASSESSMENT", margin, y);
+    doc.text("VERDICT", margin + riskBoxWidth + gap, y);
+    y += 18;
 
-    doc.roundedRect(margin, y, riskBoxWidth, 60, 3).fill(COLORS.surface);
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica-Bold");
-    doc.text("RISK ASSESSMENT", margin + 8, y + 5);
+    doc.roundedRect(margin, y, riskBoxWidth, 90, 6).fill(COLORS.surface);
 
     const riskColor = RISK_COLORS[data.riskLevel];
-    const circleX = margin + 30;
-    const circleY = y + 35;
-    doc.circle(circleX, circleY, 16).lineWidth(2.5).stroke(riskColor);
-    doc.circle(circleX, circleY, 12).fill(COLORS.background);
-    doc.fillColor(riskColor).fontSize(12).font("Helvetica-Bold");
-    doc.text(data.riskScore.toString(), circleX - 8, circleY - 5, { width: 16, align: "center" });
+    const circleX = margin + 55;
+    const circleY = y + 45;
+    const radius = 28;
 
-    doc.fillColor(riskColor).fontSize(10).font("Helvetica-Bold");
-    doc.text(data.riskLevel.toUpperCase(), margin + 55, y + 22);
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
-    doc.text("Risk Level", margin + 55, y + 33);
+    doc.circle(circleX, circleY, radius + 4).lineWidth(3).stroke(riskColor);
+    doc.circle(circleX, circleY, radius - 2).fill(COLORS.surfaceLight);
+    
+    doc.fillColor(riskColor).fontSize(22).font("Helvetica-Bold");
+    const scoreText = data.riskScore.toString();
+    const scoreWidth = doc.widthOfString(scoreText);
+    doc.text(scoreText, circleX - scoreWidth / 2, circleY - 10);
+    doc.fillColor(COLORS.textDim).fontSize(7).font("Helvetica");
+    doc.text("/100", circleX - 8, circleY + 8);
 
-    const riskBar = (data.riskScore / 100) * 50;
-    doc.roundedRect(margin + 55, y + 43, 50, 4, 2).fill(COLORS.border);
-    doc.roundedRect(margin + 55, y + 43, riskBar, 4, 2).fill(riskColor);
+    doc.fillColor(riskColor).fontSize(16).font("Helvetica-Bold");
+    doc.text(data.riskLevel.toUpperCase(), margin + 100, y + 28);
+    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
+    doc.text("Risk Level", margin + 100, y + 48);
 
-    doc.roundedRect(margin + riskBoxWidth + 8, y, verdictBoxWidth, 60, 3).fill(COLORS.surface);
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica-Bold");
-    doc.text("EXPERT VERDICT", margin + riskBoxWidth + 16, y + 5);
+    const barWidth = riskBoxWidth - 120;
+    const barProgress = (data.riskScore / 100) * barWidth;
+    doc.roundedRect(margin + 100, y + 65, barWidth, 8, 4).fill(COLORS.surfaceLight);
+    if (barProgress > 0) {
+      doc.roundedRect(margin + 100, y + 65, Math.max(barProgress, 8), 8, 4).fill(riskColor);
+    }
 
+    doc.roundedRect(margin + riskBoxWidth + gap, y, verdictBoxWidth, 90, 6).fill(COLORS.surface);
+    
     const verdict = getVerdict(data.riskLevel, data.riskScore);
-    doc.fillColor(COLORS.text).fontSize(8).font("Helvetica-Bold");
-    doc.text(verdict.title, margin + riskBoxWidth + 16, y + 16, { width: verdictBoxWidth - 24 });
-    doc.fillColor(COLORS.textMuted).fontSize(6).font("Helvetica");
-    doc.text(verdict.description, margin + riskBoxWidth + 16, y + 30, { width: verdictBoxWidth - 24 });
+    doc.fillColor(COLORS.text).fontSize(13).font("Helvetica-Bold");
+    doc.text(verdict.title, margin + riskBoxWidth + gap + 15, y + 20, { width: verdictBoxWidth - 30 });
+    doc.fillColor(COLORS.textMuted).fontSize(10).font("Helvetica");
+    doc.text(verdict.description, margin + riskBoxWidth + gap + 15, y + 45, { width: verdictBoxWidth - 30 });
 
-    y += 68;
+    y += 105;
 
-    doc.fillColor(COLORS.text).fontSize(9).font("Helvetica-Bold");
-    doc.text("FINDINGS", margin, y);
-    y += 10;
+    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
+    doc.text("KEY FINDINGS", margin, y);
+    y += 18;
 
-    const findingsToShow = data.findings.slice(0, 4);
-    const findingsHeight = findingsToShow.length * 11 + 6;
-    doc.roundedRect(margin, y, contentWidth, findingsHeight, 3).fill(COLORS.surface);
-    y += 4;
-
+    const findingsToShow = data.findings.slice(0, 5);
+    const findingRowHeight = 24;
+    const findingsHeight = findingsToShow.length * findingRowHeight + 16;
+    
+    doc.roundedRect(margin, y, contentWidth, findingsHeight, 6).fill(COLORS.surface);
+    
+    let findingY = y + 10;
     for (const finding of findingsToShow) {
       const findingColor = {
         info: COLORS.info,
@@ -157,89 +194,103 @@ export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
         success: COLORS.success,
       }[finding.type];
 
-      const icon = { info: "●", warning: "▲", danger: "✕", success: "✓" }[finding.type];
-      doc.fillColor(findingColor).fontSize(7).font("Helvetica-Bold");
-      doc.text(`${icon}`, margin + 6, y);
-      doc.fillColor(COLORS.text).fontSize(7).font("Helvetica");
-      doc.text(finding.title, margin + 16, y, { width: contentWidth - 24 });
-      y += 11;
-    }
-
-    y += 8;
-
-    if (data.metadata && Object.keys(data.metadata).length > 0) {
-      doc.fillColor(COLORS.text).fontSize(9).font("Helvetica-Bold");
-      doc.text("METADATA", margin, y);
-      y += 10;
-
-      const metaEntries = Object.entries(data.metadata).slice(0, 4);
-      const rows = Math.ceil(metaEntries.length / 2);
-      const metaHeight = rows * 12 + 6;
-      doc.roundedRect(margin, y, contentWidth, metaHeight, 3).fill(COLORS.surface);
+      doc.circle(margin + 20, findingY + 6, 5).fill(findingColor);
       
-      const colWidth = (contentWidth - 16) / 2;
-      let col = 0;
-      let row = 0;
+      const icon = { info: "i", warning: "!", danger: "x", success: "✓" }[finding.type];
+      doc.fillColor(COLORS.background).fontSize(8).font("Helvetica-Bold");
+      doc.text(icon, margin + 16, findingY + 2, { width: 8, align: "center" });
+
+      doc.fillColor(COLORS.text).fontSize(10).font("Helvetica-Bold");
+      doc.text(finding.title, margin + 35, findingY + 2);
       
-      for (const [key, value] of metaEntries) {
-        const xPos = margin + 8 + (col * colWidth);
-        const yPos = y + 5 + (row * 12);
-        
-        doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
-        doc.text(key, xPos, yPos);
-        doc.fillColor(COLORS.text).fontSize(6).font("Helvetica-Bold");
-        doc.text(String(value), xPos + 60, yPos);
-        
-        col++;
-        if (col >= 2) {
-          col = 0;
-          row++;
-        }
+      if (finding.description) {
+        doc.fillColor(COLORS.textDim).fontSize(8).font("Helvetica");
+        const descWidth = contentWidth - 180;
+        const shortDesc = finding.description.length > 50 
+          ? finding.description.substring(0, 47) + "..."
+          : finding.description;
+        doc.text(shortDesc, pageWidth - margin - descWidth - 10, findingY + 3, { width: descWidth, align: "right" });
       }
 
-      y += metaHeight + 8;
+      findingY += findingRowHeight;
     }
 
-    doc.fillColor(COLORS.text).fontSize(8).font("Helvetica-Bold");
-    doc.text("SOURCES", margin, y);
-    y += 8;
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
-    doc.text(data.sources.join(" | "), margin, y);
+    y += findingsHeight + 15;
 
-    const stampX = pageWidth - margin - 40;
-    const stampY = pageHeight - 80;
+    if (data.metadata && Object.keys(data.metadata).length > 0) {
+      doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
+      doc.text("ANALYSIS DETAILS", margin, y);
+      y += 18;
+
+      const metaEntries = Object.entries(data.metadata).slice(0, 6);
+      const cols = 3;
+      const rows = Math.ceil(metaEntries.length / cols);
+      const metaHeight = rows * 28 + 16;
+      const colWidth = (contentWidth - 30) / cols;
+      
+      doc.roundedRect(margin, y, contentWidth, metaHeight, 6).fill(COLORS.surface);
+      
+      metaEntries.forEach(([key, value], index) => {
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const xPos = margin + 15 + (col * colWidth);
+        const yPos = y + 12 + (row * 28);
+        
+        doc.fillColor(COLORS.textDim).fontSize(8).font("Helvetica");
+        doc.text(key.toUpperCase(), xPos, yPos);
+        doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
+        doc.text(String(value), xPos, yPos + 12);
+      });
+
+      y += metaHeight + 15;
+    }
+
+    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
+    doc.text("DATA SOURCES", margin, y);
+    y += 14;
+    doc.fillColor(COLORS.textDim).fontSize(9).font("Helvetica");
+    const sourcesText = data.sources.slice(0, 6).join("  •  ");
+    doc.text(sourcesText, margin, y, { width: contentWidth * 0.65 });
+
+    const qrX = pageWidth - margin - 70;
+    const qrY = pageHeight - 145;
+    
+    doc.roundedRect(qrX - 8, qrY - 8, 86, 106, 6).fill(COLORS.surface);
+    doc.image(qrBuffer, qrX, qrY, { width: 70, height: 70 });
+    doc.fillColor(COLORS.textMuted).fontSize(7).font("Helvetica");
+    doc.text("SCAN TO VERIFY", qrX - 5, qrY + 75, { width: 80, align: "center" });
+    doc.fillColor(COLORS.textDim).fontSize(6).font("Helvetica");
+    doc.text(reportId, qrX - 5, qrY + 86, { width: 80, align: "center" });
+
+    const stampX = margin + 50;
+    const stampY = pageHeight - 100;
     
     doc.save();
-    doc.circle(stampX, stampY, 32).lineWidth(2).stroke(COLORS.primary);
-    doc.circle(stampX, stampY, 27).lineWidth(1).stroke(COLORS.primary);
-    doc.circle(stampX, stampY, 24).lineWidth(0.5).stroke(COLORS.primary);
+    doc.circle(stampX, stampY, 38).lineWidth(2.5).stroke(COLORS.primary);
+    doc.circle(stampX, stampY, 32).lineWidth(1.5).stroke(COLORS.primary);
     
-    doc.fillColor(COLORS.primary).fontSize(4).font("Helvetica-Bold");
-    doc.text("DARKSHARE INTERNATIONAL", stampX - 22, stampY - 20, { width: 44, align: "center" });
+    doc.fillColor(COLORS.primary).fontSize(5).font("Helvetica-Bold");
+    doc.text("DARKSHARE", stampX - 25, stampY - 26, { width: 50, align: "center" });
+    doc.text("INTERNATIONAL", stampX - 25, stampY - 19, { width: 50, align: "center" });
     
-    doc.fillColor(COLORS.primary).fontSize(9).font("Helvetica-Bold");
-    doc.text("VERIFIED", stampX - 18, stampY - 4, { width: 36, align: "center" });
+    doc.fillColor(COLORS.primary).fontSize(12).font("Helvetica-Bold");
+    doc.text("VERIFIED", stampX - 25, stampY - 6, { width: 50, align: "center" });
     
-    doc.fillColor(COLORS.primary).fontSize(3).font("Helvetica");
-    doc.text("SECURITY ANALYSIS", stampX - 18, stampY + 6, { width: 36, align: "center" });
+    doc.fillColor(COLORS.primary).fontSize(6).font("Helvetica");
+    doc.text("SECURITY ANALYSIS", stampX - 30, stampY + 10, { width: 60, align: "center" });
     
     const certDate = data.timestamp.toLocaleDateString('en-GB');
-    doc.fillColor(COLORS.primary).fontSize(4).font("Helvetica-Bold");
-    doc.text(certDate, stampX - 15, stampY + 14, { width: 30, align: "center" });
-    
+    doc.fillColor(COLORS.primary).fontSize(6).font("Helvetica-Bold");
+    doc.text(certDate, stampX - 20, stampY + 22, { width: 40, align: "center" });
     doc.restore();
 
-    const footerY = pageHeight - 25;
-    doc.rect(0, footerY - 5, pageWidth, 30).fill(COLORS.background);
-
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
-    doc.text("CONFIDENTIAL - Unauthorized distribution prohibited.", margin, footerY);
-
-    doc.fillColor(COLORS.textMuted).fontSize(5).font("Helvetica");
-    doc.text(`Report #${reportId}`, margin, footerY + 8);
-
-    const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 12);
-    doc.text(`Hash: ${hash} | DARKSHARE v4.0 | © ${new Date().getFullYear()}`, pageWidth - margin - 120, footerY + 8, { width: 120, align: "right" });
+    const footerY = pageHeight - 35;
+    
+    doc.fillColor(COLORS.textDim).fontSize(7).font("Helvetica");
+    doc.text("CONFIDENTIAL - This report is intended for authorized recipients only.", margin, footerY);
+    
+    const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 16);
+    doc.text(`DARKSHARE v4.0  •  Hash: ${hash}  •  © ${new Date().getFullYear()}`, margin, footerY + 12);
 
     doc.end();
   });
@@ -247,16 +298,16 @@ export function generateDetailedPDF(data: ReportData): Promise<Buffer> {
 
 function getModuleLabel(moduleType: string): string {
   const labels: Record<string, string> = {
-    ip: "IP/GEO Analysis",
-    wallet: "Blockchain Scan",
+    ip: "IP Analysis",
+    wallet: "Blockchain",
     phone: "Phone Intel",
-    email: "Email Security",
+    email: "Email Check",
     domain: "Domain Intel",
-    url: "URL Risk Scan",
-    bot: "Bot Token Audit",
-    cve: "CVE/Vuln Scan",
-    iot: "IoT Fingerprint",
-    cloud: "Cloud Resources",
+    url: "URL Scan",
+    bot: "Bot Audit",
+    cve: "CVE Scan",
+    iot: "IoT Scan",
+    cloud: "Cloud Intel",
   };
   return labels[moduleType] || moduleType.toUpperCase();
 }
@@ -264,25 +315,25 @@ function getModuleLabel(moduleType: string): string {
 function getVerdict(level: string, score: number): { title: string; description: string } {
   if (level === "critical" || score >= 80) {
     return {
-      title: "HIGH RISK - Immediate Action Required",
-      description: "Multiple serious risk indicators detected. Do not proceed without verification.",
+      title: "CRITICAL RISK — Immediate Action Required",
+      description: "Serious risk indicators detected. Do not proceed without thorough verification and risk mitigation.",
     };
   }
   if (level === "high" || score >= 60) {
     return {
-      title: "ELEVATED RISK - Proceed with Caution",
-      description: "Concerning indicators found. Additional verification recommended.",
+      title: "HIGH RISK — Exercise Extreme Caution",
+      description: "Multiple concerning indicators found. Additional verification strongly recommended before proceeding.",
     };
   }
   if (level === "medium" || score >= 30) {
     return {
-      title: "MODERATE RISK - Standard Precautions",
-      description: "Minor risk indicators present. Apply standard due diligence.",
+      title: "MODERATE RISK — Apply Due Diligence",
+      description: "Some risk indicators present. Standard verification procedures should be followed.",
     };
   }
   return {
-    title: "LOW RISK - Generally Safe",
-    description: "No significant risk indicators. Standard verification recommended.",
+    title: "LOW RISK — Generally Safe",
+    description: "No significant risk indicators detected. Standard precautions recommended.",
   };
 }
 

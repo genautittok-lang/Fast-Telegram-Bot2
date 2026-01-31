@@ -820,6 +820,149 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     } catch {}
   }
   
+  // ==================== DATA BREACH CHECK ====================
+  let breachCheckSuccess = false;
+  
+  // API 1: XposedOrNot (free, no key required)
+  try {
+    const xposedResponse = await fetchWithTimeout(
+      `https://api.xposedornot.com/v1/check-email/${encodeURIComponent(value)}`,
+      6000
+    );
+    
+    if (xposedResponse.ok) {
+      const xposedData = await xposedResponse.json();
+      sources.push("xposedornot.com");
+      breachCheckSuccess = true;
+      
+      if (xposedData.breaches && xposedData.breaches.length > 0) {
+        const breachCount = xposedData.breaches.length;
+        emailData.breachCount = breachCount;
+        emailData.breaches = xposedData.breaches.slice(0, 10);
+        
+        // Increase risk based on breach count
+        if (breachCount >= 10) {
+          riskScore += 50;
+          findings.push(`🔴 КРИТИЧНО: ${breachCount} витоків даних!`);
+        } else if (breachCount >= 5) {
+          riskScore += 35;
+          findings.push(`🔴 Знайдено ${breachCount} витоків даних`);
+        } else if (breachCount >= 1) {
+          riskScore += 20;
+          findings.push(`⚠️ Знайдено ${breachCount} витік(ів) даних`);
+        }
+        
+        // Add breach names to findings
+        const breachNames = xposedData.breaches.slice(0, 5).map((b: any) => 
+          typeof b === 'string' ? b : (b.name || b.Name || b.domain || 'Unknown')
+        );
+        if (breachNames.length > 0) {
+          findings.push(`📋 Сервіси: ${breachNames.join(", ")}${breachCount > 5 ? "..." : ""}`);
+        }
+        
+        emailData.breachDetails = xposedData;
+      } else {
+        findings.push("✅ Витоків не знайдено (XposedOrNot)");
+        emailData.breachCount = 0;
+      }
+    } else if (xposedResponse.status === 404) {
+      // 404 means no breaches found
+      sources.push("xposedornot.com");
+      breachCheckSuccess = true;
+      findings.push("✅ Витоків не знайдено");
+      emailData.breachCount = 0;
+    }
+  } catch (error) {
+    // Will try fallback
+  }
+  
+  // API 2: Breachchecker (fallback if XposedOrNot failed)
+  if (!breachCheckSuccess) {
+    try {
+      const breachResponse = await fetchWithTimeout(
+        `https://breachcheck.azurewebsites.net/api/checkpwn/${encodeURIComponent(value)}`,
+        6000
+      );
+      
+      if (breachResponse.ok) {
+        const breachData = await breachResponse.json();
+        sources.push("breachcheck.azurewebsites.net");
+        breachCheckSuccess = true;
+        
+        if (breachData && Array.isArray(breachData) && breachData.length > 0) {
+          const breachCount = breachData.length;
+          emailData.breachCount = breachCount;
+          emailData.breaches = breachData.slice(0, 10).map((b: any) => ({
+            name: b.Name || b.name || 'Unknown',
+            date: b.BreachDate || b.breachDate || null,
+            domain: b.Domain || b.domain || null,
+          }));
+          
+          if (breachCount >= 10) {
+            riskScore += 50;
+            findings.push(`🔴 КРИТИЧНО: ${breachCount} витоків даних!`);
+          } else if (breachCount >= 5) {
+            riskScore += 35;
+            findings.push(`🔴 Знайдено ${breachCount} витоків даних`);
+          } else if (breachCount >= 1) {
+            riskScore += 20;
+            findings.push(`⚠️ Знайдено ${breachCount} витік(ів) даних`);
+          }
+          
+          const breachNames = emailData.breaches.slice(0, 5).map((b: any) => b.name);
+          if (breachNames.length > 0) {
+            findings.push(`📋 Сервіси: ${breachNames.join(", ")}${breachCount > 5 ? "..." : ""}`);
+          }
+          
+          const breachDates = emailData.breaches
+            .filter((b: any) => b.date)
+            .slice(0, 3)
+            .map((b: any) => `${b.name}: ${b.date}`);
+          if (breachDates.length > 0) {
+            findings.push(`📅 Дати: ${breachDates.join(", ")}`);
+          }
+        } else {
+          findings.push("✅ Витоків не знайдено");
+          emailData.breachCount = 0;
+        }
+      }
+    } catch (error) {
+      // Will use local fallback
+    }
+  }
+  
+  // Local fallback: check against known major breaches
+  if (!breachCheckSuccess) {
+    sources.push("Локальна база витоків");
+    
+    const knownBreachDomains: Record<string, { name: string; date: string; records: string }> = {
+      "linkedin.com": { name: "LinkedIn", date: "2021", records: "700M" },
+      "facebook.com": { name: "Facebook", date: "2019", records: "533M" },
+      "adobe.com": { name: "Adobe", date: "2013", records: "153M" },
+      "canva.com": { name: "Canva", date: "2019", records: "137M" },
+      "dropbox.com": { name: "Dropbox", date: "2012", records: "68M" },
+      "twitter.com": { name: "Twitter", date: "2022", records: "5.4M" },
+      "yahoo.com": { name: "Yahoo", date: "2016", records: "3B" },
+      "myspace.com": { name: "MySpace", date: "2016", records: "360M" },
+    };
+    
+    // Check if email domain matches known breached services
+    const emailDomainLower = domain.toLowerCase();
+    if (knownBreachDomains[emailDomainLower]) {
+      const breach = knownBreachDomains[emailDomainLower];
+      riskScore += 15;
+      findings.push(`⚠️ Домен мав витік: ${breach.name} (${breach.date}, ${breach.records} записів)`);
+      emailData.domainBreach = breach;
+    }
+    
+    // High-profile domain warning
+    const highProfileDomains = ["gmail.com", "outlook.com", "yahoo.com", "hotmail.com"];
+    if (highProfileDomains.includes(emailDomainLower)) {
+      findings.push("ℹ️ Популярний провайдер — рекомендуємо перевірити на haveibeenpwned.com");
+      emailData.recommendManualCheck = true;
+    }
+  }
+  
   const riskLevel = getRiskLevel(riskScore);
   
   return {
@@ -842,6 +985,181 @@ async function hashString(str: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-1', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ==================== SSL CERTIFICATE CHECK ====================
+interface SSLCertificateInfo {
+  valid: boolean;
+  issuedDate?: string;
+  expiryDate?: string;
+  issuer?: string;
+  daysUntilExpiry?: number;
+  isExpired?: boolean;
+  certificateCount?: number;
+  commonName?: string;
+  organizationName?: string;
+  subjectAltNames?: string[];
+  signatureAlgorithm?: string;
+}
+
+async function checkSSLCertificate(domain: string, sources: string[]): Promise<{ certificateInfo: SSLCertificateInfo; findings: string[] }> {
+  const findings: string[] = [];
+  const certificateInfo: SSLCertificateInfo = { valid: false };
+  
+  // Try SSL Labs API first
+  try {
+    const ssllabsResponse = await fetchWithTimeout(
+      `https://api.ssllabs.com/api/v3/analyze?host=${encodeURIComponent(domain)}&publish=off&all=done`,
+      10000
+    );
+    
+    if (ssllabsResponse.ok) {
+      const ssllabsData = await ssllabsResponse.json();
+      sources.push("ssllabs.com");
+      
+      if (ssllabsData.status === "READY" || ssllabsData.status === "ERROR") {
+        if (ssllabsData.certs && ssllabsData.certs.length > 0) {
+          const cert = ssllabsData.certs[0];
+          certificateInfo.valid = true;
+          certificateInfo.certificateCount = ssllabsData.certs.length;
+          
+          if (cert.notBefore) {
+            const issuedDate = new Date(cert.notBefore * 1000);
+            certificateInfo.issuedDate = issuedDate.toISOString().split('T')[0];
+            findings.push(`📅 Виданий: ${certificateInfo.issuedDate}`);
+          }
+          
+          if (cert.notAfter) {
+            const expiryDate = new Date(cert.notAfter * 1000);
+            certificateInfo.expiryDate = expiryDate.toISOString().split('T')[0];
+            const now = new Date();
+            const daysUntilExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            certificateInfo.daysUntilExpiry = daysUntilExpiry;
+            certificateInfo.isExpired = daysUntilExpiry < 0;
+            
+            if (daysUntilExpiry < 0) {
+              findings.push(`🔴 Сертифікат ЕКСПАЙРИВ: ${Math.abs(daysUntilExpiry)} днів тому`);
+            } else if (daysUntilExpiry < 30) {
+              findings.push(`⚠️ Сертифікат експайрує за ${daysUntilExpiry} днів`);
+            } else if (daysUntilExpiry < 90) {
+              findings.push(`⚠️ Сертифікат буде експайрувати за ${daysUntilExpiry} днів`);
+            } else {
+              findings.push(`✅ Експайрує через: ${daysUntilExpiry} днів`);
+            }
+          }
+          
+          if (cert.issuerLabel) {
+            certificateInfo.issuer = cert.issuerLabel;
+            findings.push(`🏢 Видавець: ${cert.issuerLabel}`);
+          }
+          
+          if (cert.commonNames && cert.commonNames.length > 0) {
+            certificateInfo.commonName = cert.commonNames[0];
+          }
+          
+          if (cert.orgName) {
+            certificateInfo.organizationName = cert.orgName;
+            findings.push(`🏛️ Організація: ${cert.orgName}`);
+          }
+          
+          if (cert.altNames && cert.altNames.length > 0) {
+            certificateInfo.subjectAltNames = cert.altNames.slice(0, 5);
+            findings.push(`🔗 SANs: ${cert.altNames.slice(0, 3).join(", ")}${cert.altNames.length > 3 ? "..." : ""}`);
+          }
+          
+          if (cert.sigAlg) {
+            certificateInfo.signatureAlgorithm = cert.sigAlg;
+          }
+          
+          return { certificateInfo, findings };
+        } else if (ssllabsData.status === "ERROR") {
+          findings.push(`⚠️ SSL Labs: ${ssllabsData.statusMessage || "Помилка аналізу"}`);
+        }
+      }
+    }
+  } catch (error) {
+    // Fall through to crt.sh
+  }
+  
+  // Fallback to crt.sh API (free, no rate limits)
+  try {
+    const crtshResponse = await fetchWithTimeout(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`, 5000);
+    
+    if (crtshResponse.ok) {
+      const crtshData = await crtshResponse.json();
+      sources.push("crt.sh");
+      
+      if (Array.isArray(crtshData) && crtshData.length > 0) {
+        certificateInfo.valid = true;
+        certificateInfo.certificateCount = crtshData.length;
+        
+        // Get the most recent certificate
+        const sortedCerts = crtshData.sort((a: any, b: any) => {
+          const dateA = new Date(a.not_before || 0).getTime();
+          const dateB = new Date(b.not_before || 0).getTime();
+          return dateB - dateA;
+        });
+        
+        const mostRecentCert = sortedCerts[0];
+        
+        if (mostRecentCert.not_before) {
+          const issuedDate = new Date(mostRecentCert.not_before);
+          certificateInfo.issuedDate = issuedDate.toISOString().split('T')[0];
+          findings.push(`📅 Виданий: ${certificateInfo.issuedDate}`);
+        }
+        
+        if (mostRecentCert.not_after) {
+          const expiryDate = new Date(mostRecentCert.not_after);
+          certificateInfo.expiryDate = expiryDate.toISOString().split('T')[0];
+          const now = new Date();
+          const daysUntilExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          certificateInfo.daysUntilExpiry = daysUntilExpiry;
+          certificateInfo.isExpired = daysUntilExpiry < 0;
+          
+          if (daysUntilExpiry < 0) {
+            findings.push(`🔴 Сертифікат ЕКСПАЙРИВ: ${Math.abs(daysUntilExpiry)} днів тому`);
+          } else if (daysUntilExpiry < 30) {
+            findings.push(`⚠️ Сертифікат експайрує за ${daysUntilExpiry} днів`);
+          } else if (daysUntilExpiry < 90) {
+            findings.push(`⚠️ Сертифікат буде експайрувати за ${daysUntilExpiry} днів`);
+          } else {
+            findings.push(`✅ Експайрує через: ${daysUntilExpiry} днів`);
+          }
+        }
+        
+        if (mostRecentCert.issuer_name) {
+          certificateInfo.issuer = mostRecentCert.issuer_name;
+          findings.push(`🏢 Видавець: ${mostRecentCert.issuer_name}`);
+        } else if (mostRecentCert.issuer_ca_id) {
+          findings.push(`🔐 CA ID: ${mostRecentCert.issuer_ca_id}`);
+        }
+        
+        if (mostRecentCert.common_name) {
+          certificateInfo.commonName = mostRecentCert.common_name;
+        }
+        
+        if (mostRecentCert.name_value) {
+          const names = mostRecentCert.name_value.split('\n').filter((n: string) => n.trim());
+          if (names.length > 0) {
+            certificateInfo.subjectAltNames = names.slice(0, 5);
+            findings.push(`🔗 Домени: ${names.slice(0, 3).join(", ")}${names.length > 3 ? "..." : ""}`);
+          }
+        }
+        
+        findings.push(`📊 Сертифікатів знайдено: ${crtshData.length}`);
+        
+        return { certificateInfo, findings };
+      }
+    }
+  } catch (error) {
+    findings.push("⚠️ Не вдалося отримати SSL інформацію");
+  }
+  
+  if (!certificateInfo.valid) {
+    findings.push("🔴 Не знайдено дійсних SSL сертифікатів");
+  }
+  
+  return { certificateInfo, findings };
 }
 
 // ==================== DOMAIN CHECK ====================
@@ -1004,23 +1322,31 @@ async function checkDomain(value: string, timestamp: Date): Promise<CheckResult>
     }
   } catch {}
   
-  // API: SSL Certificate check via crt.sh
+  // API: SSL Certificate check (SSL Labs + crt.sh fallback)
   try {
-    const response = await fetchWithTimeout(`https://crt.sh/?q=${domain}&output=json`, 4000);
-    if (response.ok) {
-      const data = await response.json();
-      sources.push("crt.sh");
+    const { certificateInfo, findings: sslFindings } = await checkSSLCertificate(domain, sources);
+    
+    if (certificateInfo.valid) {
+      domainData.sslCertificate = certificateInfo;
       
-      if (Array.isArray(data) && data.length > 0) {
-        domainData.sslCertificates = data.length;
-        findings.push(`🔐 SSL сертифікатів: ${data.length}`);
-        
-        // Check for recent certificate
-        const recentCert = data[0];
-        if (recentCert.not_before) {
-          domainData.latestCert = recentCert.not_before;
-        }
+      if (certificateInfo.isExpired) {
+        riskScore += 40;
+      } else if (certificateInfo.daysUntilExpiry && certificateInfo.daysUntilExpiry < 30) {
+        riskScore += 20;
+      } else if (certificateInfo.daysUntilExpiry && certificateInfo.daysUntilExpiry < 90) {
+        riskScore += 10;
+      } else {
+        findings.push("✅ SSL сертифікат валідний");
       }
+      
+      findings.push(...sslFindings);
+    } else {
+      // Check if domain has A record (not HTTPS)
+      if (domainData.hasARecord && !domainData.hasARecord) {
+        riskScore += 15;
+        findings.push("⚠️ Без HTTPS");
+      }
+      findings.push(...sslFindings);
     }
   } catch {}
   
@@ -1137,6 +1463,37 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
     if (domainResult.riskScore > 30) {
       riskScore += Math.floor(domainResult.riskScore / 3);
       findings.push(`📍 Домен: ${domainResult.riskLevel.toUpperCase()}`);
+    }
+    
+    // SSL/TLS verification for HTTPS URLs
+    if (urlObj.protocol === "https:") {
+      try {
+        const { certificateInfo, findings: sslFindings } = await checkSSLCertificate(urlObj.hostname, sources);
+        
+        if (certificateInfo.valid) {
+          urlData.sslCertificate = certificateInfo;
+          
+          if (certificateInfo.isExpired) {
+            riskScore += 35;
+            findings.push("🔴 SSL сертифікат ЕКСПАЙРИВ!");
+          } else if (certificateInfo.daysUntilExpiry && certificateInfo.daysUntilExpiry < 30) {
+            riskScore += 15;
+            findings.push(`⚠️ SSL вважатиме експайреним за ${certificateInfo.daysUntilExpiry} днів`);
+          } else if (certificateInfo.daysUntilExpiry && certificateInfo.daysUntilExpiry < 90) {
+            findings.push(`ℹ️ SSL експайрує за ${certificateInfo.daysUntilExpiry} днів`);
+          } else {
+            findings.push("✅ SSL сертифікат валідний");
+          }
+          
+          findings.push(...sslFindings);
+        } else {
+          riskScore += 25;
+          findings.push("🔴 HTTPS заявлено, але сертифікат не знайдено!");
+          findings.push(...sslFindings);
+        }
+      } catch (error) {
+        findings.push("⚠️ Не вдалося перевірити SSL сертифікат");
+      }
     }
     
     urlData.urlLength = value.length;

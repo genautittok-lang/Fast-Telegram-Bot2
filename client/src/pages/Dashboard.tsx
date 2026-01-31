@@ -217,6 +217,60 @@ const checkTypes = [
       { name: "Capabilities", icon: Sparkles, desc: "Inline, WebApp, бізнес" },
     ]
   },
+  { 
+    id: "cve", 
+    label: "CVE Scan", 
+    icon: Bug, 
+    placeholder: "CVE-2024-1234", 
+    description: "Перевірка CVE вразливостей через NVD NIST API: CVSS скоринг, опис, рекомендації, CISA KEV каталог",
+    shortDescription: "Вразливості, CVSS, рекомендації",
+    gradient: "from-rose-500/20 via-red-500/10 to-transparent",
+    iconColor: "text-rose-400",
+    borderColor: "border-rose-500/30 hover:border-rose-400/50",
+    glowColor: "shadow-rose-500/20",
+    services: [
+      { name: "NVD Lookup", icon: Database, desc: "Пошук в базі NVD NIST" },
+      { name: "CVSS Score", icon: AlertCircle, desc: "Оцінка критичності" },
+      { name: "CISA KEV", icon: ShieldAlert, desc: "Каталог активних вразливостей" },
+      { name: "Recommendations", icon: FileText, desc: "Рекомендації щодо виправлення" },
+    ]
+  },
+  { 
+    id: "hash", 
+    label: "Hash Check", 
+    icon: Hash, 
+    placeholder: "d41d8cd98f00b204e9800998ecf8427e", 
+    description: "Перевірка MD5/SHA1/SHA256 хешів файлів на malware через MalwareBazaar, URLhaus, VirusTotal",
+    shortDescription: "Malware, сигнатури, репутація",
+    gradient: "from-slate-500/20 via-zinc-500/10 to-transparent",
+    iconColor: "text-slate-400",
+    borderColor: "border-slate-500/30 hover:border-slate-400/50",
+    glowColor: "shadow-slate-500/20",
+    services: [
+      { name: "MalwareBazaar", icon: Bug, desc: "База шкідливих файлів" },
+      { name: "URLhaus", icon: Link2, desc: "Перевірка URL-асоціацій" },
+      { name: "VirusTotal", icon: Shield, desc: "Мультисканер антивірусів" },
+      { name: "Signature Match", icon: FileCheck, desc: "Пошук відомих сигнатур" },
+    ]
+  },
+  { 
+    id: "username", 
+    label: "Username OSINT", 
+    icon: User, 
+    placeholder: "johndoe", 
+    description: "OSINT пошук по username на різних платформах: GitHub, соціальні мережі, форуми",
+    shortDescription: "Профілі, соцмережі, витоки",
+    gradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
+    iconColor: "text-amber-400",
+    borderColor: "border-amber-500/30 hover:border-amber-400/50",
+    glowColor: "shadow-amber-500/20",
+    services: [
+      { name: "GitHub Profile", icon: Users, desc: "Профіль та репозиторії" },
+      { name: "Social Media", icon: Globe, desc: "Соціальні мережі" },
+      { name: "Forums", icon: MessageSquare, desc: "Форуми та спільноти" },
+      { name: "Data Breaches", icon: Lock, desc: "Перевірка витоків даних" },
+    ]
+  },
 ];
 
 const navItems = [

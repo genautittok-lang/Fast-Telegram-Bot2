@@ -27,6 +27,7 @@ export const reports = pgTable("ds_reports", {
   objectType: text("object_type").notNull(),
   dataJson: jsonb("data_json"),
   pdfPath: text("pdf_path"),
+  verificationId: text("verification_id"),
   generatedAt: timestamp("generated_at").defaultNow(),
 });
 

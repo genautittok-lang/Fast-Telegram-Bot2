@@ -348,7 +348,15 @@ ${findingsText}
       await storage.createReport({
         userId: user.id,
         objectType: state.module,
-        dataJson: checkResult,
+        dataJson: {
+          target: checkResult.target,
+          riskScore: checkResult.riskScore,
+          riskLevel: checkResult.riskLevel,
+          findings: checkResult.findings,
+          details: checkResult.details,
+          sources: checkResult.sources,
+          summary: checkResult.summary,
+        },
       });
     }
 

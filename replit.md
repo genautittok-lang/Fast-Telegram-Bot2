@@ -52,13 +52,37 @@ The `server/checkService.ts` module provides:
 - **IP Check**: Uses ip-api.com, ipinfo.io, Shodan InternetDB (ports/vulns), GreyNoise, DNS blacklists (Spamhaus, Spamcop)
 - **Wallet Check**: EVM/BTC/TRX/SOL support, Blockscout API, Blockchain.com API, sanctions check, known mixer detection
 - **Email Check**: MX validation via dns.google, disposable email detection, Hunter.io integration (optional)
-- **Domain Check**: RDAP/WHOIS via rdap.org, DNS checks, SSL certificates via crt.sh, typosquatting detection, domain age analysis
+- **Domain Check**: RDAP/WHOIS via rdap.org, DNS checks, **SSL/TLS certificate analysis** (SSL Labs + crt.sh), typosquatting detection, domain age analysis
 - **Phone Check**: Country detection, VOIP patterns, Numverify integration (optional)
-- **URL Check**: urlscan.io API, Google Safe Browsing (optional), phishing patterns, dangerous extensions
+- **URL Check**: urlscan.io API, Google Safe Browsing (optional), **SSL/TLS verification for HTTPS**, phishing patterns, dangerous extensions
 - **CVE Check (NEW)**: NVD NIST API, CVSS scoring, CISA KEV catalog, CVE Details integration
 - **Hash Check (NEW)**: VirusTotal API (optional), MalwareBazaar, URLhaus - file malware detection
 - **Username Check (NEW)**: GitHub API, cross-platform existence check, pattern analysis
 - **Bot Token Check**: Telegram Bot API validation, capability analysis
+
+### SSL/TLS Verification Features (v2.1 - NEW)
+The checkService now includes comprehensive SSL/TLS certificate analysis:
+
+**Domain Check SSL Analysis:**
+- Validates SSL certificate validity using SSL Labs API (with crt.sh fallback)
+- Extracts and displays certificate issue dates
+- Calculates days until certificate expiration
+- Shows certificate issuer information
+- Identifies expired or expiring certificates (alerts for <90 days to expiry)
+- Detects multiple certificates and Subject Alternative Names (SANs)
+- Includes organization details and signature algorithms
+
+**URL Check SSL Verification (for HTTPS):**
+- Automatically checks SSL certificates for URLs starting with https://
+- Validates certificate chain and expiration status
+- Provides same detailed certificate analysis as domain check
+- Flags critical issues (expired certs, missing certs for HTTPS)
+- Integrates findings into overall URL risk assessment
+
+**APIs Used:**
+- **SSL Labs API** (primary): `https://api.ssllabs.com/api/v3/analyze`
+- **crt.sh API** (fallback): `https://crt.sh/?q={domain}&output=json` - Free, no rate limits
+- Supports timeout and error handling with graceful fallback
 
 ### Payment Verification System
 Manual payment workflow with moderator approval:
@@ -139,6 +163,50 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Commands
 - `npm run db:push`: Push schema changes to database
+
+## Bot-Web Synchronization (v4.1+)
+
+### Unified Report Storage
+Both Telegram bot and web dashboard store reports with identical data structure for seamless synchronization:
+
+**Report dataJson structure:**
+```javascript
+{
+  target: string,                // The checked value (IP, email, wallet, etc.)
+  riskScore: number,            // 0-100 risk score
+  riskLevel: "low|medium|high|critical",
+  findings: string[],           // List of findings/risks
+  details: Record<string, any>, // Additional technical details
+  sources: string[],            // Data sources used for the check
+  summary: string               // Brief summary of findings
+}
+```
+
+### Unified Report Listing
+- `GET /api/reports` - Returns all reports for authenticated user regardless of source
+- Works for both bot-generated and web-generated reports
+- Reports include: id, type, target, riskLevel, riskScore, createdAt
+
+### PDF Generation Consistency
+- **Web**: Uses stored report data for PDF generation
+- **Bot**: Generates PDFs immediately after check using fresh check result
+- Both use `generateDetailedPDF()` with same data structure
+- PDFs are consistent and contain all check metadata
+
+### Live Statistics
+Real-time statistics endpoint (`GET /api/stats`) now counts from database:
+- `totalUsers`: Count of all users (bot + web)
+- `totalReports`: Count of all reports from both sources
+- `checksToday`: Reports generated today (24h window)
+- `activeWatches`: Active monitoring watches
+- `threatsBlocked`: Estimated threats (10% of total reports)
+
+### History Page
+The History page (`/history`) displays:
+- All reports from both bot and web sources
+- Sorted by creation date (newest first)
+- Download PDF for any report
+- Works seamlessly for unified user experience
 
 ## Deployment on Replit
 

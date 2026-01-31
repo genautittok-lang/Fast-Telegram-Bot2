@@ -8,6 +8,11 @@ import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGe
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
+import { randomUUID } from "crypto";
+
+function generateVerificationId(): string {
+  return `DS-${randomUUID().split('-').slice(0, 2).join('').toUpperCase()}`;
+}
 
 // Server start time for uptime calculation
 const serverStartTime = Date.now();
@@ -47,14 +52,27 @@ export async function registerRoutes(
   // API Routes for the landing page
   app.get(api.stats.get.path, async (req, res) => {
     const uptime = Math.floor((Date.now() - serverStartTime) / 1000);
-    res.json({
-      totalUsers: 14582,
-      activeWatches: 3841,
-      totalReports: 124509,
-      checksToday: 842,
-      threatsBlocked: 12459,
-      uptime: Math.min(99.9, 99 + Math.random()),
-    });
+    try {
+      const stats = await storage.getStats();
+      res.json({
+        totalUsers: stats.totalUsers,
+        activeWatches: stats.activeWatches,
+        totalReports: stats.totalReports || 0,
+        checksToday: stats.checksToday || 0,
+        threatsBlocked: stats.threatsBlocked || 0,
+        uptime: Math.min(99.9, 99 + Math.random()),
+      });
+    } catch (err) {
+      // Fallback to dummy data if database query fails
+      res.json({
+        totalUsers: 0,
+        activeWatches: 0,
+        totalReports: 0,
+        checksToday: 0,
+        threatsBlocked: 0,
+        uptime: Math.min(99.9, 99 + Math.random()),
+      });
+    }
   });
   
   app.get(api.users.get.path, async (req, res) => {
@@ -228,16 +246,22 @@ export async function registerRoutes(
       // Add to activity feed
       addActivity(type, value, result.riskLevel);
 
+      // Generate unique verificationId for QR code verification
+      const verificationId = generateVerificationId();
+
       // Store report using authenticated user
       await storage.createReport({
         userId: req.user!.id,
         objectType: type,
-        dataJson: { 
-          target: value, 
-          riskScore: result.riskScore, 
+        verificationId,
+        dataJson: {
+          target: value,
+          riskScore: result.riskScore,
           riskLevel: result.riskLevel,
           findings: result.findings,
           details: result.details,
+          sources: result.sources,
+          summary: result.summary,
         },
       });
 
@@ -284,6 +308,9 @@ export async function registerRoutes(
     const riskScore = data.riskScore || 50;
 
     try {
+      // Use existing verificationId or generate new one if missing
+      const verificationId = report.verificationId || generateVerificationId();
+      
       const pdfBuffer = await generateDetailedPDF({
         moduleType: report.objectType || 'unknown',
         targetValue: data.target || 'unknown',
@@ -292,8 +319,9 @@ export async function registerRoutes(
         timestamp: report.generatedAt || new Date(),
         userId: req.user!.username || 'user',
         findings: data.findings || generateFindings(report.objectType || 'unknown', riskLevel),
-        sources: ["DARKSHARE Intel"],
+        sources: data.sources || ["DARKSHARE Intel"],
         metadata: generateMetadata(report.objectType || 'unknown'),
+        verificationId,
       });
 
       res.setHeader('Content-Type', 'application/pdf');
@@ -301,6 +329,38 @@ export async function registerRoutes(
       res.send(pdfBuffer);
     } catch (err) {
       res.status(500).json({ error: "Failed to generate PDF" });
+    }
+  });
+
+  // Public verification endpoint (no auth required)
+  app.get("/api/verify/:verificationId", async (req, res) => {
+    const { verificationId } = req.params;
+    
+    if (!verificationId) {
+      return res.status(400).json({ error: "Verification ID is required" });
+    }
+
+    try {
+      const report = await storage.getReportByVerificationId(verificationId);
+      
+      if (!report) {
+        return res.status(404).json({ error: "Report not found", valid: false });
+      }
+
+      const data = report.dataJson as any || {};
+      
+      res.json({
+        valid: true,
+        verificationId: report.verificationId,
+        type: report.objectType,
+        target: data.target || 'unknown',
+        riskLevel: data.riskLevel || 'unknown',
+        riskScore: data.riskScore || 0,
+        summary: data.summary || null,
+        generatedAt: report.generatedAt?.toISOString() || new Date().toISOString(),
+      });
+    } catch (err) {
+      res.status(500).json({ error: "Verification failed" });
     }
   });
 
