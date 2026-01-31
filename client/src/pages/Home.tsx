@@ -322,111 +322,108 @@ export default function Home() {
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[320px] bg-background/98 backdrop-blur-xl border-l border-white/10 p-0">
+              <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl bg-background border-t border-white/10 p-0">
                 <div className="flex flex-col h-full">
-                  <div className="p-5 border-b border-white/10 bg-gradient-to-br from-primary/10 to-transparent">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-primary/40 shadow-[0_0_30px_rgba(var(--primary),0.4)]">
+                  <div className="flex justify-center py-3">
+                    <div className="w-12 h-1.5 rounded-full bg-white/20" />
+                  </div>
+                  
+                  <div className="px-6 pb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-primary/40 shadow-[0_0_20px_rgba(var(--primary),0.3)]">
                         <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
                       </div>
                       <div>
-                        <span className="font-display font-bold text-xl text-white">DARKSHARE</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-primary font-mono bg-primary/10 px-2 py-0.5 rounded">v4.0</span>
+                        <span className="font-display font-bold text-lg text-white">DARKSHARE</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded">v4.0</span>
                           <StatusBadge status="online" />
                         </div>
                       </div>
                     </div>
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full bg-white/5">
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </SheetClose>
                   </div>
                   
-                  <div className="p-4 border-b border-white/10">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="px-6 py-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <SheetClose asChild>
                         <Link href="/login">
-                          <Button className="w-full h-20 flex-col gap-2" data-testid="link-mobile-dashboard">
-                            <Shield className="w-6 h-6" />
-                            <span className="text-xs">{lang === "UA" ? "Панель" : lang === "RU" ? "Панель" : "Dashboard"}</span>
-                          </Button>
+                          <div className="bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 rounded-2xl p-5 flex flex-col items-center gap-3 active:scale-95 transition-transform" data-testid="link-mobile-dashboard">
+                            <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center">
+                              <Shield className="w-7 h-7 text-primary" />
+                            </div>
+                            <div className="text-center">
+                              <p className="font-semibold text-white text-sm">{lang === "UA" ? "Панель" : lang === "RU" ? "Панель" : "Dashboard"}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{lang === "UA" ? "Веб версія" : lang === "RU" ? "Веб версия" : "Web version"}</p>
+                            </div>
+                          </div>
                         </Link>
                       </SheetClose>
                       <SheetClose asChild>
                         <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" className="w-full h-20 flex-col gap-2 border-[#2AABEE]/30 hover:border-[#2AABEE]/50 hover:bg-[#2AABEE]/10" data-testid="link-mobile-bot">
-                            <SiTelegram className="w-6 h-6 text-[#2AABEE]" />
-                            <span className="text-xs">Telegram</span>
-                          </Button>
+                          <div className="bg-gradient-to-br from-[#2AABEE]/20 to-[#2AABEE]/5 border border-[#2AABEE]/30 rounded-2xl p-5 flex flex-col items-center gap-3 active:scale-95 transition-transform" data-testid="link-mobile-bot">
+                            <div className="w-14 h-14 rounded-2xl bg-[#2AABEE]/20 flex items-center justify-center">
+                              <SiTelegram className="w-7 h-7 text-[#2AABEE]" />
+                            </div>
+                            <div className="text-center">
+                              <p className="font-semibold text-white text-sm">Telegram</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{lang === "UA" ? "Бот перевірок" : lang === "RU" ? "Бот проверок" : "Check bot"}</p>
+                            </div>
+                          </div>
                         </a>
                       </SheetClose>
                     </div>
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto p-4">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-4 font-semibold">
-                      {lang === "UA" ? "Можливості платформи" : lang === "RU" ? "Возможности платформы" : "Platform features"}
+                  <div className="flex-1 overflow-y-auto px-6">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3 font-semibold">
+                      {lang === "UA" ? "Що вміє платформа" : lang === "RU" ? "Что умеет платформа" : "What can platform do"}
                     </p>
                     
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Globe className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{lang === "UA" ? "10 модулів" : lang === "RU" ? "10 модулей" : "10 modules"}</p>
-                          <p className="text-[11px] text-muted-foreground">{lang === "UA" ? "IP, Email, Wallet..." : lang === "RU" ? "IP, Email, Wallet..." : "IP, Email, Wallet..."}</p>
-                        </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <Globe className="w-5 h-5 text-primary mb-2" />
+                        <p className="text-xs font-medium text-white">{lang === "UA" ? "10 модулів" : lang === "RU" ? "10 модулей" : "10 modules"}</p>
+                        <p className="text-[10px] text-muted-foreground">IP, Email, Wallet</p>
                       </div>
-                      
-                      <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{lang === "UA" ? "PDF звіти" : lang === "RU" ? "PDF отчеты" : "PDF reports"}</p>
-                          <p className="text-[11px] text-muted-foreground">{lang === "UA" ? "QR верифікація" : lang === "RU" ? "QR верификация" : "QR verification"}</p>
-                        </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <FileText className="w-5 h-5 text-primary mb-2" />
+                        <p className="text-xs font-medium text-white">{lang === "UA" ? "PDF звіти" : lang === "RU" ? "PDF отчеты" : "PDF reports"}</p>
+                        <p className="text-[10px] text-muted-foreground">QR code</p>
                       </div>
-                      
-                      <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Eye className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{lang === "UA" ? "Моніторинг" : lang === "RU" ? "Мониторинг" : "Monitoring"}</p>
-                          <p className="text-[11px] text-muted-foreground">24/7</p>
-                        </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <Eye className="w-5 h-5 text-primary mb-2" />
+                        <p className="text-xs font-medium text-white">{lang === "UA" ? "Моніторинг" : lang === "RU" ? "Мониторинг" : "Monitoring"}</p>
+                        <p className="text-[10px] text-muted-foreground">24/7</p>
                       </div>
-                      
-                      <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Gift className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{lang === "UA" ? "Реферали" : lang === "RU" ? "Рефералы" : "Referrals"}</p>
-                          <p className="text-[11px] text-muted-foreground">{lang === "UA" ? "Бонуси за друзів" : lang === "RU" ? "Бонусы за друзей" : "Bonuses for friends"}</p>
-                        </div>
+                      <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+                        <Gift className="w-5 h-5 text-primary mb-2" />
+                        <p className="text-xs font-medium text-white">{lang === "UA" ? "Реферали" : lang === "RU" ? "Рефералы" : "Referrals"}</p>
+                        <p className="text-[10px] text-muted-foreground">{lang === "UA" ? "Бонуси" : lang === "RU" ? "Бонусы" : "Bonuses"}</p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="p-4 border-t border-white/10 bg-gradient-to-t from-primary/10 to-transparent">
-                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-500/20 mb-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                          <Star className="w-4 h-4 text-yellow-500" />
+                  <div className="px-6 py-5 border-t border-white/10 bg-gradient-to-t from-primary/5 to-transparent">
+                    <div className="flex items-center justify-between mb-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-xl p-3 border border-yellow-500/20">
+                      <div className="flex items-center gap-3">
+                        <Star className="w-6 h-6 text-yellow-500" />
+                        <div>
+                          <p className="text-sm font-bold text-white">{lang === "UA" ? "15 перевірок" : lang === "RU" ? "15 проверок" : "15 checks"}</p>
+                          <p className="text-[10px] text-muted-foreground">{lang === "UA" ? "безкоштовно" : lang === "RU" ? "бесплатно" : "free"}</p>
                         </div>
-                        <span className="font-bold text-white">
-                          {lang === "UA" ? "15 перевірок" : lang === "RU" ? "15 проверок" : "15 checks"}
-                        </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {lang === "UA" ? "Безкоштовно кожен день!" : lang === "RU" ? "Бесплатно каждый день!" : "Free every day!"}
-                      </p>
+                      <Zap className="w-5 h-5 text-yellow-500" />
                     </div>
                     <SheetClose asChild>
                       <Link href="/login">
-                        <Button className="w-full h-12 gap-2 text-base font-semibold" data-testid="button-mobile-start">
-                          <Zap className="w-5 h-5" />
-                          {lang === "UA" ? "Почати зараз" : lang === "RU" ? "Начать сейчас" : "Start now"}
+                        <Button className="w-full h-14 gap-2 text-base font-bold rounded-xl" data-testid="button-mobile-start">
+                          <Shield className="w-5 h-5" />
+                          {lang === "UA" ? "Почати перевірку" : lang === "RU" ? "Начать проверку" : "Start checking"}
                         </Button>
                       </Link>
                     </SheetClose>
