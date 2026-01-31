@@ -6,7 +6,7 @@ import { t, Language, languageNames } from "./i18n";
 
 interface BotContext extends Context {}
 
-export const ADMIN_IDS = ["7820995179"];
+export const ADMIN_IDS = (process.env.ADMIN_IDS || "7820995179").split(",").map(id => id.trim());
 
 export let botInstance: Telegraf<BotContext> | null = null;
 
