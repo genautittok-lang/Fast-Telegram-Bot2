@@ -37,24 +37,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated) {
-          if (data.provider === "google") {
-            setUser({
-              email: data.user.email,
-              firstName: data.user.firstName,
-              profileImageUrl: data.user.profileImageUrl,
-              provider: "google",
-              tier: "FREE",
-              requestsLeft: 15,
-            });
-          } else if (data.provider === "telegram") {
-            setUser({
-              id: data.userId,
-              tgId: data.tgId,
-              provider: "telegram",
-            });
-          } else {
-            setUser(data);
-          }
+          setUser({
+            id: data.userId,
+            tgId: data.tgId,
+            provider: "telegram",
+          });
         } else {
           setUser(null);
         }
