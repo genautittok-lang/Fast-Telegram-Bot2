@@ -30,7 +30,8 @@ import {
   Scan,
   Server,
   ExternalLink,
-  Send
+  Send,
+  ChevronDown
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -38,6 +39,12 @@ import { useActivity, useLeaderboard } from "@/hooks/use-activity";
 import { TerminalText } from "@/components/TerminalText";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { translations } from "@/lib/i18n";
 
@@ -253,18 +260,48 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-            <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
-              {(["UA", "RU", "EN"] as const).map((l) => (
-                <button
-                  key={l}
-                  onClick={() => toggleLang(l)}
-                  className={`px-2 py-1 text-[10px] font-bold rounded transition-all ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                  data-testid={`button-lang-${l}`}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="bg-white/5 border border-white/10 hover:bg-white/10 px-2 sm:px-3 gap-1 sm:gap-2"
+                  data-testid="button-lang-dropdown"
                 >
-                  {l}
-                </button>
-              ))}
-            </div>
+                  <span className="text-base sm:text-lg">
+                    {lang === "UA" ? "🇺🇦" : lang === "RU" ? "🇷🇺" : "🇬🇧"}
+                  </span>
+                  <span className="text-xs font-bold hidden sm:inline">{lang}</span>
+                  <ChevronDown className="w-3 h-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[140px]">
+                <DropdownMenuItem 
+                  onClick={() => toggleLang("UA")}
+                  className="gap-3 cursor-pointer"
+                  data-testid="button-lang-UA"
+                >
+                  <span className="text-lg">🇺🇦</span>
+                  <span className="font-medium">Українська</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => toggleLang("RU")}
+                  className="gap-3 cursor-pointer"
+                  data-testid="button-lang-RU"
+                >
+                  <span className="text-lg">🇷🇺</span>
+                  <span className="font-medium">Русский</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => toggleLang("EN")}
+                  className="gap-3 cursor-pointer"
+                  data-testid="button-lang-EN"
+                >
+                  <span className="text-lg">🇬🇧</span>
+                  <span className="font-medium">English</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <StatusBadge status="online" />
           </div>
         </div>
