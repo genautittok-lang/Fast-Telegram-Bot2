@@ -222,6 +222,32 @@ export async function registerRoutes(
     });
   });
 
+  // Referrals endpoint (requires auth)
+  app.get("/api/referrals", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const referralData = await storage.getReferralStats(user.id);
+      
+      res.json({
+        referralCode: user.refCode || `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        referralCount: referralData.count,
+        totalEarned: referralData.count * 3,
+        pendingBonus: referralData.pendingCount * 3,
+        referredUsers: referralData.referredUsers.map(r => ({
+          id: r.id,
+          username: r.username || "user",
+          tier: r.tier || "FREE",
+          joinedAt: r.createdAt?.toISOString() || new Date().toISOString(),
+          paid: r.paid,
+        })),
+      });
+    } catch (err: any) {
+      console.error("Error fetching referral stats:", err);
+      res.status(500).json({ error: "Failed to fetch referral stats" });
+    }
+  });
+
   // Web check endpoint (requires auth)
   app.post(api.check.perform.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;

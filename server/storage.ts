@@ -2,6 +2,18 @@ import { users, reports, watches, payments, referrals, type User, type InsertUse
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
 
+export interface ReferralStats {
+  count: number;
+  pendingCount: number;
+  referredUsers: Array<{
+    id: number;
+    username: string | null;
+    tier: string | null;
+    createdAt: Date | null;
+    paid: boolean;
+  }>;
+}
+
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
@@ -27,6 +39,9 @@ export interface IStorage {
   getPaymentById(id: number): Promise<Payment | undefined>;
   getPendingPayments(): Promise<Payment[]>;
   updatePaymentStatus(id: number, status: string): Promise<Payment>;
+  
+  // Referrals
+  getReferralStats(userId: number): Promise<ReferralStats>;
   
   // Stats
   getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }>;
@@ -193,6 +208,43 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     const [payment] = await db.update(payments).set({ status }).where(eq(payments.id, id)).returning();
     return payment;
+  }
+
+  async getReferralStats(userId: number): Promise<ReferralStats> {
+    if (!db) throw new Error("Database not available");
+    try {
+      const referralRecords = await db.select().from(referrals).where(eq(referrals.referrerId, userId));
+      
+      const referredUsers: ReferralStats["referredUsers"] = [];
+      let pendingCount = 0;
+      
+      for (const ref of referralRecords) {
+        if (ref.referredId) {
+          const [refUser] = await db.select().from(users).where(eq(users.id, ref.referredId));
+          if (refUser) {
+            referredUsers.push({
+              id: refUser.id,
+              username: refUser.username,
+              tier: refUser.tier,
+              createdAt: refUser.createdAt,
+              paid: ref.paid ?? false,
+            });
+            if (!ref.paid) {
+              pendingCount++;
+            }
+          }
+        }
+      }
+      
+      return {
+        count: referralRecords.length,
+        pendingCount,
+        referredUsers,
+      };
+    } catch (err) {
+      console.warn("Error fetching referral stats:", (err as Error).message);
+      return { count: 0, pendingCount: 0, referredUsers: [] };
+    }
   }
 }
 
@@ -388,6 +440,10 @@ export class MemStorage implements IStorage {
       u.tgId.includes(query) || 
       (u.username && u.username.toLowerCase().includes(lowercaseQuery))
     );
+  }
+
+  async getReferralStats(userId: number): Promise<ReferralStats> {
+    return { count: 0, pendingCount: 0, referredUsers: [] };
   }
 }
 

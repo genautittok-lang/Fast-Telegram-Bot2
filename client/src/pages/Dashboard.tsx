@@ -60,7 +60,9 @@ import {
   Key,
   Users,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Menu,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +79,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface CheckResult {
   type: string;
@@ -277,6 +286,7 @@ const navItems = [
   { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
   { id: "history", label: "Історія", icon: History, href: "/history" },
   { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
+  { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
 ];
 
 const recentChecks = [
@@ -360,6 +370,7 @@ export default function Dashboard() {
   const [result, setResult] = useState<CheckResult | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -686,7 +697,7 @@ export default function Dashboard() {
                 </div>
               </motion.div>
             </Link>
-            <div className="flex items-center gap-2.5 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <motion.div 
                 className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gradient-to-r from-green-500/10 to-transparent border border-green-500/20"
                 animate={{ opacity: [0.7, 1, 0.7] }}
@@ -695,14 +706,95 @@ export default function Dashboard() {
                 <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                 <span className="text-[9px] font-medium text-green-400 hidden xs:inline">Online</span>
               </motion.div>
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Avatar className="w-8 h-8 border-2 border-primary/30 shadow-[0_0_12px_rgba(34,197,94,0.2)]">
-                  <AvatarImage src={user?.photoUrl} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary text-xs font-bold">
-                    {user?.username?.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </motion.div>
+              
+              <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
+                <SheetTrigger asChild>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="w-9 h-9 rounded-xl border border-white/10 bg-white/5"
+                    data-testid="button-mobile-menu"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent 
+                  side="right" 
+                  className="w-[280px] bg-black/95 border-l border-white/10 backdrop-blur-2xl p-0"
+                >
+                  <SheetHeader className="p-4 border-b border-white/10">
+                    <SheetTitle className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10 border-2 border-primary/40">
+                        <AvatarImage src={user?.photoUrl} />
+                        <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold">
+                          {user?.username?.slice(0, 2).toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="font-semibold text-sm truncate text-white">@{user?.username}</p>
+                        <TierBadge tier={user?.tier || "FREE"} />
+                      </div>
+                    </SheetTitle>
+                  </SheetHeader>
+                  
+                  <div className="p-4 space-y-2">
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 mb-4">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-muted-foreground">Залишилось запитів</span>
+                        <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}/15</span>
+                      </div>
+                      <div className="h-2 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                        <motion.div 
+                          className="h-full bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(((user?.requestsLeft ?? 0) / 15) * 100, 100)}%` }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 h-12 rounded-xl"
+                      onClick={() => {
+                        setShowMobileMenu(false);
+                        setShowProfile(true);
+                      }}
+                      data-testid="menu-button-profile"
+                    >
+                      <User className="w-5 h-5 mr-3" />
+                      Профіль
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 h-12 rounded-xl"
+                      onClick={() => {
+                        setShowMobileMenu(false);
+                        setShowSubscription(true);
+                      }}
+                      data-testid="menu-button-subscription"
+                    >
+                      <Crown className="w-5 h-5 mr-3" />
+                      Підписка
+                    </Button>
+                    
+                    <div className="pt-2 border-t border-white/10 mt-4">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 h-12 rounded-xl"
+                        onClick={() => {
+                          setShowMobileMenu(false);
+                          handleLogout();
+                        }}
+                        data-testid="menu-button-logout"
+                      >
+                        <LogOut className="w-5 h-5 mr-3" />
+                        Вийти
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </motion.header>
@@ -742,7 +834,7 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-4 lg:space-y-6">
-              <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 sm:gap-2 lg:gap-3">
                 {checkTypes.map((type, idx) => {
                   const isSelected = selectedType === type.id;
                   return (
@@ -753,7 +845,7 @@ export default function Dashboard() {
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative p-2.5 lg:p-6 rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group touch-manipulation ${
+                      className={`relative p-2 sm:p-3 lg:p-5 rounded-lg sm:rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group touch-manipulation ${
                         isSelected
                           ? `${type.borderColor.replace('hover:', '')} bg-gradient-to-br ${type.gradient} backdrop-blur-xl shadow-lg ${type.glowColor}`
                           : `border-white/10 active:border-white/30 bg-black/40 backdrop-blur-sm active:bg-black/60`
@@ -772,17 +864,17 @@ export default function Dashboard() {
                           transition={{ duration: 0.3 }}
                         />
                       )}
-                      <div className="relative flex flex-col items-center gap-1.5 lg:gap-4">
+                      <div className="relative flex flex-col items-center gap-1 sm:gap-1.5 lg:gap-3">
                         <motion.div 
-                          className={`w-9 h-9 lg:w-14 lg:h-14 rounded-lg lg:rounded-2xl flex items-center justify-center ${
+                          className={`w-7 h-7 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-md sm:rounded-lg lg:rounded-xl flex items-center justify-center ${
                             isSelected ? 'bg-white/15 shadow-inner' : 'bg-white/5'
                           } transition-all duration-300`}
                           animate={isSelected ? { scale: [1, 1.05, 1] } : {}}
                           transition={{ duration: 0.4 }}
                         >
-                          <type.icon className={`w-4.5 h-4.5 lg:w-7 lg:h-7 ${isSelected ? type.iconColor : 'text-muted-foreground'} transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
+                          <type.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-6 lg:h-6 ${isSelected ? type.iconColor : 'text-muted-foreground'} transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
                         </motion.div>
-                        <span className={`text-[9px] lg:text-sm font-medium text-center leading-tight ${isSelected ? 'text-white' : 'text-muted-foreground'} transition-colors duration-300`}>
+                        <span className={`text-[8px] sm:text-[9px] lg:text-xs font-medium text-center leading-tight line-clamp-1 ${isSelected ? 'text-white' : 'text-muted-foreground'} transition-colors duration-300`}>
                           {type.label}
                         </span>
                       </div>
@@ -962,7 +1054,7 @@ export default function Dashboard() {
                         <AlertTriangle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-500" />
                         Знахідки ({result.findings.length})
                       </h4>
-                      <div className="space-y-1.5 lg:space-y-2">
+                      <div className="space-y-1.5 lg:space-y-2 max-h-[200px] sm:max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
                         {result.findings.map((finding, idx) => {
                           const isCritical = finding.includes("КРИТИЧНО");
                           const isWarning = finding.includes("УВАГА");
@@ -1127,51 +1219,9 @@ export default function Dashboard() {
                 </Link>
               );
             })}
-            <motion.button
-              onClick={() => setShowProfile(true)}
-              className="relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl text-muted-foreground active:text-cyan-400 transition-all duration-300"
-              whileTap={{ scale: 0.9 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.3 }}
-              data-testid="mobile-nav-profile"
-            >
-              <div className="p-1.5 rounded-xl">
-                <User className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-medium">Профіль</span>
-            </motion.button>
-            <motion.button
-              onClick={() => setShowSubscription(true)}
-              className="relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl text-muted-foreground active:text-yellow-400 transition-all duration-300"
-              whileTap={{ scale: 0.9 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              data-testid="mobile-nav-subscription"
-            >
-              <div className="p-1.5 rounded-xl">
-                <Crown className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-medium">Підписка</span>
-            </motion.button>
-            <motion.button
-              onClick={handleLogout}
-              className="relative flex flex-col items-center gap-1 min-w-[56px] py-2 px-3 rounded-2xl text-red-400 active:text-red-300 transition-all duration-300"
-              whileTap={{ scale: 0.9 }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.3 }}
-              data-testid="mobile-nav-logout"
-            >
-              <div className="p-1.5 rounded-xl">
-                <LogOut className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-medium">Вийти</span>
-            </motion.button>
           </div>
         </motion.nav>
-        <div className="lg:hidden h-24" />
+        <div className="lg:hidden h-20" />
       </div>
 
       <Dialog open={showProfile} onOpenChange={setShowProfile}>
