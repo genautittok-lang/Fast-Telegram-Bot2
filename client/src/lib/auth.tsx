@@ -2,15 +2,18 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiRequest } from "./queryClient";
 
 interface User {
-  id: number;
-  tgId: string;
-  username: string;
-  tier: string;
-  requestsLeft: number;
+  id?: number;
+  tgId?: string;
+  username?: string;
+  tier?: string;
+  requestsLeft?: number;
   streakDays?: number;
   refCode?: string;
   firstName?: string;
   photoUrl?: string;
+  email?: string;
+  provider?: "telegram" | "google";
+  profileImageUrl?: string;
 }
 
 interface AuthContextType {
@@ -32,8 +35,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/auth/me", { credentials: "include" });
       if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
+        const data = await res.json();
+        if (data.authenticated) {
+          if (data.provider === "google") {
+            setUser({
+              email: data.user.email,
+              firstName: data.user.firstName,
+              profileImageUrl: data.user.profileImageUrl,
+              provider: "google",
+              tier: "FREE",
+              requestsLeft: 15,
+            });
+          } else if (data.provider === "telegram") {
+            setUser({
+              id: data.userId,
+              tgId: data.tgId,
+              provider: "telegram",
+            });
+          } else {
+            setUser(data);
+          }
+        } else {
+          setUser(null);
+        }
       } else {
         setUser(null);
       }

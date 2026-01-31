@@ -9,7 +9,7 @@ import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
 import { randomUUID } from "crypto";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
+import { setupGoogleAuth, isGoogleAuthenticated } from "./googleAuth";
 
 function generateVerificationId(): string {
   return `DS-${randomUUID().split('-').slice(0, 2).join('').toUpperCase()}`;
@@ -36,9 +36,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Setup Replit Auth (Google, GitHub, Apple login) - MUST be before other routes
-  await setupAuth(app);
-  registerAuthRoutes(app);
+  // Setup Google OAuth - MUST be before other routes
+  await setupGoogleAuth(app);
   
   // Health check endpoint for Railway
   app.get("/health", (req, res) => {

@@ -219,7 +219,7 @@ export default function Login() {
                   </div>
                 </div>
 
-                <a href="/api/login" className="w-full">
+                <a href="/api/auth/google" className="w-full">
                   <Button 
                     variant="outline" 
                     className="w-full border-white/10 hover:border-primary/30"
