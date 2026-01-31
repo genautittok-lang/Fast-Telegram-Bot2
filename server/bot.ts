@@ -130,7 +130,7 @@ ${t(lang, "common.tipOfDay")}
 
 ${t(lang, "dashboard.selectModule")}`;
 
-    const webUrl = process.env.WEB_DOMAIN || "https://darkshare.store";
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
     const keyboard = Markup.inlineKeyboard([
       [
