@@ -66,31 +66,127 @@ export async function setupBot(storage: IStorage) {
 
   bot.command("start", async (ctx) => {
     const text = ctx.message.text;
-    const refMatch = text.match(/start=ref_(\w+)/);
+    // Match both /start ref_CODE and /start=ref_CODE formats
+    const refMatch = text.match(/(?:start\s+ref_|start=ref_)([A-Z0-9-]+)/i);
     const tgId = ctx.from!.id.toString();
-    const user = await storage.getUserByTgId(tgId);
+    let user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     
     const isNewUser = !user?.langSet;
     
-    let welcomeText = t(lang, "welcome", { 
-      username: ctx.from.first_name || ctx.from.username || "User",
-      tgId: tgId 
-    });
-
-    if (refMatch) {
-      welcomeText += "\n\n" + t(lang, "common.referralBonus");
+    // Process referral code if present
+    if (refMatch && refMatch[1]) {
+      const refCode = refMatch[1].toUpperCase();
+      console.log(`Processing referral code: ${refCode}`);
+      
+      // Find referrer by code
+      const referrer = await storage.getUserByRefCode(refCode);
+      if (referrer && referrer.id !== user?.id) {
+        // Give bonus to new user
+        if (user) {
+          await storage.updateUser(user.id, { 
+            requestsLeft: (user.requestsLeft || 15) + 5
+          });
+          user = await storage.getUserByTgId(tgId);
+        }
+        
+        // Give bonus to referrer
+        await storage.updateUser(referrer.id, {
+          requestsLeft: (referrer.requestsLeft || 15) + 2
+        });
+        
+        // Track referral
+        try {
+          await storage.createReferral({
+            referrerId: referrer.id,
+            referredId: user?.id || 0,
+            bonus: 5
+          });
+        } catch (e) {
+          // Ignore duplicate referral errors
+        }
+        
+        console.log(`Referral processed: ${refCode} -> ${tgId}`);
+      }
     }
+    
+    if (isNewUser && refMatch) {
+      // Special welcome for referred users
+      const welcomeText = `🎁 *DARKSHARE - SECURITY OSINT*
 
-    if (isNewUser) {
-      welcomeText += "\n\n" + t(lang, "common.selectLanguage");
-      await ctx.reply(welcomeText, Markup.inlineKeyboard([
-        [
-          Markup.button.callback("🇺🇦 Українська", "lang_uk"),
-          Markup.button.callback("🇬🇧 English", "lang_en"),
-          Markup.button.callback("🇷🇺 Русский", "lang_ru")
-        ]
-      ]));
+━━━━━━━━━━━━━━━━━━━━
+
+✨ *Вітаємо, ${ctx.from.first_name || ctx.from.username || "друже"}!*
+
+Тебе запросив друг до найкращої OSINT платформи!
+
+🎁 *Твій бонус активовано:*
+├ +5 безкоштовних перевірок
+├ Повний доступ до 10 модулів
+└ AI-аналіз та PDF звіти
+
+━━━━━━━━━━━━━━━━━━━━
+
+🔍 *Можливості DARKSHARE:*
+├ 🌐 IP/GEO аналіз
+├ 💰 Крипто гаманці
+├ 📧 Email перевірка
+├ 🔗 URL сканування
+├ 🔓 CVE вразливості
+└ ...та багато іншого!
+
+━━━━━━━━━━━━━━━━━━━━
+
+👇 *Обери мову для початку:*`;
+
+      await ctx.reply(welcomeText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [
+            Markup.button.callback("🇺🇦 Українська", "lang_uk"),
+            Markup.button.callback("🇬🇧 English", "lang_en"),
+            Markup.button.callback("🇷🇺 Русский", "lang_ru")
+          ]
+        ])
+      });
+    } else if (isNewUser) {
+      // Regular welcome for new users
+      const welcomeText = `🌑 *DARKSHARE v4.1*
+
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *Привіт, ${ctx.from.first_name || ctx.from.username || "друже"}!*
+
+Твій ID: \`${tgId}\`
+
+🛡️ *DARKSHARE* - професійна OSINT платформа для аналізу безпеки.
+
+━━━━━━━━━━━━━━━━━━━━
+
+🔍 *10 модулів аналізу:*
+├ IP адреси та геолокація
+├ Крипто гаманці (ETH/BTC/TRX/SOL)
+├ Email та витоки даних
+├ Домени та SSL сертифікати
+├ URL та фішинг
+├ CVE вразливості
+├ Файлові хеші
+└ Username OSINT
+
+━━━━━━━━━━━━━━━━━━━━
+
+👇 *Обери мову:*`;
+
+      await ctx.reply(welcomeText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [
+            Markup.button.callback("🇺🇦 Українська", "lang_uk"),
+            Markup.button.callback("🇬🇧 English", "lang_en"),
+            Markup.button.callback("🇷🇺 Русский", "lang_ru")
+          ]
+        ])
+      });
     } else {
       await showDashboard(ctx, tgId, false);
     }

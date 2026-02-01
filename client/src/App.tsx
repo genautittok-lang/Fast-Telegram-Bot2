@@ -11,6 +11,7 @@ import Dashboard from "@/pages/Dashboard";
 import History from "@/pages/History";
 import Monitoring from "@/pages/Monitoring";
 import Referral from "@/pages/Referral";
+import ReferralLanding from "@/pages/ReferralLanding";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/history" component={History} />
       <Route path="/monitoring" component={Monitoring} />
       <Route path="/referral" component={Referral} />
+      <Route path="/r/:code" component={ReferralLanding} />
       <Route component={NotFound} />
     </Switch>
   );

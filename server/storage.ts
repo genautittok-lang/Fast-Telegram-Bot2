@@ -18,6 +18,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   getUserByTgId(tgId: string): Promise<User | undefined>;
+  getUserByRefCode(refCode: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserLogin(id: number): Promise<void>;
@@ -42,6 +43,7 @@ export interface IStorage {
   
   // Referrals
   getReferralStats(userId: number): Promise<ReferralStats>;
+  createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void>;
   
   // Stats
   getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }>;
@@ -63,6 +65,12 @@ export class DatabaseStorage implements IStorage {
   async getUserByTgId(tgId: string): Promise<User | undefined> {
     if (!db) throw new Error("Database not available");
     const [user] = await db.select().from(users).where(eq(users.tgId, tgId));
+    return user;
+  }
+
+  async getUserByRefCode(refCode: string): Promise<User | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [user] = await db.select().from(users).where(eq(users.refCode, refCode));
     return user;
   }
 
@@ -246,6 +254,20 @@ export class DatabaseStorage implements IStorage {
       return { count: 0, pendingCount: 0, referredUsers: [] };
     }
   }
+
+  async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    try {
+      await db.insert(referrals).values({
+        referrerId: data.referrerId,
+        referredId: data.referredId,
+        paid: false,
+      });
+    } catch (err) {
+      // Ignore duplicate errors
+      console.warn("Referral creation error (likely duplicate):", (err as Error).message);
+    }
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -266,6 +288,10 @@ export class MemStorage implements IStorage {
 
   async getUserByTgId(tgId: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(u => u.tgId === tgId);
+  }
+
+  async getUserByRefCode(refCode: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.refCode === refCode);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -444,6 +470,10 @@ export class MemStorage implements IStorage {
 
   async getReferralStats(userId: number): Promise<ReferralStats> {
     return { count: 0, pendingCount: 0, referredUsers: [] };
+  }
+
+  async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void> {
+    // No-op for memory storage
   }
 }
 
