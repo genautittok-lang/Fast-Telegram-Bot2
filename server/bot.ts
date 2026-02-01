@@ -208,21 +208,67 @@ export async function setupBot(storage: IStorage) {
     );
   });
 
+  function generateProgressBar(current: number, max: number, length: number = 10): string {
+    const filled = Math.round((current / max) * length);
+    const empty = length - filled;
+    return '▓'.repeat(Math.max(0, filled)) + '░'.repeat(Math.max(0, empty));
+  }
+
+  function formatLastActivity(date: Date | null | undefined, lang: Language): string {
+    if (!date) return "—";
+    const now = new Date();
+    const diff = now.getTime() - new Date(date).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (lang === "uk") {
+      if (minutes < 1) return "щойно";
+      if (minutes < 60) return `${minutes} хв тому`;
+      if (hours < 24) return `${hours} год тому`;
+      return `${days} дн тому`;
+    } else if (lang === "ru") {
+      if (minutes < 1) return "только что";
+      if (minutes < 60) return `${minutes} мин назад`;
+      if (hours < 24) return `${hours} ч назад`;
+      return `${days} дн назад`;
+    } else {
+      if (minutes < 1) return "just now";
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return `${days}d ago`;
+    }
+  }
+
   async function showDashboard(ctx: any, tgId: string, isEdit: boolean = true) {
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     userStates.delete(tgId);
 
-    const requestsWarning = user && user.requestsLeft! <= 3 
+    const requestsLeft = user?.requestsLeft ?? 15;
+    const requestsLimit = 15;
+    const progressBar = generateProgressBar(requestsLeft, requestsLimit);
+    const lastActivity = formatLastActivity(user?.lastLogin, lang);
+
+    const tierEmoji = user?.tier === "ENTERPRISE" ? "👑" : user?.tier === "PRO" ? "⭐" : "🆓";
+    const tierName = user?.tier || "FREE";
+
+    const requestsWarning = requestsLeft <= 3 
       ? "\n" + t(lang, "common.lowRequests")
       : '';
 
-    const dashboardText = `${t(lang, "dashboard.title")}
+    const dashboardText = `🌑 *DARKSHARE v4.1*
+━━━━━━━━━━━━━━━━━━━━
 
-${t(lang, "dashboard.stats", { requestsLeft: user?.requestsLeft?.toString() || "15", requestsLimit: "15" })} (${t(lang, "common.tierFree")})
-🔥 ${t(lang, "common.streak")}: ${user?.streakDays} ${t(lang, "common.days")}${requestsWarning}
+${tierEmoji} ${t(lang, "common.tier")}: ${tierName}
+📊 ${t(lang, "dashboard.stats", { requestsLeft: String(requestsLeft), requestsLimit: String(requestsLimit) })}
+    ${progressBar}
+🔥 ${t(lang, "common.streak")}: ${user?.streakDays || 0} ${t(lang, "common.days")}
+🕐 ${lastActivity}${requestsWarning}
 
-${t(lang, "common.tipOfDay")}
+💡 ${t(lang, "common.tipOfDay")}
+
+━━━━━━━━━━━━━━━━━━━━
 
 ${t(lang, "dashboard.selectModule")}`;
 
@@ -271,12 +317,12 @@ ${t(lang, "dashboard.selectModule")}`;
 
     try {
       if (isEdit) {
-        await ctx.editMessageText(dashboardText, keyboard);
+        await ctx.editMessageText(dashboardText, { parse_mode: "Markdown", ...keyboard });
       } else {
-        await ctx.reply(dashboardText, keyboard);
+        await ctx.reply(dashboardText, { parse_mode: "Markdown", ...keyboard });
       }
     } catch {
-      await ctx.reply(dashboardText, keyboard);
+      await ctx.reply(dashboardText, { parse_mode: "Markdown", ...keyboard });
     }
   }
 
@@ -288,6 +334,139 @@ ${t(lang, "dashboard.selectModule")}`;
   bot.command("menu", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     await showDashboard(ctx, tgId, false);
+  });
+
+  bot.command("stats", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    if (!user) {
+      return ctx.reply(t(lang, "common.error") + ": " + t(lang, "common.na"));
+    }
+
+    const reports = await storage.getReports(user.id);
+    const watches = await storage.getWatches(user.id);
+    
+    let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
+    try {
+      referralStats = await storage.getReferralStats(user.id);
+    } catch (e) {}
+
+    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const requestsBar = generateProgressBar(user.requestsLeft || 0, 15);
+    const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
+    
+    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
+    const lastActive = formatLastActivity(user.lastLogin, lang);
+
+    const statsText = `📊 *${t(lang, "common.stats")}*
+━━━━━━━━━━━━━━━━━━━━
+
+👤 ${t(lang, "common.profile")}:
+• ID: ${user.tgId}
+• Username: @${user.username || "—"}
+• ${tierEmoji} ${t(lang, "common.tier")}: ${user.tier || "FREE"}
+• 📅 ${joinDate}
+
+📈 ${t(lang, "common.activity")}:
+• 🔍 ${t(lang, "common.checks")}: ${reports.length}
+• 👁 ${t(lang, "buttons.monitoring")}: ${watches.length}
+• 📣 ${t(lang, "buttons.referrals")}: ${referralStats.count}
+• 🕐 ${lastActive}
+
+🎯 ${t(lang, "common.progress")}:
+• 📊 ${requestsBar} ${user.requestsLeft || 0}/15
+• 🔥 ${streakBar} ${user.streakDays || 0}/30 ${t(lang, "common.days")}
+
+🏅 ${t(lang, "buttons.achievements")}:
+${reports.length >= 10 ? "✅" : "⬜"} 🏆 10+
+${reports.length >= 50 ? "✅" : "⬜"} 🛡️ 50+
+${(user.streakDays || 0) >= 7 ? "✅" : "⬜"} 🔥 7d
+${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
+
+    await ctx.reply(statsText, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback(t(lang, "buttons.newCheck"), "dashboard")],
+        [Markup.button.callback(t(lang, "buttons.referrals"), "referrals")],
+        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+      ])
+    });
+  });
+
+  bot.command("help", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+
+    const helpText = `❓ *${t(lang, "common.help")}*
+━━━━━━━━━━━━━━━━━━━━
+
+🤖 ${t(lang, "common.commands")}:
+• /start - ${t(lang, "help.startDesc")}
+• /menu - ${t(lang, "help.menuDesc")}
+• /stats - ${t(lang, "help.statsDesc")}
+• /help - ${t(lang, "help.helpDesc")}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🔍 ${t(lang, "dashboard.selectModule")}:
+• 🌐 IP - geo, VPN, blacklists
+• 💰 Wallet - ETH/BTC/TRX/SOL
+• 📱 Phone - carrier, VOIP
+• 📧 Email - leaks, MX
+• 🏢 Domain - WHOIS, SSL
+• 🔗 URL - phishing scan
+• 🔓 CVE - vulnerabilities
+• 🔢 Hash - malware
+• 👤 Username - OSINT
+
+━━━━━━━━━━━━━━━━━━━━
+
+📝 ${t(lang, "common.examples")}:
+├ IP: \`8.8.8.8\`
+• Wallet: 0x742d35Cc...
+• Email: user@example.com
+• Domain: example.com
+• URL: https://site.com
+• CVE: CVE-2024-1234
+
+💡 ${t(lang, "common.tips")}:
+• ${t(lang, "help.tipPdf")}
+• ${t(lang, "help.tipMonitor")}
+• ${t(lang, "help.tipReferral")}`;
+
+    await ctx.reply(helpText, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback(t(lang, "buttons.newCheck"), "dashboard")],
+        [Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")],
+        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+      ])
+    });
+  });
+
+  bot.action(/^share_result_/, async (ctx) => {
+    const parts = ctx.match.input.split('_');
+    const module = parts[2];
+    const target = parts.slice(3).join('_');
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    const botUsername = (await bot.telegram.getMe()).username || "ShareposchukBot";
+    const shareText = `🔍 ${t(lang, "share.checked")}:\n${module.toUpperCase()}: ${target.substring(0, 30)}...\n\n🤖 ${t(lang, "share.tryIt")}: @${botUsername}`;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/${botUsername}`)}&text=${encodeURIComponent(shareText)}`;
+    
+    await ctx.answerCbQuery(t(lang, "share.sharing"));
+    await ctx.reply(`📤 *${t(lang, "share.title")}:*\n\n${t(lang, "share.clickBelow")}`, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.url(t(lang, "buttons.share"), shareUrl)],
+        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+      ])
+    });
   });
 
   const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username"];
@@ -571,25 +750,53 @@ ${t(lang, "dashboard.selectModule")}`;
       }
     };
 
+    const getRiskColor = (level: string) => {
+      switch (level) {
+        case "low": return "НИЗЬКИЙ";
+        case "medium": return "СЕРЕДНІЙ";
+        case "high": return "ВИСОКИЙ";
+        case "critical": return "КРИТИЧНИЙ";
+        default: return "СЕРЕДНІЙ";
+      }
+    };
+
     const moduleEmojis: Record<string, string> = {
       ip: "🌐", wallet: "💰", phone: "📱", 
-      email: "📧", domain: "🏢", url: "🔗"
+      email: "📧", domain: "🏢", url: "🔗",
+      cve: "🔓", hash: "🔢", username: "👤"
+    };
+
+    const moduleNames: Record<string, string> = {
+      ip: "IP/GEO Аналіз",
+      wallet: "Крипто Аналіз", 
+      phone: "Телефон OSINT",
+      email: "Email Аналіз",
+      domain: "Домен/WHOIS",
+      url: "URL Перевірка",
+      cve: "CVE Сканування",
+      hash: "Хеш Аналіз",
+      username: "Username OSINT"
     };
     
     const riskEmoji = getRiskEmoji(checkResult.riskLevel);
-    const findingsText = checkResult.findings.slice(0, 5).map(f => `• ${f}`).join("\n");
+    const riskProgressBar = generateProgressBar(checkResult.riskScore, 100);
+    const findingsText = checkResult.findings.slice(0, 6).map(f => `├ ${f}`).join("\n");
     
-    const riskWord = t(lang, "result.risk");
-    const findingsWord = t(lang, "result.findings");
-    const sourcesWord = t(lang, "result.sources");
+    const targetDisplay = checkResult.target.length > 25 
+      ? checkResult.target.substring(0, 22) + "..." 
+      : checkResult.target;
 
-    const result = `${moduleEmojis[state.module] || "🔍"} ${checkResult.type.toUpperCase()} ${t(lang, "result.analysis")}: ${checkResult.target.substring(0, 30)}${checkResult.target.length > 30 ? "..." : ""}
-${riskEmoji} ${riskWord}: ${checkResult.riskLevel.toUpperCase()} (${checkResult.riskScore}/100)
+    const result = `${moduleEmojis[state.module] || "🔍"} *${checkResult.type.toUpperCase()}*
+━━━━━━━━━━━━━━━━━━━━
 
-📋 ${findingsWord}:
+🎯 ${targetDisplay}
+
+${riskEmoji} ${t(lang, "result.risk")}: ${riskProgressBar} *${checkResult.riskScore}%*
+
+📋 ${t(lang, "result.findings")}:
 ${findingsText}
 
-📊 ${sourcesWord}: ${checkResult.sources.join(", ")}`;
+📊 ${t(lang, "result.sources")}: ${checkResult.sources.slice(0, 3).join(", ")}`;
 
     if (user) {
       await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 15) - 1) });
@@ -611,18 +818,22 @@ ${findingsText}
 
     userStates.delete(tgId);
 
-    await ctx.reply(result, 
-      Markup.inlineKeyboard([
+    await ctx.reply(result, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
         [
           Markup.button.callback(t(lang, "buttons.pdf"), `gen_pdf_${state.module}_${inputValue}`),
           Markup.button.callback(t(lang, "buttons.newCheck"), `mod_${state.module === "domain" ? "business" : state.module}`)
         ],
         [
           Markup.button.callback(t(lang, "buttons.monitoring"), `add_monitor_${state.module}_${inputValue}`),
+          Markup.button.callback(t(lang, "buttons.share"), `share_result_${state.module}_${inputValue}`)
+        ],
+        [
           Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")
         ]
       ])
-    );
+    });
   });
 
   bot.action(/^gen_pdf_/, async (ctx) => {
@@ -793,15 +1004,77 @@ ${findingsText}
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
+    
+    if (!user) return;
 
-    const text = `${t(lang, "referrals.title")}\n\n${t(lang, "referrals.yourCode", { code: user?.refCode || t(lang, "common.na") })}\n${t(lang, "referrals.link", { code: user?.refCode || t(lang, "common.na") })}\n\n${t(lang, "referrals.count", { count: "0" })}\n${t(lang, "referrals.earnings", { amount: "0" })}\n\n${t(lang, "referrals.invite")}`;
+    let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
+    try {
+      referralStats = await storage.getReferralStats(user.id);
+    } catch (e) {
+      console.log("Failed to get referral stats:", e);
+    }
 
-    await ctx.editMessageText(text, 
-      Markup.inlineKeyboard([
-        [Markup.button.url(t(lang, "buttons.share"), `https://t.me/share/url?url=t.me/DARKSHAREN1_BOT?start=ref_${user?.refCode}`)],
-        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    const refLink = `t.me/DARKSHAREN1_BOT?start=ref_${user.refCode}`;
+    const bonusEarned = referralStats.count * 2;
+    const discountProgress = Math.min(referralStats.count, 5);
+    const discountPercent = discountProgress * 4;
+
+    let referredList = "";
+    if (referralStats.referredUsers.length > 0) {
+      referredList = "\n\n👥 *Твої реферали:*\n" + 
+        referralStats.referredUsers.slice(0, 5).map((r, i) => {
+          const tierEmoji = r.tier === "PRO" ? "⭐" : r.tier === "ENTERPRISE" ? "👑" : "🆓";
+          return `${i + 1}. ${tierEmoji} @${r.username || "user"} - ${r.paid ? "✅ Оплатив" : "⏳ Free"}`;
+        }).join("\n");
+    }
+
+    const text = `\`\`\`
+╔═══════════════════════════════╗
+║    📣 РЕФЕРАЛЬНА ПРОГРАМА     ║
+╚═══════════════════════════════╝
+\`\`\`
+
+🎁 *Запрошуй друзів та отримуй бонуси!*
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 *Твоє посилання:*
+\`${refLink}\`
+
+📊 *Статистика:*
+├ 👥 Рефералів: *${referralStats.count}*
+├ ⏳ Очікують: ${referralStats.pendingCount}
+├ 🎁 Бонус запитів: *+${bonusEarned}*
+└ 💰 Знижка: *${discountPercent}%* (${discountProgress}/5)
+
+🎯 *Прогрес до -20%:*
+${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+💡 *Бонуси:*
+├ +2 запити за кожного реферала
+├ -4% знижка за кожного (до -20%)
+└ Реферал отримує +5 запитів`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("📋 Копіювати посилання", "copy_ref_link")],
+        [Markup.button.url("📤 Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("Приєднуйся до DARKSHARE - найкращої OSINT платформи! 🔍")}`)],
+        [Markup.button.callback("⬅️ Панель", "back_to_dashboard")]
       ])
-    );
+    });
+  });
+
+  bot.action("copy_ref_link", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    if (user) {
+      const refLink = `t.me/DARKSHAREN1_BOT?start=ref_${user.refCode}`;
+      await ctx.answerCbQuery("Посилання скопійовано!");
+      await ctx.reply(`📋 Твоє реферальне посилання:\n\n\`${refLink}\``, { parse_mode: "Markdown" });
+    }
   });
 
   bot.action("upgrade", async (ctx) => {
