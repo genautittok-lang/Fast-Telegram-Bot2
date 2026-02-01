@@ -1625,6 +1625,215 @@ ${findingsText}
     }
   });
 
+  // QUICK CHECK COMMAND - перевірка без меню
+  bot.command("check", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    const args = ctx.message.text.split(" ");
+    if (args.length < 3) {
+      return ctx.reply(
+        `🚀 *Швидка перевірка*\n\n` +
+        `Використання: \`/check <тип> <значення>\`\n\n` +
+        `*Доступні типи:*\n` +
+        `• \`ip\` - IP адреса\n` +
+        `• \`wallet\` - Крипто гаманець\n` +
+        `• \`email\` - Email адреса\n` +
+        `• \`phone\` - Номер телефону\n` +
+        `• \`domain\` - Домен\n` +
+        `• \`url\` - URL посилання\n` +
+        `• \`username\` - Username\n` +
+        `• \`hash\` - File hash\n` +
+        `• \`cve\` - CVE ID\n\n` +
+        `*Приклади:*\n` +
+        `\`/check ip 8.8.8.8\`\n` +
+        `\`/check email test@gmail.com\`\n` +
+        `\`/check wallet 0x123...\``,
+        { parse_mode: "Markdown" }
+      );
+    }
+    
+    const checkType = args[1].toLowerCase();
+    const target = args.slice(2).join(" ");
+    
+    const validTypes = ["ip", "wallet", "email", "phone", "domain", "url", "username", "hash", "cve"];
+    if (!validTypes.includes(checkType)) {
+      return ctx.reply(`❌ Невідомий тип перевірки: ${checkType}\n\nДоступні: ${validTypes.join(", ")}`);
+    }
+    
+    if (!user || user.requestsLeft! <= 0) {
+      return ctx.reply(t(lang, "validation.limitReached", { limit: "15" }), 
+        Markup.inlineKeyboard([
+          [Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")]
+        ])
+      );
+    }
+    
+    const processingMsg = await ctx.reply(`⏳ Аналізую ${checkType}: ${target}...`);
+    
+    try {
+      const checkResult = await performCheck(checkType, target);
+      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+      
+      const riskEmoji = checkResult.riskLevel === "critical" ? "🔴" : 
+                        checkResult.riskLevel === "high" ? "🟠" : 
+                        checkResult.riskLevel === "medium" ? "🟡" : "🟢";
+      
+      let result = `${riskEmoji} *${checkType.toUpperCase()} АНАЛІЗ*\n\n`;
+      result += `📌 *Ціль:* \`${target}\`\n`;
+      result += `📊 *Ризик:* ${checkResult.riskScore}/100 (${checkResult.riskLevel.toUpperCase()})\n\n`;
+      result += `*Знахідки:*\n`;
+      checkResult.findings.slice(0, 5).forEach(f => {
+        result += `• ${f}\n`;
+      });
+      
+      if (checkResult.aiInsights) {
+        result += `\n🤖 *AI Вердикт:* ${checkResult.aiInsights.verdict}\n`;
+      }
+      
+      await ctx.telegram.deleteMessage(ctx.chat!.id, processingMsg.message_id);
+      
+      await ctx.reply(result, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [
+            Markup.button.callback("📄 PDF", `gen_pdf_${checkType}_${target}`),
+            Markup.button.callback("👁 Моніторинг", `add_monitor_${checkType}_${target}`)
+          ]
+        ])
+      });
+      
+      await storage.createReport({
+        userId: user.id,
+        objectType: checkType,
+        dataJson: {
+          target: checkResult.target,
+          riskScore: checkResult.riskScore,
+          riskLevel: checkResult.riskLevel,
+          findings: checkResult.findings,
+          details: checkResult.details,
+          sources: checkResult.sources,
+          summary: checkResult.summary,
+        },
+      });
+    } catch (err) {
+      console.error("Quick check error:", err);
+      await ctx.reply("❌ Помилка перевірки. Спробуйте ще раз.");
+    }
+  });
+
+  // STATS COMMAND - персональна статистика
+  bot.command("stats", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    if (!user) return;
+    
+    const reports = await storage.getReports(user.id);
+    const watches = await storage.getWatches(user.id);
+    const referralStats = await storage.getReferralStats(user.id);
+    
+    const typeCounts: Record<string, number> = {};
+    reports.forEach(r => {
+      typeCounts[r.objectType] = (typeCounts[r.objectType] || 0) + 1;
+    });
+    
+    const topTypes = Object.entries(typeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    
+    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    
+    let text = `📊 *ВАША СТАТИСТИКА*\n\n`;
+    text += `${tierEmoji} *Тариф:* ${user.tier}\n`;
+    text += `🎯 *Запитів залишилось:* ${user.requestsLeft}/15\n`;
+    text += `🔥 *Серія днів:* ${user.streakDays}\n`;
+    text += `📈 *Всього перевірок:* ${reports.length}\n`;
+    text += `👁 *Активних моніторів:* ${watches.length}\n`;
+    text += `👥 *Рефералів:* ${referralStats.count}\n\n`;
+    
+    if (topTypes.length > 0) {
+      text += `*Топ перевірки:*\n`;
+      topTypes.forEach(([type, count], i) => {
+        text += `${i + 1}. ${type.toUpperCase()}: ${count}\n`;
+      });
+    }
+    
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🏠 Меню", "dashboard")]
+      ])
+    });
+  });
+
+  // SHARE REFERRAL COMMAND
+  bot.command("ref", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    
+    if (!user) return;
+    
+    const referralStats = await storage.getReferralStats(user.id);
+    const botUsername = ctx.botInfo?.username || "darkshare_bot";
+    const refLink = `https://t.me/${botUsername}?start=ref_${user.refCode}`;
+    
+    const text = `🎁 *РЕФЕРАЛЬНА ПРОГРАМА*\n\n` +
+      `Запрошуй друзів і отримуй бонуси!\n\n` +
+      `📎 *Твоє посилання:*\n\`${refLink}\`\n\n` +
+      `🏷️ *Твій код:* \`${user.refCode}\`\n` +
+      `👥 *Запрошено:* ${referralStats.count} користувачів\n\n` +
+      `*Бонуси:*\n` +
+      `• +3 безкоштовних перевірки за кожного друга\n` +
+      `• Топ-реферери отримують PRO тариф`;
+    
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.url("📤 Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🛡️ Перевір безпеку своїх даних з DARKSHARE!")}`)],
+        [Markup.button.callback("🏠 Меню", "dashboard")]
+      ])
+    });
+  });
+
+  // HELP COMMAND - довідка
+  bot.command("help", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    const text = `📚 *ДОВІДКА DARKSHARE*\n\n` +
+      `*Команди:*\n` +
+      `• /start - Головне меню\n` +
+      `• /menu - Панель управління\n` +
+      `• /check <тип> <значення> - Швидка перевірка\n` +
+      `• /stats - Ваша статистика\n` +
+      `• /ref - Реферальна програма\n` +
+      `• /help - Ця довідка\n\n` +
+      `*Типи перевірок:*\n` +
+      `🌐 IP - аналіз IP адрес\n` +
+      `💰 Wallet - крипто гаманці\n` +
+      `📧 Email - email адреси\n` +
+      `📱 Phone - номери телефонів\n` +
+      `🔗 Domain - домени\n` +
+      `🔍 URL - посилання\n` +
+      `🐛 CVE - вразливості\n` +
+      `#️⃣ Hash - файлові хеші\n` +
+      `👤 Username - юзернейми\n\n` +
+      `*Приклад швидкої перевірки:*\n` +
+      `\`/check ip 8.8.8.8\`\n\n` +
+      `🌐 Веб-панель: darkshare.store`;
+    
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🏠 Меню", "dashboard")]
+      ])
+    });
+  });
+
   bot.catch((err, ctx) => {
     console.error(`Bot error for ${ctx.updateType}:`, err);
   });

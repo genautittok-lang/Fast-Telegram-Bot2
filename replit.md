@@ -1,8 +1,8 @@
-# DARKSHARE v4.0
+# DARKSHARE v4.1
 
 ## Overview
 
-DARKSHARE is a Telegram bot application for risk assessment and security analysis. The platform enables users to analyze various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, and social profiles for potential risks. The system provides risk scoring, generates PDF reports, and offers real-time monitoring capabilities.
+DARKSHARE is a professional security OSINT platform deployed on Railway (www.darkshare.store). The platform enables users to analyze various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, and usernames for potential risks. The system provides AI-enhanced risk scoring, generates PDF reports with QR verification, and offers real-time monitoring capabilities.
 
 The application consists of:
 - A React-based landing page showcasing features and live statistics
@@ -99,6 +99,43 @@ Manual payment workflow with moderator approval:
 - `status`: pending, approved, rejected
 - `tier_requested`: basic, pro, elite
 - `amount`: Payment amount
+
+### Telegram Bot Commands
+
+**User Commands:**
+- `/start` - Welcome message and language selection
+- `/menu` - Main dashboard with all modules
+- `/check <type> <value>` - Quick check without menu (e.g., `/check ip 8.8.8.8`)
+- `/stats` - Personal statistics (checks, referrals, streak)
+- `/ref` - Referral program with shareable link
+- `/help` - Full command reference
+
+**Check Types for /check:**
+- `ip` - IP address analysis
+- `wallet` - Crypto wallet check
+- `email` - Email verification
+- `phone` - Phone number lookup
+- `domain` - Domain analysis with SSL
+- `url` - URL security scan
+- `cve` - CVE vulnerability lookup
+- `hash` - File hash malware check
+- `username` - Username OSINT
+
+**Admin Commands (ADMIN_IDS only):**
+- `/admin` - Admin panel
+- `/broadcast` - Mass message to all users
+- `/block <tg_id>` - Block user
+- `/unblock <tg_id>` - Unblock user
+
+### AI-Enhanced Analysis (v4.1)
+
+When OpenAI credentials are configured, the system provides:
+- AI-generated security summaries in Ukrainian
+- Threat level assessment (БЕЗПЕЧНО/УВАГА/НЕБЕЗПЕЧНО/КРИТИЧНО)
+- Actionable security recommendations
+- Professional verdict for each check
+
+Fallback to rule-based analysis when AI is unavailable.
 
 ## User Preferences
 
