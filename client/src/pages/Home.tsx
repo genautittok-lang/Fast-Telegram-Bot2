@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MobileMenu } from "@/components/MobileMenu";
+import { ThreatFeed } from "@/components/ThreatFeed";
 import { translations } from "@/lib/i18n";
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
@@ -517,6 +518,42 @@ export default function Home() {
                   {t.today}
                 </div>
               </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="py-12 sm:py-16 md:py-20 border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400">
+                <AlertTriangle className="w-3 h-3" />
+                {lang === "UA" ? "Загрози в Реальному Часі" : lang === "RU" ? "Угрозы в Реальном Времени" : "Real-Time Threats"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "UA" ? "Стрічка Кіберзагроз" : lang === "RU" ? "Лента Киберугроз" : "Live Threat Intelligence"}
+              </h2>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+                {lang === "UA" 
+                  ? "Моніторинг останніх CVE, malware кампаній та активних загроз з провідних джерел безпеки"
+                  : lang === "RU"
+                  ? "Мониторинг последних CVE, malware кампаний и активных угроз из ведущих источников безопасности"
+                  : "Monitoring the latest CVEs, malware campaigns and active threats from leading security sources"}
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="max-w-3xl mx-auto"
+            >
+              <ThreatFeed lang={lang} />
             </motion.div>
           </div>
         </section>

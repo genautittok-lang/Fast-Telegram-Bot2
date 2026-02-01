@@ -101,6 +101,33 @@ export const api = {
           error: z.string(),
         }),
       },
+    },
+    bulk: {
+      method: 'POST' as const,
+      path: '/api/bulk-check',
+      input: z.object({
+        checks: z.array(z.object({
+          type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url', 'bot', 'cve', 'hash', 'username']),
+          value: z.string().min(1),
+        })),
+      }),
+      responses: {
+        200: z.array(z.object({
+          type: z.string(),
+          target: z.string(),
+          riskScore: z.number(),
+          riskLevel: z.enum(['low', 'medium', 'high', 'critical']),
+          summary: z.string(),
+          details: z.record(z.any()),
+          findings: z.array(z.string()),
+          sources: z.array(z.string()),
+          timestamp: z.string(),
+          error: z.string().optional(),
+        })),
+        400: z.object({
+          error: z.string(),
+        }),
+      },
     }
   },
   reports: {
@@ -124,6 +151,45 @@ export const api = {
       responses: {
         200: z.any(),
         404: z.object({ error: z.string() }),
+      },
+    },
+    exportJson: {
+      method: 'GET' as const,
+      path: '/api/reports/export/json',
+      responses: {
+        200: z.array(z.object({
+          id: z.number(),
+          type: z.string(),
+          target: z.string(),
+          riskLevel: z.string(),
+          riskScore: z.number(),
+          createdAt: z.string(),
+        })),
+      },
+    },
+    exportCsv: {
+      method: 'GET' as const,
+      path: '/api/reports/export/csv',
+      responses: {
+        200: z.any(),
+      },
+    }
+  },
+  threatFeed: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/threat-feed',
+      responses: {
+        200: z.array(z.object({
+          id: z.string(),
+          title: z.string(),
+          severity: z.enum(['critical', 'high', 'medium', 'low']),
+          type: z.enum(['cve', 'malware', 'phishing', 'botnet', 'ransomware', 'apt']),
+          source: z.string(),
+          timestamp: z.string(),
+          description: z.string().optional(),
+          cveId: z.string().optional(),
+        })),
       },
     }
   },

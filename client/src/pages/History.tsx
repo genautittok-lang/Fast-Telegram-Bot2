@@ -15,7 +15,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Loader2
+  Loader2,
+  FileJson,
+  FileSpreadsheet
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -114,6 +116,26 @@ export default function History() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="hidden sm:flex gap-1"
+              onClick={() => window.open('/api/reports/export/json', '_blank')}
+              data-testid="button-export-json"
+            >
+              <FileJson className="w-4 h-4" />
+              JSON
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="hidden sm:flex gap-1"
+              onClick={() => window.open('/api/reports/export/csv', '_blank')}
+              data-testid="button-export-csv"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              CSV
+            </Button>
             <Link href="/dashboard">
               <Button size="sm" className="hidden sm:flex" data-testid="button-new-check">
                 Нова перевірка

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   Shield, 
   Globe, 
@@ -62,12 +62,23 @@ import {
   MessageSquare,
   Sparkles,
   Menu,
-  X
+  X,
+  RotateCcw,
+  PlayCircle,
+  List,
+  Layers,
+  Keyboard,
+  Command,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useKeyboardShortcuts, shortcuts } from "@/hooks/useKeyboardShortcuts";
 import { apiRequest } from "@/lib/queryClient";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -372,6 +383,10 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
 
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 
+interface BulkCheckResult extends CheckResult {
+  error?: string;
+}
+
 export default function Dashboard() {
   const [selectedType, setSelectedType] = useState("ip");
   const [inputValue, setInputValue] = useState("");
@@ -381,7 +396,14 @@ export default function Dashboard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState("");
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkInput, setBulkInput] = useState("");
+  const [bulkResults, setBulkResults] = useState<BulkCheckResult[]>([]);
+  const [bulkProgress, setBulkProgress] = useState(0);
+  const [selectedBulkResult, setSelectedBulkResult] = useState<BulkCheckResult | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const bulkTextareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
@@ -441,6 +463,87 @@ export default function Dashboard() {
     },
   });
 
+  const bulkCheckMutation = useMutation({
+    mutationFn: async (checks: Array<{ type: string; value: string }>) => {
+      setBulkProgress(0);
+      setBulkResults([]);
+      
+      const res = await apiRequest("POST", "/api/bulk-check", { checks });
+      const data = await res.json();
+      
+      setBulkProgress(100);
+      setBulkResults(data.results || []);
+      
+      return data.results || [];
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      toast({
+        title: "Bulk перевірка завершена",
+        description: `Перевірено ${data.length} об'єктів`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Помилка",
+        description: error.message || "Не вдалося виконати bulk перевірку",
+        variant: "destructive",
+      });
+    },
+  });
+
+  interface ReportItem {
+    id: number;
+    type: string;
+    target: string;
+    riskLevel: string;
+    riskScore: number;
+    createdAt: string;
+  }
+
+  const { data: recentReports = [], isLoading: reportsLoading } = useQuery<ReportItem[]>({
+    queryKey: ["/api/reports"],
+  });
+
+  const handleRepeatCheck = (report: ReportItem) => {
+    const checkType = checkTypes.find(t => t.id === report.type.toLowerCase());
+    if (checkType) {
+      setSelectedType(checkType.id);
+      setInputValue(report.target);
+      setResult(null);
+      setTimeout(() => {
+        checkMutation.mutate({ type: checkType.id, value: report.target });
+      }, 100);
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "щойно";
+    if (diffMins < 60) return `${diffMins} хв тому`;
+    if (diffHours < 24) return `${diffHours} год тому`;
+    return `${diffDays} д тому`;
+  };
+
+  const getRiskConfig = (level: string) => {
+    switch (level.toLowerCase()) {
+      case "critical":
+        return { icon: AlertCircle, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/30" };
+      case "high":
+        return { icon: AlertTriangle, color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/30" };
+      case "medium":
+        return { icon: Clock, color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/30" };
+      default:
+        return { icon: ShieldCheck, color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/30" };
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       setLocation("/login");
@@ -475,6 +578,67 @@ export default function Dashboard() {
     }
     checkMutation.mutate({ type: selectedType, value });
   };
+
+  const handleBulkCheck = () => {
+    if (user && (user.requestsLeft ?? 0) <= 0) {
+      setShowSubscription(true);
+      toast({
+        title: "Ліміт вичерпано",
+        description: "Ваші безкоштовні запити закінчились. Оберіть тарифний план для продовження.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const values = bulkInput
+      .split('\n')
+      .map(v => v.trim())
+      .filter(v => v.length > 0);
+    
+    if (values.length === 0) {
+      toast({
+        title: "Помилка",
+        description: "Введіть значення для перевірки (по одному на рядок)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (values.length > 20) {
+      toast({
+        title: "Помилка",
+        description: "Максимум 20 значень за один раз",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const checks = values.map(value => ({ type: selectedType, value }));
+    setResult(null);
+    setSelectedBulkResult(null);
+    bulkCheckMutation.mutate(checks);
+  };
+
+  useKeyboardShortcuts({
+    inputRef,
+    bulkTextareaRef,
+    bulkMode,
+    onSubmit: handleCheck,
+    onBulkSubmit: handleBulkCheck,
+    onSelectType: (index) => {
+      if (index >= 0 && index < checkTypes.length) {
+        setSelectedType(checkTypes[index].id);
+      }
+    },
+    onClearResults: () => {
+      setResult(null);
+      setBulkResults([]);
+      setSelectedBulkResult(null);
+    },
+    onShowHelp: () => setShowShortcuts(true),
+    checkTypesCount: checkTypes.length,
+    disabled: showSubscription || showProfile || showShortcuts,
+  });
 
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
@@ -885,6 +1049,105 @@ export default function Dashboard() {
               </motion.div>
             </div>
 
+            {/* Quick Actions Widget */}
+            {recentReports.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
+              >
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-cyan-500/20 border border-cyan-500/30">
+                      <PlayCircle className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm lg:text-base font-display font-semibold text-white">Quick Actions</h3>
+                      <p className="text-[10px] lg:text-xs text-muted-foreground">Повторіть останні перевірки одним кліком</p>
+                    </div>
+                  </div>
+                  <Link href="/history">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                      data-testid="button-view-all-history"
+                    >
+                      Усі
+                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+                
+                {reportsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+                    <span className="text-xs text-muted-foreground ml-2">Завантаження...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3">
+                    {recentReports.slice(0, 5).map((report, idx) => {
+                      const riskConfig = getRiskConfig(report.riskLevel);
+                      const RiskIcon = riskConfig.icon;
+                      const checkType = checkTypes.find(t => t.id === report.type.toLowerCase());
+                      const TypeIcon = checkType?.icon || Globe;
+                      
+                      return (
+                        <motion.div
+                          key={report.id}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.05, duration: 0.3 }}
+                          className={`relative p-3 lg:p-4 rounded-xl ${riskConfig.bg} ${riskConfig.border} border backdrop-blur-sm group hover:border-white/30 transition-all duration-300`}
+                        >
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${checkType?.iconColor ? checkType.iconColor.replace('text-', 'bg-').replace('400', '500/20') : 'bg-white/10'}`}>
+                              <TypeIcon className={`w-3.5 h-3.5 ${checkType?.iconColor || 'text-white'}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] lg:text-xs font-medium uppercase tracking-wide text-muted-foreground">{checkType?.label || report.type}</p>
+                              <p className="text-xs lg:text-sm font-mono truncate text-white/90" title={report.target}>
+                                {report.target.length > 15 ? `${report.target.slice(0, 12)}...` : report.target}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1.5">
+                              <RiskIcon className={`w-3 h-3 ${riskConfig.color}`} />
+                              <span className={`text-[9px] lg:text-[10px] font-medium uppercase ${riskConfig.color}`}>
+                                {report.riskLevel}
+                              </span>
+                              <span className="text-[9px] lg:text-[10px] text-muted-foreground">·</span>
+                              <span className="text-[9px] lg:text-[10px] text-muted-foreground">
+                                {formatTimeAgo(report.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRepeatCheck(report)}
+                            disabled={checkMutation.isPending}
+                            className="absolute top-2 right-2 w-7 h-7 lg:w-8 lg:h-8 p-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 hover:bg-white/20 border border-white/10"
+                            data-testid={`button-repeat-check-${report.id}`}
+                          >
+                            {checkMutation.isPending ? (
+                              <Loader2 className="w-3 h-3 lg:w-3.5 lg:h-3.5 animate-spin" />
+                            ) : (
+                              <RotateCcw className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
+                            )}
+                          </Button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
             <div className="space-y-4 lg:space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 lg:gap-3">
                 {checkTypes.map((type, idx) => {
@@ -1010,26 +1273,73 @@ export default function Dashboard() {
                   )}
                   
                   <div className="flex flex-col gap-2.5 lg:gap-3">
-                    <div className="relative w-full">
-                      <Terminal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground pointer-events-none" />
-                      <Input
-                        ref={inputRef}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={selectedCheck?.placeholder}
-                        className="h-11 lg:h-14 pl-9 lg:pl-12 pr-3 lg:pr-4 text-sm lg:text-lg font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full max-w-full touch-manipulation"
-                        onKeyDown={(e) => e.key === "Enter" && handleCheck()}
-                        data-testid="input-check-value"
-                      />
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Bulk Mode</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={bulkMode}
+                          onCheckedChange={(checked) => {
+                            setBulkMode(checked);
+                            setResult(null);
+                            setBulkResults([]);
+                            setSelectedBulkResult(null);
+                          }}
+                          data-testid="switch-bulk-mode"
+                        />
+                        <span className="text-xs text-muted-foreground">{bulkMode ? "Увімкнено" : "Вимкнено"}</span>
+                      </div>
                     </div>
+                    
+                    {bulkMode ? (
+                      <div className="relative w-full">
+                        <Textarea
+                          ref={bulkTextareaRef}
+                          value={bulkInput}
+                          onChange={(e) => setBulkInput(e.target.value)}
+                          placeholder={`Введіть значення (по одному на рядок, макс. 20)\nПриклад:\n${selectedCheck?.placeholder || ''}\n${selectedCheck?.placeholder || ''}`}
+                          className="min-h-[120px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
+                          data-testid="textarea-bulk-input"
+                        />
+                        <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                          <span>{bulkInput.split('\n').filter(v => v.trim()).length} / 20 значень</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative w-full">
+                        <Terminal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground pointer-events-none" />
+                        <Input
+                          ref={inputRef}
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          placeholder={selectedCheck?.placeholder}
+                          className="h-11 lg:h-14 pl-9 lg:pl-12 pr-3 lg:pr-4 text-sm lg:text-lg font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full max-w-full touch-manipulation"
+                          onKeyDown={(e) => e.key === "Enter" && handleCheck()}
+                          data-testid="input-check-value"
+                        />
+                      </div>
+                    )}
+
+                    {bulkCheckMutation.isPending && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Прогрес перевірки...</span>
+                          <span>{bulkProgress}%</span>
+                        </div>
+                        <Progress value={bulkProgress} className="h-2" />
+                      </div>
+                    )}
+
                     <motion.div whileTap={{ scale: 0.98 }}>
                       <Button 
-                        onClick={handleCheck} 
-                        disabled={checkMutation.isPending}
+                        onClick={bulkMode ? handleBulkCheck : handleCheck} 
+                        disabled={checkMutation.isPending || bulkCheckMutation.isPending}
                         className="h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation"
                         data-testid="button-perform-check"
                       >
-                        {checkMutation.isPending ? (
+                        {(checkMutation.isPending || bulkCheckMutation.isPending) ? (
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -1038,8 +1348,17 @@ export default function Dashboard() {
                           </motion.div>
                         ) : (
                           <>
-                            <Search className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                            Сканувати
+                            {bulkMode ? (
+                              <>
+                                <Layers className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+                                Bulk Сканування
+                              </>
+                            ) : (
+                              <>
+                                <Search className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+                                Сканувати
+                              </>
+                            )}
                           </>
                         )}
                       </Button>
@@ -1227,7 +1546,129 @@ export default function Dashboard() {
               )}
             </AnimatePresence>
 
-            {!result && (
+            {bulkMode && bulkResults.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="space-y-3 lg:space-y-4"
+              >
+                <div className="p-3.5 lg:p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <List className="w-5 h-5 text-primary" />
+                      <h3 className="text-sm lg:text-lg font-display font-semibold">Результати Bulk перевірки</h3>
+                    </div>
+                    <Badge className="bg-primary/20 text-primary border-primary/30">
+                      {bulkResults.length} результатів
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-1">
+                    {bulkResults.map((bulkResult, idx) => {
+                      const riskConfig = getRiskConfig(bulkResult.riskLevel);
+                      const RiskIcon = riskConfig.icon;
+                      const isSelected = selectedBulkResult?.target === bulkResult.target;
+                      
+                      return (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.03, duration: 0.2 }}
+                          onClick={() => setSelectedBulkResult(isSelected ? null : bulkResult)}
+                          className={`p-3 lg:p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
+                            isSelected
+                              ? `${riskConfig.border} ${riskConfig.bg} ring-1 ring-white/20`
+                              : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                          }`}
+                          data-testid={`bulk-result-${idx}`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${riskConfig.bg}`}>
+                                <RiskIcon className={`w-4 h-4 ${riskConfig.color}`} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs lg:text-sm font-mono truncate" title={bulkResult.target}>
+                                  {bulkResult.target}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className={`text-[10px] font-medium uppercase ${riskConfig.color}`}>
+                                    {bulkResult.riskLevel}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    Score: {bulkResult.riskScore}/100
+                                  </span>
+                                  {bulkResult.error && (
+                                    <Badge variant="destructive" className="text-[9px] px-1.5">
+                                      Помилка
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isSelected ? 'rotate-90' : ''}`} />
+                          </div>
+                          
+                          <AnimatePresence>
+                            {isSelected && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="mt-3 pt-3 border-t border-white/10"
+                              >
+                                {bulkResult.error ? (
+                                  <p className="text-xs text-red-400">{bulkResult.error}</p>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <p className="text-xs text-muted-foreground">{bulkResult.summary}</p>
+                                    {bulkResult.findings.length > 0 && (
+                                      <div className="space-y-1">
+                                        {bulkResult.findings.slice(0, 3).map((finding, fIdx) => (
+                                          <div key={fIdx} className="text-[10px] text-muted-foreground flex items-start gap-1.5">
+                                            <ChevronRight className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                            <span>{finding}</span>
+                                          </div>
+                                        ))}
+                                        {bulkResult.findings.length > 3 && (
+                                          <p className="text-[10px] text-muted-foreground/60">
+                                            +{bulkResult.findings.length - 3} more findings...
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>{bulkResults.filter(r => r.riskLevel === 'low').length} безпечних</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <AlertTriangle className="w-4 h-4 text-orange-400" />
+                      <span>{bulkResults.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length} небезпечних</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <XCircle className="w-4 h-4 text-red-400" />
+                      <span>{bulkResults.filter(r => r.error).length} помилок</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {!result && !bulkMode && bulkResults.length === 0 && (
               <motion.div 
                 className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4"
                 initial={{ opacity: 0 }}
@@ -1400,6 +1841,61 @@ export default function Dashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showShortcuts} onOpenChange={setShowShortcuts}>
+        <DialogContent className="bg-black/95 border-primary/30 backdrop-blur-xl max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-display flex items-center gap-2">
+              <Keyboard className="w-5 h-5 text-primary" />
+              Гарячі клавіші
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Використовуйте клавіатуру для швидкої навігації
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 mt-4">
+            {shortcuts.map((shortcut, index) => (
+              <div 
+                key={index} 
+                className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10"
+              >
+                <span className="text-sm text-muted-foreground">{shortcut.description}</span>
+                <div className="flex items-center gap-1">
+                  {shortcut.keys.map((key, keyIndex) => (
+                    <span key={keyIndex}>
+                      {key === "-" ? (
+                        <span className="text-muted-foreground mx-1">-</span>
+                      ) : (
+                        <kbd className="px-2 py-1 text-xs font-mono bg-black/50 border border-white/20 rounded text-primary">
+                          {key === "Ctrl" && navigator.platform.includes("Mac") ? "⌘" : key}
+                        </kbd>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-4 pt-3 border-t border-white/10">
+            <p className="text-xs text-muted-foreground text-center">
+              Натисніть <kbd className="px-1.5 py-0.5 text-xs bg-black/50 border border-white/20 rounded">?</kbd> щоб відкрити цю підказку
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <motion.button
+        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-cyan-500/10 border border-primary/30 flex items-center justify-center text-primary hover:border-primary/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-300"
+        onClick={() => setShowShortcuts(true)}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        title="Гарячі клавіші (?)"
+        data-testid="button-shortcuts-help"
+      >
+        <HelpCircle className="w-5 h-5" />
+      </motion.button>
     </div>
   );
 }
