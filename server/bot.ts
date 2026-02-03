@@ -383,7 +383,7 @@ ${t(lang, "dashboard.selectModule")}`;
 
 👤 ${t(lang, "common.profile")}:
 • ID: ${user.tgId}
-• Username: @${user.username || "—"}
+• Username: @${user.username ? user.username.replace(/_/g, "\\_") : "—"}
 • ${tierEmoji} ${t(lang, "common.tier")}: ${user.tier || "FREE"}
 • 📅 ${joinDate}
 
@@ -1553,34 +1553,34 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const text = `👤 *${lang === "uk" ? "МІЙ АКАУНТ" : lang === "ru" ? "МОЙ АККАУНТ" : "MY ACCOUNT"}*
+    const text = `👤 ${lang === "uk" ? "МІЙ АКАУНТ" : lang === "ru" ? "МОЙ АККАУНТ" : "MY ACCOUNT"}
 ━━━━━━━━━━━━━━━━━━━━
 
-📋 *${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:*
-├ ID: \`${tgId}\`
+📋 ${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:
+├ ID: ${tgId}
 ├ Username: @${username}
-├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: *${tierName}*
+├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: ${tierName}
 ├ 📅 ${lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created"}: ${createdAt}
 ├ ⏰ ${lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last activity"}: ${lastActive}
-└ 🎁 ${lang === "uk" ? "Реф. код" : lang === "ru" ? "Реф. код" : "Ref. code"}: \`${refCode}\`
+└ 🎁 ${lang === "uk" ? "Реф. код" : lang === "ru" ? "Реф. код" : "Ref. code"}: ${refCode}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}:*
-├ 🔍 ${lang === "uk" ? "Всього перевірок" : lang === "ru" ? "Всего проверок" : "Total checks"}: *${totalChecks}*
-├ 👁 ${lang === "uk" ? "Активних моніторів" : lang === "ru" ? "Активных мониторов" : "Active monitors"}: *${activeMonitors}*
-├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralCount}*
-├ 🔥 ${lang === "uk" ? "Серія днів" : lang === "ru" ? "Серия дней" : "Streak"}: *${streakDays}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Remaining"}: *${user.requestsLeft ?? 15}* ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
+📊 ${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}:
+├ 🔍 ${lang === "uk" ? "Всього перевірок" : lang === "ru" ? "Всего проверок" : "Total checks"}: ${totalChecks}
+├ 👁 ${lang === "uk" ? "Активних моніторів" : lang === "ru" ? "Активных мониторов" : "Active monitors"}: ${activeMonitors}
+├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: ${referralCount}
+├ 🔥 ${lang === "uk" ? "Серія днів" : lang === "ru" ? "Серия дней" : "Streak"}: ${streakDays} ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
+└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Remaining"}: ${user.requestsLeft ?? 15} ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-🎯 *${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}:*
+🎯 ${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}:
 ${topTypesText}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-🏅 *${lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements"}:*
+🏅 ${lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements"}:
 ${riskHunterDone} 🏆 Risk Hunter (${riskHunterProgress}/10)
     ${riskHunterBar}
 ${scamSlayerDone} 🛡️ Scam Slayer (${scamSlayerProgress}/50)
@@ -1592,7 +1592,7 @@ ${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
 
 ━━━━━━━━━━━━━━━━━━━━
 
-💎 *${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}:*
+💎 ${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}:
 └ ${tierBenefits}`;
 
     const keyboard = Markup.inlineKeyboard([
@@ -1607,9 +1607,12 @@ ${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
     ]);
     
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
-    } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { ...keyboard });
+    } catch (e: any) {
+      if (e.message?.includes("message is not modified")) {
+        return;
+      }
+      await ctx.reply(text, { ...keyboard });
     }
   });
 
@@ -1654,32 +1657,34 @@ ${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const text = `📊 *${lang === "uk" ? "ДЕТАЛЬНА СТАТИСТИКА" : lang === "ru" ? "ПОДРОБНАЯ СТАТИСТИКА" : "DETAILED STATISTICS"}*
+    const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : "—";
+    
+    const text = `📊 ${lang === "uk" ? "ДЕТАЛЬНА СТАТИСТИКА" : lang === "ru" ? "ПОДРОБНАЯ СТАТИСТИКА" : "DETAILED STATISTICS"}
 ━━━━━━━━━━━━━━━━━━━━
 
-👤 *${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:*
-├ ID: \`${user.tgId}\`
-├ Username: @${user.username || "—"}
-├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: *${user.tier || "FREE"}*
+👤 ${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:
+├ ID: ${user.tgId}
+├ Username: @${escapedUsername}
+├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: ${user.tier || "FREE"}
 ├ 📅 ${lang === "uk" ? "Реєстрація" : lang === "ru" ? "Регистрация" : "Registered"}: ${joinDate}
 └ 🕐 ${lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last active"}: ${lastActive}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-📈 *${lang === "uk" ? "Активність" : lang === "ru" ? "Активность" : "Activity"}:*
-├ 🔍 ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${reports.length}*
-├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: *${watches.length}*
-├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralStats.count}*
-└ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${user.streakDays || 0}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
+📈 ${lang === "uk" ? "Активність" : lang === "ru" ? "Активность" : "Activity"}:
+├ 🔍 ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: ${reports.length}
+├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: ${watches.length}
+├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: ${referralStats.count}
+└ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: ${user.streakDays || 0} ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-🎯 *${lang === "uk" ? "Перевірки по типах" : lang === "ru" ? "Проверки по типам" : "Checks by type"}:*
+🎯 ${lang === "uk" ? "Перевірки по типах" : lang === "ru" ? "Проверки по типам" : "Checks by type"}:
 ${allTypesText}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-📊 *${lang === "uk" ? "Прогрес" : lang === "ru" ? "Прогресс" : "Progress"}:*
+📊 ${lang === "uk" ? "Прогрес" : lang === "ru" ? "Прогресс" : "Progress"}:
 ├ 💳 ${lang === "uk" ? "Запити" : lang === "ru" ? "Запросы" : "Requests"}: ${user.requestsLeft || 0}/15
 │   ${requestsBar}
 └ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: ${user.streakDays || 0}/30 ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
@@ -1691,9 +1696,13 @@ ${allTypesText}
     ]);
     
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
-    } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { ...keyboard });
+    } catch (err: any) {
+      if (!err.message?.includes("message is not modified")) {
+        try {
+          await ctx.reply(text, { ...keyboard });
+        } catch {}
+      }
     }
   });
 
@@ -2246,8 +2255,9 @@ ${allTypesText}
       console.log("Failed to notify user about tier change:", e);
     }
     
+    const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : user.tgId;
     const text = `✅ *Тариф змінено!*\n\n` +
-      `Користувач: @${user.username || user.tgId}\n` +
+      `Користувач: @${escapedUsername}\n` +
       `Новий тариф: ${newTier}`;
 
     await ctx.editMessageText(text, {
@@ -2334,13 +2344,14 @@ ${allTypesText}
     const statusEmoji = user.blocked ? "🔴" : "🟢";
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
     
+    const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : null;
     const text = `👤 *ІНФОРМАЦІЯ ПРО КОРИСТУВАЧА*\n\n` +
       `${statusEmoji} *Статус:* ${user.blocked ? "Заблокований" : "Активний"}\n` +
       `${tierEmoji} *Тариф:* ${user.tier}\n\n` +
       `📋 *Дані:*\n` +
       `├ ID: \`${user.id}\`\n` +
       `├ TG ID: \`${user.tgId}\`\n` +
-      `├ Username: ${user.username ? `@${user.username}` : "—"}\n` +
+      `├ Username: ${escapedUsername ? `@${escapedUsername}` : "—"}\n` +
       `├ Мова: ${user.lang?.toUpperCase() || "UK"}\n` +
       `├ Залишок запитів: ${user.requestsLeft}\n` +
       `├ Streak: ${user.streakDays} днів\n` +
