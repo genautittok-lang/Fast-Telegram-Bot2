@@ -1319,7 +1319,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
   bot.action(["buy_pro", "buy_enterprise"], async (ctx) => {
     const tier = ctx.match.input === "buy_pro" ? "PRO" : "ENTERPRISE";
-    const amount = tier === "PRO" ? "10" : "50";
+    const amount = tier === "PRO" ? "10" : "30";
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
 

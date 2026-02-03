@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,10 @@ import {
   CreditCard,
   Smartphone,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Bitcoin,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 
 interface Price {
@@ -37,11 +40,22 @@ interface Product {
   prices: Price[];
 }
 
+type PaymentMethod = "card" | "crypto";
+
+const CRYPTO_WALLET = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
+const CRYPTO_PRICES = {
+  PRO: { monthly: 10, yearly: 100 },
+  ENTERPRISE: { monthly: 30, yearly: 300 },
+};
+
 export default function Pricing() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isYearly, setIsYearly] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
+  const [showCryptoModal, setShowCryptoModal] = useState<"PRO" | "ENTERPRISE" | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState(false);
 
   const { data: productsData, isLoading } = useQuery<{ products: Product[] }>({
     queryKey: ["/api/stripe/products"],
@@ -110,6 +124,36 @@ export default function Pricing() {
     checkoutMutation.mutate({ priceId, tier });
   };
 
+  const handleCryptoPayment = (tier: "PRO" | "ENTERPRISE") => {
+    if (!user) {
+      setLocation("/login");
+      return;
+    }
+    setShowCryptoModal(tier);
+  };
+
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(CRYPTO_WALLET);
+      setCopiedAddress(true);
+      toast({
+        title: "Скопійовано!",
+        description: "Адресу гаманця скопійовано в буфер обміну",
+      });
+      setTimeout(() => setCopiedAddress(false), 3000);
+    } catch {
+      toast({
+        title: "Помилка",
+        description: "Не вдалося скопіювати адресу",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getCryptoPrice = (tier: "PRO" | "ENTERPRISE") => {
+    return isYearly ? CRYPTO_PRICES[tier].yearly : CRYPTO_PRICES[tier].monthly;
+  };
+
   const features = {
     free: [
       "15 перевірок на день",
@@ -160,23 +204,67 @@ export default function Pricing() {
             Тарифні плани
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Обирай план, що підходить саме тобі. Оплата через Google Pay, Apple Pay або картку.
+            Обирай план, що підходить саме тобі
           </p>
           
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-full">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Картка</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-full">
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Google Pay</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-full">
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Apple Pay</span>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+            <Button
+              variant={paymentMethod === "card" ? "default" : "outline"}
+              onClick={() => setPaymentMethod("card")}
+              className={paymentMethod === "card" ? "bg-emerald-600" : ""}
+              data-testid="button-payment-card"
+            >
+              <CreditCard className="h-5 w-5 mr-2" />
+              Картка / Google Pay / Apple Pay
+            </Button>
+            <Button
+              variant={paymentMethod === "crypto" ? "default" : "outline"}
+              onClick={() => setPaymentMethod("crypto")}
+              className={paymentMethod === "crypto" ? "bg-amber-600" : ""}
+              data-testid="button-payment-crypto"
+            >
+              <Bitcoin className="h-5 w-5 mr-2" />
+              Криптовалюта (USDT)
+            </Button>
           </div>
+
+          <AnimatePresence mode="wait">
+            {paymentMethod === "card" ? (
+              <motion.div
+                key="card-info"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-center gap-4 mt-4"
+              >
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/20 rounded-full">
+                  <Smartphone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Google Pay</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/20 rounded-full">
+                  <Smartphone className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Apple Pay</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/20 rounded-full">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Visa / Mastercard</span>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="crypto-info"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-center gap-4 mt-4"
+              >
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 rounded-full border border-amber-500/30">
+                  <span className="text-xs text-amber-400">USDT TRC-20</span>
+                </div>
+                <div className="text-xs text-muted-foreground">Мережа TRON</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         <div className="flex items-center justify-center gap-4 mb-8">
@@ -289,20 +377,26 @@ export default function Pricing() {
                   <Button
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                     onClick={() => {
-                      const price = getPrice(proPlan, isYearly);
-                      if (price) {
-                        handleSubscribe(price.id, "PRO");
+                      if (paymentMethod === "crypto") {
+                        handleCryptoPayment("PRO");
+                      } else {
+                        const price = getPrice(proPlan, isYearly);
+                        if (price) {
+                          handleSubscribe(price.id, "PRO");
+                        }
                       }
                     }}
-                    disabled={checkoutMutation.isPending || !proPlan}
+                    disabled={checkoutMutation.isPending || (paymentMethod === "card" && !proPlan)}
                     data-testid="button-pro-plan"
                   >
                     {checkoutMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : paymentMethod === "crypto" ? (
+                      <Bitcoin className="mr-2 h-4 w-4" />
                     ) : (
                       <Zap className="mr-2 h-4 w-4" />
                     )}
-                    Підписатись на PRO
+                    {paymentMethod === "crypto" ? `Оплатити $${getCryptoPrice("PRO")} USDT` : "Підписатись на PRO"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -352,20 +446,26 @@ export default function Pricing() {
                   <Button
                     className="w-full bg-amber-600 hover:bg-amber-700"
                     onClick={() => {
-                      const price = getPrice(enterprisePlan, isYearly);
-                      if (price) {
-                        handleSubscribe(price.id, "ENTERPRISE");
+                      if (paymentMethod === "crypto") {
+                        handleCryptoPayment("ENTERPRISE");
+                      } else {
+                        const price = getPrice(enterprisePlan, isYearly);
+                        if (price) {
+                          handleSubscribe(price.id, "ENTERPRISE");
+                        }
                       }
                     }}
-                    disabled={checkoutMutation.isPending || !enterprisePlan}
+                    disabled={checkoutMutation.isPending || (paymentMethod === "card" && !enterprisePlan)}
                     data-testid="button-enterprise-plan"
                   >
                     {checkoutMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : paymentMethod === "crypto" ? (
+                      <Bitcoin className="mr-2 h-4 w-4" />
                     ) : (
                       <Rocket className="mr-2 h-4 w-4" />
                     )}
-                    Отримати ENTERPRISE
+                    {paymentMethod === "crypto" ? `Оплатити $${getCryptoPrice("ENTERPRISE")} USDT` : "Отримати ENTERPRISE"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -389,22 +489,118 @@ export default function Pricing() {
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-16 text-center"
-        >
-          <h3 className="text-xl font-semibold mb-4">Криптовалюта?</h3>
-          <p className="text-muted-foreground mb-4">
-            Якщо хочеш оплатити криптою (BTC, ETH, USDT) - напиши нам у Telegram боті
-          </p>
-          <Button variant="outline" asChild>
-            <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
-              Написати в бот
-            </a>
-          </Button>
-        </motion.div>
+        <AnimatePresence>
+          {showCryptoModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowCryptoModal(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-6"
+                onClick={(e) => e.stopPropagation()}
+                data-testid="modal-crypto-payment"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    showCryptoModal === "PRO" 
+                      ? "bg-emerald-500/20" 
+                      : "bg-amber-500/20"
+                  }`}>
+                    {showCryptoModal === "PRO" ? (
+                      <Star className="w-6 h-6 text-emerald-400" />
+                    ) : (
+                      <Crown className="w-6 h-6 text-amber-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold" data-testid="text-crypto-plan-name">{showCryptoModal} План</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Оплата криптовалютою USDT
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6" data-testid="card-crypto-payment-details">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-muted-foreground">Сума до оплати:</span>
+                    <span className="text-2xl font-bold text-amber-400" data-testid="text-crypto-price">
+                      ${getCryptoPrice(showCryptoModal)} USDT
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Період:</span>
+                    <span>{isYearly ? "12 місяців" : "1 місяць"}</span>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Надішліть USDT (TRC-20) на адресу:
+                  </p>
+                  <div className="flex items-center gap-2 bg-zinc-800 rounded-xl p-3">
+                    <code className="flex-1 text-xs text-amber-400 font-mono break-all">
+                      {CRYPTO_WALLET}
+                    </code>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={copyAddress}
+                      className="shrink-0"
+                      data-testid="button-copy-address"
+                    >
+                      {copiedAddress ? (
+                        <Check className="h-4 w-4 text-emerald-400" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+                  <h4 className="font-semibold text-amber-400 mb-2">Як оплатити:</h4>
+                  <ol className="text-sm text-muted-foreground space-y-1.5">
+                    <li>1. Скопіюйте адресу гаманця вище</li>
+                    <li>2. Відправте ${getCryptoPrice(showCryptoModal)} USDT (TRC-20)</li>
+                    <li>3. Збережіть хеш транзакції (TXID)</li>
+                    <li>4. Надішліть TXID або скріншот у бот</li>
+                  </ol>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowCryptoModal(null)}
+                    data-testid="button-close-crypto-modal"
+                  >
+                    Закрити
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600"
+                    asChild
+                  >
+                    <a 
+                      href="https://t.me/DARKSHAREN1_BOT" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      data-testid="link-telegram-bot"
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Відкрити бот
+                    </a>
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

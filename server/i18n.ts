@@ -109,10 +109,10 @@ export const translations = {
       freeDetails: "• 15 запитів/день\n• Базові модулі\n• 1 об'єкт моніторингу",
       pro: "⭐ PRO - $10/місяць",
       proDetails: "• Безлімітні запити\n• Всі модулі (CVE, IoT, Cloud)\n• Безлімітний моніторинг\n• PDF без водяного знаку\n• Пріоритетна підтримка",
-      enterprise: "💎 ENTERPRISE - $50/місяць",
+      enterprise: "💎 ENTERPRISE - $30/місяць",
       enterpriseDetails: "• Все з PRO\n• API доступ\n• SIEM інтеграція\n• Персональна підтримка",
       buyPro: "⭐ Купити PRO $10",
-      buyEnterprise: "💎 Купити ENTERPRISE $50",
+      buyEnterprise: "💎 Купити ENTERPRISE $30",
     },
     
     payment: {
@@ -352,10 +352,10 @@ Select a module for analysis:`,
       freeDetails: "• 15 requests/day\n• Basic modules\n• 1 monitoring object",
       pro: "⭐ PRO - $10/month",
       proDetails: "• Unlimited requests\n• All modules (CVE, IoT, Cloud)\n• Unlimited monitoring\n• PDF without watermark\n• Priority support",
-      enterprise: "💎 ENTERPRISE - $50/month",
+      enterprise: "💎 ENTERPRISE - $30/month",
       enterpriseDetails: "• Everything from PRO\n• API access\n• SIEM integration\n• Dedicated support",
       buyPro: "⭐ Buy PRO $10",
-      buyEnterprise: "💎 Buy ENTERPRISE $50",
+      buyEnterprise: "💎 Buy ENTERPRISE $30",
     },
     
     payment: {
@@ -595,10 +595,10 @@ Select a module for analysis:`,
       freeDetails: "• 15 запросов/день\n• Базовые модули\n• 1 объект мониторинга",
       pro: "⭐ PRO - $10/месяц",
       proDetails: "• Безлимитные запросы\n• Все модули (CVE, IoT, Cloud)\n• Безлимитный мониторинг\n• PDF без водяного знака\n• Приоритетная поддержка",
-      enterprise: "💎 ENTERPRISE - $50/месяц",
+      enterprise: "💎 ENTERPRISE - $30/месяц",
       enterpriseDetails: "• Всё из PRO\n• API доступ\n• SIEM интеграция\n• Персональная поддержка",
       buyPro: "⭐ Купить PRO $10",
-      buyEnterprise: "💎 Купить ENTERPRISE $50",
+      buyEnterprise: "💎 Купить ENTERPRISE $30",
     },
     
     payment: {
