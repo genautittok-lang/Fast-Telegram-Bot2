@@ -59,17 +59,27 @@ export default function Pricing() {
           userEmail: user?.username ? `${user.username}@telegram.user` : undefined,
         }),
       });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || "Payment failed");
+      }
       return response.json();
     },
     onSuccess: (data) => {
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.error) {
+        toast({
+          title: "Помилка",
+          description: data.error,
+          variant: "destructive",
+        });
       }
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Помилка",
-        description: "Не вдалося створити сесію оплати",
+        description: error.message || "Не вдалося створити сесію оплати",
         variant: "destructive",
       });
     },
