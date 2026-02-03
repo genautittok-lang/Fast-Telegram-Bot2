@@ -1881,28 +1881,33 @@ ${allTypesText}
     const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
     const blockedUsers = allUsers.filter(u => u.blocked).length;
     
-    const text = `📊 *ДЕТАЛЬНА СТАТИСТИКА*\n\n` +
-      `👥 *Користувачі:*\n` +
+    const text = `📊 ДЕТАЛЬНА СТАТИСТИКА\n\n` +
+      `👥 Користувачі:\n` +
       `├ Всього: ${stats.totalUsers}\n` +
       `├ FREE: ${freeUsers}\n` +
       `├ PRO: ${proUsers}\n` +
       `├ ENTERPRISE: ${enterpriseUsers}\n` +
       `└ Заблоковано: ${blockedUsers}\n\n` +
-      `📄 *Звіти:*\n` +
+      `📄 Звіти:\n` +
       `├ Всього: ${stats.totalReports || 0}\n` +
       `└ Сьогодні: ${stats.checksToday || 0}\n\n` +
-      `👁 *Моніторинг:*\n` +
+      `👁 Моніторинг:\n` +
       `└ Активних: ${stats.activeWatches}\n\n` +
-      `💳 *Платежі:*\n` +
+      `💳 Платежі:\n` +
       `└ Pending: ${stats.pendingPayments || 0}`;
 
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [Markup.button.callback("🔄 Оновити", "admin_stats")],
-        [Markup.button.callback("⬅️ Назад", "admin_back")]
-      ])
-    });
+    try {
+      await ctx.editMessageText(text, {
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("🔄 Оновити", "admin_stats")],
+          [Markup.button.callback("⬅️ Назад", "admin_back")]
+        ])
+      });
+    } catch (err: any) {
+      if (!err.message?.includes("message is not modified")) {
+        console.error("Error updating admin stats:", err);
+      }
+    }
   });
 
   bot.action("admin_users", async (ctx) => {
@@ -1914,29 +1919,35 @@ ${allTypesText}
     
     const latestUsers = await storage.getLatestUsers(10);
     
-    let text = `👥 *ОСТАННІ 10 КОРИСТУВАЧІВ*\n\n`;
+    let text = `👥 ОСТАННІ 10 КОРИСТУВАЧІВ\n\n`;
     
     if (latestUsers.length === 0) {
       text += "Користувачів ще немає.";
     } else {
       latestUsers.forEach((u, i) => {
-        const username = u.username ? `@${u.username}` : "—";
+        const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : "";
+        const username = u.username ? `@${escapedUsername}` : "—";
         const blockedIcon = u.blocked ? "🔴" : "🟢";
         const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString("uk-UA") : "—";
         text += `${i + 1}. ${blockedIcon} ${username}\n`;
-        text += `   ID: \`${u.tgId}\` | ${u.tier} | ${date}\n`;
+        text += `   ID: ${u.tgId} | ${u.tier} | ${date}\n`;
       });
     }
     
-    text += `\n_Для блокування відправте ID користувача_`;
+    text += `\nДля блокування відправте ID користувача`;
 
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [Markup.button.callback("🔄 Оновити", "admin_users")],
-        [Markup.button.callback("⬅️ Назад", "admin_back")]
-      ])
-    });
+    try {
+      await ctx.editMessageText(text, {
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback("🔄 Оновити", "admin_users")],
+          [Markup.button.callback("⬅️ Назад", "admin_back")]
+        ])
+      });
+    } catch (err: any) {
+      if (!err.message?.includes("message is not modified")) {
+        console.error("Error updating admin users:", err);
+      }
+    }
   });
 
   bot.action("admin_payments", async (ctx) => {
@@ -1948,14 +1959,15 @@ ${allTypesText}
     
     const pendingPayments = await storage.getPendingPayments();
     
-    let text = `💳 *PENDING ПЛАТЕЖІ*\n\n`;
+    let text = `💳 PENDING ПЛАТЕЖІ\n\n`;
     
     if (pendingPayments.length === 0) {
       text += "Немає pending платежів.";
     } else {
       for (const p of pendingPayments) {
         const user = await storage.getUserById(p.userId!);
-        const username = user?.username ? `@${user.username}` : user?.tgId || "—";
+        const escapedUsername = user?.username ? user.username.replace(/_/g, "\\_") : "";
+        const username = user?.username ? `@${escapedUsername}` : user?.tgId || "—";
         const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString("uk-UA") : "—";
         text += `#${p.id} | ${username}\n`;
         text += `   ${p.tier} | $${p.amountUsdt} | ${date}\n\n`;
@@ -1974,10 +1986,15 @@ ${allTypesText}
     buttons.push([Markup.button.callback("🔄 Оновити", "admin_payments")]);
     buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
 
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard(buttons)
-    });
+    try {
+      await ctx.editMessageText(text, {
+        ...Markup.inlineKeyboard(buttons)
+      });
+    } catch (err: any) {
+      if (!err.message?.includes("message is not modified")) {
+        console.error("Error updating admin payments:", err);
+      }
+    }
   });
 
   bot.action("admin_broadcast", async (ctx) => {
