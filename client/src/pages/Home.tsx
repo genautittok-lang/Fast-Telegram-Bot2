@@ -708,6 +708,12 @@ export default function Home() {
                     {t.webDashboard}
                   </Button>
                 </Link>
+                <Link href="/pricing">
+                  <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="button-pricing-cta">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    {lang === "UA" ? "Тарифи" : lang === "RU" ? "Тарифы" : "Pricing"}
+                  </Button>
+                </Link>
                 <a 
                   href="https://t.me/DARKSHAREN1_BOT" 
                   target="_blank" 
