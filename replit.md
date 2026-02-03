@@ -2,7 +2,7 @@
 
 ## Overview
 
-DARKSHARE is a professional security OSINT platform deployed on Railway (www.darkshare.store). The platform enables users to analyze various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, and usernames for potential risks. The system provides AI-enhanced risk scoring, generates PDF reports with QR verification, and offers real-time monitoring capabilities.
+DARKSHARE is a professional security OSINT platform deployed on Railway (www.darkshare.store). The platform enables users to analyze various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs for potential risks. The system provides AI-enhanced risk scoring, generates PDF reports with QR verification, and offers real-time monitoring capabilities.
 
 The application consists of:
 - A React-based landing page showcasing features and live statistics
@@ -22,10 +22,11 @@ The application consists of:
 ### Routes
 - `/` - Landing page with "Web Dashboard" and "Telegram Bot" buttons
 - `/login` - Telegram authentication page
-- `/dashboard` - Check form with 10 check types (protected route)
+- `/dashboard` - Check form with 11 check types (protected route)
 - `/history` - Report history with PDF download (protected route)
 - `/monitoring` - Watchlist management (protected route)
 - `/referral` - Referral program with stats and share links (protected route)
+- `/account` - User profile, stats, achievements, settings (protected route)
 
 ### API Endpoints
 
