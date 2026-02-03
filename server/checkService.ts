@@ -105,6 +105,11 @@ export function validateInput(type: string, value: string): { valid: boolean; er
         return { valid: false, error: "Невірний username. 3-30 символів, букви/цифри/_/." };
       }
       break;
+    case "card":
+      if (!/^\d{6,8}$/.test(cleanValue)) {
+        return { valid: false, error: "Невірний формат. Введіть 6-8 цифр BIN (перші цифри картки)" };
+      }
+      break;
   }
   return { valid: true };
 }
@@ -144,6 +149,9 @@ export async function performCheck(type: string, value: string): Promise<CheckRe
       break;
     case "username":
       result = await checkUsername(value, timestamp);
+      break;
+    case "card":
+      result = await checkCard(value, timestamp);
       break;
     default:
       throw new Error(`Unknown check type: ${type}`);
@@ -2191,6 +2199,162 @@ async function checkUsername(value: string, timestamp: Date): Promise<CheckResul
     riskLevel,
     summary: `Username "${username}" — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
     details: usernameData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+// ==================== CARD BIN CHECK ====================
+async function checkCard(value: string, timestamp: Date): Promise<CheckResult> {
+  let riskScore = 10;
+  const findings: string[] = [];
+  const sources: string[] = ["binlist.net", "Локальний аналіз"];
+  const cardData: any = {};
+  
+  const bin = value.trim();
+  cardData.bin = bin;
+  
+  // Known fraud BIN patterns
+  const fraudPatterns = ["400000", "411111", "444444"];
+  if (fraudPatterns.some(pattern => bin.startsWith(pattern))) {
+    riskScore += 25;
+    findings.push("🔴 Відомий тестовий/фродовий BIN патерн");
+    cardData.isFraudPattern = true;
+  }
+  
+  // High-risk countries
+  const highRiskCountries = ["RU", "CN", "NG", "BY", "IR", "KP"];
+  
+  // Fetch BIN data from binlist.net
+  try {
+    const response = await fetchWithTimeout(`https://lookup.binlist.net/${bin}`, 5000, {
+      headers: {
+        'Accept-Version': '3'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Extract brand (Visa/Mastercard/etc)
+      if (data.scheme) {
+        cardData.brand = data.scheme.charAt(0).toUpperCase() + data.scheme.slice(1);
+        findings.push(`💳 Бренд: ${cardData.brand}`);
+      }
+      
+      // Extract card type (debit/credit)
+      if (data.type) {
+        cardData.type = data.type;
+        findings.push(`📋 Тип: ${data.type === 'debit' ? 'Дебетова' : data.type === 'credit' ? 'Кредитна' : data.type}`);
+      }
+      
+      // Check if prepaid
+      if (data.prepaid === true) {
+        riskScore += 15;
+        cardData.isPrepaid = true;
+        findings.push("⚠️ Prepaid картка (підвищений ризик)");
+      } else if (data.prepaid === false) {
+        cardData.isPrepaid = false;
+        findings.push("✅ Не prepaid картка");
+      }
+      
+      // Extract bank info
+      if (data.bank) {
+        cardData.bank = {
+          name: data.bank.name || null,
+          url: data.bank.url || null,
+          phone: data.bank.phone || null,
+          city: data.bank.city || null
+        };
+        
+        if (data.bank.name) {
+          findings.push(`🏦 Банк: ${data.bank.name}`);
+        } else {
+          riskScore += 10;
+          findings.push("⚠️ Інформація про банк недоступна");
+        }
+      } else {
+        riskScore += 10;
+        findings.push("⚠️ Інформація про банк недоступна");
+      }
+      
+      // Extract country
+      if (data.country) {
+        cardData.country = {
+          name: data.country.name || null,
+          code: data.country.alpha2 || null,
+          emoji: data.country.emoji || null,
+          currency: data.country.currency || null,
+          latitude: data.country.latitude || null,
+          longitude: data.country.longitude || null
+        };
+        
+        const countryDisplay = data.country.emoji ? `${data.country.emoji} ${data.country.name}` : data.country.name;
+        findings.push(`🌍 Країна: ${countryDisplay}`);
+        
+        // Check high-risk country
+        if (data.country.alpha2 && highRiskCountries.includes(data.country.alpha2)) {
+          riskScore += 20;
+          findings.push("🔴 Країна підвищеного ризику");
+          cardData.isHighRiskCountry = true;
+        }
+        
+        if (data.country.currency) {
+          findings.push(`💵 Валюта: ${data.country.currency}`);
+        }
+      }
+      
+      // Additional info
+      if (data.number) {
+        if (data.number.length) {
+          cardData.cardNumberLength = data.number.length;
+          findings.push(`🔢 Довжина номера: ${data.number.length} цифр`);
+        }
+        if (data.number.luhn !== undefined) {
+          cardData.luhnValidation = data.number.luhn;
+        }
+      }
+      
+    } else if (response.status === 404) {
+      riskScore += 15;
+      findings.push("❌ BIN не знайдено в базі даних");
+      cardData.notFound = true;
+    } else if (response.status === 429) {
+      findings.push("⚠️ Перевищено ліміт запитів до API");
+    }
+  } catch (error) {
+    findings.push("⚠️ binlist.net недоступний");
+  }
+  
+  // BIN range analysis
+  const firstDigit = bin.charAt(0);
+  const brandByFirstDigit: Record<string, string> = {
+    "4": "Visa",
+    "5": "Mastercard",
+    "3": "Amex/JCB/Diners",
+    "6": "Discover/UnionPay",
+    "2": "Mastercard (2xxx range)"
+  };
+  
+  if (!cardData.brand && brandByFirstDigit[firstDigit]) {
+    cardData.estimatedBrand = brandByFirstDigit[firstDigit];
+    findings.push(`📊 Оцінка за першою цифрою: ${brandByFirstDigit[firstDigit]}`);
+  }
+  
+  if (findings.length === 0) {
+    findings.push("✅ Базова перевірка пройшла");
+  }
+  
+  const riskLevel = getRiskLevel(riskScore);
+  
+  return {
+    type: "card",
+    target: bin,
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: `BIN ${bin} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    details: cardData,
     findings,
     sources,
     timestamp,

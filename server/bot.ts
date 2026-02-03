@@ -291,6 +291,11 @@ ${t(lang, "dashboard.selectModule")}`;
         Markup.button.callback(t(lang, "modules.username"), "mod_username")
       ],
       [
+        Markup.button.callback(t(lang, "modules.card"), "mod_card"),
+        Markup.button.callback(t(lang, "modules.iot"), "mod_iot"),
+        Markup.button.callback(t(lang, "modules.cloud"), "mod_cloud")
+      ],
+      [
         Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring"),
         Markup.button.callback("📄 " + t(lang, "common.reports"), "reports"),
         Markup.button.callback(t(lang, "buttons.history"), "history")
@@ -469,7 +474,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     });
   });
 
-  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username"];
+  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username", "mod_card"];
   const moduleMap: Record<string, string> = {
     "mod_ip": "ip",
     "mod_wallet": "wallet", 
@@ -479,7 +484,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     "mod_url": "url",
     "mod_cve": "cve",
     "mod_hash": "hash",
-    "mod_username": "username"
+    "mod_username": "username",
+    "mod_card": "card"
   };
 
   for (const action of moduleActions) {
@@ -488,9 +494,13 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       const lang = await getLang(tgId);
       const module = moduleMap[action];
       userStates.set(tgId, { module, step: "input" });
-      await ctx.reply(t(lang, `modulePrompts.${module}`), 
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]])
-      );
+      const text = t(lang, `modulePrompts.${module}`);
+      const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]]);
+      try {
+        await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      } catch {
+        await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      }
     });
   }
 
@@ -500,13 +510,16 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     await ctx.answerCbQuery(t(lang, "premium.locked"));
     
     const text = t(lang, "common.proOnly");
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback(t(lang, "upgrade.buyPro"), "upgrade")],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
     
-    await ctx.reply(text, 
-      Markup.inlineKeyboard([
-        [Markup.button.callback(t(lang, "upgrade.buyPro"), "upgrade")],
-        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
-      ])
-    );
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.on("text", async (ctx) => {
@@ -939,9 +952,12 @@ ${findingsText}
       });
     }
 
-    await ctx.editMessageText(text, 
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-    );
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action("reports", async (ctx) => {
@@ -965,9 +981,12 @@ ${findingsText}
       });
     }
 
-    await ctx.editMessageText(text, 
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-    );
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action("settings", async (ctx) => {
@@ -977,14 +996,19 @@ ${findingsText}
 
     const text = `${t(lang, "settings.title")}\n\n${t(lang, "settings.language", { lang: languageNames[lang] })}\n\n${t(lang, "settings.selectLanguage")}`;
 
-    await ctx.editMessageText(text, Markup.inlineKeyboard([
+    const keyboard = Markup.inlineKeyboard([
       [
         Markup.button.callback("🇺🇦 Українська", "set_lang_uk"),
         Markup.button.callback("🇬🇧 English", "set_lang_en"),
         Markup.button.callback("🇷🇺 Русский", "set_lang_ru")
       ],
       [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
-    ]));
+    ]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action(/^set_lang_/, async (ctx) => {
@@ -1239,9 +1263,13 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
     userStates.set(tgId, { module: "coupon", step: "input" });
-    await ctx.reply(t(lang, "coupon.enter"), 
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-    );
+    const text = t(lang, "coupon.enter");
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action("profile", async (ctx) => {
@@ -1261,10 +1289,12 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
       `${t(lang, "profile.refCode")}: ${refCode}\n\n` +
       `${t(lang, "profile.syncInfo")}`;
 
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-    });
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action("achievements", async (ctx) => {
@@ -1273,9 +1303,12 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     
     const text = `${t(lang, "achievements.title")}\n\n${t(lang, "achievements.riskHunter", { count: "0" })}\n${t(lang, "achievements.scamSlayer", { count: "0" })}\n${t(lang, "achievements.streakMaster", { count: "0" })}\n${t(lang, "achievements.referralKing", { count: "0" })}\n\n${t(lang, "achievements.unlock")}`;
 
-    await ctx.editMessageText(text, 
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-    );
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action("history", async (ctx) => {
@@ -1284,9 +1317,12 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
     const text = `${t(lang, "history.title")}\n\n${t(lang, "history.description")}\n\n${t(lang, "history.empty")}\n\n${t(lang, "history.addMonitor")}`;
 
-    await ctx.editMessageText(text, 
-      Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-    );
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.command("admin", async (ctx) => {

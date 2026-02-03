@@ -299,6 +299,24 @@ const checkTypes = [
       { name: "Data Breaches", icon: Lock, desc: "Перевірка витоків даних" },
     ]
   },
+  { 
+    id: "card", 
+    label: "Card BIN", 
+    icon: CreditCard, 
+    placeholder: "411111", 
+    description: "Валідація BIN номера банківської картки: виявлення банку-емітента, типу картки, країни та можливих ризиків",
+    shortDescription: "Банк, тип картки, країна",
+    gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
+    iconColor: "text-emerald-400",
+    borderColor: "border-emerald-500/30 hover:border-emerald-400/50",
+    glowColor: "shadow-emerald-500/20",
+    services: [
+      { name: "BIN Lookup", icon: CreditCard, desc: "Інформація про BIN номер" },
+      { name: "Bank Info", icon: Building, desc: "Банк-емітент картки" },
+      { name: "Card Type", icon: Wallet, desc: "Дебетова/кредитна" },
+      { name: "Country", icon: Globe, desc: "Країна випуску" },
+    ]
+  },
 ];
 
 const navItems = [
