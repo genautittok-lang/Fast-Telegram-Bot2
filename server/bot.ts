@@ -1277,19 +1277,272 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     
-    const username = user?.username?.replace(/[_*`\[\]]/g, "\\$&") || "—";
-    const refCode = user?.refCode?.replace(/[_*`\[\]]/g, "\\$&") || "—";
+    if (!user) {
+      const errorText = t(lang, "common.error");
+      try {
+        await ctx.editMessageText(errorText, { parse_mode: "Markdown" });
+      } catch {
+        await ctx.reply(errorText, { parse_mode: "Markdown" });
+      }
+      return;
+    }
     
-    const text = `${t(lang, "profile.title")}\n\n` +
-      `${t(lang, "profile.tgId")}: ${tgId}\n` +
-      `${t(lang, "profile.username")}: @${username}\n` +
-      `${t(lang, "profile.tier")}: ${user?.tier || "FREE"}\n` +
-      `${t(lang, "profile.requestsLeft")}: ${user?.requestsLeft ?? 15}\n` +
-      `${t(lang, "profile.streakDays")}: ${user?.streakDays ?? 0}\n` +
-      `${t(lang, "profile.refCode")}: ${refCode}\n\n` +
-      `${t(lang, "profile.syncInfo")}`;
+    const username = user.username?.replace(/[_*`\[\]]/g, "\\$&") || "—";
+    const refCode = user.refCode?.replace(/[_*`\[\]]/g, "\\$&") || "—";
+    
+    const reports = await storage.getReports(user.id);
+    const watches = await storage.getWatches(user.id);
+    
+    let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
+    try {
+      referralStats = await storage.getReferralStats(user.id);
+    } catch (e) {}
+    
+    const totalChecks = reports.length;
+    const activeMonitors = watches.length;
+    const referralCount = referralStats.count;
+    const streakDays = user.streakDays || 0;
+    
+    const checkTypeCounts: Record<string, number> = {};
+    for (const report of reports) {
+      const type = report.objectType || "unknown";
+      checkTypeCounts[type] = (checkTypeCounts[type] || 0) + 1;
+    }
+    const topCheckTypes = Object.entries(checkTypeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    
+    const moduleEmojis: Record<string, string> = {
+      ip: "🌐", wallet: "💰", phone: "📱", email: "📧", domain: "🏢",
+      url: "🔗", cve: "🔓", hash: "🔢", username: "👤", card: "💳",
+      iot: "📡", cloud: "☁️"
+    };
+    
+    const topTypesText = topCheckTypes.length > 0
+      ? topCheckTypes.map(([type, count]) => `${moduleEmojis[type] || "📊"} ${type}: ${count}`).join("\n")
+      : "—";
+    
+    const createdAt = user.createdAt 
+      ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA")
+      : "—";
+    
+    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const tierName = user.tier || "FREE";
+    
+    const tierBenefits = user.tier === "ENTERPRISE" 
+      ? "API, SIEM, ∞ запитів"
+      : user.tier === "PRO" 
+        ? "∞ запитів, PDF, моніторинг"
+        : "15 запитів/день, 1 монітор";
+    
+    const riskHunterProgress = Math.min(totalChecks, 10);
+    const scamSlayerProgress = Math.min(totalChecks, 50);
+    const streakMasterProgress = Math.min(streakDays, 7);
+    const referralKingProgress = Math.min(referralCount, 5);
+    
+    const riskHunterBar = generateProgressBar(riskHunterProgress, 10, 10);
+    const scamSlayerBar = generateProgressBar(scamSlayerProgress, 50, 10);
+    const streakMasterBar = generateProgressBar(streakMasterProgress, 7, 10);
+    const referralKingBar = generateProgressBar(referralKingProgress, 5, 10);
+    
+    const riskHunterDone = riskHunterProgress >= 10 ? "✅" : "⬜";
+    const scamSlayerDone = scamSlayerProgress >= 50 ? "✅" : "⬜";
+    const streakMasterDone = streakMasterProgress >= 7 ? "✅" : "⬜";
+    const referralKingDone = referralKingProgress >= 5 ? "✅" : "⬜";
 
-    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]]);
+    const text = `👤 *${lang === "uk" ? "МІЙ АКАУНТ" : lang === "ru" ? "МОЙ АККАУНТ" : "MY ACCOUNT"}*
+━━━━━━━━━━━━━━━━━━━━
+
+📋 *${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:*
+├ ID: \`${tgId}\`
+├ Username: @${username}
+├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: *${tierName}*
+├ 📅 ${lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created"}: ${createdAt}
+└ 🎁 ${lang === "uk" ? "Реф. код" : lang === "ru" ? "Реф. код" : "Ref. code"}: \`${refCode}\`
+
+━━━━━━━━━━━━━━━━━━━━
+
+📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}:*
+├ 🔍 ${lang === "uk" ? "Всього перевірок" : lang === "ru" ? "Всего проверок" : "Total checks"}: *${totalChecks}*
+├ 👁 ${lang === "uk" ? "Активних моніторів" : lang === "ru" ? "Активных мониторов" : "Active monitors"}: *${activeMonitors}*
+├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralCount}*
+├ 🔥 ${lang === "uk" ? "Серія днів" : lang === "ru" ? "Серия дней" : "Streak"}: *${streakDays}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
+└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Remaining"}: *${user.requestsLeft ?? 15}* ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🎯 *${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}:*
+${topTypesText}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🏅 *${lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements"}:*
+${riskHunterDone} 🏆 Risk Hunter (${riskHunterProgress}/10)
+    ${riskHunterBar}
+${scamSlayerDone} 🛡️ Scam Slayer (${scamSlayerProgress}/50)
+    ${scamSlayerBar}
+${streakMasterDone} 🔥 Streak Master (${streakMasterProgress}/7)
+    ${streakMasterBar}
+${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
+    ${referralKingBar}
+
+━━━━━━━━━━━━━━━━━━━━
+
+💎 *${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}:*
+└ ${tierBenefits}`;
+
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback("📊 " + (lang === "uk" ? "Детальна статистика" : lang === "ru" ? "Подробная статистика" : "Detailed stats"), "profile_detailed_stats"),
+        Markup.button.callback("🎁 " + (lang === "uk" ? "Реф. посилання" : lang === "ru" ? "Реф. ссылка" : "Ref. link"), "profile_ref_link")
+      ],
+      [
+        Markup.button.callback("⚙️ " + (lang === "uk" ? "Налаштування" : lang === "ru" ? "Настройки" : "Settings"), "settings"),
+        Markup.button.callback("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard")
+      ]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("profile_detailed_stats", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    if (!user) {
+      await ctx.answerCbQuery(t(lang, "common.error"));
+      return;
+    }
+    
+    const reports = await storage.getReports(user.id);
+    const watches = await storage.getWatches(user.id);
+    let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
+    try {
+      referralStats = await storage.getReferralStats(user.id);
+    } catch (e) {}
+    
+    const checkTypeCounts: Record<string, number> = {};
+    for (const report of reports) {
+      const type = report.objectType || "unknown";
+      checkTypeCounts[type] = (checkTypeCounts[type] || 0) + 1;
+    }
+    
+    const moduleEmojis: Record<string, string> = {
+      ip: "🌐", wallet: "💰", phone: "📱", email: "📧", domain: "🏢",
+      url: "🔗", cve: "🔓", hash: "🔢", username: "👤", card: "💳",
+      iot: "📡", cloud: "☁️"
+    };
+    
+    const allTypesText = Object.entries(checkTypeCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => `├ ${moduleEmojis[type] || "📊"} ${type}: ${count}`)
+      .join("\n") || "├ —";
+    
+    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const requestsBar = generateProgressBar(user.requestsLeft || 0, 15);
+    const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
+    
+    const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
+    const lastActive = formatLastActivity(user.lastLogin, lang);
+
+    const text = `📊 *${lang === "uk" ? "ДЕТАЛЬНА СТАТИСТИКА" : lang === "ru" ? "ПОДРОБНАЯ СТАТИСТИКА" : "DETAILED STATISTICS"}*
+━━━━━━━━━━━━━━━━━━━━
+
+👤 *${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:*
+├ ID: \`${user.tgId}\`
+├ Username: @${user.username || "—"}
+├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: *${user.tier || "FREE"}*
+├ 📅 ${lang === "uk" ? "Реєстрація" : lang === "ru" ? "Регистрация" : "Registered"}: ${joinDate}
+└ 🕐 ${lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last active"}: ${lastActive}
+
+━━━━━━━━━━━━━━━━━━━━
+
+📈 *${lang === "uk" ? "Активність" : lang === "ru" ? "Активность" : "Activity"}:*
+├ 🔍 ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${reports.length}*
+├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: *${watches.length}*
+├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralStats.count}*
+└ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${user.streakDays || 0}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🎯 *${lang === "uk" ? "Перевірки по типах" : lang === "ru" ? "Проверки по типам" : "Checks by type"}:*
+${allTypesText}
+
+━━━━━━━━━━━━━━━━━━━━
+
+📊 *${lang === "uk" ? "Прогрес" : lang === "ru" ? "Прогресс" : "Progress"}:*
+├ 💳 ${lang === "uk" ? "Запити" : lang === "ru" ? "Запросы" : "Requests"}: ${user.requestsLeft || 0}/15
+│   ${requestsBar}
+└ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: ${user.streakDays || 0}/30 ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
+    ${streakBar}`;
+
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback("⬅️ " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile")],
+      [Markup.button.callback("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard")]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("profile_ref_link", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    
+    if (!user) {
+      await ctx.answerCbQuery(t(lang, "common.error"));
+      return;
+    }
+    
+    const refCode = user.refCode || "—";
+    const botUsername = "DARKSHAREN1_BOT";
+    const refLink = `t.me/${botUsername}?start=ref_${refCode}`;
+    
+    let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
+    try {
+      referralStats = await storage.getReferralStats(user.id);
+    } catch (e) {}
+
+    const text = `🎁 *${lang === "uk" ? "РЕФЕРАЛЬНА ПРОГРАМА" : lang === "ru" ? "РЕФЕРАЛЬНАЯ ПРОГРАММА" : "REFERRAL PROGRAM"}*
+━━━━━━━━━━━━━━━━━━━━
+
+📣 *${lang === "uk" ? "Твоє посилання" : lang === "ru" ? "Твоя ссылка" : "Your link"}:*
+\`${refLink}\`
+
+🎫 *${lang === "uk" ? "Твій код" : lang === "ru" ? "Твой код" : "Your code"}:*
+\`${refCode}\`
+
+━━━━━━━━━━━━━━━━━━━━
+
+📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}:*
+├ 👥 ${lang === "uk" ? "Запрошено" : lang === "ru" ? "Приглашено" : "Invited"}: *${referralStats.count}*
+└ 🎯 ${lang === "uk" ? "До знижки -20%" : lang === "ru" ? "До скидки -20%" : "To -20% discount"}: ${Math.max(0, 5 - referralStats.count)} ${lang === "uk" ? "рефералів" : lang === "ru" ? "рефералов" : "referrals"}
+
+━━━━━━━━━━━━━━━━━━━━
+
+🎁 *${lang === "uk" ? "Бонуси" : lang === "ru" ? "Бонусы" : "Bonuses"}:*
+├ ${lang === "uk" ? "Ти отримуєш" : lang === "ru" ? "Ты получаешь" : "You get"}: +2 ${lang === "uk" ? "запити" : lang === "ru" ? "запроса" : "requests"}
+└ ${lang === "uk" ? "Друг отримує" : lang === "ru" ? "Друг получает" : "Friend gets"}: +5 ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
+
+━━━━━━━━━━━━━━━━━━━━
+
+💡 ${lang === "uk" ? "Поділись посиланням з друзями!" : lang === "ru" ? "Поделись ссылкой с друзьями!" : "Share the link with friends!"}`;
+
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.url("📤 " + (lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : "Share"), `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🌑 DARKSHARE - OSINT Security Bot")}`)],
+      [Markup.button.callback("⬅️ " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile")],
+      [Markup.button.callback("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard")]
+    ]);
+    
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
