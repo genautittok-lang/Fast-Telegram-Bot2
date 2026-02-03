@@ -13,6 +13,7 @@ import Monitoring from "@/pages/Monitoring";
 import Referral from "@/pages/Referral";
 import ReferralLanding from "@/pages/ReferralLanding";
 import Account from "@/pages/Account";
+import Admin from "@/pages/Admin";
 
 function Router() {
   return (
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/referral" component={Referral} />
       <Route path="/r/:code" component={ReferralLanding} />
       <Route path="/account" component={Account} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -783,6 +783,176 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== ADMIN API ROUTES ====================
+  
+  // Verify if user is admin
+  app.get("/api/admin/verify", loadUser, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.user) {
+      return res.json({ isAdmin: false });
+    }
+    const isAdmin = ADMIN_IDS.includes(authReq.user.tgId);
+    res.json({ isAdmin });
+  });
+
+  // Admin stats
+  app.get("/api/admin/stats", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const stats = await storage.getStats();
+    res.json(stats);
+  });
+
+  // Get all coupons
+  app.get("/api/admin/coupons", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const coupons = await storage.getCoupons();
+    res.json(coupons);
+  });
+
+  // Create coupon
+  app.post("/api/admin/coupons", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { code, type, value, tier, maxUses, expiresAt } = req.body;
+    if (!code || !type || value === undefined) {
+      return res.status(400).json({ error: "Code, type and value are required" });
+    }
+    try {
+      const coupon = await storage.createCoupon({
+        code,
+        type,
+        value: parseInt(value),
+        tier: tier || null,
+        maxUses: maxUses ? parseInt(maxUses) : 1,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        isActive: true,
+      });
+      res.json(coupon);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to create coupon" });
+    }
+  });
+
+  // Delete coupon
+  app.delete("/api/admin/coupons/:id", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    await storage.deleteCoupon(parseInt(req.params.id));
+    res.json({ success: true });
+  });
+
+  // Get admin settings
+  app.get("/api/admin/settings", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const settings = await storage.getAllAdminSettings();
+    const settingsMap: Record<string, string> = {};
+    settings.forEach(s => { settingsMap[s.key] = s.value; });
+    res.json({
+      proPrice: settingsMap['pro_price'] || '10',
+      enterprisePrice: settingsMap['enterprise_price'] || '50',
+    });
+  });
+
+  // Update admin settings
+  app.post("/api/admin/settings", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { proPrice, enterprisePrice } = req.body;
+    if (proPrice) await storage.setAdminSetting('pro_price', proPrice.toString());
+    if (enterprisePrice) await storage.setAdminSetting('enterprise_price', enterprisePrice.toString());
+    res.json({ success: true });
+  });
+
+  // Get pending payments for admin
+  app.get("/api/admin/payments", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const payments = await storage.getPendingPayments();
+    // Enrich with user info
+    const enrichedPayments = await Promise.all(
+      payments.map(async (p) => {
+        const user = p.userId ? await storage.getUserById(p.userId) : null;
+        return { ...p, username: user?.username || null };
+      })
+    );
+    res.json(enrichedPayments);
+  });
+
+  // Approve payment
+  app.post("/api/admin/payments/:id/approve", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const paymentId = parseInt(req.params.id);
+    const payment = await storage.getPaymentById(paymentId);
+    if (!payment) return res.status(404).json({ error: "Payment not found" });
+    
+    await storage.updatePaymentStatus(paymentId, "approved");
+    
+    if (payment.userId) {
+      const tier = payment.tier?.toUpperCase() || "PRO";
+      const requests = tier === "ENTERPRISE" ? 500 : 100;
+      await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
+      
+      // Notify user via bot
+      const user = await storage.getUserById(payment.userId);
+      if (user && botInstance) {
+        try {
+          await botInstance.telegram.sendMessage(user.tgId, 
+            `✅ Вашу оплату підтверджено!\n\nТариф: ${tier}\nЗапитів: ${requests}`
+          );
+        } catch (e) { /* ignore */ }
+      }
+    }
+    
+    res.json({ success: true });
+  });
+
+  // Reject payment
+  app.post("/api/admin/payments/:id/reject", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const paymentId = parseInt(req.params.id);
+    const payment = await storage.getPaymentById(paymentId);
+    if (!payment) return res.status(404).json({ error: "Payment not found" });
+    
+    await storage.updatePaymentStatus(paymentId, "rejected");
+    
+    // Notify user via bot
+    if (payment.userId) {
+      const user = await storage.getUserById(payment.userId);
+      if (user && botInstance) {
+        try {
+          await botInstance.telegram.sendMessage(user.tgId, 
+            `❌ Вашу оплату відхилено.\n\nЗверніться до підтримки для уточнення.`
+          );
+        } catch (e) { /* ignore */ }
+      }
+    }
+    
+    res.json({ success: true });
+  });
+
   // Start the bot
   try {
       await setupBot(storage);

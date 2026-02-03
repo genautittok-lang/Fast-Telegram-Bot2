@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, type User, type InsertUser, type Report, type Watch, type Payment } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
 
@@ -53,6 +53,18 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   blockUser(userId: number, blocked: boolean): Promise<User>;
   searchUsers(query: string): Promise<User[]>;
+  
+  // Coupon methods
+  getCoupons(): Promise<Coupon[]>;
+  getCouponByCode(code: string): Promise<Coupon | undefined>;
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  deleteCoupon(id: number): Promise<void>;
+  useCoupon(couponId: number, userId: number): Promise<void>;
+  
+  // Admin settings
+  getAdminSetting(key: string): Promise<string | undefined>;
+  setAdminSetting(key: string, value: string): Promise<void>;
+  getAllAdminSettings(): Promise<AdminSetting[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -268,6 +280,53 @@ export class DatabaseStorage implements IStorage {
       console.warn("Referral creation error (likely duplicate):", (err as Error).message);
     }
   }
+
+  // Coupon methods
+  async getCoupons(): Promise<Coupon[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(coupons).orderBy(desc(coupons.createdAt));
+  }
+
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, code));
+    return coupon;
+  }
+
+  async createCoupon(coupon: InsertCoupon): Promise<Coupon> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(coupons).values(coupon).returning();
+    return created;
+  }
+
+  async deleteCoupon(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.delete(coupons).where(eq(coupons.id, id));
+  }
+
+  async useCoupon(couponId: number, userId: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.insert(couponUsages).values({ couponId, userId });
+    await db.update(coupons).set({ usedCount: sql`${coupons.usedCount} + 1` }).where(eq(coupons.id, couponId));
+  }
+
+  // Admin settings
+  async getAdminSetting(key: string): Promise<string | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [setting] = await db.select().from(adminSettings).where(eq(adminSettings.key, key));
+    return setting?.value;
+  }
+
+  async setAdminSetting(key: string, value: string): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.insert(adminSettings).values({ key, value })
+      .onConflictDoUpdate({ target: adminSettings.key, set: { value, updatedAt: new Date() } });
+  }
+
+  async getAllAdminSettings(): Promise<AdminSetting[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(adminSettings);
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -475,6 +534,18 @@ export class MemStorage implements IStorage {
   async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void> {
     // No-op for memory storage
   }
+
+  // Coupon methods - no-op for memory storage
+  async getCoupons(): Promise<Coupon[]> { return []; }
+  async getCouponByCode(code: string): Promise<Coupon | undefined> { return undefined; }
+  async createCoupon(coupon: InsertCoupon): Promise<Coupon> { throw new Error("Not available"); }
+  async deleteCoupon(id: number): Promise<void> {}
+  async useCoupon(couponId: number, userId: number): Promise<void> {}
+  
+  // Admin settings - no-op for memory storage
+  async getAdminSetting(key: string): Promise<string | undefined> { return undefined; }
+  async setAdminSetting(key: string, value: string): Promise<void> {}
+  async getAllAdminSettings(): Promise<AdminSetting[]> { return []; }
 }
 
 // Export the appropriate storage based on database availability
