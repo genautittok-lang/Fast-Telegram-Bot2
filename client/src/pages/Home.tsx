@@ -44,6 +44,7 @@ import { useActivity, useLeaderboard } from "@/hooks/use-activity";
 import { TerminalText } from "@/components/TerminalText";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card } from "@/components/ui/card";
+import { FloatingParticles } from "@/components/FloatingParticles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -263,6 +264,7 @@ export default function Home() {
         <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <FloatingParticles count={25} />
 
       <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">

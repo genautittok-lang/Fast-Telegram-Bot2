@@ -31,6 +31,7 @@ import {
   Menu,
   Check
 } from "lucide-react";
+import { FireStreak } from "@/components/FireStreak";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -358,12 +359,8 @@ export default function Account() {
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/30">
-                    <Flame className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400" />
-                    <span className="text-base lg:text-lg font-bold text-orange-400" data-testid="text-streak-days">{user?.streakDays || 0}</span>
-                    <span className="text-xs lg:text-sm text-muted-foreground">днів</span>
-                  </div>
+                <div className="flex items-center gap-2 mt-2" data-testid="text-streak-days">
+                  <FireStreak streakDays={user?.streakDays || 0} size="sm" />
                 </div>
               </div>
             </div>
