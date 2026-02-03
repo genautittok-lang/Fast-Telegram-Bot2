@@ -307,7 +307,8 @@ ${t(lang, "dashboard.selectModule")}`;
       ],
       [
         Markup.button.callback(t(lang, "buttons.profile"), "profile"),
-        Markup.button.callback(t(lang, "buttons.achievements"), "achievements")
+        Markup.button.callback(t(lang, "buttons.achievements"), "achievements"),
+        Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard")
       ],
       [
         Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl)
@@ -333,6 +334,13 @@ ${t(lang, "dashboard.selectModule")}`;
 
   bot.action(["dashboard", "back_to_dashboard"], async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    await showDashboard(ctx, tgId, true);
+  });
+
+  bot.action("refresh_dashboard", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    await ctx.answerCbQuery(lang === "uk" ? "🔄 Оновлено!" : lang === "ru" ? "🔄 Обновлено!" : "🔄 Refreshed!");
     await showDashboard(ctx, tgId, true);
   });
 
@@ -1350,6 +1358,8 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const streakMasterDone = streakMasterProgress >= 7 ? "✅" : "⬜";
     const referralKingDone = referralKingProgress >= 5 ? "✅" : "⬜";
 
+    const lastActive = formatLastActivity(user.lastLogin, lang);
+
     const text = `👤 *${lang === "uk" ? "МІЙ АКАУНТ" : lang === "ru" ? "МОЙ АККАУНТ" : "MY ACCOUNT"}*
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -1358,6 +1368,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 ├ Username: @${username}
 ├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: *${tierName}*
 ├ 📅 ${lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created"}: ${createdAt}
+├ ⏰ ${lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last activity"}: ${lastActive}
 └ 🎁 ${lang === "uk" ? "Реф. код" : lang === "ru" ? "Реф. код" : "Ref. code"}: \`${refCode}\`
 
 ━━━━━━━━━━━━━━━━━━━━

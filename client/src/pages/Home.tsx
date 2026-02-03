@@ -96,14 +96,22 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
-      className="group relative p-3 sm:p-4 md:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
+      whileHover={{ 
+        y: -4, 
+        scale: 1.02,
+        transition: { duration: 0.2, ease: "easeOut" }
+      }}
+      className="group relative p-3 sm:p-4 md:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 hover:shadow-[0_8px_30px_rgba(34,197,94,0.12)] transition-all duration-300 cursor-pointer"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
       
       <div className="relative z-10 space-y-2 sm:space-y-3">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+        <motion.div 
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-300"
+          whileHover={{ rotate: [0, -5, 5, 0], transition: { duration: 0.4 } }}
+        >
           {icon}
-        </div>
+        </motion.div>
         
         <div className="space-y-1 sm:space-y-1.5">
           <h3 className="text-xs sm:text-sm font-bold group-hover:text-primary transition-colors leading-tight">
@@ -115,7 +123,7 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
           {apis && apis.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-0.5 sm:pt-1 min-w-0 overflow-hidden">
               {apis.map((api, idx) => (
-                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono truncate">
+                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono truncate group-hover:bg-primary/10 group-hover:text-primary/80 transition-colors duration-300">
                   {api}
                 </span>
               ))}
@@ -351,7 +359,7 @@ export default function Home() {
                   <Link href="/login">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group"
+                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group animate-glow-pulse hover:scale-[1.02] transition-transform duration-300"
                       data-testid="button-web-dashboard"
                     >
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -367,7 +375,7 @@ export default function Home() {
                     <Button 
                       variant="outline"
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group border-primary/30 hover:border-primary/50"
+                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:scale-[1.02] transition-all duration-300"
                       data-testid="button-launch-bot"
                     >
                       <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

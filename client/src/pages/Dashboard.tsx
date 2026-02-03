@@ -97,6 +97,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AIInsights {
   summary: string;
@@ -421,8 +422,11 @@ export default function Dashboard() {
   const [bulkProgress, setBulkProgress] = useState(0);
   const [selectedBulkResult, setSelectedBulkResult] = useState<BulkCheckResult | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [inputShake, setInputShake] = useState(false);
+  const [copiedResult, setCopiedResult] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bulkTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
@@ -472,6 +476,9 @@ export default function Dashboard() {
     onSuccess: (data) => {
       setResult(data);
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     },
     onError: (error: any) => {
       toast({
@@ -574,8 +581,44 @@ export default function Dashboard() {
     setLocation("/login");
   };
 
+  const triggerShake = () => {
+    setInputShake(true);
+    setTimeout(() => setInputShake(false), 500);
+  };
+
+  const copyResultsToClipboard = async () => {
+    if (!result) return;
+    const textToCopy = `DARKSHARE Security Report
+Target: ${result.target}
+Type: ${result.type}
+Risk Level: ${result.riskLevel.toUpperCase()}
+Risk Score: ${result.riskScore}/100
+
+Summary: ${result.summary}
+
+Findings:
+${result.findings.map(f => `• ${f}`).join('\n')}
+
+Sources: ${result.sources.join(', ')}`;
+    
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopiedResult(true);
+      toast({
+        title: "Скопійовано!",
+        description: "Результат перевірки скопійовано до буфера обміну",
+      });
+      setTimeout(() => setCopiedResult(false), 2000);
+    } catch {
+      toast({
+        title: "Помилка",
+        description: "Не вдалося скопіювати",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCheck = () => {
-    // Перевірка чи залишились запити
     if (user && (user.requestsLeft ?? 0) <= 0) {
       setShowSubscription(true);
       toast({
@@ -588,6 +631,7 @@ export default function Dashboard() {
     
     const value = inputValue.trim() || inputRef.current?.value?.trim() || "";
     if (!value) {
+      triggerShake();
       toast({
         title: "Помилка",
         description: "Введіть значення для перевірки",
@@ -1327,7 +1371,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     ) : (
-                      <div className="relative w-full">
+                      <div className={`relative w-full ${inputShake ? 'animate-shake' : ''}`}>
                         <Terminal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-muted-foreground pointer-events-none" />
                         <Input
                           ref={inputRef}
@@ -1355,7 +1399,7 @@ export default function Dashboard() {
                       <Button 
                         onClick={bulkMode ? handleBulkCheck : handleCheck} 
                         disabled={checkMutation.isPending || bulkCheckMutation.isPending}
-                        className="h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation"
+                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation ${!inputValue.trim() && !bulkMode ? 'animate-subtle-pulse' : ''}`}
                         data-testid="button-perform-check"
                       >
                         {(checkMutation.isPending || bulkCheckMutation.isPending) ? (
@@ -1388,8 +1432,41 @@ export default function Dashboard() {
             </div>
 
             <AnimatePresence mode="wait">
-              {result && (
+              {checkMutation.isPending && (
                 <motion.div
+                  ref={resultsRef}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="p-3.5 lg:p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <Skeleton className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl" />
+                    <div className="flex-1">
+                      <Skeleton className="h-5 w-40 mb-2" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32 mb-3" />
+                    <Skeleton className="h-12 w-full rounded-xl" />
+                    <Skeleton className="h-12 w-full rounded-xl" />
+                    <Skeleton className="h-12 w-3/4 rounded-xl" />
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    <Skeleton className="h-16 rounded-lg" />
+                    <Skeleton className="h-16 rounded-lg" />
+                    <Skeleton className="h-16 rounded-lg" />
+                    <Skeleton className="h-16 rounded-lg" />
+                    <Skeleton className="h-16 rounded-lg" />
+                    <Skeleton className="h-16 rounded-lg" />
+                  </div>
+                </motion.div>
+              )}
+              {result && !checkMutation.isPending && (
+                <motion.div
+                  ref={resultsRef}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -1550,6 +1627,22 @@ export default function Dashboard() {
                           <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-xs lg:text-sm border-white/10 hover:border-white/20 hover:bg-white/5 touch-manipulation" data-testid="button-download-pdf">
                             <Download className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
                             PDF
+                          </Button>
+                        </motion.div>
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full rounded-xl h-10 text-xs lg:text-sm border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10 text-cyan-400 touch-manipulation" 
+                            onClick={copyResultsToClipboard}
+                            data-testid="button-copy-results"
+                          >
+                            {copiedResult ? (
+                              <Check className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                            )}
+                            {copiedResult ? "Скопійовано" : "Копіювати"}
                           </Button>
                         </motion.div>
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1">

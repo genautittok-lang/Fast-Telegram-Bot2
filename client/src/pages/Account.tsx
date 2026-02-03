@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Shield, 
   User,
@@ -23,19 +24,18 @@ import {
   BarChart3,
   CreditCard,
   ChevronRight,
-  Copy,
-  Check,
   LogOut,
   Smartphone,
   Clock,
   Monitor,
-  Menu
+  Menu,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -51,7 +51,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 
 const navItems = [
@@ -61,6 +60,38 @@ const navItems = [
   { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
   { id: "account", label: "Акаунт", icon: User, href: "/account" },
 ];
+
+interface Report {
+  id: number;
+  type: string;
+  target: string;
+  riskLevel: string;
+  riskScore: number;
+  createdAt: string;
+}
+
+interface Watch {
+  id: number;
+  objectType: string;
+  value: string;
+  status: string;
+  lastCheck: string | null;
+  createdAt: string;
+}
+
+interface ReferralStats {
+  referralCode: string;
+  referralCount: number;
+  totalEarned: number;
+  pendingBonus: number;
+  referredUsers: Array<{
+    id: number;
+    username: string;
+    tier: string;
+    joinedAt: string;
+    paid: boolean;
+  }>;
+}
 
 function TierBadge({ tier }: { tier: string }) {
   const config = {
@@ -91,23 +122,17 @@ function TierBadge({ tier }: { tier: string }) {
   );
 }
 
-const mockUserData = {
-  registrationDate: "15.01.2024",
-  streakDays: 12,
-  totalChecks: 247,
-  activeMonitors: 5,
-  referralsInvited: 3,
-  mostUsedTypes: ["IP/GEO", "Email", "Wallet"],
-  requestsUsed: 150,
-  requestsTotal: 500,
-  lastLogin: "02.02.2026, 14:30",
-  achievements: {
-    riskHunter: { current: 247, target: 10, completed: true },
-    scamSlayer: { current: 247, target: 50, completed: true },
-    streakMaster: { current: 12, target: 7, completed: true },
-    referralKing: { current: 3, target: 5, completed: false },
-  }
-};
+function StatCardSkeleton() {
+  return (
+    <div className="p-5 rounded-xl bg-gradient-to-br from-zinc-800/50 via-zinc-900 to-zinc-950 border border-zinc-700/50">
+      <div className="flex items-center gap-3 mb-3">
+        <Skeleton className="w-10 h-10 rounded-lg" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+      <Skeleton className="h-8 w-16" />
+    </div>
+  );
+}
 
 export default function Account() {
   const [language, setLanguage] = useState("uk");
@@ -117,31 +142,87 @@ export default function Account() {
     threats: true,
     updates: false,
   });
-  const [copied, setCopied] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const { toast } = useToast();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
+
+  const { data: reports = [], isLoading: reportsLoading } = useQuery<Report[]>({
+    queryKey: ['/api/reports'],
+    enabled: isAuthenticated,
+  });
+
+  const { data: watches = [], isLoading: watchesLoading } = useQuery<Watch[]>({
+    queryKey: ['/api/watches'],
+    enabled: isAuthenticated,
+  });
+
+  const { data: referralStats, isLoading: referralsLoading } = useQuery<ReferralStats>({
+    queryKey: ['/api/referrals'],
+    enabled: isAuthenticated,
+  });
 
   const handleLogout = async () => {
     await logout();
     setLocation("/login");
   };
 
-  const copyApiKey = async () => {
-    const apiKey = "dks_live_xxxxxxxxxxxxxxxxxxxxxxxx";
-    await navigator.clipboard.writeText(apiKey);
-    setCopied(true);
-    toast({
-      title: "API ключ скопійовано",
-      description: "Ключ збережено в буфер обміну",
-    });
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const userTier = (user?.tier || "FREE").toUpperCase();
 
-  if (isLoading) {
+  const stats = useMemo(() => {
+    const totalChecks = reports.length;
+    const activeMonitors = watches.length;
+    const referralsCount = referralStats?.referralCount || 0;
+
+    const typeCountMap: Record<string, number> = {};
+    reports.forEach((report) => {
+      const type = report.type || 'unknown';
+      typeCountMap[type] = (typeCountMap[type] || 0) + 1;
+    });
+
+    const mostUsedTypes = Object.entries(typeCountMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([type]) => type.toUpperCase());
+
+    return {
+      totalChecks,
+      activeMonitors,
+      referralsCount,
+      mostUsedTypes: mostUsedTypes.length > 0 ? mostUsedTypes : ["N/A"],
+    };
+  }, [reports, watches, referralStats]);
+
+  const achievements = useMemo(() => {
+    const totalChecks = reports.length;
+    const streakDays = user?.streakDays || 0;
+    const referralsCount = referralStats?.referralCount || 0;
+
+    return {
+      riskHunter: { current: totalChecks, target: 10, completed: totalChecks >= 10 },
+      scamSlayer: { current: totalChecks, target: 50, completed: totalChecks >= 50 },
+      streakMaster: { current: streakDays, target: 7, completed: streakDays >= 7 },
+      referralKing: { current: referralsCount, target: 5, completed: referralsCount >= 5 },
+    };
+  }, [reports, user?.streakDays, referralStats]);
+
+  const requestsUsed = useMemo(() => {
+    const tierLimits: Record<string, number> = {
+      FREE: 15,
+      PRO: 500,
+      ENTERPRISE: 5000,
+    };
+    const total = tierLimits[userTier] || 15;
+    const left = user?.requestsLeft ?? total;
+    return {
+      used: Math.max(0, total - left),
+      total,
+      left,
+    };
+  }, [userTier, user?.requestsLeft]);
+
+  const isDataLoading = reportsLoading || watchesLoading || referralsLoading;
+
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -289,7 +370,7 @@ export default function Account() {
             
             <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
               <Avatar className="w-24 h-24 lg:w-28 lg:h-28 border-4 border-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-                <AvatarImage src={user?.photoUrl} />
+                <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
                 <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary text-3xl font-bold">
                   {user?.username?.slice(0, 2).toUpperCase() || "U"}
                 </AvatarFallback>
@@ -297,7 +378,7 @@ export default function Account() {
               
               <div className="flex-1 space-y-3">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white" data-testid="text-username">
                     @{user?.username || "anonymous"}
                   </h1>
                   <TierBadge tier={userTier} />
@@ -306,18 +387,20 @@ export default function Account() {
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Smartphone className="w-4 h-4 text-blue-400" />
-                    <span>Telegram ID: {user?.tgId || "N/A"}</span>
+                    <span data-testid="text-telegram-id">Telegram ID: {user?.tgId || "N/A"}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-purple-400" />
-                    <span>З нами з {mockUserData.registrationDate}</span>
-                  </div>
+                  {user?.refCode && (
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-purple-400" />
+                      <span data-testid="text-ref-code">Реферальний код: {user.refCode}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/30">
                     <Flame className="w-5 h-5 text-orange-400" />
-                    <span className="text-lg font-bold text-orange-400">{mockUserData.streakDays}</span>
+                    <span className="text-lg font-bold text-orange-400" data-testid="text-streak-days">{user?.streakDays || 0}</span>
                     <span className="text-sm text-muted-foreground">днів підряд</span>
                   </div>
                 </div>
@@ -331,51 +414,62 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <div className="p-5 rounded-xl bg-gradient-to-br from-blue-500/10 via-zinc-900 to-zinc-950 border border-blue-500/20 hover:border-blue-400/40 transition-all group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-blue-400" />
+            {isDataLoading ? (
+              <>
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+              </>
+            ) : (
+              <>
+                <div className="p-5 rounded-xl bg-gradient-to-br from-blue-500/10 via-zinc-900 to-zinc-950 border border-blue-500/20 hover:border-blue-400/40 transition-all group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Всього перевірок</span>
+                  </div>
+                  <p className="text-3xl font-bold text-blue-400 font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
-                <span className="text-sm text-muted-foreground">Всього перевірок</span>
-              </div>
-              <p className="text-3xl font-bold text-blue-400 font-mono">{mockUserData.totalChecks}</p>
-            </div>
-            
-            <div className="p-5 rounded-xl bg-gradient-to-br from-green-500/10 via-zinc-900 to-zinc-950 border border-green-500/20 hover:border-green-400/40 transition-all group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-green-400" />
+                
+                <div className="p-5 rounded-xl bg-gradient-to-br from-green-500/10 via-zinc-900 to-zinc-950 border border-green-500/20 hover:border-green-400/40 transition-all group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-green-400" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Активні монітори</span>
+                  </div>
+                  <p className="text-3xl font-bold text-green-400 font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
-                <span className="text-sm text-muted-foreground">Активні монітори</span>
-              </div>
-              <p className="text-3xl font-bold text-green-400 font-mono">{mockUserData.activeMonitors}</p>
-            </div>
-            
-            <div className="p-5 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900 to-zinc-950 border border-purple-500/20 hover:border-purple-400/40 transition-all group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-purple-400" />
+                
+                <div className="p-5 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900 to-zinc-950 border border-purple-500/20 hover:border-purple-400/40 transition-all group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Рефералів</span>
+                  </div>
+                  <p className="text-3xl font-bold text-purple-400 font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
-                <span className="text-sm text-muted-foreground">Рефералів</span>
-              </div>
-              <p className="text-3xl font-bold text-purple-400 font-mono">{mockUserData.referralsInvited}</p>
-            </div>
-            
-            <div className="p-5 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900 to-zinc-950 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-cyan-400" />
+                
+                <div className="p-5 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900 to-zinc-950 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-cyan-400" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Топ перевірки</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {stats.mostUsedTypes.map((type, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
+                        {type}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-                <span className="text-sm text-muted-foreground">Топ перевірки</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {mockUserData.mostUsedTypes.map((type, idx) => (
-                  <Badge key={idx} variant="secondary" className="text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
-                    {type}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+              </>
+            )}
           </motion.div>
 
           <motion.div 
@@ -391,87 +485,102 @@ export default function Account() {
               <h2 className="text-xl font-bold text-white">Досягнення</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 via-zinc-900/50 to-transparent border border-orange-500/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-5 h-5 text-orange-400" />
-                    <span className="font-medium text-white">Risk Hunter</span>
+            {isDataLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-700/30">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Skeleton className="w-5 h-5 rounded" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <Skeleton className="h-2 w-full mb-2" />
+                    <Skeleton className="h-3 w-16" />
                   </div>
-                  {mockUserData.achievements.riskHunter.completed && (
-                    <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Виконано</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">10 перевірок</p>
-                <Progress 
-                  value={Math.min(100, (mockUserData.achievements.riskHunter.current / mockUserData.achievements.riskHunter.target) * 100)} 
-                  className="h-2 bg-orange-950/50"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {mockUserData.achievements.riskHunter.current} / {mockUserData.achievements.riskHunter.target}
-                </p>
+                ))}
               </div>
-              
-              <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 via-zinc-900/50 to-transparent border border-red-500/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldAlert className="w-5 h-5 text-red-400" />
-                    <span className="font-medium text-white">Scam Slayer</span>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 via-zinc-900/50 to-transparent border border-orange-500/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-5 h-5 text-orange-400" />
+                      <span className="font-medium text-white">Risk Hunter</span>
+                    </div>
+                    {achievements.riskHunter.completed && (
+                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Виконано</Badge>
+                    )}
                   </div>
-                  {mockUserData.achievements.scamSlayer.completed && (
-                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Виконано</Badge>
-                  )}
+                  <p className="text-sm text-muted-foreground mb-2">10 перевірок</p>
+                  <Progress 
+                    value={Math.min(100, (achievements.riskHunter.current / achievements.riskHunter.target) * 100)} 
+                    className="h-2 bg-orange-950/50"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {achievements.riskHunter.current} / {achievements.riskHunter.target}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">50 перевірок</p>
-                <Progress 
-                  value={Math.min(100, (mockUserData.achievements.scamSlayer.current / mockUserData.achievements.scamSlayer.target) * 100)} 
-                  className="h-2 bg-red-950/50"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {Math.min(mockUserData.achievements.scamSlayer.current, mockUserData.achievements.scamSlayer.target)} / {mockUserData.achievements.scamSlayer.target}
-                </p>
-              </div>
-              
-              <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 via-zinc-900/50 to-transparent border border-yellow-500/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-yellow-400" />
-                    <span className="font-medium text-white">Streak Master</span>
+                
+                <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 via-zinc-900/50 to-transparent border border-red-500/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="w-5 h-5 text-red-400" />
+                      <span className="font-medium text-white">Scam Slayer</span>
+                    </div>
+                    {achievements.scamSlayer.completed && (
+                      <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Виконано</Badge>
+                    )}
                   </div>
-                  {mockUserData.achievements.streakMaster.completed && (
-                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Виконано</Badge>
-                  )}
+                  <p className="text-sm text-muted-foreground mb-2">50 перевірок</p>
+                  <Progress 
+                    value={Math.min(100, (achievements.scamSlayer.current / achievements.scamSlayer.target) * 100)} 
+                    className="h-2 bg-red-950/50"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.min(achievements.scamSlayer.current, achievements.scamSlayer.target)} / {achievements.scamSlayer.target}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">7 днів підряд</p>
-                <Progress 
-                  value={Math.min(100, (mockUserData.achievements.streakMaster.current / mockUserData.achievements.streakMaster.target) * 100)} 
-                  className="h-2 bg-yellow-950/50"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {mockUserData.achievements.streakMaster.current} / {mockUserData.achievements.streakMaster.target}
-                </p>
-              </div>
-              
-              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900/50 to-transparent border border-purple-500/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Crown className="w-5 h-5 text-purple-400" />
-                    <span className="font-medium text-white">Referral King</span>
+                
+                <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 via-zinc-900/50 to-transparent border border-yellow-500/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Flame className="w-5 h-5 text-yellow-400" />
+                      <span className="font-medium text-white">Streak Master</span>
+                    </div>
+                    {achievements.streakMaster.completed && (
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Виконано</Badge>
+                    )}
                   </div>
-                  {mockUserData.achievements.referralKing.completed && (
-                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Виконано</Badge>
-                  )}
+                  <p className="text-sm text-muted-foreground mb-2">7 днів підряд</p>
+                  <Progress 
+                    value={Math.min(100, (achievements.streakMaster.current / achievements.streakMaster.target) * 100)} 
+                    className="h-2 bg-yellow-950/50"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {achievements.streakMaster.current} / {achievements.streakMaster.target}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">5 рефералів</p>
-                <Progress 
-                  value={Math.min(100, (mockUserData.achievements.referralKing.current / mockUserData.achievements.referralKing.target) * 100)} 
-                  className="h-2 bg-purple-950/50"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {mockUserData.achievements.referralKing.current} / {mockUserData.achievements.referralKing.target}
-                </p>
+                
+                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900/50 to-transparent border border-purple-500/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-5 h-5 text-purple-400" />
+                      <span className="font-medium text-white">Referral King</span>
+                    </div>
+                    {achievements.referralKing.completed && (
+                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Виконано</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">5 рефералів</p>
+                  <Progress 
+                    value={Math.min(100, (achievements.referralKing.current / achievements.referralKing.target) * 100)} 
+                    className="h-2 bg-purple-950/50"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {achievements.referralKing.current} / {achievements.referralKing.target}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
 
           <motion.div 
@@ -570,31 +679,26 @@ export default function Account() {
                 </div>
               </div>
               
-              {(userTier === "PRO" || userTier === "ENTERPRISE") && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Key className="w-5 h-5 text-cyan-400" />
-                    <div>
-                      <p className="font-medium text-white">API ключ</p>
-                      <p className="text-sm text-muted-foreground">Для інтеграції з вашими системами</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 px-3 py-2 rounded-lg bg-zinc-800 text-sm font-mono text-cyan-400 border border-zinc-700 truncate">
-                      dks_live_xxxxxxxxxxxxxxxxxxxxxxxx
-                    </code>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="shrink-0 hover:bg-cyan-500/10"
-                      onClick={copyApiKey}
-                      data-testid="button-copy-api-key"
-                    >
-                      {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                    </Button>
+              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <Key className="w-5 h-5 text-cyan-400" />
+                  <div>
+                    <p className="font-medium text-white">API ключ</p>
+                    <p className="text-sm text-muted-foreground">Для інтеграції з вашими системами</p>
                   </div>
                 </div>
-              )}
+                {userTier === "FREE" ? (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 text-sm text-muted-foreground border border-zinc-700">
+                    <Lock className="w-4 h-4" />
+                    <span>Оновіться до PRO для API доступу</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 text-sm text-cyan-400 border border-zinc-700">
+                    <Check className="w-4 h-4" />
+                    <span>API ключ доступний в налаштуваннях</span>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
 
@@ -643,16 +747,16 @@ export default function Account() {
               <div className="p-5 rounded-xl bg-zinc-900/50 border border-white/5">
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-medium text-white">Використання запитів</p>
-                  <span className="text-sm font-mono text-muted-foreground">
-                    {mockUserData.requestsUsed} / {mockUserData.requestsTotal}
+                  <span className="text-sm font-mono text-muted-foreground" data-testid="text-requests-usage">
+                    {requestsUsed.used} / {requestsUsed.total}
                   </span>
                 </div>
                 <Progress 
-                  value={(mockUserData.requestsUsed / mockUserData.requestsTotal) * 100} 
+                  value={(requestsUsed.used / requestsUsed.total) * 100} 
                   className="h-3 bg-zinc-800"
                 />
-                <p className="text-sm text-muted-foreground mt-2">
-                  Залишилось {mockUserData.requestsTotal - mockUserData.requestsUsed} запитів до кінця періоду
+                <p className="text-sm text-muted-foreground mt-2" data-testid="text-requests-left">
+                  Залишилось {requestsUsed.left} запитів до кінця періоду
                 </p>
               </div>
             </div>
@@ -691,7 +795,7 @@ export default function Account() {
                   <Clock className="w-5 h-5 text-purple-400" />
                   <div>
                     <p className="font-medium text-white">Останній вхід</p>
-                    <p className="text-sm text-muted-foreground">{mockUserData.lastLogin}</p>
+                    <p className="text-sm text-muted-foreground">{new Date().toLocaleString('uk-UA')}</p>
                   </div>
                 </div>
               </div>
