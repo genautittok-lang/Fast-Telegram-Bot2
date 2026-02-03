@@ -68,6 +68,36 @@ export const achievements = pgTable("ds_achievements", {
   unlockedAt: timestamp("unlocked_at").defaultNow(),
 });
 
+// Coupon system for admin
+export const coupons = pgTable("ds_coupons", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  type: text("type").notNull(), // 'checks' or 'tier'
+  value: integer("value").notNull(), // number of checks or tier upgrade
+  tier: text("tier"), // for tier upgrades: 'PRO' or 'ENTERPRISE'
+  maxUses: integer("max_uses").default(1),
+  usedCount: integer("used_count").default(0),
+  expiresAt: timestamp("expires_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Track coupon usage
+export const couponUsages = pgTable("ds_coupon_usages", {
+  id: serial("id").primaryKey(),
+  couponId: integer("coupon_id").references(() => coupons.id),
+  userId: integer("user_id").references(() => users.id),
+  usedAt: timestamp("used_at").defaultNow(),
+});
+
+// Admin settings for payment amounts
+export const adminSettings = pgTable("ds_admin_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
@@ -75,6 +105,8 @@ export const insertWatchSchema = createInsertSchema(watches).omit({ id: true, la
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true });
 export const insertReferralSchema = createInsertSchema(referrals).omit({ id: true, createdAt: true });
 export const insertAchievementSchema = createInsertSchema(achievements).omit({ id: true, unlockedAt: true });
+export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, createdAt: true, usedCount: true });
+export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true, updatedAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -83,6 +115,9 @@ export type Report = typeof reports.$inferSelect;
 export type Watch = typeof watches.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type Achievement = typeof achievements.$inferSelect;
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type AdminSetting = typeof adminSettings.$inferSelect;
 
 // Note: Replit Auth tables are in shared/models/auth.ts
 // Import them directly where needed to avoid type conflicts

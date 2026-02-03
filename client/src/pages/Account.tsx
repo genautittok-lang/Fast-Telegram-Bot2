@@ -46,12 +46,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
@@ -142,7 +136,6 @@ export default function Account() {
     threats: true,
     updates: false,
   });
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
 
@@ -307,39 +300,6 @@ export default function Account() {
         </div>
       </aside>
 
-      <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
-        <SheetContent side="left" className="w-[280px] bg-black/95 border-white/10 p-0">
-          <SheetHeader className="p-6 border-b border-white/5">
-            <SheetTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-black" />
-              </div>
-              <span className="font-bold text-lg">DARKSHARE</span>
-            </SheetTitle>
-          </SheetHeader>
-          <nav className="p-4 space-y-1">
-            {navItems.map((item) => {
-              const isActive = location === item.href;
-              return (
-                <Link key={item.id} href={item.href}>
-                  <button
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      isActive 
-                        ? "bg-primary/20 text-primary border border-primary/30" 
-                        : "text-muted-foreground hover:text-white hover:bg-white/5"
-                    }`}
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.label}
-                  </button>
-                </Link>
-              );
-            })}
-          </nav>
-        </SheetContent>
-      </Sheet>
-
       <main className="flex-1 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-40">
           <div className="flex items-center gap-3">
@@ -348,19 +308,20 @@ export default function Account() {
             </div>
             <span className="font-bold">DARKSHARE</span>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setShowMobileMenu(true)}
-            data-testid="button-mobile-menu"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
+          <Link href="/dashboard">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              data-testid="button-mobile-menu"
+            >
+              <Menu className="w-5 h-5" />
+            </Button>
+          </Link>
         </div>
 
-        <div className="p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
+        <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
-            className="relative p-6 lg:p-8 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 overflow-hidden"
+            className="relative p-4 lg:p-8 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -368,40 +329,40 @@ export default function Account() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5" />
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent blur-3xl" />
             
-            <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-6">
-              <Avatar className="w-24 h-24 lg:w-28 lg:h-28 border-4 border-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+            <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
+              <Avatar className="w-16 h-16 lg:w-24 lg:h-24 border-4 border-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
                 <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
                 <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary text-3xl font-bold">
                   {user?.username?.slice(0, 2).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 space-y-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-white" data-testid="text-username">
+              <div className="flex-1 space-y-2 lg:space-y-3">
+                <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                  <h1 className="text-lg lg:text-3xl font-bold text-white" data-testid="text-username">
                     @{user?.username || "anonymous"}
                   </h1>
                   <TierBadge tier={userTier} />
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-blue-400" />
-                    <span data-testid="text-telegram-id">Telegram ID: {user?.tgId || "N/A"}</span>
+                    <Smartphone className="w-3 h-3 lg:w-4 lg:h-4 text-blue-400" />
+                    <span data-testid="text-telegram-id" className="truncate">Telegram ID: {user?.tgId || "N/A"}</span>
                   </div>
                   {user?.refCode && (
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-purple-400" />
-                      <span data-testid="text-ref-code">Реферальний код: {user.refCode}</span>
+                      <Users className="w-3 h-3 lg:w-4 lg:h-4 text-purple-400" />
+                      <span data-testid="text-ref-code" className="truncate">Реф: {user.refCode}</span>
                     </div>
                   )}
                 </div>
                 
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/30">
-                    <Flame className="w-5 h-5 text-orange-400" />
-                    <span className="text-lg font-bold text-orange-400" data-testid="text-streak-days">{user?.streakDays || 0}</span>
-                    <span className="text-sm text-muted-foreground">днів підряд</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 lg:px-4 lg:py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-yellow-500/10 border border-orange-500/30">
+                    <Flame className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400" />
+                    <span className="text-base lg:text-lg font-bold text-orange-400" data-testid="text-streak-days">{user?.streakDays || 0}</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">днів</span>
                   </div>
                 </div>
               </div>
@@ -409,7 +370,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -423,46 +384,46 @@ export default function Account() {
               </>
             ) : (
               <>
-                <div className="p-5 rounded-xl bg-gradient-to-br from-blue-500/10 via-zinc-900 to-zinc-950 border border-blue-500/20 hover:border-blue-400/40 transition-all group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                      <BarChart3 className="w-5 h-5 text-blue-400" />
+                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-blue-500/10 via-zinc-900 to-zinc-950 border border-blue-500/20 hover:border-blue-400/40 transition-all group">
+                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                      <BarChart3 className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Всього перевірок</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">Всього перевірок</span>
                   </div>
-                  <p className="text-3xl font-bold text-blue-400 font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-blue-400 font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
                 
-                <div className="p-5 rounded-xl bg-gradient-to-br from-green-500/10 via-zinc-900 to-zinc-950 border border-green-500/20 hover:border-green-400/40 transition-all group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                      <Activity className="w-5 h-5 text-green-400" />
+                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-green-500/10 via-zinc-900 to-zinc-950 border border-green-500/20 hover:border-green-400/40 transition-all group">
+                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                      <Activity className="w-4 h-4 lg:w-5 lg:h-5 text-green-400" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Активні монітори</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">Активні монітори</span>
                   </div>
-                  <p className="text-3xl font-bold text-green-400 font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-green-400 font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
                 
-                <div className="p-5 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900 to-zinc-950 border border-purple-500/20 hover:border-purple-400/40 transition-all group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-purple-400" />
+                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900 to-zinc-950 border border-purple-500/20 hover:border-purple-400/40 transition-all group">
+                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                      <Users className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Рефералів</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">Рефералів</span>
                   </div>
-                  <p className="text-3xl font-bold text-purple-400 font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-purple-400 font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
                 
-                <div className="p-5 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900 to-zinc-950 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-cyan-400" />
+                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900 to-zinc-950 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group">
+                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Топ перевірки</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">Топ</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
+                  <div className="flex flex-wrap gap-1 lg:gap-1.5 mt-1">
                     {stats.mostUsedTypes.map((type, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
+                      <Badge key={idx} variant="secondary" className="text-[10px] lg:text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-2 py-0.5">
                         {type}
                       </Badge>
                     ))}
@@ -473,22 +434,22 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center">
-                <Award className="w-5 h-5 text-amber-400" />
+            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center">
+                <Award className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">Досягнення</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">Досягнення</h2>
             </div>
             
             {isDataLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-700/30">
+                  <div key={i} className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-zinc-700/30">
                     <div className="flex items-center gap-3 mb-3">
                       <Skeleton className="w-5 h-5 rounded" />
                       <Skeleton className="h-4 w-24" />
@@ -499,81 +460,81 @@ export default function Account() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500/10 via-zinc-900/50 to-transparent border border-orange-500/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-5 h-5 text-orange-400" />
-                      <span className="font-medium text-white">Risk Hunter</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-orange-500/10 via-zinc-900/50 to-transparent border border-orange-500/20">
+                  <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                    <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
+                      <Target className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400 flex-shrink-0" />
+                      <span className="font-medium text-white text-sm lg:text-base truncate">Risk Hunter</span>
                     </div>
                     {achievements.riskHunter.completed && (
-                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Виконано</Badge>
+                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">10 перевірок</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">10 перевірок</p>
                   <Progress 
                     value={Math.min(100, (achievements.riskHunter.current / achievements.riskHunter.target) * 100)} 
-                    className="h-2 bg-orange-950/50"
+                    className="h-1.5 lg:h-2 bg-orange-950/50"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {achievements.riskHunter.current} / {achievements.riskHunter.target}
                   </p>
                 </div>
                 
-                <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 via-zinc-900/50 to-transparent border border-red-500/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <ShieldAlert className="w-5 h-5 text-red-400" />
-                      <span className="font-medium text-white">Scam Slayer</span>
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-red-500/10 via-zinc-900/50 to-transparent border border-red-500/20">
+                  <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                    <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
+                      <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
+                      <span className="font-medium text-white text-sm lg:text-base truncate">Scam Slayer</span>
                     </div>
                     {achievements.scamSlayer.completed && (
-                      <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Виконано</Badge>
+                      <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">50 перевірок</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">50 перевірок</p>
                   <Progress 
                     value={Math.min(100, (achievements.scamSlayer.current / achievements.scamSlayer.target) * 100)} 
-                    className="h-2 bg-red-950/50"
+                    className="h-1.5 lg:h-2 bg-red-950/50"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {Math.min(achievements.scamSlayer.current, achievements.scamSlayer.target)} / {achievements.scamSlayer.target}
                   </p>
                 </div>
                 
-                <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 via-zinc-900/50 to-transparent border border-yellow-500/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Flame className="w-5 h-5 text-yellow-400" />
-                      <span className="font-medium text-white">Streak Master</span>
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 via-zinc-900/50 to-transparent border border-yellow-500/20">
+                  <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                    <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
+                      <Flame className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-400 flex-shrink-0" />
+                      <span className="font-medium text-white text-sm lg:text-base truncate">Streak Master</span>
                     </div>
                     {achievements.streakMaster.completed && (
-                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Виконано</Badge>
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">7 днів підряд</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">7 днів підряд</p>
                   <Progress 
                     value={Math.min(100, (achievements.streakMaster.current / achievements.streakMaster.target) * 100)} 
-                    className="h-2 bg-yellow-950/50"
+                    className="h-1.5 lg:h-2 bg-yellow-950/50"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {achievements.streakMaster.current} / {achievements.streakMaster.target}
                   </p>
                 </div>
                 
-                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900/50 to-transparent border border-purple-500/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Crown className="w-5 h-5 text-purple-400" />
-                      <span className="font-medium text-white">Referral King</span>
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900/50 to-transparent border border-purple-500/20">
+                  <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                    <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
+                      <Crown className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
+                      <span className="font-medium text-white text-sm lg:text-base truncate">Referral King</span>
                     </div>
                     {achievements.referralKing.completed && (
-                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Виконано</Badge>
+                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">5 рефералів</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">5 рефералів</p>
                   <Progress 
                     value={Math.min(100, (achievements.referralKing.current / achievements.referralKing.target) * 100)} 
-                    className="h-2 bg-purple-950/50"
+                    className="h-1.5 lg:h-2 bg-purple-950/50"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {achievements.referralKing.current} / {achievements.referralKing.target}
@@ -584,29 +545,29 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-500/20 to-zinc-500/10 flex items-center justify-center">
-                <Settings className="w-5 h-5 text-slate-400" />
+            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-slate-500/20 to-zinc-500/10 flex items-center justify-center">
+                <Settings className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">Налаштування</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">Налаштування</h2>
             </div>
             
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <Globe className="w-5 h-5 text-blue-400" />
-                  <div>
-                    <p className="font-medium text-white">Мова інтерфейсу</p>
-                    <p className="text-sm text-muted-foreground">Оберіть зручну мову</p>
+            <div className="space-y-3 lg:space-y-6">
+              <div className="flex flex-col gap-3 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <Globe className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-white text-sm lg:text-base">Мова інтерфейсу</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Оберіть зручну мову</p>
                   </div>
                 </div>
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="w-[180px] bg-zinc-800 border-zinc-700" data-testid="select-language">
+                  <SelectTrigger className="w-full lg:w-[180px] bg-zinc-800 border-zinc-700 text-sm" data-testid="select-language">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -617,13 +578,13 @@ export default function Account() {
                 </Select>
               </div>
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <Bell className="w-5 h-5 text-green-400" />
-                    <div>
-                      <p className="font-medium text-white">Email сповіщення</p>
-                      <p className="text-sm text-muted-foreground">Отримувати звіти на пошту</p>
+              <div className="space-y-2 lg:space-y-3">
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-white text-sm lg:text-base truncate">Email сповіщення</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">На пошту</p>
                     </div>
                   </div>
                   <Switch 
@@ -633,12 +594,12 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="w-5 h-5 text-blue-400" />
-                    <div>
-                      <p className="font-medium text-white">Telegram сповіщення</p>
-                      <p className="text-sm text-muted-foreground">Повідомлення в Telegram</p>
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-white text-sm lg:text-base truncate">Telegram</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">Повідомлення</p>
                     </div>
                   </div>
                   <Switch 
@@ -648,12 +609,12 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <ShieldAlert className="w-5 h-5 text-red-400" />
-                    <div>
-                      <p className="font-medium text-white">Сповіщення про загрози</p>
-                      <p className="text-sm text-muted-foreground">Миттєві алерти при виявленні</p>
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-white text-sm lg:text-base truncate">Загрози</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">Миттєві алерти</p>
                     </div>
                   </div>
                   <Switch 
@@ -663,12 +624,12 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="w-5 h-5 text-purple-400" />
-                    <div>
-                      <p className="font-medium text-white">Оновлення сервісу</p>
-                      <p className="text-sm text-muted-foreground">Нові функції та зміни</p>
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-white text-sm lg:text-base truncate">Оновлення</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">Нові функції</p>
                     </div>
                   </div>
                   <Switch 
@@ -679,23 +640,23 @@ export default function Account() {
                 </div>
               </div>
               
-              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
-                <div className="flex items-center gap-3 mb-3">
-                  <Key className="w-5 h-5 text-cyan-400" />
-                  <div>
-                    <p className="font-medium text-white">API ключ</p>
-                    <p className="text-sm text-muted-foreground">Для інтеграції з вашими системами</p>
+              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
+                <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
+                  <Key className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-white text-sm lg:text-base">API ключ</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Для інтеграції</p>
                   </div>
                 </div>
                 {userTier === "FREE" ? (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 text-sm text-muted-foreground border border-zinc-700">
-                    <Lock className="w-4 h-4" />
-                    <span>Оновіться до PRO для API доступу</span>
+                  <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800/50 text-xs lg:text-sm text-muted-foreground border border-zinc-700">
+                    <Lock className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
+                    <span className="truncate">Оновіться для API</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 text-sm text-cyan-400 border border-zinc-700">
-                    <Check className="w-4 h-4" />
-                    <span>API ключ доступний в налаштуваннях</span>
+                  <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800 text-xs lg:text-sm text-cyan-400 border border-zinc-700">
+                    <Check className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
+                    <span>API доступний</span>
                   </div>
                 )}
               </div>
@@ -703,114 +664,114 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center">
-                <CreditCard className="w-5 h-5 text-indigo-400" />
+            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center">
+                <CreditCard className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">Підписка</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">Підписка</h2>
             </div>
             
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-xl bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-transparent border border-indigo-500/20">
+            <div className="space-y-3 lg:space-y-4">
+              <div className="flex flex-col gap-3 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-transparent border border-indigo-500/20">
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <p className="font-medium text-white">Поточний план</p>
+                  <div className="flex items-center gap-2 lg:gap-3 mb-1 lg:mb-2 flex-wrap">
+                    <p className="font-medium text-white text-sm lg:text-base">Поточний план</p>
                     <TierBadge tier={userTier} />
                   </div>
                   {userTier === "FREE" ? (
-                    <p className="text-sm text-muted-foreground">Базовий план з обмеженнями</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Базовий план</p>
                   ) : userTier === "PRO" ? (
-                    <p className="text-sm text-muted-foreground">Професійний план з розширеними можливостями</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Професійний план</p>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Корпоративний план з повним доступом</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Корпоративний план</p>
                   )}
                 </div>
                 {userTier === "FREE" && (
                   <Link href="/dashboard">
                     <Button 
-                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500"
+                      className="w-full lg:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-sm"
                       data-testid="button-upgrade"
                     >
-                      <Crown className="w-4 h-4 mr-2" />
-                      Оновити план
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                      <Crown className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                      Оновити
+                      <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-1" />
                     </Button>
                   </Link>
                 )}
               </div>
               
-              <div className="p-5 rounded-xl bg-zinc-900/50 border border-white/5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-medium text-white">Використання запитів</p>
-                  <span className="text-sm font-mono text-muted-foreground" data-testid="text-requests-usage">
+              <div className="p-3 lg:p-5 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                  <p className="font-medium text-white text-sm lg:text-base">Запити</p>
+                  <span className="text-xs lg:text-sm font-mono text-muted-foreground" data-testid="text-requests-usage">
                     {requestsUsed.used} / {requestsUsed.total}
                   </span>
                 </div>
                 <Progress 
                   value={(requestsUsed.used / requestsUsed.total) * 100} 
-                  className="h-3 bg-zinc-800"
+                  className="h-2 lg:h-3 bg-zinc-800"
                 />
-                <p className="text-sm text-muted-foreground mt-2" data-testid="text-requests-left">
-                  Залишилось {requestsUsed.left} запитів до кінця періоду
+                <p className="text-xs lg:text-sm text-muted-foreground mt-1.5 lg:mt-2" data-testid="text-requests-left">
+                  Залишилось {requestsUsed.left}
                 </p>
               </div>
             </div>
           </motion.div>
 
           <motion.div 
-            className="p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-red-400" />
+            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center">
+                <Lock className="w-4 h-4 lg:w-5 lg:h-5 text-red-400" />
               </div>
-              <h2 className="text-xl font-bold text-white">Безпека</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">Безпека</h2>
             </div>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="w-5 h-5 text-blue-400" />
-                  <div>
-                    <p className="font-medium text-white">Telegram акаунт</p>
-                    <p className="text-sm text-muted-foreground">@{user?.username || "connected"}</p>
+            <div className="space-y-2 lg:space-y-4">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-white text-sm lg:text-base">Telegram</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground truncate">@{user?.username || "connected"}</p>
                   </div>
                 </div>
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                  <Check className="w-3 h-3 mr-1" />
-                  Підключено
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs lg:text-sm px-2 py-0.5 flex-shrink-0">
+                  <Check className="w-2.5 h-2.5 lg:w-3 lg:h-3 mr-0.5" />
+                  OK
                 </Badge>
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-purple-400" />
-                  <div>
-                    <p className="font-medium text-white">Останній вхід</p>
-                    <p className="text-sm text-muted-foreground">{new Date().toLocaleString('uk-UA')}</p>
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-white text-sm lg:text-base">Останній вхід</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground truncate">{new Date().toLocaleString('uk-UA')}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                <div className="flex items-center gap-3">
-                  <Monitor className="w-5 h-5 text-cyan-400" />
-                  <div>
-                    <p className="font-medium text-white">Активні сесії</p>
-                    <p className="text-sm text-muted-foreground">Керування пристроями</p>
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <Monitor className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-white text-sm lg:text-base">Сесії</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">Керування</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-white" data-testid="button-manage-sessions">
+                <Button variant="ghost" size="sm" className="text-xs lg:text-sm text-muted-foreground hover:text-white px-2 h-auto py-1" data-testid="button-manage-sessions">
                   Керувати
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                  <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 ml-0.5 lg:ml-1" />
                 </Button>
               </div>
             </div>
