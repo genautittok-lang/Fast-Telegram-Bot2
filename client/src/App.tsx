@@ -14,6 +14,7 @@ import Referral from "@/pages/Referral";
 import ReferralLanding from "@/pages/ReferralLanding";
 import Account from "@/pages/Account";
 import Admin from "@/pages/Admin";
+import Pricing from "@/pages/Pricing";
 
 function Router() {
   return (
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/r/:code" component={ReferralLanding} />
       <Route path="/account" component={Account} />
       <Route path="/admin" component={Admin} />
+      <Route path="/pricing" component={Pricing} />
       <Route component={NotFound} />
     </Switch>
   );

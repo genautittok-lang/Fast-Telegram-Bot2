@@ -10,6 +10,7 @@ import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
 import { randomUUID } from "crypto";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
+import { stripeService } from "./stripeService";
 
 function generateVerificationId(): string {
   return `DS-${randomUUID().split('-').slice(0, 2).join('').toUpperCase()}`;
@@ -65,6 +66,110 @@ export async function registerRoutes(
       threatsBlocked: 12459,
       uptime: Math.min(99.9, 99 + Math.random()),
     });
+  });
+
+  // Stripe Payment Routes - Google Pay & Apple Pay supported via Stripe Checkout
+  app.get("/api/stripe/publishable-key", async (req, res) => {
+    try {
+      const publishableKey = await stripeService.getPublishableKey();
+      res.json({ publishableKey });
+    } catch (error: any) {
+      console.error("Error getting Stripe key:", error);
+      res.status(500).json({ error: "Failed to get Stripe key" });
+    }
+  });
+
+  app.get("/api/stripe/products", async (req, res) => {
+    try {
+      const rows = await stripeService.listProductsWithPrices();
+      const productsMap = new Map();
+      for (const row of rows as any[]) {
+        if (!productsMap.has(row.product_id)) {
+          productsMap.set(row.product_id, {
+            id: row.product_id,
+            name: row.product_name,
+            description: row.product_description,
+            active: row.product_active,
+            metadata: row.product_metadata,
+            prices: []
+          });
+        }
+        if (row.price_id) {
+          productsMap.get(row.product_id).prices.push({
+            id: row.price_id,
+            unit_amount: row.unit_amount,
+            currency: row.currency,
+            recurring: row.recurring,
+            active: row.price_active,
+            metadata: row.price_metadata
+          });
+        }
+      }
+      res.json({ products: Array.from(productsMap.values()) });
+    } catch (error: any) {
+      console.error("Error listing products:", error);
+      res.status(500).json({ error: "Failed to list products" });
+    }
+  });
+
+  app.post("/api/stripe/checkout", async (req, res) => {
+    try {
+      const { priceId, userTgId, userEmail, tier } = req.body;
+      if (!priceId) {
+        return res.status(400).json({ error: "Price ID required" });
+      }
+
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const baseUrl = `${protocol}://${host}`;
+
+      const session = await stripeService.createCheckoutSession({
+        customerEmail: userEmail,
+        priceId,
+        successUrl: `${baseUrl}/dashboard?payment=success&tier=${tier || 'PRO'}`,
+        cancelUrl: `${baseUrl}/pricing?payment=cancelled`,
+        metadata: {
+          userTgId: userTgId || '',
+          tier: tier || 'PRO'
+        },
+        mode: 'subscription'
+      });
+
+      res.json({ url: session.url, sessionId: session.id });
+    } catch (error: any) {
+      console.error("Error creating checkout:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  });
+
+  app.post("/api/stripe/one-time-checkout", async (req, res) => {
+    try {
+      const { priceId, userTgId, userEmail, tier, amount } = req.body;
+      if (!priceId && !amount) {
+        return res.status(400).json({ error: "Price ID or amount required" });
+      }
+
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.get('host');
+      const baseUrl = `${protocol}://${host}`;
+
+      const session = await stripeService.createCheckoutSession({
+        customerEmail: userEmail,
+        priceId,
+        successUrl: `${baseUrl}/dashboard?payment=success&tier=${tier || 'PRO'}`,
+        cancelUrl: `${baseUrl}/pricing?payment=cancelled`,
+        metadata: {
+          userTgId: userTgId || '',
+          tier: tier || 'PRO'
+        },
+        mode: 'payment'
+      });
+
+      res.json({ url: session.url, sessionId: session.id });
+    } catch (error: any) {
+      console.error("Error creating one-time checkout:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
   });
   
   app.get(api.users.get.path, async (req, res) => {
