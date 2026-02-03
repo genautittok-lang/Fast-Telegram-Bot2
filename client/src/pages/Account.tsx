@@ -39,6 +39,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { MobileMenu } from "@/components/MobileMenu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -309,15 +310,13 @@ export default function Account() {
             </div>
             <span className="font-bold">DARKSHARE</span>
           </div>
-          <Link href="/dashboard">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              data-testid="button-mobile-menu"
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-          </Link>
+          <MobileMenu 
+            lang="UA" 
+            isAuthenticated={true} 
+            username={user?.username} 
+            tier={user?.tier}
+            onLogout={logout}
+          />
         </div>
 
         <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">

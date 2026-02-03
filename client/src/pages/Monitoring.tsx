@@ -277,7 +277,7 @@ export default function Monitoring() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
   const { toast } = useToast();
-  const { isLoading: authLoading, isAuthenticated } = useAuth();
+  const { isLoading: authLoading, isAuthenticated, user } = useAuth();
   const [, setLocation] = useLocation();
 
   const { data: watches, isLoading } = useQuery<Watch[]>({
@@ -387,7 +387,7 @@ export default function Monitoring() {
               <span className="font-display font-bold text-lg">Моніторинг</span>
             </div>
           </div>
-          <MobileMenu lang="UA" isAuthenticated={true} />
+          <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} />
         </div>
       </header>
 

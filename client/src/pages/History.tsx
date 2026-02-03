@@ -94,7 +94,7 @@ const dateFilters = [
 ];
 
 export default function History() {
-  const { isLoading: authLoading, isAuthenticated } = useAuth();
+  const { isLoading: authLoading, isAuthenticated, user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
@@ -309,7 +309,7 @@ export default function History() {
                 <span className="inline md:hidden">Нова</span>
               </Button>
             </Link>
-            <MobileMenu lang="UA" isAuthenticated={true} />
+            <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} />
           </div>
         </div>
       </header>

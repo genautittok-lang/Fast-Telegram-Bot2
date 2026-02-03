@@ -352,7 +352,7 @@ export default function Referral() {
                   </AvatarFallback>
                 </Avatar>
               </motion.div>
-              <MobileMenu lang="UA" isAuthenticated={true} onLogout={logout} />
+              <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
             </div>
           </div>
         </motion.header>
