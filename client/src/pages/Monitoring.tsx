@@ -255,7 +255,7 @@ function MonitorCard({
               size="icon"
               onClick={onDelete}
               disabled={isDeleting}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500/20 hover:text-red-400"
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               data-testid={`button-delete-${watch.id}`}
             >
               {isDeleting ? (
@@ -376,7 +376,7 @@ export default function Monitoring() {
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="hidden sm:flex hover:bg-white/5" data-testid="button-back-dashboard">
+              <Button variant="ghost" size="icon" className="hidden sm:flex" data-testid="button-back-dashboard">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
@@ -435,10 +435,7 @@ export default function Monitoring() {
                   className={`w-full sm:w-44 bg-white/5 border-white/10 focus:border-white/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300`}
                   data-testid="select-monitor-type"
                 >
-                  <div className="flex items-center gap-2">
-                    <CurrentTypeIcon className="w-4 h-4" style={{ color: currentTypeConfig.gradient.includes('blue') ? '#3b82f6' : currentTypeConfig.gradient.includes('orange') ? '#f97316' : currentTypeConfig.gradient.includes('purple') ? '#a855f7' : currentTypeConfig.gradient.includes('green') ? '#22c55e' : currentTypeConfig.gradient.includes('indigo') ? '#6366f1' : '#ef4444' }} />
-                    <SelectValue />
-                  </div>
+                  <SelectValue placeholder="Виберіть тип" />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(typeConfig).map(([key, cfg]) => {

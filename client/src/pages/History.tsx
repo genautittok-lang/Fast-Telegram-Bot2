@@ -287,7 +287,7 @@ export default function History() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="hidden sm:flex gap-1.5 text-muted-foreground hover:text-foreground"
+              className="hidden sm:flex gap-1.5 text-muted-foreground"
               onClick={() => window.open('/api/reports/export/json', '_blank')}
               data-testid="button-export-json"
             >
@@ -297,7 +297,7 @@ export default function History() {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="hidden sm:flex gap-1.5 text-muted-foreground hover:text-foreground"
+              className="hidden sm:flex gap-1.5 text-muted-foreground"
               onClick={() => window.open('/api/reports/export/csv', '_blank')}
               data-testid="button-export-csv"
             >
@@ -398,7 +398,7 @@ export default function History() {
                   className={`text-xs ${
                     dateFilter === filter.id 
                       ? "bg-white/10 text-foreground" 
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground"
                   }`}
                   data-testid={`button-date-${filter.id}`}
                 >
