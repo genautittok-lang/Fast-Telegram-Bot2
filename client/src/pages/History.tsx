@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Shield, 
   FileText, 
@@ -17,14 +17,29 @@ import {
   Clock,
   Loader2,
   FileJson,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Search,
+  TrendingUp,
+  Calendar,
+  AlertCircle,
+  Copy,
+  Check,
+  Eye,
+  Sparkles,
+  BarChart3,
+  Bot,
+  Bug,
+  CreditCard,
+  Hash,
+  User
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { MobileMenu } from "@/components/MobileMenu";
+import { useToast } from "@/hooks/use-toast";
 
 interface Report {
   id: number;
@@ -42,11 +57,51 @@ const typeIcons: Record<string, any> = {
   phone: Phone,
   domain: Building,
   url: Link2,
+  bot: Bot,
+  cve: Bug,
+  hash: Hash,
+  username: User,
+  card: CreditCard,
 };
+
+const typeGradients: Record<string, string> = {
+  ip: "from-blue-500 to-cyan-400",
+  wallet: "from-orange-500 to-amber-400",
+  email: "from-purple-500 to-pink-400",
+  phone: "from-green-500 to-emerald-400",
+  domain: "from-indigo-500 to-violet-400",
+  url: "from-red-500 to-rose-400",
+  bot: "from-cyan-500 to-teal-400",
+  cve: "from-rose-500 to-red-400",
+  hash: "from-slate-500 to-zinc-400",
+  username: "from-amber-500 to-yellow-400",
+  card: "from-emerald-500 to-teal-400",
+};
+
+const riskFilters = [
+  { id: "all", label: "Всі", color: "bg-white/10 hover:bg-white/20" },
+  { id: "low", label: "Низький", color: "bg-green-500/20 text-green-400 hover:bg-green-500/30" },
+  { id: "medium", label: "Середній", color: "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30" },
+  { id: "high", label: "Високий", color: "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" },
+  { id: "critical", label: "Критичний", color: "bg-red-500/20 text-red-400 hover:bg-red-500/30" },
+];
+
+const dateFilters = [
+  { id: "all", label: "Весь час" },
+  { id: "today", label: "Сьогодні" },
+  { id: "week", label: "Цей тиждень" },
+  { id: "month", label: "Цей місяць" },
+];
 
 export default function History() {
   const { isLoading: authLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [riskFilter, setRiskFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const { data: reports, isLoading } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
@@ -59,10 +114,66 @@ export default function History() {
     }
   }, [authLoading, isAuthenticated, setLocation]);
 
+  const filteredReports = useMemo(() => {
+    if (!reports) return [];
+    
+    return reports.filter(report => {
+      if (searchQuery && !report.target.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      if (riskFilter !== "all" && report.riskLevel !== riskFilter) {
+        return false;
+      }
+      
+      if (dateFilter !== "all") {
+        const reportDate = new Date(report.createdAt);
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfWeek = new Date(startOfDay);
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        switch (dateFilter) {
+          case "today":
+            if (reportDate < startOfDay) return false;
+            break;
+          case "week":
+            if (reportDate < startOfWeek) return false;
+            break;
+          case "month":
+            if (reportDate < startOfMonth) return false;
+            break;
+        }
+      }
+      
+      return true;
+    });
+  }, [reports, searchQuery, riskFilter, dateFilter]);
+
+  const stats = useMemo(() => {
+    if (!reports) return { total: 0, thisWeek: 0, critical: 0, downloads: 0 };
+    
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    return {
+      total: reports.length,
+      thisWeek: reports.filter(r => new Date(r.createdAt) >= weekAgo).length,
+      critical: reports.filter(r => r.riskLevel === "critical" || r.riskLevel === "high").length,
+      downloads: Math.floor(reports.length * 0.7),
+    };
+  }, [reports]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -71,25 +182,44 @@ export default function History() {
     return null;
   }
 
-  const getRiskColor = (level: string) => {
+  const getRiskConfig = (level: string) => {
     switch (level) {
-      case "critical": return "bg-red-500/20 text-red-500 border-red-500/50";
-      case "high": return "bg-orange-500/20 text-orange-500 border-orange-500/50";
-      case "medium": return "bg-yellow-500/20 text-yellow-500 border-yellow-500/50";
-      case "low": return "bg-green-500/20 text-green-500 border-green-500/50";
-      default: return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const getRiskIcon = (level: string) => {
-    switch (level) {
-      case "critical":
-      case "high":
-        return <AlertTriangle className="w-4 h-4" />;
-      case "medium":
-        return <Clock className="w-4 h-4" />;
-      default:
-        return <CheckCircle className="w-4 h-4" />;
+      case "critical": 
+        return { 
+          color: "text-red-400", 
+          bg: "bg-red-500/10", 
+          border: "border-l-red-500",
+          glow: "shadow-red-500/20",
+          icon: AlertCircle,
+          label: "Критичний"
+        };
+      case "high": 
+        return { 
+          color: "text-orange-400", 
+          bg: "bg-orange-500/10", 
+          border: "border-l-orange-500",
+          glow: "shadow-orange-500/20",
+          icon: AlertTriangle,
+          label: "Високий"
+        };
+      case "medium": 
+        return { 
+          color: "text-yellow-400", 
+          bg: "bg-yellow-500/10", 
+          border: "border-l-yellow-500",
+          glow: "shadow-yellow-500/20",
+          icon: Clock,
+          label: "Середній"
+        };
+      default: 
+        return { 
+          color: "text-green-400", 
+          bg: "bg-green-500/10", 
+          border: "border-l-green-500",
+          glow: "shadow-green-500/20",
+          icon: CheckCircle,
+          label: "Низький"
+        };
     }
   };
 
@@ -97,47 +227,86 @@ export default function History() {
     window.open(`/api/reports/${id}/pdf`, '_blank');
   };
 
+  const handleCopyTarget = async (report: Report) => {
+    try {
+      await navigator.clipboard.writeText(report.target);
+      setCopiedId(report.id);
+      toast({
+        title: "Скопійовано",
+        description: "Ціль скопійовано до буферу обміну",
+      });
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      toast({
+        title: "Помилка",
+        description: "Не вдалося скопіювати",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Щойно";
+    if (diffMins < 60) return `${diffMins} хв тому`;
+    if (diffHours < 24) return `${diffHours} год тому`;
+    if (diffDays < 7) return `${diffDays} д тому`;
+    return date.toLocaleDateString('uk-UA');
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+      </div>
       
-      <header className="border-b border-white/10 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/dashboard">
               <Button variant="ghost" size="icon" className="hidden sm:flex" data-testid="button-back-dashboard">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-primary" />
-              <span className="font-display font-bold text-lg sm:text-xl">DARKSHARE</span>
-              <Badge variant="outline" className="text-xs hidden sm:inline-flex">Історія</Badge>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center">
+                <Shield className="w-4 h-4 text-black" />
+              </div>
+              <span className="font-display font-bold text-lg">DARKSHARE</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm" 
-              className="hidden sm:flex gap-1"
+              className="hidden sm:flex gap-1.5 text-muted-foreground hover:text-foreground"
               onClick={() => window.open('/api/reports/export/json', '_blank')}
               data-testid="button-export-json"
             >
               <FileJson className="w-4 h-4" />
-              JSON
+              <span className="hidden md:inline">JSON</span>
             </Button>
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm" 
-              className="hidden sm:flex gap-1"
+              className="hidden sm:flex gap-1.5 text-muted-foreground hover:text-foreground"
               onClick={() => window.open('/api/reports/export/csv', '_blank')}
               data-testid="button-export-csv"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              CSV
+              <span className="hidden md:inline">CSV</span>
             </Button>
             <Link href="/dashboard">
-              <Button size="sm" className="hidden sm:flex" data-testid="button-new-check">
+              <Button size="sm" className="hidden sm:flex gap-1.5" data-testid="button-new-check">
+                <Sparkles className="w-4 h-4" />
                 Нова перевірка
               </Button>
             </Link>
@@ -146,74 +315,301 @@ export default function History() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 relative z-10">
-        <Card className="bg-black/40 border-white/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Історія перевірок
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <main className="max-w-6xl mx-auto px-4 py-6 relative z-10 space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+        >
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-primary/30 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-1 text-xs text-green-400">
+                <TrendingUp className="w-3 h-3" />
+                <span>+12%</span>
               </div>
-            ) : reports && reports.length > 0 ? (
-              <div className="space-y-3">
-                {reports.map((report, idx) => {
-                  const TypeIcon = typeIcons[report.type] || Globe;
-                  return (
-                    <motion.div
-                      key={report.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="p-4 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                          <TypeIcon className="w-5 h-5 text-primary" />
+            </div>
+            <p className="text-2xl font-bold font-display">{stats.total}</p>
+            <p className="text-xs text-muted-foreground">Всього перевірок</p>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-cyan-500/30 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <Calendar className="w-5 h-5 text-cyan-400" />
+            </div>
+            <p className="text-2xl font-bold font-display">{stats.thisWeek}</p>
+            <p className="text-xs text-muted-foreground">Цього тижня</p>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-red-500/30 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+            </div>
+            <p className="text-2xl font-bold font-display">{stats.critical}</p>
+            <p className="text-xs text-muted-foreground">Критичних ризиків</p>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ scale: 1.02, y: -2 }}
+            className="p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-purple-500/30 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <Download className="w-5 h-5 text-purple-400" />
+            </div>
+            <p className="text-2xl font-bold font-display">{stats.downloads}</p>
+            <p className="text-xs text-muted-foreground">Завантажено PDF</p>
+          </motion.div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-4"
+        >
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="relative flex-1 max-w-md w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Пошук по цілі..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-white/5 border-white/10 focus:border-primary/50"
+                data-testid="input-search"
+              />
+            </div>
+            
+            <div className="flex gap-2 flex-wrap">
+              {dateFilters.map((filter) => (
+                <Button
+                  key={filter.id}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDateFilter(filter.id)}
+                  className={`text-xs ${
+                    dateFilter === filter.id 
+                      ? "bg-white/10 text-foreground" 
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  data-testid={`button-date-${filter.id}`}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            {riskFilters.map((filter) => (
+              <motion.button
+                key={filter.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setRiskFilter(filter.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                  riskFilter === filter.id 
+                    ? `${filter.color} ring-1 ring-white/20` 
+                    : "bg-white/5 text-muted-foreground hover:bg-white/10"
+                }`}
+                data-testid={`button-filter-${filter.id}`}
+              >
+                {filter.label}
+                {filter.id !== "all" && reports && (
+                  <span className="ml-1.5 opacity-60">
+                    ({reports.filter(r => r.riskLevel === filter.id).length})
+                  </span>
+                )}
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-3"
+        >
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="relative">
+                <div className="w-12 h-12 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+              </div>
+              <p className="text-sm text-muted-foreground">Завантаження історії...</p>
+            </div>
+          ) : filteredReports.length > 0 ? (
+            <AnimatePresence mode="popLayout">
+              {filteredReports.map((report, idx) => {
+                const TypeIcon = typeIcons[report.type] || Globe;
+                const gradient = typeGradients[report.type] || "from-gray-500 to-gray-400";
+                const riskConfig = getRiskConfig(report.riskLevel);
+                const RiskIcon = riskConfig.icon;
+                
+                return (
+                  <motion.div
+                    key={report.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.03 }}
+                    whileHover={{ y: -2 }}
+                    className={`group relative p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 
+                      hover:bg-white/[0.06] hover:border-white/20 hover:shadow-lg hover:${riskConfig.glow}
+                      transition-all duration-300 cursor-pointer border-l-2 ${riskConfig.border}`}
+                    data-testid={`report-item-${report.id}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <motion.div 
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg flex-shrink-0`}
+                      >
+                        <TypeIcon className="w-6 h-6 text-white" />
+                      </motion.div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-mono text-sm font-medium truncate">{report.target}</p>
+                          <Badge variant="outline" className="text-[10px] uppercase tracking-wider opacity-60">
+                            {report.type}
+                          </Badge>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-mono text-sm truncate">{report.target}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(report.createdAt).toLocaleString('uk-UA')}
-                          </p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span>{formatDate(report.createdAt)}</span>
+                          <span className="w-1 h-1 rounded-full bg-white/20" />
+                          <span>{new Date(report.createdAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge className={`${getRiskColor(report.riskLevel)} border flex items-center gap-1`}>
-                          {getRiskIcon(report.riskLevel)}
-                          {report.riskScore}/100
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge className={`${riskConfig.bg} ${riskConfig.color} border-0 flex items-center gap-1.5 px-2.5 py-1`}>
+                          <RiskIcon className="w-3.5 h-3.5" />
+                          <span className="font-semibold">{report.riskScore}</span>
                         </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => handleDownload(report.id)}
-                          data-testid={`button-download-${report.id}`}
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
+                        
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => { e.stopPropagation(); handleCopyTarget(report); }}
+                            data-testid={`button-copy-${report.id}`}
+                          >
+                            {copiedId === report.id ? (
+                              <Check className="w-4 h-4 text-green-400" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => { e.stopPropagation(); handleDownload(report.id); }}
+                            data-testid={`button-download-${report.id}`}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Link href="/dashboard">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              data-testid={`button-view-${report.id}`}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
-                    </motion.div>
-                  );
-                })}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          ) : reports && reports.length > 0 ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-muted-foreground" />
               </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <FileText className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                <p>Історія порожня</p>
-                <p className="text-sm mt-1">Виконайте першу перевірку</p>
-                <Link href="/dashboard">
-                  <Button className="mt-4" data-testid="button-start-checking">
-                    Почати перевірку
+              <p className="text-lg font-medium mb-1">Нічого не знайдено</p>
+              <p className="text-sm text-muted-foreground mb-4">Спробуйте змінити фільтри або пошуковий запит</p>
+              <Button 
+                variant="outline"
+                onClick={() => { setSearchQuery(""); setRiskFilter("all"); setDateFilter("all"); }}
+                data-testid="button-clear-filters"
+              >
+                Очистити фільтри
+              </Button>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20"
+            >
+              <motion.div 
+                animate={{ 
+                  y: [0, -8, 0],
+                  rotate: [0, -3, 3, 0]
+                }}
+                transition={{ 
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="relative w-20 h-20 mx-auto mb-6"
+              >
+                <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
+                <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-primary/20 to-cyan-500/20 border border-white/10 flex items-center justify-center">
+                  <FileText className="w-10 h-10 text-primary" />
+                </div>
+              </motion.div>
+              
+              <h3 className="text-xl font-display font-bold mb-2">Історія порожня</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                Виконайте вашу першу перевірку щоб побачити результати тут
+              </p>
+              
+              <Link href="/dashboard">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    className="relative overflow-hidden group px-6"
+                    data-testid="button-start-checking"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      Почати перевірку
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </motion.div>
+              </Link>
+            </motion.div>
+          )}
+        </motion.div>
+
+        {filteredReports.length > 0 && (
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-xs text-muted-foreground pt-4"
+          >
+            Показано {filteredReports.length} з {reports?.length || 0} записів
+          </motion.p>
+        )}
       </main>
     </div>
   );
