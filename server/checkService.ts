@@ -106,8 +106,10 @@ export function validateInput(type: string, value: string): { valid: boolean; er
       }
       break;
     case "card":
-      if (!/^\d{6,8}$/.test(cleanValue)) {
-        return { valid: false, error: "Невірний формат. Введіть 6-8 цифр BIN (перші цифри картки)" };
+      // Accept full card numbers (13-19 digits), BIN only (6-8 digits), or with spaces/dashes
+      const cardDigits = cleanValue.replace(/[\s\-]/g, '');
+      if (!/^\d{6,19}$/.test(cardDigits)) {
+        return { valid: false, error: "Введіть номер картки (6-19 цифр) або BIN" };
       }
       break;
   }
@@ -2212,7 +2214,11 @@ async function checkCard(value: string, timestamp: Date): Promise<CheckResult> {
   const sources: string[] = ["binlist.net", "Локальний аналіз"];
   const cardData: any = {};
   
-  const bin = value.trim();
+  // Clean input - remove spaces, dashes and extract first 6-8 digits as BIN
+  const cleanedValue = value.replace(/[\s\-]/g, '').trim();
+  const bin = cleanedValue.substring(0, 8); // Take first 8 digits max for BIN lookup
+  cardData.fullInput = cleanedValue.length > 8 ? cleanedValue.substring(0, 4) + " **** **** " + cleanedValue.slice(-4) : cleanedValue;
+  cardData.inputLength = cleanedValue.length;
   cardData.bin = bin;
   
   // Known fraud BIN patterns
