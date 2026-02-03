@@ -145,14 +145,14 @@ function StatCard({
     >
       <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl blur-xl -z-10"
         style={{ background: `linear-gradient(135deg, ${gradient})` }} />
-      <div className="relative p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-            <Icon className="w-5 h-5 text-white" />
+      <div className="relative p-2 sm:p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}>
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <div>
-            <p className="text-2xl font-bold font-display">{value}</p>
-            <p className="text-xs text-muted-foreground">{label}</p>
+          <div className="min-w-0">
+            <p className="text-lg sm:text-2xl font-bold font-display truncate">{value}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{label}</p>
           </div>
         </div>
       </div>
@@ -162,14 +162,14 @@ function StatCard({
 
 function MonitorCardSkeleton() {
   return (
-    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-      <div className="flex items-center gap-4">
-        <Skeleton className="w-12 h-12 rounded-xl" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-3 w-32" />
+    <div className="p-2 sm:p-4 rounded-xl bg-white/[0.02] border border-white/5">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Skeleton className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shrink-0" />
+        <div className="flex-1 space-y-2 min-w-0">
+          <Skeleton className="h-4 w-full max-w-[200px]" />
+          <Skeleton className="h-3 w-24" />
         </div>
-        <Skeleton className="h-6 w-20 rounded-full" />
+        <Skeleton className="h-6 w-16 sm:w-20 rounded-full shrink-0" />
       </div>
     </div>
   );
@@ -208,21 +208,21 @@ function MonitorCard({
       className="group relative"
     >
       <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-gradient-to-b ${config.gradient}`} />
-      <div className={`relative ml-1 p-4 rounded-r-xl rounded-l-none bg-gradient-to-r ${config.bgGradient} border border-white/5 hover:border-white/15 transition-all duration-300 hover:translate-x-1 hover:shadow-lg hover:shadow-black/20`}>
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center border border-white/10`}>
-            <TypeIcon className={`w-6 h-6 bg-gradient-to-r ${config.gradient} bg-clip-text`} style={{ color: 'transparent', WebkitBackgroundClip: 'text', backgroundImage: `linear-gradient(135deg, var(--tw-gradient-stops))` }} />
-            <TypeIcon className={`w-6 h-6 absolute opacity-80`} style={{ color: config.gradient.includes('blue') ? '#3b82f6' : config.gradient.includes('orange') ? '#f97316' : config.gradient.includes('purple') ? '#a855f7' : config.gradient.includes('green') ? '#22c55e' : config.gradient.includes('indigo') ? '#6366f1' : '#ef4444' }} />
+      <div className={`relative ml-1 p-2 sm:p-4 rounded-r-xl rounded-l-none bg-gradient-to-r ${config.bgGradient} border border-white/5 hover:border-white/15 transition-all duration-300 hover:translate-x-1 hover:shadow-lg hover:shadow-black/20`}>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${config.iconBg} flex items-center justify-center border border-white/10 shrink-0`}>
+            <TypeIcon className={`w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r ${config.gradient} bg-clip-text`} style={{ color: 'transparent', WebkitBackgroundClip: 'text', backgroundImage: `linear-gradient(135deg, var(--tw-gradient-stops))` }} />
+            <TypeIcon className={`w-5 h-5 sm:w-6 sm:h-6 absolute opacity-80`} style={{ color: config.gradient.includes('blue') ? '#3b82f6' : config.gradient.includes('orange') ? '#f97316' : config.gradient.includes('purple') ? '#a855f7' : config.gradient.includes('green') ? '#22c55e' : config.gradient.includes('indigo') ? '#6366f1' : '#ef4444' }} />
           </div>
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-mono text-sm truncate max-w-[200px] sm:max-w-none">{watch.value}</p>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-white/20 text-muted-foreground">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+              <p className="font-mono text-xs sm:text-sm truncate max-w-[140px] sm:max-w-none">{watch.value}</p>
+              <Badge variant="outline" className="text-[10px] px-1 sm:px-1.5 py-0 border-white/20 text-muted-foreground hidden sm:inline-flex">
                 {config.label}
               </Badge>
             </div>
-            <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {formatTimeAgo(watch.lastCheck)}
@@ -230,23 +230,23 @@ function MonitorCard({
               {trend && (
                 <span className={`flex items-center gap-1 ${trend.color}`}>
                   <trend.icon className="w-3 h-3" />
-                  {trend.label}
+                  <span className="hidden sm:inline">{trend.label}</span>
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <div className="relative">
               {isActive && (
                 <span className="absolute inset-0 rounded-full bg-green-500/30 animate-ping" />
               )}
-              <Badge className={`relative ${isActive 
+              <Badge className={`relative text-[10px] sm:text-xs px-1.5 sm:px-2 ${isActive 
                 ? 'bg-green-500/20 text-green-400 border-green-500/30' 
                 : 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'
               } border`}>
-                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isActive ? 'bg-green-400' : 'bg-zinc-400'}`} />
-                {isActive ? 'Активний' : 'Пауза'}
+                <span className={`w-1.5 h-1.5 rounded-full sm:mr-1.5 ${isActive ? 'bg-green-400' : 'bg-zinc-400'}`} />
+                <span className="hidden sm:inline">{isActive ? 'Активний' : 'Пауза'}</span>
               </Badge>
             </div>
             
@@ -255,13 +255,13 @@ function MonitorCard({
               size="icon"
               onClick={onDelete}
               disabled={isDeleting}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              className="w-8 h-8 sm:w-9 sm:h-9 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               data-testid={`button-delete-${watch.id}`}
             >
               {isDeleting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
               ) : (
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
               )}
             </Button>
           </div>
@@ -392,7 +392,7 @@ export default function Monitoring() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 relative z-10 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           <StatCard
             icon={Eye}
             label="Активних моніторів"
@@ -423,62 +423,64 @@ export default function Monitoring() {
           className="relative"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 rounded-2xl blur-xl" />
-          <div className="relative p-5 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/10">
-            <div className="flex items-center gap-2 mb-4">
+          <div className="relative p-3 sm:p-5 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/10">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <Sparkles className="w-4 h-4 text-primary" />
-              <h2 className="font-display font-semibold">Додати новий монітор</h2>
+              <h2 className="font-display font-semibold text-sm sm:text-base">Додати новий монітор</h2>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Select value={newType} onValueChange={setNewType}>
-                <SelectTrigger 
-                  className={`w-full sm:w-44 bg-white/5 border-white/10 focus:border-white/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300`}
-                  data-testid="select-monitor-type"
-                >
-                  <SelectValue placeholder="Виберіть тип" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(typeConfig).map(([key, cfg]) => {
-                    const Icon = cfg.icon;
-                    return (
-                      <SelectItem key={key} value={key}>
-                        <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4" />
-                          {cfg.label}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              
-              <div className="relative flex-1">
-                <Input
-                  value={newValue}
-                  onChange={(e) => setNewValue(e.target.value)}
-                  placeholder="Введіть значення для моніторингу..."
-                  className="bg-white/5 border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 pr-10"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                  data-testid="input-monitor-value"
-                />
-                <AnimatePresence>
-                  {showSuccess && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                    >
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+            <div className="flex flex-col gap-2 sm:gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <Select value={newType} onValueChange={setNewType}>
+                  <SelectTrigger 
+                    className={`w-full sm:w-44 bg-white/5 border-white/10 focus:border-white/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300 text-sm`}
+                    data-testid="select-monitor-type"
+                  >
+                    <SelectValue placeholder="Виберіть тип" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(typeConfig).map(([key, cfg]) => {
+                      const Icon = cfg.icon;
+                      return (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4" />
+                            {cfg.label}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                
+                <div className="relative flex-1">
+                  <Input
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    placeholder="Введіть значення..."
+                    className="bg-white/5 border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 pr-10 text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                    data-testid="input-monitor-value"
+                  />
+                  <AnimatePresence>
+                    {showSuccess && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                      >
+                        <CheckCircle2 className="w-5 h-5 text-green-400" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
               
               <Button 
                 onClick={handleCreate} 
                 disabled={createMutation.isPending}
-                className={`relative overflow-hidden bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 border-0 ${!createMutation.isPending && 'animate-subtle-pulse'}`}
+                className={`w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 border-0 ${!createMutation.isPending && 'animate-subtle-pulse'}`}
                 data-testid="button-create-monitor"
               >
                 {createMutation.isPending ? (
@@ -499,8 +501,8 @@ export default function Monitoring() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold flex items-center gap-2">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="font-display font-semibold text-sm sm:text-base flex items-center gap-2">
               <Eye className="w-4 h-4 text-primary" />
               Активні монітори
             </h2>
@@ -535,13 +537,13 @@ export default function Monitoring() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-16 rounded-2xl bg-white/[0.02] border border-white/5"
+              className="text-center py-10 sm:py-16 rounded-2xl bg-white/[0.02] border border-white/5"
             >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
-                <Eye className="w-8 h-8 text-muted-foreground/50" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
+                <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground/50" />
               </div>
-              <p className="text-muted-foreground">Немає активних моніторів</p>
-              <p className="text-sm text-muted-foreground/60 mt-1">Додайте об'єкт для відстеження змін</p>
+              <p className="text-sm sm:text-base text-muted-foreground">Немає активних моніторів</p>
+              <p className="text-xs sm:text-sm text-muted-foreground/60 mt-1">Додайте об'єкт для відстеження змін</p>
             </motion.div>
           )}
         </motion.div>
@@ -552,7 +554,7 @@ export default function Monitoring() {
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <div className="relative p-[1px] rounded-2xl bg-gradient-to-r from-primary/50 via-primary/20 to-primary/50">
-            <div className="rounded-2xl bg-background p-5">
+            <div className="rounded-2xl bg-background p-3 sm:p-5">
               <Collapsible open={faqOpen} onOpenChange={setFaqOpen}>
                 <CollapsibleTrigger className="w-full">
                   <div className="flex items-center justify-between">
