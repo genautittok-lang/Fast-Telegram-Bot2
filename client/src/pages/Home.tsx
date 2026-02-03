@@ -53,6 +53,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ThreatFeed } from "@/components/ThreatFeed";
+import { Footer } from "@/components/Footer";
 import { translations } from "@/lib/i18n";
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
@@ -722,76 +723,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-white/5 bg-card/30 relative z-10 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16 overflow-hidden">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl overflow-hidden border border-primary/30">
-                  <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <span className="font-display font-bold text-lg">DARKSHARE</span>
-                  <span className="text-primary ml-1 text-sm">v4.0</span>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md">
-                {lang === "UA" 
-                  ? "Професійна платформа для OSINT розвідки та аналізу кіберзагроз. 10+ модулів для комплексного захисту."
-                  : lang === "RU"
-                  ? "Профессиональная платформа для OSINT разведки и анализа киберугроз. 10+ модулей для комплексной защиты."
-                  : "Professional platform for OSINT intelligence and cyber threat analysis. 10+ modules for comprehensive protection."}
-              </p>
-              <div className="flex items-center gap-3 pt-2">
-                <a 
-                  href="https://t.me/DARKSHAREN1_BOT" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#229ED9]/10 border border-[#229ED9]/20 text-[#229ED9] text-sm font-medium hover:bg-[#229ED9]/20 transition-colors"
-                  data-testid="link-telegram-footer"
-                >
-                  <SiTelegram className="w-4 h-4" />
-                  @DARKSHAREN1_BOT
-                </a>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm">{lang === "UA" ? "Модулі" : lang === "RU" ? "Модули" : "Modules"}</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Crypto Wallet Analysis</li>
-                <li>IP & Domain Lookup</li>
-                <li>Email OSINT</li>
-                <li>Malware Scanner</li>
-                <li>CVE Database</li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm">{lang === "UA" ? "Ресурси" : lang === "RU" ? "Ресурсы" : "Resources"}</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">API Docs</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">Support</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-white/5 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="text-xs text-muted-foreground font-mono">
-              © 2024 DARKSHARE INT. All rights reserved.
-            </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                {lang === "UA" ? "Всі системи онлайн" : lang === "RU" ? "Все системы онлайн" : "All systems online"}
-              </span>
-              <span>Uptime: {stats?.uptime?.toFixed(1) ?? '99.9'}%</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer lang={lang} />
     </div>
   );
 }

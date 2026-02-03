@@ -761,63 +761,154 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       return ctx.reply(t(lang, "validation.error", { error: error.message }));
     }
     
-    const getRiskEmoji = (level: string) => {
+    const getStatusIndicator = (level: string, lang: Language) => {
       switch (level) {
-        case "low": return "🟢";
-        case "medium": return "🟡";
-        case "high": return "🔴";
-        case "critical": return "⚫";
-        default: return "🟡";
-      }
-    };
-
-    const getRiskColor = (level: string) => {
-      switch (level) {
-        case "low": return "НИЗЬКИЙ";
-        case "medium": return "СЕРЕДНІЙ";
-        case "high": return "ВИСОКИЙ";
-        case "critical": return "КРИТИЧНИЙ";
-        default: return "СЕРЕДНІЙ";
+        case "low": return lang === "uk" ? "✅ БЕЗПЕЧНО" : lang === "ru" ? "✅ БЕЗОПАСНО" : "✅ SAFE";
+        case "medium": return lang === "uk" ? "⚠️ УВАГА" : lang === "ru" ? "⚠️ ВНИМАНИЕ" : "⚠️ CAUTION";
+        case "high": return lang === "uk" ? "🔴 НЕБЕЗПЕКА" : lang === "ru" ? "🔴 ОПАСНОСТЬ" : "🔴 DANGER";
+        case "critical": return lang === "uk" ? "💀 КРИТИЧНО" : lang === "ru" ? "💀 КРИТИЧНО" : "💀 CRITICAL";
+        default: return "⚠️ CAUTION";
       }
     };
 
     const moduleEmojis: Record<string, string> = {
       ip: "🌐", wallet: "💰", phone: "📱", 
       email: "📧", domain: "🏢", url: "🔗",
-      cve: "🔓", hash: "🔢", username: "👤"
+      cve: "🔓", hash: "🔢", username: "👤",
+      card: "💳", iot: "📡", cloud: "☁️"
     };
 
     const moduleNames: Record<string, string> = {
-      ip: "IP/GEO Аналіз",
-      wallet: "Крипто Аналіз", 
-      phone: "Телефон OSINT",
-      email: "Email Аналіз",
-      domain: "Домен/WHOIS",
-      url: "URL Перевірка",
-      cve: "CVE Сканування",
-      hash: "Хеш Аналіз",
-      username: "Username OSINT"
+      ip: lang === "uk" ? "IP/GEO АНАЛІЗ" : lang === "ru" ? "IP/GEO АНАЛИЗ" : "IP/GEO ANALYSIS",
+      wallet: lang === "uk" ? "КРИПТО АНАЛІЗ" : lang === "ru" ? "КРИПТО АНАЛИЗ" : "CRYPTO ANALYSIS", 
+      phone: lang === "uk" ? "ТЕЛЕФОН OSINT" : lang === "ru" ? "ТЕЛЕФОН OSINT" : "PHONE OSINT",
+      email: lang === "uk" ? "EMAIL АНАЛІЗ" : lang === "ru" ? "EMAIL АНАЛИЗ" : "EMAIL ANALYSIS",
+      domain: lang === "uk" ? "ДОМЕН/WHOIS" : lang === "ru" ? "ДОМЕН/WHOIS" : "DOMAIN/WHOIS",
+      url: lang === "uk" ? "URL ПЕРЕВІРКА" : lang === "ru" ? "URL ПРОВЕРКА" : "URL CHECK",
+      cve: lang === "uk" ? "CVE СКАНУВАННЯ" : lang === "ru" ? "CVE СКАНИРОВАНИЕ" : "CVE SCAN",
+      hash: lang === "uk" ? "ХЕШ АНАЛІЗ" : lang === "ru" ? "ХЕШ АНАЛИЗ" : "HASH ANALYSIS",
+      username: "USERNAME OSINT",
+      card: lang === "uk" ? "КАРТКА BIN АНАЛІЗ" : lang === "ru" ? "КАРТА BIN АНАЛИЗ" : "CARD BIN ANALYSIS",
+      iot: "IOT SCAN",
+      cloud: "CLOUD CHECK"
     };
     
-    const riskEmoji = getRiskEmoji(checkResult.riskLevel);
     const riskProgressBar = generateProgressBar(checkResult.riskScore, 100);
-    const findingsText = checkResult.findings.slice(0, 6).map(f => `├ ${f}`).join("\n");
+    const statusIndicator = getStatusIndicator(checkResult.riskLevel, lang);
     
-    const targetDisplay = checkResult.target.length > 25 
-      ? checkResult.target.substring(0, 22) + "..." 
+    const targetDisplay = checkResult.target.length > 30 
+      ? checkResult.target.substring(0, 27) + "..." 
       : checkResult.target;
 
-    const result = `${moduleEmojis[state.module] || "🔍"} *${checkResult.type.toUpperCase()}*
-━━━━━━━━━━━━━━━━━━━━
+    let result: string;
 
-🎯 ${targetDisplay}
+    if (state.module === "card") {
+      const bankName = checkResult.details?.bank?.name || (lang === "uk" ? "Невідомий" : lang === "ru" ? "Неизвестный" : "Unknown");
+      const countryEmoji = checkResult.details?.country?.emoji || "🌍";
+      const countryName = checkResult.details?.country?.name || (lang === "uk" ? "Невідомо" : lang === "ru" ? "Неизвестно" : "Unknown");
+      const cardBrand = checkResult.details?.brand || "—";
+      const cardType = checkResult.details?.type ? (
+        checkResult.details.type === "debit" ? (lang === "uk" ? "Дебетова" : lang === "ru" ? "Дебетовая" : "Debit") :
+        checkResult.details.type === "credit" ? (lang === "uk" ? "Кредитна" : lang === "ru" ? "Кредитная" : "Credit") :
+        checkResult.details.type
+      ) : "—";
+      const isPrepaid = checkResult.details?.isPrepaid;
+      
+      const findingsFormatted = checkResult.findings.slice(0, 5).map((f, i, arr) => 
+        i === arr.length - 1 ? `└ ${f}` : `├ ${f}`
+      ).join("\n");
 
-${riskEmoji} ${t(lang, "result.risk")}: ${riskProgressBar} *${checkResult.riskScore}%*
+      const infoLabel = lang === "uk" ? "ІНФОРМАЦІЯ" : lang === "ru" ? "ИНФОРМАЦИЯ" : "INFO";
+      const analysisLabel = lang === "uk" ? "АНАЛІЗ" : lang === "ru" ? "АНАЛИЗ" : "ANALYSIS";
+      const riskLabel = lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : "Risk";
+      const bankLabel = lang === "uk" ? "Банк" : lang === "ru" ? "Банк" : "Bank";
+      const countryLabel = lang === "uk" ? "Країна" : lang === "ru" ? "Страна" : "Country";
+      const brandLabel = lang === "uk" ? "Бренд" : lang === "ru" ? "Бренд" : "Brand";
+      const typeLabel = lang === "uk" ? "Тип" : lang === "ru" ? "Тип" : "Type";
+      const statusLabel = lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status";
 
-📋 ${t(lang, "result.findings")}:
-${findingsText}
+      result = `${moduleEmojis.card} *${moduleNames.card}*
+═══════════════════════
 
-📊 ${t(lang, "result.sources")}: ${checkResult.sources.slice(0, 3).join(", ")}`;
+🔢 *BIN:* \`${targetDisplay}\`
+⚡ *${statusLabel}:* ${statusIndicator}
+
+━━━━ ${infoLabel} ━━━━
+🏦 *${bankLabel}:* ${bankName}
+🌍 *${countryLabel}:* ${countryEmoji} ${countryName}
+💳 *${brandLabel}:* ${cardBrand}
+📋 *${typeLabel}:* ${cardType}
+
+━━━━ ${analysisLabel} ━━━━
+${findingsFormatted}
+
+📊 *${riskLabel}:* ${riskProgressBar} *${checkResult.riskScore}%*
+🔗 ${checkResult.sources.slice(0, 3).join(", ")}
+═══════════════════════`;
+
+    } else {
+      const findingsFormatted = checkResult.findings.slice(0, 6).map((f, i, arr) => 
+        i === arr.length - 1 ? `└ ${f}` : `├ ${f}`
+      ).join("\n");
+
+      const statusLabel = lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status";
+      const targetLabel = lang === "uk" ? "Ціль" : lang === "ru" ? "Цель" : "Target";
+      const analysisLabel = lang === "uk" ? "АНАЛІЗ" : lang === "ru" ? "АНАЛИЗ" : "ANALYSIS";
+      const riskLabel = lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : "Risk";
+
+      let detailsSection = "";
+      
+      if (state.module === "ip" && checkResult.details) {
+        const countryInfo = checkResult.details.country ? `${checkResult.details.countryCode || ""} ${checkResult.details.country}` : "";
+        const cityInfo = checkResult.details.city || "";
+        const ispInfo = checkResult.details.isp || "";
+        
+        const locationLabel = lang === "uk" ? "Локація" : lang === "ru" ? "Локация" : "Location";
+        const ispLabel = lang === "uk" ? "Провайдер" : lang === "ru" ? "Провайдер" : "ISP";
+        
+        if (countryInfo || cityInfo) {
+          detailsSection = `
+━━━━ ${lang === "uk" ? "ДЕТАЛІ" : lang === "ru" ? "ДЕТАЛИ" : "DETAILS"} ━━━━
+🌍 *${locationLabel}:* ${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}
+🏢 *${ispLabel}:* ${ispInfo}
+`;
+        }
+      } else if (state.module === "wallet" && checkResult.details) {
+        const chain = checkResult.details.chain || "";
+        const chainLabel = lang === "uk" ? "Мережа" : lang === "ru" ? "Сеть" : "Chain";
+        
+        if (chain) {
+          detailsSection = `
+━━━━ ${lang === "uk" ? "ДЕТАЛІ" : lang === "ru" ? "ДЕТАЛИ" : "DETAILS"} ━━━━
+⛓️ *${chainLabel}:* ${chain}
+`;
+        }
+      } else if (state.module === "email" && checkResult.details) {
+        const domain = checkResult.details.domain || "";
+        const mx = checkResult.details.hasMx ? "✅" : "❌";
+        
+        if (domain) {
+          detailsSection = `
+━━━━ ${lang === "uk" ? "ДЕТАЛІ" : lang === "ru" ? "ДЕТАЛИ" : "DETAILS"} ━━━━
+🌐 *${lang === "uk" ? "Домен" : lang === "ru" ? "Домен" : "Domain"}:* ${domain}
+📧 *MX:* ${mx}
+`;
+        }
+      }
+
+      result = `${moduleEmojis[state.module] || "🔍"} *${moduleNames[state.module] || state.module.toUpperCase()}*
+═══════════════════════
+
+🎯 *${targetLabel}:* \`${targetDisplay}\`
+⚡ *${statusLabel}:* ${statusIndicator}
+${detailsSection}
+━━━━ ${analysisLabel} ━━━━
+${findingsFormatted}
+
+📊 *${riskLabel}:* ${riskProgressBar} *${checkResult.riskScore}%*
+🔗 ${checkResult.sources.slice(0, 3).join(", ")}
+═══════════════════════`;
+    }
 
     if (user) {
       await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 15) - 1) });
