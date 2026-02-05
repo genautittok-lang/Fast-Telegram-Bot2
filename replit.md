@@ -87,8 +87,27 @@ The checkService now includes comprehensive SSL/TLS certificate analysis:
 - **crt.sh API** (fallback): `https://crt.sh/?q={domain}&output=json` - Free, no rate limits
 - Supports timeout and error handling with graceful fallback
 
-### Payment Verification System
-Manual payment workflow with moderator approval:
+### Payment System (v4.2)
+
+Three payment methods available on `/pricing`:
+
+**1. Card Payment (Stripe)**
+- Visa/Mastercard, Google Pay, Apple Pay
+- Requires Stripe integration setup
+- Automatic subscription management
+
+**2. Crypto Payment (USDT TRC-20)**
+- TRON network address: `TRYbty4Ew9knf61brdrixeY5M34mQTt3zY`
+- Manual verification via Telegram bot
+- User sends tx hash after payment
+
+**3. Ko-fi (Donations)**
+- External payment via Ko-fi page
+- Works with PayPal in Ukraine
+- 0% platform fee for donations
+- Ko-fi page: `ko-fi.com/darkshare` (update KOFI_PAGE constant)
+
+**Manual Payment Verification:**
 1. User sends screenshot or tx hash via Telegram bot
 2. Moderator (ADMIN_IDS) receives notification with Approve/Reject buttons
 3. On approval: user tier and request quota updated, confirmation sent
