@@ -21,7 +21,8 @@ import {
   Loader2,
   Bitcoin,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Coffee
 } from "lucide-react";
 
 interface Price {
@@ -40,9 +41,10 @@ interface Product {
   prices: Price[];
 }
 
-type PaymentMethod = "card" | "crypto";
+type PaymentMethod = "card" | "crypto" | "kofi";
 
 const CRYPTO_WALLET = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
+const KOFI_PAGE = "darkshare";
 const CRYPTO_PRICES = {
   PRO: { monthly: 10, yearly: 100 },
   ENTERPRISE: { monthly: 30, yearly: 300 },
@@ -55,6 +57,7 @@ export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("card");
   const [showCryptoModal, setShowCryptoModal] = useState<"PRO" | "ENTERPRISE" | null>(null);
+  const [showKofiModal, setShowKofiModal] = useState<"PRO" | "ENTERPRISE" | null>(null);
   const [copiedAddress, setCopiedAddress] = useState(false);
 
   const { data: productsData, isLoading } = useQuery<{ products: Product[] }>({
@@ -130,6 +133,14 @@ export default function Pricing() {
       return;
     }
     setShowCryptoModal(tier);
+  };
+
+  const handleKofiPayment = (tier: "PRO" | "ENTERPRISE") => {
+    if (!user) {
+      setLocation("/login");
+      return;
+    }
+    setShowKofiModal(tier);
   };
 
   const copyAddress = async () => {
@@ -226,6 +237,15 @@ export default function Pricing() {
               <Bitcoin className="h-5 w-5 mr-2" />
               Криптовалюта (USDT)
             </Button>
+            <Button
+              variant={paymentMethod === "kofi" ? "default" : "outline"}
+              onClick={() => setPaymentMethod("kofi")}
+              className={paymentMethod === "kofi" ? "bg-violet-600" : ""}
+              data-testid="button-payment-kofi"
+            >
+              <Coffee className="h-5 w-5 mr-2" />
+              Ko-fi
+            </Button>
           </div>
 
           <AnimatePresence mode="wait">
@@ -250,7 +270,7 @@ export default function Pricing() {
                   <span className="text-xs text-muted-foreground">Visa / Mastercard</span>
                 </div>
               </motion.div>
-            ) : (
+            ) : paymentMethod === "crypto" ? (
               <motion.div
                 key="crypto-info"
                 initial={{ opacity: 0, y: 10 }}
@@ -262,6 +282,20 @@ export default function Pricing() {
                   <span className="text-xs text-amber-400">USDT TRC-20</span>
                 </div>
                 <div className="text-xs text-muted-foreground">Мережа TRON</div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="kofi-info"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center justify-center gap-4 mt-4"
+              >
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-500/10 rounded-full border border-violet-500/30">
+                  <Coffee className="h-4 w-4 text-violet-400" />
+                  <span className="text-xs text-violet-400">Ko-fi донат</span>
+                </div>
+                <div className="text-xs text-muted-foreground">Підтримка через Ko-fi</div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -375,10 +409,12 @@ export default function Pricing() {
                 </CardContent>
                 <CardFooter>
                   <Button
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    className={`w-full ${paymentMethod === "kofi" ? "bg-violet-600 hover:bg-violet-700" : "bg-emerald-600 hover:bg-emerald-700"}`}
                     onClick={() => {
                       if (paymentMethod === "crypto") {
                         handleCryptoPayment("PRO");
+                      } else if (paymentMethod === "kofi") {
+                        handleKofiPayment("PRO");
                       } else {
                         const price = getPrice(proPlan, isYearly);
                         if (price) {
@@ -393,10 +429,12 @@ export default function Pricing() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : paymentMethod === "crypto" ? (
                       <Bitcoin className="mr-2 h-4 w-4" />
+                    ) : paymentMethod === "kofi" ? (
+                      <Coffee className="mr-2 h-4 w-4" />
                     ) : (
                       <Zap className="mr-2 h-4 w-4" />
                     )}
-                    {paymentMethod === "crypto" ? `Оплатити $${getCryptoPrice("PRO")} USDT` : "Підписатись на PRO"}
+                    {paymentMethod === "crypto" ? `Оплатити $${getCryptoPrice("PRO")} USDT` : paymentMethod === "kofi" ? "Оплатити через Ko-fi" : "Підписатись на PRO"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -444,10 +482,12 @@ export default function Pricing() {
                 </CardContent>
                 <CardFooter>
                   <Button
-                    className="w-full bg-amber-600 hover:bg-amber-700"
+                    className={`w-full ${paymentMethod === "kofi" ? "bg-violet-600 hover:bg-violet-700" : "bg-amber-600 hover:bg-amber-700"}`}
                     onClick={() => {
                       if (paymentMethod === "crypto") {
                         handleCryptoPayment("ENTERPRISE");
+                      } else if (paymentMethod === "kofi") {
+                        handleKofiPayment("ENTERPRISE");
                       } else {
                         const price = getPrice(enterprisePlan, isYearly);
                         if (price) {
@@ -462,10 +502,12 @@ export default function Pricing() {
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : paymentMethod === "crypto" ? (
                       <Bitcoin className="mr-2 h-4 w-4" />
+                    ) : paymentMethod === "kofi" ? (
+                      <Coffee className="mr-2 h-4 w-4" />
                     ) : (
                       <Rocket className="mr-2 h-4 w-4" />
                     )}
-                    {paymentMethod === "crypto" ? `Оплатити $${getCryptoPrice("ENTERPRISE")} USDT` : "Отримати ENTERPRISE"}
+                    {paymentMethod === "crypto" ? `Оплатити $${getCryptoPrice("ENTERPRISE")} USDT` : paymentMethod === "kofi" ? "Оплатити через Ko-fi" : "Отримати ENTERPRISE"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -594,6 +636,113 @@ export default function Pricing() {
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Відкрити бот
+                    </a>
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+          {showKofiModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowKofiModal(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-6"
+                onClick={(e) => e.stopPropagation()}
+                data-testid="modal-kofi-payment"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    showKofiModal === "PRO" 
+                      ? "bg-emerald-500/20" 
+                      : "bg-amber-500/20"
+                  }`}>
+                    {showKofiModal === "PRO" ? (
+                      <Star className="w-6 h-6 text-emerald-400" />
+                    ) : (
+                      <Crown className="w-6 h-6 text-amber-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold" data-testid="text-kofi-plan-name">{showKofiModal} План</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Оплата через Ko-fi
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6" data-testid="card-kofi-payment-details">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-muted-foreground">Сума до оплати:</span>
+                    <span className="text-2xl font-bold text-violet-400" data-testid="text-kofi-price">
+                      ${getCryptoPrice(showKofiModal)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Період:</span>
+                    <span>{isYearly ? "12 місяців" : "1 місяць"}</span>
+                  </div>
+                </div>
+
+                <div className="bg-violet-500/10 border border-violet-500/30 rounded-xl p-4 mb-6">
+                  <h4 className="font-semibold text-violet-400 mb-2">Як оплатити:</h4>
+                  <ol className="text-sm text-muted-foreground space-y-1.5">
+                    <li>1. Натисніть кнопку нижче для переходу на Ko-fi</li>
+                    <li>2. Зробіть донат на суму ${getCryptoPrice(showKofiModal)}</li>
+                    <li>3. Після оплати надішліть скріншот у наш Telegram бот для активації</li>
+                  </ol>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowKofiModal(null)}
+                    data-testid="button-close-kofi-modal"
+                  >
+                    Закрити
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-violet-500 to-violet-600"
+                    asChild
+                  >
+                    <a 
+                      href={`https://ko-fi.com/${KOFI_PAGE}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      data-testid="link-kofi-page"
+                    >
+                      <Coffee className="mr-2 h-4 w-4" />
+                      Перейти на Ko-fi
+                    </a>
+                  </Button>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <p className="text-xs text-muted-foreground text-center mb-2">
+                    Після оплати надішліть скріншот у бот:
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    asChild
+                  >
+                    <a 
+                      href="https://t.me/DARKSHAREN1_BOT" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      data-testid="link-telegram-bot-kofi"
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Відкрити Telegram бот
                     </a>
                   </Button>
                 </div>
