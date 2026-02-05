@@ -894,14 +894,20 @@ export async function registerRoutes(
   // Payment request endpoint (requires auth)
   app.post("/api/payment-request", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
-    const { tier, txHash } = req.body;
+    const { tier, txHash, amount: reqAmount, period } = req.body;
     
     if (!tier || !["pro", "enterprise", "PRO", "ENTERPRISE"].includes(tier)) {
       return res.status(400).json({ error: "Invalid tier. Must be 'pro' or 'enterprise'" });
     }
 
     const normalizedTier = tier.toUpperCase();
-    const amount = normalizedTier === "PRO" ? "10" : "50";
+    const isYearly = period === "yearly";
+    // Monthly: PRO=$10, ENTERPRISE=$50. Yearly: PRO=$100, ENTERPRISE=$500 (-17% discount)
+    const amount = reqAmount?.toString() || (
+      normalizedTier === "PRO" 
+        ? (isYearly ? "100" : "10") 
+        : (isYearly ? "500" : "50")
+    );
 
     try {
       const payment = await storage.createPayment({
@@ -917,10 +923,11 @@ export async function registerRoutes(
         const messageText = `🆕 Нова заявка на оплату #${payment.id}\n\n` +
           `👤 Користувач: @${user.username || "—"}\n` +
           `🔢 TG ID: ${user.tgId}\n` +
-          `📦 Тариф: ${normalizedTier}\n` +
+          `📦 Тариф: ${normalizedTier} (${isYearly ? "рік" : "місяць"})\n` +
           `💰 Сума: $${amount} USDT\n` +
           `${txHash ? `📝 TX Hash: ${txHash}` : "📝 TX Hash: не вказано"}\n` +
-          `📍 Джерело: Web`;
+          `📍 Джерело: Web\n\n` +
+          `⚡ Перевірте транзакцію та підтвердіть оплату`;
 
         for (const adminId of ADMIN_IDS) {
           try {

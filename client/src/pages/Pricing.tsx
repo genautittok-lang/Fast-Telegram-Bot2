@@ -74,8 +74,9 @@ export default function Pricing() {
     }
 
     try {
-      const response = await fetch("/api/payments/submit", {
+      const response = await fetch("/api/payment-request", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tier,
