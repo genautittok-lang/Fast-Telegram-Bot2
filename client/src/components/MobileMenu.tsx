@@ -64,6 +64,7 @@ export function MobileMenu({
     { href: "/history", icon: History, label: lang === "UA" ? "Історія" : "History" },
     { href: "/monitoring", icon: Eye, label: lang === "UA" ? "Моніторинг" : "Monitoring" },
     { href: "/referral", icon: Users, label: lang === "UA" ? "Реферали" : "Referrals" },
+    { href: "/pricing", icon: CreditCard, label: lang === "UA" ? "Тарифи" : "Pricing" },
     { href: "/account", icon: User, label: lang === "UA" ? "Профіль" : "Profile" },
   ];
 

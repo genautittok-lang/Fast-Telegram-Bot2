@@ -22,7 +22,8 @@ import {
   User,
   CheckCircle2,
   Award,
-  UserPlus
+  UserPlus,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,8 @@ const navItems = [
   { id: "history", label: "Історія", icon: History, href: "/history" },
   { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
   { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
+  { id: "pricing", label: "Тарифи", icon: CreditCard, href: "/pricing" },
+  { id: "account", label: "Акаунт", icon: User, href: "/account" },
 ];
 
 const referralTiers = [

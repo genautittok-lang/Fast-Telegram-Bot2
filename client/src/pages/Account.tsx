@@ -54,6 +54,7 @@ const navItems = [
   { id: "history", label: "Історія", icon: History, href: "/history" },
   { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
   { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
+  { id: "pricing", label: "Тарифи", icon: CreditCard, href: "/pricing" },
   { id: "account", label: "Акаунт", icon: User, href: "/account" },
 ];
 
@@ -688,13 +689,13 @@ export default function Account() {
                   )}
                 </div>
                 {userTier === "FREE" && (
-                  <Link href="/dashboard">
+                  <Link href="/pricing">
                     <Button 
                       className="w-full lg:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-sm"
                       data-testid="button-upgrade"
                     >
                       <Crown className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
-                      Оновити
+                      Оновити план
                       <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-1" />
                     </Button>
                   </Link>
