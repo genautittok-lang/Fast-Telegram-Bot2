@@ -80,8 +80,64 @@ export async function registerRoutes(
   });
 
   app.get("/api/stripe/products", async (req, res) => {
+    const fallbackProducts = [
+      {
+        id: "prod_pro",
+        name: "DARKSHARE PRO",
+        description: "Розширений план для професіоналів",
+        active: true,
+        metadata: { tier: "pro" },
+        prices: [
+          {
+            id: "price_pro_monthly",
+            unit_amount: 1000,
+            currency: "usd",
+            recurring: { interval: "month" },
+            active: true,
+            metadata: {}
+          },
+          {
+            id: "price_pro_yearly",
+            unit_amount: 10000,
+            currency: "usd",
+            recurring: { interval: "year" },
+            active: true,
+            metadata: {}
+          }
+        ]
+      },
+      {
+        id: "prod_enterprise",
+        name: "DARKSHARE ENTERPRISE",
+        description: "Корпоративний план з необмеженим доступом",
+        active: true,
+        metadata: { tier: "enterprise" },
+        prices: [
+          {
+            id: "price_enterprise_monthly",
+            unit_amount: 3000,
+            currency: "usd",
+            recurring: { interval: "month" },
+            active: true,
+            metadata: {}
+          },
+          {
+            id: "price_enterprise_yearly",
+            unit_amount: 30000,
+            currency: "usd",
+            recurring: { interval: "year" },
+            active: true,
+            metadata: {}
+          }
+        ]
+      }
+    ];
+
     try {
       const rows = await stripeService.listProductsWithPrices();
+      if (!rows || rows.length === 0) {
+        return res.json({ products: fallbackProducts });
+      }
       const productsMap = new Map();
       for (const row of rows as any[]) {
         if (!productsMap.has(row.product_id)) {
@@ -105,10 +161,11 @@ export async function registerRoutes(
           });
         }
       }
-      res.json({ products: Array.from(productsMap.values()) });
+      const products = Array.from(productsMap.values());
+      res.json({ products: products.length > 0 ? products : fallbackProducts });
     } catch (error: any) {
       console.error("Error listing products:", error);
-      res.status(500).json({ error: "Failed to list products" });
+      res.json({ products: fallbackProducts });
     }
   });
 
