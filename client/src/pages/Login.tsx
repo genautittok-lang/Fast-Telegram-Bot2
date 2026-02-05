@@ -37,14 +37,14 @@ export default function Login() {
       try {
         await login(telegramUser);
         toast({
-          title: lang === "UA" ? "Успішний вхід" : lang === "RU" ? "Успешный вход" : "Login Successful",
-          description: `Welcome, ${telegramUser.first_name || telegramUser.username}!`,
+          title: t("auth.loginSuccess"),
+          description: `${t("landing.hero.welcome")}, ${telegramUser.first_name || telegramUser.username}!`,
         });
         setLocation("/dashboard");
       } catch (err) {
         toast({
-          title: lang === "UA" ? "Помилка входу" : lang === "RU" ? "Ошибка входа" : "Login Error",
-          description: "Telegram auth failed",
+          title: t("auth.loginError"),
+          description: t("auth.telegramFailed"),
           variant: "destructive",
         });
       }

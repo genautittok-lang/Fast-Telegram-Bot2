@@ -40,6 +40,9 @@ export interface TranslationSchema {
     loginSubtitle: string;
     protectFrom: string;
     cyberThreats: string;
+    loginSuccess: string;
+    loginError: string;
+    telegramFailed: string;
   };
   pricing: {
     title: string;
@@ -251,6 +254,9 @@ export const translations: Record<Language, TranslationSchema> = {
       loginSubtitle: "Authorize via Telegram to access dashboard",
       protectFrom: "Protect yourself from",
       cyberThreats: "cyber threats",
+      loginSuccess: "Login Successful",
+      loginError: "Login Error",
+      telegramFailed: "Telegram authentication failed",
     },
     pricing: {
       title: "Pricing Plans",
@@ -460,6 +466,9 @@ export const translations: Record<Language, TranslationSchema> = {
       loginSubtitle: "Авторизуйтесь через Telegram для доступу",
       protectFrom: "Захистіть себе від",
       cyberThreats: "кіберзагроз",
+      loginSuccess: "Успішний вхід",
+      loginError: "Помилка входу",
+      telegramFailed: "Авторизація Telegram не вдалася",
     },
     pricing: {
       title: "Тарифні плани",
@@ -669,6 +678,9 @@ export const translations: Record<Language, TranslationSchema> = {
       loginSubtitle: "Авторизуйтесь через Telegram для доступа",
       protectFrom: "Защитите себя от",
       cyberThreats: "киберугроз",
+      loginSuccess: "Успешный вход",
+      loginError: "Ошибка входа",
+      telegramFailed: "Авторизация Telegram не удалась",
     },
     pricing: {
       title: "Тарифные планы",
@@ -878,6 +890,9 @@ export const translations: Record<Language, TranslationSchema> = {
       loginSubtitle: "Autorízate a través de Telegram para acceder",
       protectFrom: "Protégete de las",
       cyberThreats: "ciberamenazas",
+      loginSuccess: "Inicio de sesión exitoso",
+      loginError: "Error de inicio de sesión",
+      telegramFailed: "La autenticación de Telegram falló",
     },
     pricing: {
       title: "Planes de precios",
@@ -1087,6 +1102,9 @@ export const translations: Record<Language, TranslationSchema> = {
       loginSubtitle: "Autorisieren Sie sich über Telegram für den Zugriff",
       protectFrom: "Schützen Sie sich vor",
       cyberThreats: "Cyber-Bedrohungen",
+      loginSuccess: "Anmeldung erfolgreich",
+      loginError: "Anmeldefehler",
+      telegramFailed: "Telegram-Authentifizierung fehlgeschlagen",
     },
     pricing: {
       title: "Preispläne",
