@@ -758,23 +758,78 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         }
         break;
       case "wallet":
-        if (!inputValue.startsWith("0x") || inputValue.length < 20) {
+        const isEVM = inputValue.startsWith("0x") && inputValue.length >= 40;
+        const isBTC = /^(1|3|bc1)[a-zA-HJ-NP-Z0-9]{25,62}$/.test(inputValue);
+        const isTRX = inputValue.startsWith("T") && inputValue.length === 34;
+        const isSOL = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(inputValue) && !inputValue.startsWith("T") && !inputValue.startsWith("0x");
+        
+        if (!isEVM && !isBTC && !isTRX && !isSOL) {
           const walletErrorMsg = lang === "uk"
-            ? "❌ *Невірна адреса гаманця*\n\n💡 Виглядає так: `0x742d35Cc6634C0532925a3b844Bc9e7595f...`"
+            ? "❌ *Невірна адреса гаманця*\n\n💡 Підтримуються:\n• EVM (ETH/BSC): `0x742d35Cc...`\n• BTC: `1A1zP1eP5Q...` або `bc1q...`\n• TRX: `TRYbty4Ew9...`\n• SOL: `7xKXtg2CW6...`"
             : lang === "ru"
-            ? "❌ *Неверный адрес кошелька*\n\n💡 Выглядит так: `0x742d35Cc6634C0532925a3b844Bc9e7595f...`"
-            : "❌ *Invalid wallet address*\n\n💡 Looks like: `0x742d35Cc6634C0532925a3b844Bc9e7595f...`";
+            ? "❌ *Неверный адрес кошелька*\n\n💡 Поддерживаются:\n• EVM (ETH/BSC): `0x742d35Cc...`\n• BTC: `1A1zP1eP5Q...` или `bc1q...`\n• TRX: `TRYbty4Ew9...`\n• SOL: `7xKXtg2CW6...`"
+            : "❌ *Invalid wallet address*\n\n💡 Supported:\n• EVM (ETH/BSC): `0x742d35Cc...`\n• BTC: `1A1zP1eP5Q...` or `bc1q...`\n• TRX: `TRYbty4Ew9...`\n• SOL: `7xKXtg2CW6...`";
           return ctx.reply(walletErrorMsg, { parse_mode: "Markdown" });
         }
         break;
       case "email":
-        if (!inputValue.includes("@")) {
+        if (!inputValue.includes("@") || !inputValue.includes(".")) {
           const emailErrorMsg = lang === "uk"
             ? "❌ *Невірна email адреса*\n\n💡 Приклад: `user@example.com`"
             : lang === "ru"
             ? "❌ *Неверный email адрес*\n\n💡 Пример: `user@example.com`"
             : "❌ *Invalid email address*\n\n💡 Example: `user@example.com`";
           return ctx.reply(emailErrorMsg, { parse_mode: "Markdown" });
+        }
+        break;
+      case "domain":
+        if (!inputValue.includes(".") || inputValue.includes(" ") || inputValue.startsWith("http://") || inputValue.startsWith("https://")) {
+          const domainErrorMsg = lang === "uk"
+            ? "❌ *Невірний домен*\n\n💡 Приклад: `example.com` (без http://)"
+            : lang === "ru"
+            ? "❌ *Неверный домен*\n\n💡 Пример: `example.com` (без http://)"
+            : "❌ *Invalid domain*\n\n💡 Example: `example.com` (without http://)";
+          return ctx.reply(domainErrorMsg, { parse_mode: "Markdown" });
+        }
+        break;
+      case "url":
+        if (!inputValue.startsWith("http://") && !inputValue.startsWith("https://")) {
+          const urlErrorMsg = lang === "uk"
+            ? "❌ *Невірний URL*\n\n💡 Приклад: `https://example.com/page`"
+            : lang === "ru"
+            ? "❌ *Неверный URL*\n\n💡 Пример: `https://example.com/page`"
+            : "❌ *Invalid URL*\n\n💡 Example: `https://example.com/page`";
+          return ctx.reply(urlErrorMsg, { parse_mode: "Markdown" });
+        }
+        break;
+      case "cve":
+        if (!/^CVE-\d{4}-\d{4,}$/i.test(inputValue)) {
+          const cveErrorMsg = lang === "uk"
+            ? "❌ *Невірний CVE ID*\n\n💡 Формат: `CVE-2024-12345`"
+            : lang === "ru"
+            ? "❌ *Неверный CVE ID*\n\n💡 Формат: `CVE-2024-12345`"
+            : "❌ *Invalid CVE ID*\n\n💡 Format: `CVE-2024-12345`";
+          return ctx.reply(cveErrorMsg, { parse_mode: "Markdown" });
+        }
+        break;
+      case "hash":
+        if (!/^[a-fA-F0-9]{32,128}$/.test(inputValue)) {
+          const hashErrorMsg = lang === "uk"
+            ? "❌ *Невірний хеш*\n\n💡 Підтримуються MD5, SHA1, SHA256\nПриклад: `d41d8cd98f00b204e9800998ecf8427e`"
+            : lang === "ru"
+            ? "❌ *Неверный хеш*\n\n💡 Поддерживаются MD5, SHA1, SHA256\nПример: `d41d8cd98f00b204e9800998ecf8427e`"
+            : "❌ *Invalid hash*\n\n💡 Supports MD5, SHA1, SHA256\nExample: `d41d8cd98f00b204e9800998ecf8427e`";
+          return ctx.reply(hashErrorMsg, { parse_mode: "Markdown" });
+        }
+        break;
+      case "phone":
+        if (!/^\+?[\d\s\-()]{7,20}$/.test(inputValue)) {
+          const phoneErrorMsg = lang === "uk"
+            ? "❌ *Невірний номер телефону*\n\n💡 Приклад: `+380991234567`"
+            : lang === "ru"
+            ? "❌ *Неверный номер телефона*\n\n💡 Пример: `+380991234567`"
+            : "❌ *Invalid phone number*\n\n💡 Example: `+380991234567`";
+          return ctx.reply(phoneErrorMsg, { parse_mode: "Markdown" });
         }
         break;
     }
