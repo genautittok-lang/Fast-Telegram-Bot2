@@ -98,7 +98,7 @@ export function MobileMenu({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 md:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] md:hidden"
               onClick={() => setIsOpen(false)}
             />
 
@@ -107,7 +107,7 @@ export function MobileMenu({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed top-0 right-0 h-full w-[280px] bg-background border-l border-white/10 z-50 md:hidden overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-[280px] bg-background border-l border-white/10 z-[9999] md:hidden overflow-y-auto"
             >
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b border-white/10">

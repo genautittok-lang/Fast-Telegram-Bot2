@@ -376,7 +376,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="space-y-2 max-h-[180px] overflow-hidden">
-                    {activity?.slice(0, 5).map((item, idx) => (
+                    {activity?.slice(0, 4).map((item, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -10 }}
@@ -410,7 +410,7 @@ export default function Home() {
                     </h3>
                   </div>
                   <div className="space-y-2">
-                    {leaderboard?.slice(0, 4).map((user, idx) => (
+                    {leaderboard?.slice(0, 3).map((user, idx) => (
                       <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -10 }}
@@ -442,7 +442,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-10 sm:py-14 md:py-16 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5 overflow-hidden">
+        <section className="py-6 sm:py-8 md:py-10 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -490,7 +490,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16 md:py-20 border-t border-white/5">
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -500,15 +500,15 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400">
                 <AlertTriangle className="w-3 h-3" />
-                {lang === "UA" ? "Загрози в Реальному Часі" : lang === "RU" ? "Угрозы в Реальном Времени" : "Real-Time Threats"}
+                {lang === "uk" ? "Загрози в Реальному Часі" : lang === "ru" ? "Угрозы в Реальном Времени" : "Real-Time Threats"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
-                {lang === "UA" ? "Стрічка Кіберзагроз" : lang === "RU" ? "Лента Киберугроз" : "Live Threat Intelligence"}
+                {lang === "uk" ? "Стрічка Кіберзагроз" : lang === "ru" ? "Лента Киберугроз" : "Live Threat Intelligence"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-                {lang === "UA" 
+                {lang === "uk" 
                   ? "Моніторинг останніх CVE, malware кампаній та активних загроз з провідних джерел безпеки"
-                  : lang === "RU"
+                  : lang === "ru"
                   ? "Мониторинг последних CVE, malware кампаний и активных угроз из ведущих источников безопасности"
                   : "Monitoring the latest CVEs, malware campaigns and active threats from leading security sources"}
               </p>
@@ -521,12 +521,12 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="max-w-3xl mx-auto"
             >
-              <ThreatFeed lang={lang} />
+              <ThreatFeed lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} />
             </motion.div>
           </div>
         </section>
 
-        <section className="py-12 sm:py-16 md:py-20 lg:py-24">
+        <section className="py-8 sm:py-10 md:py-14 lg:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -536,15 +536,15 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Terminal className="w-3 h-3" />
-                {lang === "UA" ? "10 Модулів" : lang === "RU" ? "10 Модулей" : "10 Modules"}
+                {lang === "uk" ? "10 Модулів" : lang === "ru" ? "10 Модулей" : "10 Modules"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
-                {lang === "UA" ? "Повний Арсенал OSINT" : lang === "RU" ? "Полный Арсенал OSINT" : "Complete OSINT Arsenal"}
+                {lang === "uk" ? "Повний Арсенал OSINT" : lang === "ru" ? "Полный Арсенал OSINT" : "Complete OSINT Arsenal"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
-                {lang === "UA" 
+                {lang === "uk" 
                   ? "Кожен модуль інтегрований з провідними API для максимальної точності та актуальності даних"
-                  : lang === "RU"
+                  : lang === "ru"
                   ? "Каждый модуль интегрирован с ведущими API для максимальной точности и актуальности данных"
                   : "Each module integrated with leading APIs for maximum accuracy and data relevance"}
               </p>
@@ -562,7 +562,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16 md:py-20 bg-card/30 border-y border-white/5">
+        <section className="py-8 sm:py-10 md:py-12 bg-card/30 border-y border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -572,15 +572,15 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Server className="w-3 h-3" />
-                {lang === "UA" ? "API Інтеграції" : lang === "RU" ? "API Интеграции" : "API Integrations"}
+                {lang === "uk" ? "API Інтеграції" : lang === "ru" ? "API Интеграции" : "API Integrations"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold px-2">
-                {lang === "UA" ? "Джерела Даних" : lang === "RU" ? "Источники Данных" : "Data Sources"}
+                {lang === "uk" ? "Джерела Даних" : lang === "ru" ? "Источники Данных" : "Data Sources"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto px-2">
-                {lang === "UA" 
+                {lang === "uk" 
                   ? "Інтеграція з найкращими API безпеки для актуальних та достовірних даних"
-                  : lang === "RU"
+                  : lang === "ru"
                   ? "Интеграция с лучшими API безопасности для актуальных и достоверных данных"
                   : "Integration with top security APIs for accurate and reliable data"}
               </p>
@@ -607,7 +607,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-10 sm:py-12 md:py-16 max-w-5xl mx-auto px-3 sm:px-4 w-full">
+        <section className="py-6 sm:py-8 md:py-10 max-w-5xl mx-auto px-3 sm:px-4 w-full">
           <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-primary/5">
             <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border-b border-white/10">
               <div className="flex gap-1.5">
@@ -640,7 +640,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
+        <section className="py-8 sm:py-10 md:py-12 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -649,12 +649,12 @@ export default function Home() {
               className="space-y-4 sm:space-y-6"
             >
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
-                {lang === "UA" ? "Готові почати?" : lang === "RU" ? "Готовы начать?" : "Ready to Start?"}
+                {lang === "uk" ? "Готові почати?" : lang === "ru" ? "Готовы начать?" : "Ready to Start?"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto px-2">
-                {lang === "UA" 
+                {lang === "uk" 
                   ? "Приєднуйтесь до тисяч користувачів, які довіряють DARKSHARE для своєї кібербезпеки"
-                  : lang === "RU"
+                  : lang === "ru"
                   ? "Присоединяйтесь к тысячам пользователей, которые доверяют DARKSHARE для своей кибербезопасности"
                   : "Join thousands of users who trust DARKSHARE for their cybersecurity needs"}
               </p>
@@ -688,7 +688,7 @@ export default function Home() {
         </section>
       </main>
 
-      <Footer lang={lang} />
+      <Footer lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} />
     </div>
   );
 }
