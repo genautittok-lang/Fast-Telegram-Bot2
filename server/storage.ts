@@ -47,6 +47,12 @@ export interface IStorage {
   
   // Stats
   getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }>;
+  getUsersCount(): Promise<number>;
+  getReportsCount(): Promise<number>;
+  getWatchesCount(): Promise<number>;
+  getReportsCountToday(): Promise<number>;
+  getHighRiskReportsCount(): Promise<number>;
+  getTopUsers(limit: number): Promise<Array<{ id: number; username: string | null; checksCount: number; streakDays: number }>>;
   
   // Admin methods
   getLatestUsers(limit: number): Promise<User[]>;
@@ -327,6 +333,63 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     return db.select().from(adminSettings);
   }
+
+  async getUsersCount(): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const result = await db.select({ count: sql<number>`count(*)` }).from(users);
+    return result[0]?.count || 0;
+  }
+
+  async getReportsCount(): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const result = await db.select({ count: sql<number>`count(*)` }).from(reports);
+    return result[0]?.count || 0;
+  }
+
+  async getWatchesCount(): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const result = await db.select({ count: sql<number>`count(*)` }).from(watches);
+    return result[0]?.count || 0;
+  }
+
+  async getReportsCountToday(): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const result = await db.select({ count: sql<number>`count(*)` }).from(reports)
+      .where(sql`${reports.generatedAt} >= ${today}`);
+    return result[0]?.count || 0;
+  }
+
+  async getHighRiskReportsCount(): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    // Count reports where dataJson contains high or critical risk
+    const allReports = await db.select().from(reports);
+    return allReports.filter(r => {
+      const data = r.dataJson as any;
+      return data?.riskLevel === 'high' || data?.riskLevel === 'critical';
+    }).length;
+  }
+
+  async getTopUsers(limit: number): Promise<Array<{ id: number; username: string | null; checksCount: number; streakDays: number }>> {
+    if (!db) throw new Error("Database not available");
+    // Get users with their report counts
+    const allUsers = await db.select().from(users).orderBy(desc(users.streakDays)).limit(limit * 2);
+    const result: Array<{ id: number; username: string | null; checksCount: number; streakDays: number }> = [];
+    
+    for (const u of allUsers) {
+      const userReports = await db.select({ count: sql<number>`count(*)` }).from(reports).where(eq(reports.userId, u.id));
+      result.push({
+        id: u.id,
+        username: u.username,
+        checksCount: userReports[0]?.count || 0,
+        streakDays: u.streakDays || 0,
+      });
+    }
+    
+    // Sort by checksCount and return top N
+    return result.sort((a, b) => b.checksCount - a.checksCount).slice(0, limit);
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -546,6 +609,36 @@ export class MemStorage implements IStorage {
   async getAdminSetting(key: string): Promise<string | undefined> { return undefined; }
   async setAdminSetting(key: string, value: string): Promise<void> {}
   async getAllAdminSettings(): Promise<AdminSetting[]> { return []; }
+
+  // Stats methods for MemStorage
+  async getUsersCount(): Promise<number> { return this.users.size; }
+  async getReportsCount(): Promise<number> { return this.reports.size; }
+  async getWatchesCount(): Promise<number> { return this.watches.size; }
+  async getReportsCountToday(): Promise<number> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    return Array.from(this.reports.values()).filter(r => r.generatedAt && r.generatedAt >= todayStart).length;
+  }
+  async getHighRiskReportsCount(): Promise<number> {
+    return Array.from(this.reports.values()).filter(r => {
+      const data = r.dataJson as any;
+      return data?.riskLevel === 'high' || data?.riskLevel === 'critical';
+    }).length;
+  }
+  async getTopUsers(limit: number): Promise<Array<{ id: number; username: string | null; checksCount: number; streakDays: number }>> {
+    const userReportCounts: Map<number, number> = new Map();
+    const reportsArr = Array.from(this.reports.values());
+    for (let i = 0; i < reportsArr.length; i++) {
+      const r = reportsArr[i];
+      if (r.userId) {
+        userReportCounts.set(r.userId, (userReportCounts.get(r.userId) || 0) + 1);
+      }
+    }
+    return Array.from(this.users.values())
+      .map(u => ({ id: u.id, username: u.username, checksCount: userReportCounts.get(u.id) || 0, streakDays: u.streakDays || 0 }))
+      .sort((a, b) => b.checksCount - a.checksCount)
+      .slice(0, limit);
+  }
 }
 
 // Export the appropriate storage based on database availability

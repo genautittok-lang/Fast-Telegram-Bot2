@@ -56,16 +56,37 @@ export async function registerRoutes(
 
   // API Routes for the landing page
   app.get(api.stats.get.path, async (req, res) => {
-    const uptime = Math.floor((Date.now() - serverStartTime) / 1000);
-    // Always show impressive stats for marketing purposes
-    res.json({
-      totalUsers: 14582,
-      activeWatches: 3841,
-      totalReports: 89247,
-      checksToday: 842,
-      threatsBlocked: 12459,
-      uptime: Math.min(99.9, 99 + Math.random()),
-    });
+    try {
+      // Get real stats from database
+      const totalUsers = await storage.getUsersCount();
+      const totalReports = await storage.getReportsCount();
+      const activeWatches = await storage.getWatchesCount();
+      
+      // Calculate checks today (last 24 hours)
+      const checksToday = await storage.getReportsCountToday();
+      
+      // Estimate threats blocked (high/critical risk reports)
+      const threatsBlocked = await storage.getHighRiskReportsCount();
+      
+      res.json({
+        totalUsers: totalUsers || 0,
+        activeWatches: activeWatches || 0,
+        totalReports: totalReports || 0,
+        checksToday: checksToday || 0,
+        threatsBlocked: threatsBlocked || 0,
+        uptime: 99.9,
+      });
+    } catch (error) {
+      console.error("Stats error:", error);
+      res.json({
+        totalUsers: 0,
+        activeWatches: 0,
+        totalReports: 0,
+        checksToday: 0,
+        threatsBlocked: 0,
+        uptime: 99.9,
+      });
+    }
   });
 
   // Stripe Payment Routes - Google Pay & Apple Pay supported via Stripe Checkout
@@ -391,16 +412,20 @@ export async function registerRoutes(
     res.json(threatFeedCache);
   });
 
-  // Leaderboard endpoint
+  // Leaderboard endpoint - real data from database
   app.get(api.leaderboard.get.path, async (req, res) => {
-    const leaderboard = [
-      { username: 'CryptoHunter', checks: 1247, streakDays: 45 },
-      { username: 'SecurityPro', checks: 892, streakDays: 32 },
-      { username: 'RiskAnalyst', checks: 654, streakDays: 28 },
-      { username: 'BlockchainDev', checks: 521, streakDays: 21 },
-      { username: 'NetGuard', checks: 445, streakDays: 15 },
-    ];
-    res.json(leaderboard);
+    try {
+      const topUsers = await storage.getTopUsers(5);
+      const leaderboard = topUsers.map(u => ({
+        username: u.username ? u.username.substring(0, 12) : 'User' + u.id,
+        checks: u.checksCount || 0,
+        streakDays: u.streakDays || 0,
+      }));
+      res.json(leaderboard);
+    } catch (error) {
+      console.error("Leaderboard error:", error);
+      res.json([]);
+    }
   });
 
   // Auth middleware to load user
