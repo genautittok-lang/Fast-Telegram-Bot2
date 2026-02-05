@@ -112,32 +112,33 @@ export async function setupBot(storage: IStorage) {
     
     if (isNewUser && refMatch) {
       // Special welcome for referred users
-      const welcomeText = `🎁 *DARKSHARE - SECURITY OSINT*
+      const userName = ctx.from.first_name || ctx.from.username || t(lang, "startWelcome.friend");
+      const welcomeText = `${t(lang, "startWelcome.referralTitle")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-✨ *Вітаємо, ${ctx.from.first_name || ctx.from.username || "друже"}!*
+${t(lang, "startWelcome.referralGreeting", { name: userName })}
 
-Тебе запросив друг до найкращої OSINT платформи!
+${t(lang, "startWelcome.referralInvited")}
 
-🎁 *Твій бонус активовано:*
-├ +5 безкоштовних перевірок
-├ Повний доступ до 10 модулів
-└ AI-аналіз та PDF звіти
-
-━━━━━━━━━━━━━━━━━━━━
-
-🔍 *Можливості DARKSHARE:*
-├ 🌐 IP/GEO аналіз
-├ 💰 Крипто гаманці
-├ 📧 Email перевірка
-├ 🔗 URL сканування
-├ 🔓 CVE вразливості
-└ ...та багато іншого!
+${t(lang, "startWelcome.referralBonusTitle")}
+├ ${t(lang, "startWelcome.referralBonusChecks")}
+├ ${t(lang, "startWelcome.referralBonusAccess")}
+└ ${t(lang, "startWelcome.referralBonusAi")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-👇 *Обери мову для початку:*`;
+${t(lang, "startWelcome.capabilitiesTitle")}
+├ ${t(lang, "startWelcome.capIpGeo")}
+├ ${t(lang, "startWelcome.capCrypto")}
+├ ${t(lang, "startWelcome.capEmail")}
+├ ${t(lang, "startWelcome.capUrl")}
+├ ${t(lang, "startWelcome.capCve")}
+└ ${t(lang, "startWelcome.capMore")}
+
+━━━━━━━━━━━━━━━━━━━━
+
+${t(lang, "startWelcome.selectLanguage")}`;
 
       await ctx.reply(welcomeText, {
         parse_mode: "Markdown",
@@ -146,36 +147,41 @@ export async function setupBot(storage: IStorage) {
             Markup.button.callback("🇺🇦 Українська", "lang_uk"),
             Markup.button.callback("🇬🇧 English", "lang_en"),
             Markup.button.callback("🇷🇺 Русский", "lang_ru")
+          ],
+          [
+            Markup.button.callback("🇪🇸 Español", "lang_es"),
+            Markup.button.callback("🇩🇪 Deutsch", "lang_de")
           ]
         ])
       });
     } else if (isNewUser) {
       // Regular welcome for new users
-      const welcomeText = `🌑 *DARKSHARE v4.1*
+      const userName = ctx.from.first_name || ctx.from.username || t(lang, "startWelcome.friend");
+      const welcomeText = `${t(lang, "startWelcome.regularTitle")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-👋 *Привіт, ${ctx.from.first_name || ctx.from.username || "друже"}!*
+${t(lang, "startWelcome.regularGreeting", { name: userName })}
 
-Твій ID: \`${tgId}\`
+${t(lang, "startWelcome.yourId")} \`${tgId}\`
 
-🛡️ *DARKSHARE* - професійна OSINT платформа для аналізу безпеки.
-
-━━━━━━━━━━━━━━━━━━━━
-
-🔍 *10 модулів аналізу:*
-├ IP адреси та геолокація
-├ Крипто гаманці (ETH/BTC/TRX/SOL)
-├ Email та витоки даних
-├ Домени та SSL сертифікати
-├ URL та фішинг
-├ CVE вразливості
-├ Файлові хеші
-└ Username OSINT
+${t(lang, "startWelcome.platformDesc")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
-👇 *Обери мову:*`;
+${t(lang, "startWelcome.modulesTitle")}
+├ ${t(lang, "startWelcome.modIpGeo")}
+├ ${t(lang, "startWelcome.modCrypto")}
+├ ${t(lang, "startWelcome.modEmail")}
+├ ${t(lang, "startWelcome.modDomain")}
+├ ${t(lang, "startWelcome.modUrl")}
+├ ${t(lang, "startWelcome.modCve")}
+├ ${t(lang, "startWelcome.modHash")}
+└ ${t(lang, "startWelcome.modUsername")}
+
+━━━━━━━━━━━━━━━━━━━━
+
+${t(lang, "startWelcome.selectLang")}`;
 
       await ctx.reply(welcomeText, {
         parse_mode: "Markdown",
@@ -184,6 +190,10 @@ export async function setupBot(storage: IStorage) {
             Markup.button.callback("🇺🇦 Українська", "lang_uk"),
             Markup.button.callback("🇬🇧 English", "lang_en"),
             Markup.button.callback("🇷🇺 Русский", "lang_ru")
+          ],
+          [
+            Markup.button.callback("🇪🇸 Español", "lang_es"),
+            Markup.button.callback("🇩🇪 Deutsch", "lang_de")
           ]
         ])
       });
@@ -545,18 +555,20 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     if (state?.module === "admin_broadcast" && state?.step === "awaiting_message") {
       if (!isAdmin(tgId)) {
         userStates.delete(tgId);
-        return ctx.reply("⛔ Доступ заборонено");
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
       }
       
+      const lang = await getLang(tgId);
       const broadcastText = text.trim();
       userStates.set(tgId, { module: "admin_broadcast", step: "confirm", data: { message: broadcastText } });
       
-      await ctx.reply(`📢 *Підтвердження розсилки*\n\n*Повідомлення:*\n${broadcastText}\n\nПідтвердіть розсилку:`, {
+      await ctx.reply(`${t(lang, "admin.confirmBroadcast")}\n\n${t(lang, "admin.message")}\n${broadcastText}\n\n${t(lang, "admin.confirmPrompt")}`, {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            Markup.button.callback("✅ Відправити", "admin_broadcast_confirm"),
-            Markup.button.callback("❌ Скасувати", "admin_broadcast_cancel")
+            Markup.button.callback(t(lang, "admin.send"), "admin_broadcast_confirm"),
+            Markup.button.callback(t(lang, "admin.cancel"), "admin_broadcast_cancel")
           ]
         ])
       });
@@ -566,34 +578,36 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     if (state?.module === "admin_block_user" && state?.step === "awaiting_tgid") {
       if (!isAdmin(tgId)) {
         userStates.delete(tgId);
-        return ctx.reply("⛔ Доступ заборонено");
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
       }
       
+      const lang = await getLang(tgId);
       const targetTgId = text.trim();
       const targetUser = await storage.getUserByTgId(targetTgId);
       
       if (!targetUser) {
-        return ctx.reply(`❌ Користувача з ID \`${targetTgId}\` не знайдено.`, {
+        return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+          ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
         });
       }
       
       userStates.delete(tgId);
       
       const statusEmoji = targetUser.blocked ? "🔴" : "🟢";
-      const resultText = `👤 *Користувач знайдений:*\n\n` +
+      const resultText = `${t(lang, "admin.userFound")}\n\n` +
         `${statusEmoji} ${targetUser.username ? `@${targetUser.username}` : targetUser.tgId}\n` +
-        `Тариф: ${targetUser.tier}\n` +
-        `Статус: ${targetUser.blocked ? "Заблокований" : "Активний"}\n\n` +
-        `Виберіть дію:`;
+        `${t(lang, "admin.tierLabel")} ${targetUser.tier}\n` +
+        `${t(lang, "admin.statusLabel")} ${targetUser.blocked ? t(lang, "admin.blocked") : t(lang, "admin.active")}\n\n` +
+        `${t(lang, "admin.selectAction")}`;
       
       await ctx.reply(resultText, {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback(targetUser.blocked ? "✅ Розблокувати" : "🚫 Заблокувати", `admin_toggle_block_${targetUser.id}`)],
-          [Markup.button.callback("📋 Детальніше", `admin_user_info_${targetUser.id}`)],
-          [Markup.button.callback("⬅️ Назад", "admin_back")]
+          [Markup.button.callback(targetUser.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${targetUser.id}`)],
+          [Markup.button.callback(t(lang, "admin.moreInfo"), `admin_user_info_${targetUser.id}`)],
+          [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
         ])
       });
       return;
@@ -602,26 +616,28 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     if (state?.module === "admin_change_tier" && state?.step === "awaiting_tgid") {
       if (!isAdmin(tgId)) {
         userStates.delete(tgId);
-        return ctx.reply("⛔ Доступ заборонено");
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
       }
       
+      const lang = await getLang(tgId);
       const targetTgId = text.trim();
       const targetUser = await storage.getUserByTgId(targetTgId);
       
       if (!targetUser) {
-        return ctx.reply(`❌ Користувача з ID \`${targetTgId}\` не знайдено.`, {
+        return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+          ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
         });
       }
       
       userStates.delete(tgId);
       
       const tierEmoji = targetUser.tier === "ENTERPRISE" ? "👑" : targetUser.tier === "PRO" ? "⭐" : "🆓";
-      const resultText = `📊 *ЗМІНА ТАРИФУ*\n\n` +
+      const resultText = `${t(lang, "admin.changeTierTitle")}\n\n` +
         `👤 ${targetUser.username ? `@${targetUser.username}` : targetUser.tgId}\n` +
-        `${tierEmoji} Поточний тариф: ${targetUser.tier}\n\n` +
-        `Виберіть новий тариф:`;
+        `${tierEmoji} ${t(lang, "admin.currentTier")} ${targetUser.tier}\n\n` +
+        `${t(lang, "admin.selectNewTier")}`;
       
       await ctx.reply(resultText, {
         parse_mode: "Markdown",
@@ -631,7 +647,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
             Markup.button.callback("⭐ PRO", `admin_set_tier_${targetUser.id}_PRO`),
             Markup.button.callback("👑 ENTERPRISE", `admin_set_tier_${targetUser.id}_ENTERPRISE`)
           ],
-          [Markup.button.callback("⬅️ Назад", "admin_back")]
+          [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
         ])
       });
       return;
@@ -640,25 +656,27 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     if (state?.module === "admin_search_user" && state?.step === "awaiting_query") {
       if (!isAdmin(tgId)) {
         userStates.delete(tgId);
-        return ctx.reply("⛔ Доступ заборонено");
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
       }
       
+      const lang = await getLang(tgId);
       const query = text.trim();
       const foundUsers = await storage.searchUsers(query);
       
       userStates.delete(tgId);
       
       if (foundUsers.length === 0) {
-        return ctx.reply(`🔍 *Результати пошуку*\n\nПо запиту "${query}" нічого не знайдено.`, {
+        return ctx.reply(`${t(lang, "admin.searchResults")}\n\n${t(lang, "admin.nothingFound", { query })}`, {
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
-            [Markup.button.callback("🔍 Новий пошук", "admin_search_user")],
-            [Markup.button.callback("⬅️ Назад", "admin_back")]
+            [Markup.button.callback(t(lang, "admin.newSearch"), "admin_search_user")],
+            [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
           ])
         });
       }
       
-      let resultText = `🔍 *Результати пошуку* (${foundUsers.length})\n\n`;
+      let resultText = `${t(lang, "admin.searchResults")} (${foundUsers.length})\n\n`;
       
       foundUsers.slice(0, 10).forEach((u, i) => {
         const statusEmoji = u.blocked ? "🔴" : "🟢";
@@ -668,15 +686,15 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       });
       
       if (foundUsers.length > 10) {
-        resultText += `\n_...та ще ${foundUsers.length - 10} результатів_`;
+        resultText += `\n_${t(lang, "admin.andMore", { count: foundUsers.length - 10 })}_`;
       }
       
       const buttons: any[][] = [];
       foundUsers.slice(0, 5).forEach(u => {
         buttons.push([Markup.button.callback(`👤 ${u.username || u.tgId}`, `admin_user_info_${u.id}`)]);
       });
-      buttons.push([Markup.button.callback("🔍 Новий пошук", "admin_search_user")]);
-      buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+      buttons.push([Markup.button.callback(t(lang, "admin.newSearch"), "admin_search_user")]);
+      buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
       
       await ctx.reply(resultText, {
         parse_mode: "Markdown",
@@ -724,13 +742,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     }
 
     if (user && user.requestsLeft! <= 0) {
-      const limitText = lang === "uk" 
-        ? "❌ *Ліміт вичерпано*\n\n✨ Обновіть тариф щоб продовжити\n\n💡 PRO: безліміт запитів\n👑 ENTERPRISE: та ще більше!"
-        : lang === "ru"
-        ? "❌ *Лимит исчерпан*\n\n✨ Обновите тариф чтобы продолжить\n\n💡 PRO: неограниченные запросы\n👑 ENTERPRISE: и ещё больше!"
-        : "❌ *Limit Exceeded*\n\n✨ Upgrade your plan to continue\n\n💡 PRO: unlimited requests\n👑 ENTERPRISE: and more!";
-      
-      return ctx.reply(limitText, {
+      return ctx.reply(t(lang, "checkResult.limitExceeded"), {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")],
@@ -749,12 +761,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     switch (state.module) {
       case "ip":
         if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(inputValue)) {
-          const ipErrorMsg = lang === "uk"
-            ? "❌ *Невірна IP адреса*\n\n💡 Приклад: `8.8.8.8`"
-            : lang === "ru"
-            ? "❌ *Неверный IP адрес*\n\n💡 Пример: `8.8.8.8`"
-            : "❌ *Invalid IP address*\n\n💡 Example: `8.8.8.8`";
-          return ctx.reply(ipErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidIp"), { parse_mode: "Markdown" });
         }
         break;
       case "wallet":
@@ -764,79 +771,44 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         const isSOL = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(inputValue) && !inputValue.startsWith("T") && !inputValue.startsWith("0x");
         
         if (!isEVM && !isBTC && !isTRX && !isSOL) {
-          const walletErrorMsg = lang === "uk"
-            ? "❌ *Невірна адреса гаманця*\n\n💡 Підтримуються:\n• EVM (ETH/BSC): `0x742d35Cc...`\n• BTC: `1A1zP1eP5Q...` або `bc1q...`\n• TRX: `TRYbty4Ew9...`\n• SOL: `7xKXtg2CW6...`"
-            : lang === "ru"
-            ? "❌ *Неверный адрес кошелька*\n\n💡 Поддерживаются:\n• EVM (ETH/BSC): `0x742d35Cc...`\n• BTC: `1A1zP1eP5Q...` или `bc1q...`\n• TRX: `TRYbty4Ew9...`\n• SOL: `7xKXtg2CW6...`"
-            : "❌ *Invalid wallet address*\n\n💡 Supported:\n• EVM (ETH/BSC): `0x742d35Cc...`\n• BTC: `1A1zP1eP5Q...` or `bc1q...`\n• TRX: `TRYbty4Ew9...`\n• SOL: `7xKXtg2CW6...`";
-          return ctx.reply(walletErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidWallet"), { parse_mode: "Markdown" });
         }
         break;
       case "email":
         if (!inputValue.includes("@") || !inputValue.includes(".")) {
-          const emailErrorMsg = lang === "uk"
-            ? "❌ *Невірна email адреса*\n\n💡 Приклад: `user@example.com`"
-            : lang === "ru"
-            ? "❌ *Неверный email адрес*\n\n💡 Пример: `user@example.com`"
-            : "❌ *Invalid email address*\n\n💡 Example: `user@example.com`";
-          return ctx.reply(emailErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidEmail"), { parse_mode: "Markdown" });
         }
         break;
       case "domain":
         if (!inputValue.includes(".") || inputValue.includes(" ") || inputValue.startsWith("http://") || inputValue.startsWith("https://")) {
-          const domainErrorMsg = lang === "uk"
-            ? "❌ *Невірний домен*\n\n💡 Приклад: `example.com` (без http://)"
-            : lang === "ru"
-            ? "❌ *Неверный домен*\n\n💡 Пример: `example.com` (без http://)"
-            : "❌ *Invalid domain*\n\n💡 Example: `example.com` (without http://)";
-          return ctx.reply(domainErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidDomain"), { parse_mode: "Markdown" });
         }
         break;
       case "url":
         if (!inputValue.startsWith("http://") && !inputValue.startsWith("https://")) {
-          const urlErrorMsg = lang === "uk"
-            ? "❌ *Невірний URL*\n\n💡 Приклад: `https://example.com/page`"
-            : lang === "ru"
-            ? "❌ *Неверный URL*\n\n💡 Пример: `https://example.com/page`"
-            : "❌ *Invalid URL*\n\n💡 Example: `https://example.com/page`";
-          return ctx.reply(urlErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidUrl"), { parse_mode: "Markdown" });
         }
         break;
       case "cve":
         if (!/^CVE-\d{4}-\d{4,}$/i.test(inputValue)) {
-          const cveErrorMsg = lang === "uk"
-            ? "❌ *Невірний CVE ID*\n\n💡 Формат: `CVE-2024-12345`"
-            : lang === "ru"
-            ? "❌ *Неверный CVE ID*\n\n💡 Формат: `CVE-2024-12345`"
-            : "❌ *Invalid CVE ID*\n\n💡 Format: `CVE-2024-12345`";
-          return ctx.reply(cveErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidCve"), { parse_mode: "Markdown" });
         }
         break;
       case "hash":
         if (!/^[a-fA-F0-9]{32,128}$/.test(inputValue)) {
-          const hashErrorMsg = lang === "uk"
-            ? "❌ *Невірний хеш*\n\n💡 Підтримуються MD5, SHA1, SHA256\nПриклад: `d41d8cd98f00b204e9800998ecf8427e`"
-            : lang === "ru"
-            ? "❌ *Неверный хеш*\n\n💡 Поддерживаются MD5, SHA1, SHA256\nПример: `d41d8cd98f00b204e9800998ecf8427e`"
-            : "❌ *Invalid hash*\n\n💡 Supports MD5, SHA1, SHA256\nExample: `d41d8cd98f00b204e9800998ecf8427e`";
-          return ctx.reply(hashErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidHash"), { parse_mode: "Markdown" });
         }
         break;
       case "phone":
         if (!/^\+?[\d\s\-()]{7,20}$/.test(inputValue)) {
-          const phoneErrorMsg = lang === "uk"
-            ? "❌ *Невірний номер телефону*\n\n💡 Приклад: `+380991234567`"
-            : lang === "ru"
-            ? "❌ *Неверный номер телефона*\n\n💡 Пример: `+380991234567`"
-            : "❌ *Invalid phone number*\n\n💡 Example: `+380991234567`";
-          return ctx.reply(phoneErrorMsg, { parse_mode: "Markdown" });
+          return ctx.reply(t(lang, "checkResult.invalidPhone"), { parse_mode: "Markdown" });
         }
         break;
     }
     
     // Send initial loading message and store message ID
     let checkResult: CheckResult;
-    let loadingMsg = await ctx.reply(lang === "uk" ? "⏳ *Аналізую...* " : lang === "ru" ? "⏳ *Анализирую...* " : "⏳ *Analyzing...* ", { parse_mode: "Markdown" });
+    let loadingMsg = await ctx.reply("⏳ *" + t(lang, "checkResult.analyzing") + "* ", { parse_mode: "Markdown" });
     
     try {
       // Loading animation
@@ -846,8 +818,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       for (let i = 0; i < 2; i++) {
         await new Promise(resolve => setTimeout(resolve, animationDelay));
         try {
-          const animText = loadingEmojis[i] + " " + 
-            (lang === "uk" ? "*Аналізую...* " : lang === "ru" ? "*Анализирую...* " : "*Analyzing...* ");
+          const animText = loadingEmojis[i] + " *" + t(lang, "checkResult.analyzing") + "* ";
           await ctx.telegram.editMessageText(
             ctx.chat.id,
             loadingMsg.message_id,
@@ -864,7 +835,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       // Final success animation
       try {
-        const finalText = "✅ " + (lang === "uk" ? "*Готово!*" : lang === "ru" ? "*Готово!*" : "*Done!*");
+        const finalText = "✅ *" + t(lang, "checkResult.done") + "*";
         await ctx.telegram.editMessageText(
           ctx.chat.id,
           loadingMsg.message_id,
@@ -882,27 +853,22 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
           ctx.chat.id,
           loadingMsg.message_id,
           undefined,
-          "❌ " + (lang === "uk" ? "*Помилка аналізу*" : lang === "ru" ? "*Ошибка анализа*" : "*Analysis error*"),
+          "❌ *" + t(lang, "checkResult.analysisError") + "*",
           { parse_mode: "Markdown" }
         );
       } catch (e) {
         // Ignore
       }
-      const errorMsg = lang === "uk"
-        ? "❌ *Помилка при обробці*\n\n💡 Спробуйте ще раз або змініть формат даних."
-        : lang === "ru"
-        ? "❌ *Ошибка при обработке*\n\n💡 Попробуйте ещё раз или измените формат данных."
-        : "❌ *Processing error*\n\n💡 Try again or change the data format.";
-      return ctx.reply(errorMsg, { parse_mode: "Markdown" });
+      return ctx.reply(t(lang, "checkResult.processingError"), { parse_mode: "Markdown" });
     }
     
     const getStatusIndicator = (level: string, lang: Language) => {
       switch (level) {
-        case "low": return lang === "uk" ? "✅ БЕЗПЕЧНО" : lang === "ru" ? "✅ БЕЗОПАСНО" : "✅ SAFE";
-        case "medium": return lang === "uk" ? "⚠️ УВАГА" : lang === "ru" ? "⚠️ ВНИМАНИЕ" : "⚠️ CAUTION";
-        case "high": return lang === "uk" ? "🔴 НЕБЕЗПЕКА" : lang === "ru" ? "🔴 ОПАСНОСТЬ" : "🔴 DANGER";
-        case "critical": return lang === "uk" ? "💀 КРИТИЧНО" : lang === "ru" ? "💀 КРИТИЧНО" : "💀 CRITICAL";
-        default: return "⚠️ CAUTION";
+        case "low": return t(lang, "checkResult.statusSafe");
+        case "medium": return t(lang, "checkResult.statusCaution");
+        case "high": return t(lang, "checkResult.statusDanger");
+        case "critical": return t(lang, "checkResult.statusCritical");
+        default: return t(lang, "checkResult.statusCaution");
       }
     };
 
@@ -914,16 +880,16 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     };
 
     const moduleNames: Record<string, string> = {
-      ip: lang === "uk" ? "IP/GEO АНАЛІЗ" : lang === "ru" ? "IP/GEO АНАЛИЗ" : "IP/GEO ANALYSIS",
-      wallet: lang === "uk" ? "КРИПТО АНАЛІЗ" : lang === "ru" ? "КРИПТО АНАЛИЗ" : "CRYPTO ANALYSIS", 
-      phone: lang === "uk" ? "ТЕЛЕФОН OSINT" : lang === "ru" ? "ТЕЛЕФОН OSINT" : "PHONE OSINT",
-      email: lang === "uk" ? "EMAIL АНАЛІЗ" : lang === "ru" ? "EMAIL АНАЛИЗ" : "EMAIL ANALYSIS",
-      domain: lang === "uk" ? "ДОМЕН/WHOIS" : lang === "ru" ? "ДОМЕН/WHOIS" : "DOMAIN/WHOIS",
-      url: lang === "uk" ? "URL ПЕРЕВІРКА" : lang === "ru" ? "URL ПРОВЕРКА" : "URL CHECK",
-      cve: lang === "uk" ? "CVE СКАНУВАННЯ" : lang === "ru" ? "CVE СКАНИРОВАНИЕ" : "CVE SCAN",
-      hash: lang === "uk" ? "ХЕШ АНАЛІЗ" : lang === "ru" ? "ХЕШ АНАЛИЗ" : "HASH ANALYSIS",
+      ip: t(lang, "checkResult.ipAnalysis"),
+      wallet: t(lang, "checkResult.cryptoAnalysis"), 
+      phone: t(lang, "checkResult.phoneOsint"),
+      email: t(lang, "checkResult.emailAnalysis"),
+      domain: t(lang, "checkResult.domainWhois"),
+      url: t(lang, "checkResult.urlCheck"),
+      cve: t(lang, "checkResult.cveScan"),
+      hash: t(lang, "checkResult.hashAnalysis"),
       username: "USERNAME OSINT",
-      card: lang === "uk" ? "КАРТКА BIN АНАЛІЗ" : lang === "ru" ? "КАРТА BIN АНАЛИЗ" : "CARD BIN ANALYSIS",
+      card: t(lang, "checkResult.cardBinAnalysis"),
       iot: "IOT SCAN",
       cloud: "CLOUD CHECK"
     };
@@ -947,13 +913,13 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     let result: string;
 
     if (state.module === "card") {
-      const bankName = checkResult.details?.bank?.name || (lang === "uk" ? "Невідомий" : lang === "ru" ? "Неизвестный" : "Unknown");
+      const bankName = checkResult.details?.bank?.name || t(lang, "checkResult.unknown");
       const countryEmoji = checkResult.details?.country?.emoji || "🌍";
-      const countryName = checkResult.details?.country?.name || (lang === "uk" ? "Невідомо" : lang === "ru" ? "Неизвестно" : "Unknown");
+      const countryName = checkResult.details?.country?.name || t(lang, "checkResult.unknownCountry");
       const cardBrand = checkResult.details?.brand || "—";
       const cardType = checkResult.details?.type ? (
-        checkResult.details.type === "debit" ? (lang === "uk" ? "Дебетова" : lang === "ru" ? "Дебетовая" : "Debit") :
-        checkResult.details.type === "credit" ? (lang === "uk" ? "Кредитна" : lang === "ru" ? "Кредитная" : "Credit") :
+        checkResult.details.type === "debit" ? t(lang, "checkResult.debit") :
+        checkResult.details.type === "credit" ? t(lang, "checkResult.credit") :
         checkResult.details.type
       ) : "—";
       const isPrepaid = checkResult.details?.isPrepaid;
@@ -962,14 +928,14 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         i === arr.length - 1 ? `└ ${f}` : `├ ${f}`
       ).join("\n");
 
-      const infoLabel = lang === "uk" ? "ІНФОРМАЦІЯ" : lang === "ru" ? "ИНФОРМАЦИЯ" : "INFO";
-      const analysisLabel = lang === "uk" ? "АНАЛІЗ" : lang === "ru" ? "АНАЛИЗ" : "ANALYSIS";
-      const riskLabel = lang === "uk" ? "РИЗИК" : lang === "ru" ? "РИСК" : "RISK";
-      const bankLabel = lang === "uk" ? "Банк" : lang === "ru" ? "Банк" : "Bank";
-      const countryLabel = lang === "uk" ? "Країна" : lang === "ru" ? "Страна" : "Country";
-      const brandLabel = lang === "uk" ? "Бренд" : lang === "ru" ? "Бренд" : "Brand";
-      const typeLabel = lang === "uk" ? "Тип" : lang === "ru" ? "Тип" : "Type";
-      const statusLabel = lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status";
+      const infoLabel = t(lang, "checkResult.info");
+      const analysisLabel = t(lang, "checkResult.analysis");
+      const riskLabel = t(lang, "checkResult.risk");
+      const bankLabel = t(lang, "checkResult.bank");
+      const countryLabel = t(lang, "checkResult.country");
+      const brandLabel = t(lang, "checkResult.brand");
+      const typeLabel = t(lang, "checkResult.type");
+      const statusLabel = t(lang, "checkResult.status");
 
       result = `╔═══════════════════════╗
 ║ ${moduleEmojis.card} ${moduleNames.card}║
@@ -1002,10 +968,10 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         i === arr.length - 1 ? `└ ${f}` : `├ ${f}`
       ).join("\n");
 
-      const statusLabel = lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status";
-      const targetLabel = lang === "uk" ? "Ціль" : lang === "ru" ? "Цель" : "Target";
-      const analysisLabel = lang === "uk" ? "АНАЛІЗ" : lang === "ru" ? "АНАЛИЗ" : "ANALYSIS";
-      const riskLabel = lang === "uk" ? "РИЗИК" : lang === "ru" ? "РИСК" : "RISK";
+      const statusLabel = t(lang, "checkResult.status");
+      const targetLabel = t(lang, "checkResult.target");
+      const analysisLabel = t(lang, "checkResult.analysis");
+      const riskLabel = t(lang, "checkResult.risk");
 
       let detailsSection = "";
       
@@ -1014,23 +980,23 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         const cityInfo = checkResult.details.city || "";
         const ispInfo = checkResult.details.isp || "";
         
-        const locationLabel = lang === "uk" ? "Локація" : lang === "ru" ? "Локация" : "Location";
-        const ispLabel = lang === "uk" ? "Провайдер" : lang === "ru" ? "Провайдер" : "ISP";
+        const locationLabel = t(lang, "checkResult.location");
+        const ispLabel = t(lang, "checkResult.isp");
         
         if (countryInfo || cityInfo) {
           detailsSection = `
-┌─ ${lang === "uk" ? "ДЕТАЛІ" : lang === "ru" ? "ДЕТАЛИ" : "DETAILS"} ─┐
+┌─ ${t(lang, "checkResult.details")} ─┐
 🌍 *${locationLabel}:* ${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}
 🏢 *${ispLabel}:* ${ispInfo}
 └──────────────────┘`;
         }
       } else if (state.module === "wallet" && checkResult.details) {
         const chain = checkResult.details.chain || "";
-        const chainLabel = lang === "uk" ? "Мережа" : lang === "ru" ? "Сеть" : "Chain";
+        const chainLabel = t(lang, "checkResult.chain");
         
         if (chain) {
           detailsSection = `
-┌─ ${lang === "uk" ? "ДЕТАЛІ" : lang === "ru" ? "ДЕТАЛИ" : "DETAILS"} ─┐
+┌─ ${t(lang, "checkResult.details")} ─┐
 ⛓️ *${chainLabel}:* ${chain}
 └──────────────────┘`;
         }
@@ -1040,8 +1006,8 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         
         if (domain) {
           detailsSection = `
-┌─ ${lang === "uk" ? "ДЕТАЛІ" : lang === "ru" ? "ДЕТАЛИ" : "DETAILS"} ─┐
-🌐 *${lang === "uk" ? "Домен" : lang === "ru" ? "Домен" : "Domain"}:* ${domain}
+┌─ ${t(lang, "checkResult.details")} ─┐
+🌐 *${t(lang, "checkResult.domain")}:* ${domain}
 📧 *MX:* ${mx}
 └──────────────────┘`;
         }
@@ -1848,93 +1814,96 @@ ${allTypesText}
 
   bot.command("admin", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.reply("⛔ Доступ заборонено. Ви не є адміністратором.");
+      return ctx.reply(t(lang, "admin.accessDeniedNotAdmin"));
     }
     
     const stats = await storage.getStats();
 
-    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
-      `📊 *Статистика:*\n` +
-      `👥 Користувачів: ${stats.totalUsers}\n` +
-      `📄 Звітів: ${stats.totalReports || 0}\n` +
-      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
-      `👁 Активних моніторів: ${stats.activeWatches}\n` +
-      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
-      `Виберіть дію:`;
+    const text = `${t(lang, "admin.panelTitle")}\n\n` +
+      `${t(lang, "admin.statistics")}\n` +
+      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
+      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
+      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
+      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
+      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+      `${t(lang, "admin.selectAction")}`;
 
     await ctx.reply(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback("📊 Статистика", "admin_stats"),
-          Markup.button.callback("👥 Користувачі", "admin_users")
+          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
+          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
         ],
         [
-          Markup.button.callback("🔍 Пошук", "admin_search_user"),
-          Markup.button.callback("🚫 Блокування", "admin_block_user")
+          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
+          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
         ],
         [
-          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
-          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
+          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
         ],
         [
-          Markup.button.callback("💳 Платежі", "admin_payments"),
-          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
+          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
         ],
-        [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
+        [Markup.button.callback(t(lang, "admin.exitBtn"), "back_to_dashboard")]
       ])
     });
   });
 
   bot.action("open_admin_panel", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const stats = await storage.getStats();
 
-    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
-      `📊 *Статистика:*\n` +
-      `👥 Користувачів: ${stats.totalUsers}\n` +
-      `📄 Звітів: ${stats.totalReports || 0}\n` +
-      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
-      `👁 Активних моніторів: ${stats.activeWatches}\n` +
-      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
-      `Виберіть дію:`;
+    const text = `${t(lang, "admin.panelTitle")}\n\n` +
+      `${t(lang, "admin.statistics")}\n` +
+      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
+      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
+      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
+      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
+      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+      `${t(lang, "admin.selectAction")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback("📊 Статистика", "admin_stats"),
-          Markup.button.callback("👥 Користувачі", "admin_users")
+          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
+          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
         ],
         [
-          Markup.button.callback("🔍 Пошук", "admin_search_user"),
-          Markup.button.callback("🚫 Блокування", "admin_block_user")
+          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
+          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
         ],
         [
-          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
-          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
+          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
         ],
         [
-          Markup.button.callback("💳 Платежі", "admin_payments"),
-          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
+          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
         ],
-        [Markup.button.callback("⬅️ Назад", "back_to_dashboard")]
+        [Markup.button.callback(t(lang, "admin.back"), "back_to_dashboard")]
       ])
     });
   });
 
   bot.action("admin_stats", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const stats = await storage.getStats();
@@ -1945,26 +1914,26 @@ ${allTypesText}
     const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
     const blockedUsers = allUsers.filter(u => u.blocked).length;
     
-    const text = `📊 ДЕТАЛЬНА СТАТИСТИКА\n\n` +
-      `👥 Користувачі:\n` +
-      `├ Всього: ${stats.totalUsers}\n` +
+    const text = `${t(lang, "admin.detailedStats")}\n\n` +
+      `${t(lang, "admin.usersBtn")}:\n` +
+      `├ ${t(lang, "admin.total")} ${stats.totalUsers}\n` +
       `├ FREE: ${freeUsers}\n` +
       `├ PRO: ${proUsers}\n` +
       `├ ENTERPRISE: ${enterpriseUsers}\n` +
-      `└ Заблоковано: ${blockedUsers}\n\n` +
-      `📄 Звіти:\n` +
-      `├ Всього: ${stats.totalReports || 0}\n` +
-      `└ Сьогодні: ${stats.checksToday || 0}\n\n` +
-      `👁 Моніторинг:\n` +
-      `└ Активних: ${stats.activeWatches}\n\n` +
-      `💳 Платежі:\n` +
-      `└ Pending: ${stats.pendingPayments || 0}`;
+      `└ ${t(lang, "admin.blockedCount")} ${blockedUsers}\n\n` +
+      `${t(lang, "admin.reportsCount")}\n` +
+      `├ ${t(lang, "admin.total")} ${stats.totalReports || 0}\n` +
+      `└ ${t(lang, "admin.today")} ${stats.checksToday || 0}\n\n` +
+      `${t(lang, "buttons.monitoring")}:\n` +
+      `└ ${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n\n` +
+      `${t(lang, "admin.paymentsBtn")}:\n` +
+      `└ ${t(lang, "admin.pending")} ${stats.pendingPayments || 0}`;
 
     try {
       await ctx.editMessageText(text, {
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("🔄 Оновити", "admin_stats")],
-          [Markup.button.callback("⬅️ Назад", "admin_back")]
+          [Markup.button.callback(t(lang, "admin.refresh"), "admin_stats")],
+          [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
         ])
       });
     } catch (err: any) {
@@ -1976,35 +1945,37 @@ ${allTypesText}
 
   bot.action("admin_users", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const latestUsers = await storage.getLatestUsers(10);
     
-    let text = `👥 ОСТАННІ 10 КОРИСТУВАЧІВ\n\n`;
+    let text = `${t(lang, "admin.last10users")}\n\n`;
     
     if (latestUsers.length === 0) {
-      text += "Користувачів ще немає.";
+      text += t(lang, "admin.noUsersYet");
     } else {
       latestUsers.forEach((u, i) => {
         const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : "";
         const username = u.username ? `@${escapedUsername}` : "—";
         const blockedIcon = u.blocked ? "🔴" : "🟢";
-        const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString("uk-UA") : "—";
+        const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
+        const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString(dateLocale) : "—";
         text += `${i + 1}. ${blockedIcon} ${username}\n`;
         text += `   ID: ${u.tgId} | ${u.tier} | ${date}\n`;
       });
     }
     
-    text += `\nДля блокування відправте ID користувача`;
+    text += `\n${t(lang, "admin.blockHint")}`;
 
     try {
       await ctx.editMessageText(text, {
         ...Markup.inlineKeyboard([
-          [Markup.button.callback("🔄 Оновити", "admin_users")],
-          [Markup.button.callback("⬅️ Назад", "admin_back")]
+          [Markup.button.callback(t(lang, "admin.refresh"), "admin_users")],
+          [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
         ])
       });
     } catch (err: any) {
@@ -2016,23 +1987,25 @@ ${allTypesText}
 
   bot.action("admin_payments", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const pendingPayments = await storage.getPendingPayments();
     
-    let text = `💳 PENDING ПЛАТЕЖІ\n\n`;
+    let text = `${t(lang, "admin.pendingPaymentsTitle")}\n\n`;
     
     if (pendingPayments.length === 0) {
-      text += "Немає pending платежів.";
+      text += t(lang, "admin.noPendingPayments");
     } else {
       for (const p of pendingPayments) {
         const user = await storage.getUserById(p.userId!);
         const escapedUsername = user?.username ? user.username.replace(/_/g, "\\_") : "";
         const username = user?.username ? `@${escapedUsername}` : user?.tgId || "—";
-        const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString("uk-UA") : "—";
+        const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
+        const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString(dateLocale) : "—";
         text += `#${p.id} | ${username}\n`;
         text += `   ${p.tier} | $${p.amountUsdt} | ${date}\n\n`;
       }
@@ -2047,8 +2020,8 @@ ${allTypesText}
       ]);
     });
     
-    buttons.push([Markup.button.callback("🔄 Оновити", "admin_payments")]);
-    buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+    buttons.push([Markup.button.callback(t(lang, "admin.refresh"), "admin_payments")]);
+    buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
 
     try {
       await ctx.editMessageText(text, {
@@ -2063,82 +2036,85 @@ ${allTypesText}
 
   bot.action("admin_broadcast", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     userStates.set(tgId, { module: "admin_broadcast", step: "awaiting_message" });
     
     const stats = await storage.getStats();
     
-    const text = `📢 *РОЗСИЛКА*\n\n` +
-      `Буде відправлено: ${stats.totalUsers} користувачам\n\n` +
-      `Відправте текст повідомлення для розсилки.\n` +
-      `Підтримується Markdown форматування.`;
+    const text = `${t(lang, "admin.broadcastTitle")}\n\n` +
+      `${t(lang, "admin.broadcastInfo", { count: stats.totalUsers })}\n\n` +
+      `${t(lang, "admin.broadcastPrompt")}\n` +
+      `${t(lang, "admin.markdownSupported")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [Markup.button.callback("❌ Скасувати", "admin_back")]
+        [Markup.button.callback(t(lang, "admin.cancel"), "admin_back")]
       ])
     });
   });
 
   bot.action("admin_back", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     userStates.delete(tgId);
     
     const stats = await storage.getStats();
 
-    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
-      `📊 *Статистика:*\n` +
-      `👥 Користувачів: ${stats.totalUsers}\n` +
-      `📄 Звітів: ${stats.totalReports || 0}\n` +
-      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
-      `👁 Активних моніторів: ${stats.activeWatches}\n` +
-      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
-      `Виберіть дію:`;
+    const text = `${t(lang, "admin.panelTitle")}\n\n` +
+      `${t(lang, "admin.statistics")}\n` +
+      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
+      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
+      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
+      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
+      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+      `${t(lang, "admin.selectAction")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback("📊 Статистика", "admin_stats"),
-          Markup.button.callback("👥 Користувачі", "admin_users")
+          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
+          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
         ],
         [
-          Markup.button.callback("🔍 Пошук", "admin_search_user"),
-          Markup.button.callback("🚫 Блокування", "admin_block_user")
+          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
+          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
         ],
         [
-          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
-          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
+          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
         ],
         [
-          Markup.button.callback("💳 Платежі", "admin_payments"),
-          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
+          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
         ],
-        [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
+        [Markup.button.callback(t(lang, "admin.exitBtn"), "back_to_dashboard")]
       ])
     });
   });
 
   bot.action("admin_broadcast_confirm", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const state = userStates.get(tgId);
     if (!state?.data?.message) {
-      return ctx.answerCbQuery("Повідомлення не знайдено");
+      return ctx.answerCbQuery(t(lang, "admin.messageNotFound"));
     }
     
     const broadcastMessage = state.data.message;
@@ -2148,7 +2124,7 @@ ${allTypesText}
     let successCount = 0;
     let failCount = 0;
     
-    await ctx.editMessageText("📢 Розсилка почалася...");
+    await ctx.editMessageText(t(lang, "admin.broadcastStarted"));
     
     for (const u of allUsers) {
       if (u.blocked) continue;
@@ -2163,82 +2139,85 @@ ${allTypesText}
       await new Promise(resolve => setTimeout(resolve, 50));
     }
     
-    await ctx.reply(`✅ *Розсилка завершена!*\n\n📤 Відправлено: ${successCount}\n❌ Помилки: ${failCount}`, {
+    await ctx.reply(`${t(lang, "admin.broadcastComplete")}\n\n${t(lang, "admin.sent")} ${successCount}\n${t(lang, "admin.errors")} ${failCount}`, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
     });
   });
 
   bot.action("admin_broadcast_cancel", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     userStates.delete(tgId);
-    await ctx.answerCbQuery("Розсилку скасовано");
+    await ctx.answerCbQuery(t(lang, "admin.broadcastCancelled"));
     
     const stats = await storage.getStats();
 
-    const text = `🔐 *АДМІН ПАНЕЛЬ*\n\n` +
-      `📊 *Статистика:*\n` +
-      `👥 Користувачів: ${stats.totalUsers}\n` +
-      `📄 Звітів: ${stats.totalReports || 0}\n` +
-      `🔍 Перевірок сьогодні: ${stats.checksToday || 0}\n` +
-      `👁 Активних моніторів: ${stats.activeWatches}\n` +
-      `💳 Pending платежів: ${stats.pendingPayments || 0}\n\n` +
-      `Виберіть дію:`;
+    const text = `${t(lang, "admin.panelTitle")}\n\n` +
+      `${t(lang, "admin.statistics")}\n` +
+      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
+      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
+      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
+      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
+      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+      `${t(lang, "admin.selectAction")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback("📊 Статистика", "admin_stats"),
-          Markup.button.callback("👥 Користувачі", "admin_users")
+          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
+          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
         ],
         [
-          Markup.button.callback("🔍 Пошук", "admin_search_user"),
-          Markup.button.callback("🚫 Блокування", "admin_block_user")
+          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
+          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
         ],
         [
-          Markup.button.callback("📊 Тарифи", "admin_change_tier"),
-          Markup.button.callback("⚙️ Налаштування", "admin_settings")
+          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
+          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
         ],
         [
-          Markup.button.callback("💳 Платежі", "admin_payments"),
-          Markup.button.callback("📢 Розсилка", "admin_broadcast")
+          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
+          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
         ],
-        [Markup.button.callback("⬅️ Вийти", "back_to_dashboard")]
+        [Markup.button.callback(t(lang, "admin.exitBtn"), "back_to_dashboard")]
       ])
     });
   });
 
   bot.action(/^admin_block_(\d+)$/, async (ctx) => {
     const adminTgId = ctx.from!.id.toString();
+    const lang = await getLang(adminTgId);
     
     if (!isAdmin(adminTgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const userId = parseInt(ctx.match[1]);
     const user = await storage.getUserById(userId);
     
     if (!user) {
-      return ctx.answerCbQuery("Користувача не знайдено");
+      return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
     const newBlockedStatus = !user.blocked;
     await storage.updateUser(userId, { blocked: newBlockedStatus });
     
-    const statusText = newBlockedStatus ? "заблоковано" : "розблоковано";
-    await ctx.answerCbQuery(`Користувача ${statusText}`);
+    const statusText = newBlockedStatus ? t(lang, "admin.blocked2") : t(lang, "admin.unblocked");
+    await ctx.answerCbQuery(t(lang, "admin.userBlockedStatus", { status: statusText }));
     
+    const userLang = await getLang(user.tgId);
     try {
       await ctx.telegram.sendMessage(user.tgId, 
         newBlockedStatus 
-          ? "⛔ Ваш акаунт було заблоковано адміністратором."
-          : "✅ Ваш акаунт було розблоковано."
+          ? t(userLang, "admin.accountBlockedNotify")
+          : t(userLang, "admin.accountUnblockedNotify")
       );
     } catch (e) {
       console.log("Failed to notify user about block status:", e);
@@ -2247,47 +2226,46 @@ ${allTypesText}
 
   bot.action("admin_block_user", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     userStates.set(tgId, { module: "admin_block_user", step: "awaiting_tgid" });
     
-    const text = `🚫 *БЛОКУВАННЯ КОРИСТУВАЧА*\n\n` +
-      `Відправте Telegram ID користувача для блокування/розблокування.\n\n` +
-      `_Формат: числовий ID (наприклад: 123456789)_`;
+    const text = `${t(lang, "admin.toggleBlockTitle")}\n\n${t(lang, "admin.formatHint")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback("❌ Скасувати", "admin_back")]])
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_back")]])
     });
   });
 
   bot.action("admin_change_tier", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     userStates.set(tgId, { module: "admin_change_tier", step: "awaiting_tgid" });
     
-    const text = `📊 *ЗМІНА ТАРИФУ*\n\n` +
-      `Відправте Telegram ID користувача для зміни тарифу.\n\n` +
-      `_Формат: числовий ID (наприклад: 123456789)_`;
+    const text = `${t(lang, "admin.enterUserIdToChangeTier")}\n\n${t(lang, "admin.formatHint")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback("❌ Скасувати", "admin_back")]])
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_back")]])
     });
   });
 
   bot.action(/^admin_set_tier_(\d+)_(\w+)$/, async (ctx) => {
     const adminTgId = ctx.from!.id.toString();
+    const lang = await getLang(adminTgId);
     
     if (!isAdmin(adminTgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const userId = parseInt(ctx.match[1]);
@@ -2295,15 +2273,16 @@ ${allTypesText}
     
     const user = await storage.getUserById(userId);
     if (!user) {
-      return ctx.answerCbQuery("Користувача не знайдено");
+      return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
     await storage.updateUser(userId, { tier: newTier });
-    await ctx.answerCbQuery(`Тариф змінено на ${newTier}`);
+    await ctx.answerCbQuery(t(lang, "admin.tierChangedTo", { tier: newTier }));
     
+    const userLang = await getLang(user.tgId);
     try {
       await ctx.telegram.sendMessage(user.tgId, 
-        `✅ Ваш тариф було змінено на *${newTier}*.`,
+        t(userLang, "admin.yourTierChanged", { tier: newTier }),
         { parse_mode: "Markdown" }
       );
     } catch (e) {
@@ -2311,42 +2290,40 @@ ${allTypesText}
     }
     
     const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : user.tgId;
-    const text = `✅ *Тариф змінено!*\n\n` +
-      `Користувач: @${escapedUsername}\n` +
-      `Новий тариф: ${newTier}`;
+    const text = `${t(lang, "admin.tierChangedSuccess")}\n\n` +
+      `${t(lang, "admin.userLabel")} @${escapedUsername}\n` +
+      `${t(lang, "admin.newTierLabel")} ${newTier}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback("⬅️ Назад", "admin_back")]])
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
     });
   });
 
   bot.action("admin_search_user", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     userStates.set(tgId, { module: "admin_search_user", step: "awaiting_query" });
     
-    const text = `🔍 *ПОШУК КОРИСТУВАЧА*\n\n` +
-      `Відправте:\n` +
-      `• Telegram ID (числовий)\n` +
-      `• Username (без @)\n\n` +
-      `_Приклад: 123456789 або darkuser_`;
+    const text = `${t(lang, "admin.enterSearchQuery")}\n\n${t(lang, "admin.searchHint")}\n\n${t(lang, "admin.searchExample")}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback("❌ Скасувати", "admin_back")]])
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_back")]])
     });
   });
 
   bot.action("admin_settings", async (ctx) => {
     const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
     
     if (!isAdmin(tgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const stats = await storage.getStats();
@@ -2355,42 +2332,43 @@ ${allTypesText}
     const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
     const blockedUsers = allUsers.filter(u => u.blocked).length;
     
-    const text = `⚙️ *НАЛАШТУВАННЯ СИСТЕМИ*\n\n` +
-      `📊 *Ліміти:*\n` +
-      `├ FREE: 15 запитів/день\n` +
-      `├ PRO: Необмежено\n` +
-      `└ ENTERPRISE: Необмежено + API\n\n` +
-      `💰 *Ціни:*\n` +
+    const text = `${t(lang, "admin.settingsTitle")}\n\n` +
+      `${t(lang, "admin.limitsTitle")}\n` +
+      `├ FREE: 15 ${t(lang, "admin.requestsDay")}\n` +
+      `├ PRO: ${t(lang, "admin.unlimited")}\n` +
+      `└ ENTERPRISE: ${t(lang, "admin.unlimitedApi")}\n\n` +
+      `${t(lang, "admin.pricesTitle")}\n` +
       `├ PRO: $10 USDT\n` +
       `└ ENTERPRISE: $50 USDT\n\n` +
-      `📈 *Статистика тарифів:*\n` +
+      `${t(lang, "admin.tierStatsTitle")}\n` +
       `├ FREE: ${stats.totalUsers - proUsers - enterpriseUsers}\n` +
       `├ PRO: ${proUsers}\n` +
       `├ ENTERPRISE: ${enterpriseUsers}\n` +
-      `└ Заблоковано: ${blockedUsers}\n\n` +
-      `🔐 *Адміни:* ${ADMIN_IDS.length}`;
+      `└ ${t(lang, "admin.blockedCount")} ${blockedUsers}\n\n` +
+      `${t(lang, "admin.adminsCount")} ${ADMIN_IDS.length}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [Markup.button.callback("🔄 Оновити", "admin_settings")],
-        [Markup.button.callback("⬅️ Назад", "admin_back")]
+        [Markup.button.callback(t(lang, "admin.refresh"), "admin_settings")],
+        [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
       ])
     });
   });
 
   bot.action(/^admin_user_info_(\d+)$/, async (ctx) => {
     const adminTgId = ctx.from!.id.toString();
+    const lang = await getLang(adminTgId);
     
     if (!isAdmin(adminTgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const userId = parseInt(ctx.match[1]);
     const user = await storage.getUserById(userId);
     
     if (!user) {
-      return ctx.answerCbQuery("Користувача не знайдено");
+      return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
     const reports = await storage.getReports(user.id);
@@ -2398,29 +2376,30 @@ ${allTypesText}
     
     const statusEmoji = user.blocked ? "🔴" : "🟢";
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
     
     const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : null;
-    const text = `👤 *ІНФОРМАЦІЯ ПРО КОРИСТУВАЧА*\n\n` +
-      `${statusEmoji} *Статус:* ${user.blocked ? "Заблокований" : "Активний"}\n` +
-      `${tierEmoji} *Тариф:* ${user.tier}\n\n` +
-      `📋 *Дані:*\n` +
+    const text = `${t(lang, "admin.userInfoTitle")}\n\n` +
+      `${statusEmoji} *${t(lang, "admin.statusLabel")}* ${user.blocked ? t(lang, "admin.blocked") : t(lang, "admin.active")}\n` +
+      `${tierEmoji} *${t(lang, "admin.tierLabel")}* ${user.tier}\n\n` +
+      `${t(lang, "admin.data")}\n` +
       `├ ID: \`${user.id}\`\n` +
       `├ TG ID: \`${user.tgId}\`\n` +
       `├ Username: ${escapedUsername ? `@${escapedUsername}` : "—"}\n` +
-      `├ Мова: ${user.lang?.toUpperCase() || "UK"}\n` +
-      `├ Залишок запитів: ${user.requestsLeft}\n` +
-      `├ Streak: ${user.streakDays} днів\n` +
-      `├ Реф. код: \`${user.refCode || "—"}\`\n` +
-      `├ Знижка: ${user.discountPct || 0}%\n` +
-      `└ Реєстрація: ${user.createdAt ? new Date(user.createdAt).toLocaleDateString("uk-UA") : "—"}\n\n` +
-      `📊 *Активність:*\n` +
-      `├ Звітів: ${reports.length}\n` +
-      `└ Моніторів: ${watches.length}`;
+      `├ ${t(lang, "admin.langLabel")} ${user.lang?.toUpperCase() || "UK"}\n` +
+      `├ ${t(lang, "admin.requestsLeft")} ${user.requestsLeft}\n` +
+      `├ ${t(lang, "admin.streakLabel")} ${user.streakDays} ${t(lang, "admin.days")}\n` +
+      `├ ${t(lang, "admin.refCode")} \`${user.refCode || "—"}\`\n` +
+      `├ ${t(lang, "admin.discount")} ${user.discountPct || 0}%\n` +
+      `└ ${t(lang, "admin.registrationDate")} ${user.createdAt ? new Date(user.createdAt).toLocaleDateString(dateLocale) : "—"}\n\n` +
+      `${t(lang, "admin.activityTitle")}\n` +
+      `├ ${t(lang, "admin.reportsLabel")} ${reports.length}\n` +
+      `└ ${t(lang, "admin.monitorsLabel")} ${watches.length}`;
 
     const buttons: any[][] = [];
     
     buttons.push([
-      Markup.button.callback(user.blocked ? "✅ Розблокувати" : "🚫 Заблокувати", `admin_toggle_block_${user.id}`),
+      Markup.button.callback(user.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${user.id}`),
     ]);
     
     buttons.push([
@@ -2429,7 +2408,7 @@ ${allTypesText}
       Markup.button.callback("👑 ENT", `admin_set_tier_${user.id}_ENTERPRISE`),
     ]);
     
-    buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+    buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -2439,29 +2418,31 @@ ${allTypesText}
 
   bot.action(/^admin_toggle_block_(\d+)$/, async (ctx) => {
     const adminTgId = ctx.from!.id.toString();
+    const lang = await getLang(adminTgId);
     
     if (!isAdmin(adminTgId)) {
-      return ctx.answerCbQuery("⛔ Доступ заборонено");
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
     const userId = parseInt(ctx.match[1]);
     const user = await storage.getUserById(userId);
     
     if (!user) {
-      return ctx.answerCbQuery("Користувача не знайдено");
+      return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
     const newBlockedStatus = !user.blocked;
     await storage.blockUser(userId, newBlockedStatus);
     
-    const statusText = newBlockedStatus ? "заблоковано" : "розблоковано";
-    await ctx.answerCbQuery(`Користувача ${statusText}`);
+    const statusText = newBlockedStatus ? t(lang, "admin.blocked2") : t(lang, "admin.unblocked");
+    await ctx.answerCbQuery(t(lang, "admin.userBlockedStatus", { status: statusText }));
     
+    const userLang = await getLang(user.tgId);
     try {
       await ctx.telegram.sendMessage(user.tgId, 
         newBlockedStatus 
-          ? "⛔ Ваш акаунт було заблоковано адміністратором."
-          : "✅ Ваш акаунт було розблоковано."
+          ? t(userLang, "admin.accountBlockedNotify")
+          : t(userLang, "admin.accountUnblockedNotify")
       );
     } catch (e) {
       console.log("Failed to notify user about block status:", e);
@@ -2474,34 +2455,36 @@ ${allTypesText}
       
       const statusEmoji = updatedUser.blocked ? "🔴" : "🟢";
       const tierEmoji = updatedUser.tier === "ENTERPRISE" ? "👑" : updatedUser.tier === "PRO" ? "⭐" : "🆓";
+      const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
+      const escapedUsername = updatedUser.username ? updatedUser.username.replace(/_/g, "\\_") : null;
       
-      const text = `👤 *ІНФОРМАЦІЯ ПРО КОРИСТУВАЧА*\n\n` +
-        `${statusEmoji} *Статус:* ${updatedUser.blocked ? "Заблокований" : "Активний"}\n` +
-        `${tierEmoji} *Тариф:* ${updatedUser.tier}\n\n` +
-        `📋 *Дані:*\n` +
+      const text = `${t(lang, "admin.userInfoTitle")}\n\n` +
+        `${statusEmoji} *${t(lang, "admin.statusLabel")}* ${updatedUser.blocked ? t(lang, "admin.blocked") : t(lang, "admin.active")}\n` +
+        `${tierEmoji} *${t(lang, "admin.tierLabel")}* ${updatedUser.tier}\n\n` +
+        `${t(lang, "admin.data")}\n` +
         `├ ID: \`${updatedUser.id}\`\n` +
         `├ TG ID: \`${updatedUser.tgId}\`\n` +
-        `├ Username: ${updatedUser.username ? `@${updatedUser.username}` : "—"}\n` +
-        `├ Мова: ${updatedUser.lang?.toUpperCase() || "UK"}\n` +
-        `├ Залишок запитів: ${updatedUser.requestsLeft}\n` +
-        `├ Streak: ${updatedUser.streakDays} днів\n` +
-        `├ Реф. код: \`${updatedUser.refCode || "—"}\`\n` +
-        `├ Знижка: ${updatedUser.discountPct || 0}%\n` +
-        `└ Реєстрація: ${updatedUser.createdAt ? new Date(updatedUser.createdAt).toLocaleDateString("uk-UA") : "—"}\n\n` +
-        `📊 *Активність:*\n` +
-        `├ Звітів: ${reports.length}\n` +
-        `└ Моніторів: ${watches.length}`;
+        `├ Username: ${escapedUsername ? `@${escapedUsername}` : "—"}\n` +
+        `├ ${t(lang, "admin.langLabel")} ${updatedUser.lang?.toUpperCase() || "UK"}\n` +
+        `├ ${t(lang, "admin.requestsLeft")} ${updatedUser.requestsLeft}\n` +
+        `├ ${t(lang, "admin.streakLabel")} ${updatedUser.streakDays} ${t(lang, "admin.days")}\n` +
+        `├ ${t(lang, "admin.refCode")} \`${updatedUser.refCode || "—"}\`\n` +
+        `├ ${t(lang, "admin.discount")} ${updatedUser.discountPct || 0}%\n` +
+        `└ ${t(lang, "admin.registrationDate")} ${updatedUser.createdAt ? new Date(updatedUser.createdAt).toLocaleDateString(dateLocale) : "—"}\n\n` +
+        `${t(lang, "admin.activityTitle")}\n` +
+        `├ ${t(lang, "admin.reportsLabel")} ${reports.length}\n` +
+        `└ ${t(lang, "admin.monitorsLabel")} ${watches.length}`;
 
       const buttons: any[][] = [];
       buttons.push([
-        Markup.button.callback(updatedUser.blocked ? "✅ Розблокувати" : "🚫 Заблокувати", `admin_toggle_block_${updatedUser.id}`),
+        Markup.button.callback(updatedUser.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${updatedUser.id}`),
       ]);
       buttons.push([
         Markup.button.callback("🆓 FREE", `admin_set_tier_${updatedUser.id}_FREE`),
         Markup.button.callback("⭐ PRO", `admin_set_tier_${updatedUser.id}_PRO`),
         Markup.button.callback("👑 ENT", `admin_set_tier_${updatedUser.id}_ENTERPRISE`),
       ]);
-      buttons.push([Markup.button.callback("⬅️ Назад", "admin_back")]);
+      buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
 
       await ctx.editMessageText(text, {
         parse_mode: "Markdown",
@@ -2512,29 +2495,31 @@ ${allTypesText}
 
   bot.command("block", async (ctx) => {
     const adminTgId = ctx.from!.id.toString();
+    const lang = await getLang(adminTgId);
     
     if (!isAdmin(adminTgId)) {
-      return ctx.reply("⛔ Доступ заборонено.");
+      return ctx.reply(t(lang, "admin.accessDenied"));
     }
     
     const args = ctx.message.text.split(" ");
     if (args.length < 2) {
-      return ctx.reply("Використання: /block <tg_id>\nНаприклад: /block 123456789");
+      return ctx.reply(t(lang, "admin.blockUsage"));
     }
     
     const targetTgId = args[1];
     const user = await storage.getUserByTgId(targetTgId);
     
     if (!user) {
-      return ctx.reply(`Користувача з ID ${targetTgId} не знайдено.`);
+      return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }));
     }
     
     await storage.updateUser(user.id, { blocked: true });
     
-    await ctx.reply(`✅ Користувача @${user.username || targetTgId} заблоковано.`);
+    await ctx.reply(t(lang, "admin.userBlockedSuccess", { username: user.username || targetTgId }));
     
+    const userLang = await getLang(targetTgId);
     try {
-      await ctx.telegram.sendMessage(targetTgId, "⛔ Ваш акаунт було заблоковано адміністратором.");
+      await ctx.telegram.sendMessage(targetTgId, t(userLang, "admin.accountBlockedNotify"));
     } catch (e) {
       console.log("Failed to notify user about block:", e);
     }
@@ -2542,29 +2527,31 @@ ${allTypesText}
 
   bot.command("unblock", async (ctx) => {
     const adminTgId = ctx.from!.id.toString();
+    const lang = await getLang(adminTgId);
     
     if (!isAdmin(adminTgId)) {
-      return ctx.reply("⛔ Доступ заборонено.");
+      return ctx.reply(t(lang, "admin.accessDenied"));
     }
     
     const args = ctx.message.text.split(" ");
     if (args.length < 2) {
-      return ctx.reply("Використання: /unblock <tg_id>\nНаприклад: /unblock 123456789");
+      return ctx.reply(t(lang, "admin.unblockUsage"));
     }
     
     const targetTgId = args[1];
     const user = await storage.getUserByTgId(targetTgId);
     
     if (!user) {
-      return ctx.reply(`Користувача з ID ${targetTgId} не знайдено.`);
+      return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }));
     }
     
     await storage.updateUser(user.id, { blocked: false });
     
-    await ctx.reply(`✅ Користувача @${user.username || targetTgId} розблоковано.`);
+    await ctx.reply(t(lang, "admin.userUnblockedSuccess", { username: user.username || targetTgId }));
     
+    const userLang = await getLang(targetTgId);
     try {
-      await ctx.telegram.sendMessage(targetTgId, "✅ Ваш акаунт було розблоковано.");
+      await ctx.telegram.sendMessage(targetTgId, t(userLang, "admin.accountUnblockedNotify"));
     } catch (e) {
       console.log("Failed to notify user about unblock:", e);
     }
@@ -2579,19 +2566,19 @@ ${allTypesText}
     const args = ctx.message.text.split(" ");
     if (args.length < 3) {
       return ctx.reply(
-        `🚀 *Швидка перевірка*\n\n` +
-        `Використання: \`/check <тип> <значення>\`\n\n` +
-        `*Доступні типи:*\n` +
-        `• \`ip\` - IP адреса\n` +
-        `• \`wallet\` - Крипто гаманець\n` +
-        `• \`email\` - Email адреса\n` +
-        `• \`phone\` - Номер телефону\n` +
-        `• \`domain\` - Домен\n` +
-        `• \`url\` - URL посилання\n` +
-        `• \`username\` - Username\n` +
-        `• \`hash\` - File hash\n` +
-        `• \`cve\` - CVE ID\n\n` +
-        `*Приклади:*\n` +
+        `${t(lang, "quickCheck.title")}\n\n` +
+        `${t(lang, "quickCheck.usage")}\n\n` +
+        `${t(lang, "quickCheck.availableTypes")}\n` +
+        `• ${t(lang, "quickCheck.typeIp")}\n` +
+        `• ${t(lang, "quickCheck.typeWallet")}\n` +
+        `• ${t(lang, "quickCheck.typeEmail")}\n` +
+        `• ${t(lang, "quickCheck.typePhone")}\n` +
+        `• ${t(lang, "quickCheck.typeDomain")}\n` +
+        `• ${t(lang, "quickCheck.typeUrl")}\n` +
+        `• ${t(lang, "quickCheck.typeUsername")}\n` +
+        `• ${t(lang, "quickCheck.typeHash")}\n` +
+        `• ${t(lang, "quickCheck.typeCve")}\n\n` +
+        `${t(lang, "quickCheck.examples")}\n` +
         `\`/check ip 8.8.8.8\`\n` +
         `\`/check email test@gmail.com\`\n` +
         `\`/check wallet 0x123...\``,
@@ -2604,7 +2591,7 @@ ${allTypesText}
     
     const validTypes = ["ip", "wallet", "email", "phone", "domain", "url", "username", "hash", "cve"];
     if (!validTypes.includes(checkType)) {
-      return ctx.reply(`❌ Невідомий тип перевірки: ${checkType}\n\nДоступні: ${validTypes.join(", ")}`);
+      return ctx.reply(t(lang, "quickCheck.unknownType", { type: checkType, available: validTypes.join(", ") }));
     }
     
     if (!user || user.requestsLeft! <= 0) {
@@ -2615,7 +2602,7 @@ ${allTypesText}
       );
     }
     
-    const processingMsg = await ctx.reply(`⏳ Аналізую ${checkType}: ${target}...`);
+    const processingMsg = await ctx.reply(t(lang, "quickCheck.analyzing", { type: checkType, target }));
     
     try {
       const checkResult = await performCheck(checkType, target);
@@ -2625,16 +2612,16 @@ ${allTypesText}
                         checkResult.riskLevel === "high" ? "🟠" : 
                         checkResult.riskLevel === "medium" ? "🟡" : "🟢";
       
-      let result = `${riskEmoji} *${checkType.toUpperCase()} АНАЛІЗ*\n\n`;
-      result += `📌 *Ціль:* \`${target}\`\n`;
-      result += `📊 *Ризик:* ${checkResult.riskScore}/100 (${checkResult.riskLevel.toUpperCase()})\n\n`;
-      result += `*Знахідки:*\n`;
+      let result = `${riskEmoji} *${checkType.toUpperCase()} ${t(lang, "quickCheck.analysis")}*\n\n`;
+      result += `📌 *${t(lang, "quickCheck.target")}:* \`${target}\`\n`;
+      result += `📊 *${t(lang, "quickCheck.risk")}:* ${checkResult.riskScore}/100 (${checkResult.riskLevel.toUpperCase()})\n\n`;
+      result += `*${t(lang, "quickCheck.findings")}:*\n`;
       checkResult.findings.slice(0, 5).forEach(f => {
         result += `• ${f}\n`;
       });
       
       if (checkResult.aiInsights) {
-        result += `\n🤖 *AI Вердикт:* ${checkResult.aiInsights.verdict}\n`;
+        result += `\n🤖 *${t(lang, "quickCheck.aiVerdict")}:* ${checkResult.aiInsights.verdict}\n`;
       }
       
       await ctx.telegram.deleteMessage(ctx.chat!.id, processingMsg.message_id);
@@ -2643,8 +2630,8 @@ ${allTypesText}
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            Markup.button.callback("📄 PDF", `gen_pdf_${checkType}_${target}`),
-            Markup.button.callback("👁 Моніторинг", `add_monitor_${checkType}_${target}`)
+            Markup.button.callback(t(lang, "buttons.pdf"), `gen_pdf_${checkType}_${target}`),
+            Markup.button.callback(t(lang, "buttons.monitoring"), `add_monitor_${checkType}_${target}`)
           ]
         ])
       });
@@ -2664,7 +2651,7 @@ ${allTypesText}
       });
     } catch (err) {
       console.error("Quick check error:", err);
-      await ctx.reply("❌ Помилка перевірки. Спробуйте ще раз.");
+      await ctx.reply(t(lang, "quickCheck.error"));
     }
   });
 
