@@ -15,6 +15,9 @@ function getUserLang(langCode: string | null | undefined): Language {
   const code = langCode.toLowerCase();
   if (code === "uk" || code === "ua") return "uk";
   if (code === "ru") return "ru";
+  if (code === "es") return "es";
+  if (code === "de") return "de";
+  if (code === "en") return "en";
   return "en";
 }
 

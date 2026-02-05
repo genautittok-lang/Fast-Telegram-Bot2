@@ -38,8 +38,9 @@ export function ScrollToTop() {
         >
           <Button
             size="icon"
+            variant="secondary"
             onClick={scrollToTop}
-            className="w-12 h-12 rounded-full bg-primary/90 hover:bg-primary text-primary-foreground shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:shadow-[0_0_30px_rgba(34,197,94,0.6)] transition-all duration-300"
+            className="toggle-elevate"
             data-testid="button-scroll-to-top"
           >
             <motion.div
