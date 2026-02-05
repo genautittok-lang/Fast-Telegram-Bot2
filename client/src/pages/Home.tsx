@@ -36,7 +36,8 @@ import {
   X,
   Smartphone,
   Star,
-  Gift
+  Gift,
+  CreditCard
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -278,6 +279,27 @@ export default function Home() {
             </div>
           </div>
           
+          <div className="hidden md:flex items-center gap-1">
+            <Link href="/pricing">
+              <Button variant="ghost" size="sm" data-testid="link-nav-pricing">
+                <CreditCard className="w-4 h-4 mr-1.5" />
+                {lang === "UA" ? "Тарифи" : lang === "RU" ? "Тарифы" : "Pricing"}
+              </Button>
+            </Link>
+            <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
+              <Button variant="ghost" size="sm" data-testid="link-nav-bot">
+                <SiTelegram className="w-4 h-4 mr-1.5" />
+                Bot
+              </Button>
+            </a>
+            <Link href="/login">
+              <Button size="sm" className="ml-2" data-testid="link-nav-login">
+                <Shield className="w-4 h-4 mr-1.5" />
+                {lang === "UA" ? "Увійти" : lang === "RU" ? "Войти" : "Sign In"}
+              </Button>
+            </Link>
+          </div>
+
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <StatusBadge status="online" className="hidden sm:flex" />
             
