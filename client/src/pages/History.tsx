@@ -40,6 +40,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useToast } from "@/hooks/use-toast";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface Report {
   id: number;
@@ -309,6 +310,7 @@ export default function History() {
                 <span className="inline md:hidden">Нова</span>
               </Button>
             </Link>
+            <LanguageSwitcher variant="minimal" />
             <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
           </div>
         </div>

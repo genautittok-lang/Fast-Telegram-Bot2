@@ -40,6 +40,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { MobileMenu } from "@/components/MobileMenu";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -311,13 +312,16 @@ export default function Account() {
             </div>
             <span className="font-bold">DARKSHARE</span>
           </div>
-          <MobileMenu 
-            lang="UA" 
-            isAuthenticated={true} 
-            username={user?.username} 
-            tier={user?.tier}
-            onLogout={logout}
-          />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="minimal" />
+            <MobileMenu 
+              lang="UA" 
+              isAuthenticated={true} 
+              username={user?.username} 
+              tier={user?.tier}
+              onLogout={logout}
+            />
+          </div>
         </div>
 
         <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">

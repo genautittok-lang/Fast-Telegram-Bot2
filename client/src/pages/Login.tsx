@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe, Languages } from "lucide-react";
+import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { translations } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 declare global {
   interface Window {
@@ -22,20 +23,7 @@ export default function Login() {
   const { login, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [lang, setLang] = useState<keyof typeof translations>("UA");
-  const t = translations[lang];
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem("lang") as keyof typeof translations;
-    if (savedLang && translations[savedLang]) {
-      setLang(savedLang);
-    }
-  }, []);
-
-  const toggleLang = (newLang: keyof typeof translations) => {
-    setLang(newLang);
-    localStorage.setItem("lang", newLang);
-  };
+  const { t } = useTranslation();
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -79,12 +67,12 @@ export default function Login() {
     return () => {
       delete window.onTelegramAuth;
     };
-  }, [login, setLocation, toast, lang]);
+  }, [login, setLocation, toast]);
 
   const featuresList = [
-    { icon: Shield, title: t.features.shield, desc: lang === "UA" ? "Аналіз загроз в реальному часі" : lang === "EN" ? "Real-time threat analysis" : "Анализ угроз в реальном времени" },
-    { icon: Globe, title: t.features.modules, desc: "IP, Wallet, Email, Phone, Domain, URL, CVE, Hash, Username, Bot" },
-    { icon: Zap, title: t.features.instant, desc: lang === "UA" ? "Результат за секунди" : lang === "EN" ? "Result in seconds" : "Результат за секунды" },
+    { icon: Shield, title: t("landing.features.protection"), desc: t("landing.features.realTimeAnalysis") },
+    { icon: Globe, title: t("landing.features.modules"), desc: "IP, Wallet, Email, Phone, Domain, URL, CVE, Hash, Username, Bot" },
+    { icon: Zap, title: t("landing.features.instant"), desc: t("landing.features.resultInSeconds") },
   ];
 
   return (
@@ -106,20 +94,10 @@ export default function Login() {
               <Link href="/">
                 <Button variant="ghost" data-testid="button-back-home">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t.backHome}
+                  {t("common.back")}
                 </Button>
               </Link>
-              <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-                {(["UA", "RU", "EN"] as const).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => toggleLang(l)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <LanguageSwitcher variant="minimal" />
             </div>
 
             <div className="flex items-center gap-3 mb-6">
@@ -133,12 +111,11 @@ export default function Login() {
             </div>
 
             <h2 className="text-4xl xl:text-5xl font-display font-bold mb-6 leading-tight">
-              {lang === "UA" ? "Захистіть себе від " : lang === "RU" ? "Защитите себя от " : "Protect yourself from "}
-              <span className="text-primary">{lang === "UA" ? "кіберзагроз" : lang === "RU" ? "киберугроз" : "cyber threats"}</span>
+              {t("auth.protectFrom")} <span className="text-primary">{t("auth.cyberThreats")}</span>
             </h2>
             
             <p className="text-lg text-muted-foreground mb-10 max-w-lg">
-              {t.heroDescription}
+              {t("landing.hero.description")}
             </p>
 
             <div className="space-y-4">
@@ -174,20 +151,10 @@ export default function Login() {
               <Link href="/">
                 <Button variant="ghost" data-testid="button-back-home-mobile">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t.backHome}
+                  {t("common.back")}
                 </Button>
               </Link>
-              <div className="flex bg-white/5 rounded-lg p-1 border border-white/10">
-                {(["UA", "RU", "EN"] as const).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => toggleLang(l)}
-                    className={`px-2 py-1 text-[10px] font-bold rounded ${lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-white"}`}
-                  >
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <LanguageSwitcher variant="minimal" />
             </div>
 
             <Card className="bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl">
@@ -195,9 +162,9 @@ export default function Login() {
                 <div className="mx-auto mb-4 w-24 h-24 rounded-3xl overflow-hidden border-2 border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.2)]">
                   <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
                 </div>
-                <h2 className="text-2xl font-display font-bold">{t.loginTitle}</h2>
+                <h2 className="text-2xl font-display font-bold">{t("auth.loginTitle")}</h2>
                 <p className="text-muted-foreground text-sm mt-2">
-                  {t.loginSubtitle}
+                  {t("auth.loginSubtitle")}
                 </p>
               </CardHeader>
               <CardContent className="space-y-6 pb-8">

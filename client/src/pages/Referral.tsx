@@ -33,6 +33,7 @@ import { useAuth } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SiTelegram } from "react-icons/si";
 import { MobileMenu } from "@/components/MobileMenu";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface ReferralStats {
   referralCode: string;
@@ -355,6 +356,7 @@ export default function Referral() {
                   </AvatarFallback>
                 </Avatar>
               </motion.div>
+              <LanguageSwitcher variant="minimal" />
               <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
             </div>
           </div>

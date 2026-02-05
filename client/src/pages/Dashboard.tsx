@@ -98,6 +98,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface AIInsights {
   summary: string;
@@ -953,6 +954,8 @@ Sources: ${result.sources.join(', ')}`;
                 <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
                 <span className="text-[9px] font-medium text-green-400 hidden xs:inline">Online</span>
               </motion.div>
+              
+              <LanguageSwitcher variant="minimal" />
               
               <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
                 <SheetTrigger asChild>

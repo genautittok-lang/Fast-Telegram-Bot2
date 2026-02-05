@@ -46,17 +46,12 @@ import { TerminalText } from "@/components/TerminalText";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Card } from "@/components/ui/card";
 import { FloatingParticles } from "@/components/FloatingParticles";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ThreatFeed } from "@/components/ThreatFeed";
 import { Footer } from "@/components/Footer";
-import { translations } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -139,23 +134,7 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
 }
 
 export default function Home() {
-  const [lang, setLang] = useState<"UA" | "RU" | "EN">("UA");
-  const [langSelected, setLangSelected] = useState(false);
-  const t = translations[lang as keyof typeof translations];
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem("lang") as keyof typeof translations;
-    if (savedLang && translations[savedLang]) {
-      setLang(savedLang);
-      setLangSelected(true);
-    }
-  }, []);
-
-  const toggleLang = (newLang: "UA" | "RU" | "EN") => {
-    setLang(newLang);
-    localStorage.setItem("lang", newLang);
-    setLangSelected(true);
-  };
+  const { t, lang } = useTranslation();
   
   const { data: stats } = useStats();
   const { data: activity } = useActivity();
@@ -164,62 +143,62 @@ export default function Home() {
   const modules = [
     {
       icon: <Wallet className="w-5 h-5" />,
-      title: lang === "UA" ? "Crypto Wallet" : lang === "RU" ? "Крипто Кошелек" : "Crypto Wallet",
-      description: lang === "UA" ? "Аналіз криптогаманців, історія транзакцій та оцінка ризиків" : lang === "RU" ? "Анализ криптокошельков, история транзакций и оценка рисков" : "Wallet analysis, transaction history & risk scoring",
+      title: t("dashboard.checkTypes.wallet"),
+      description: lang === "uk" ? "Аналіз криптогаманців, історія транзакцій та оцінка ризиків" : lang === "ru" ? "Анализ криптокошельков, история транзакций и оценка рисков" : lang === "es" ? "Análisis de billeteras, historial de transacciones y puntuación de riesgo" : lang === "de" ? "Wallet-Analyse, Transaktionshistorie & Risikobewertung" : "Wallet analysis, transaction history & risk scoring",
       apis: ["Etherscan", "Blockchair"]
     },
     {
       icon: <Globe className="w-5 h-5" />,
-      title: lang === "UA" ? "IP Lookup" : lang === "RU" ? "IP Поиск" : "IP Lookup",
-      description: lang === "UA" ? "Геолокація, ISP інформація та перевірка репутації IP" : lang === "RU" ? "Геолокация, ISP информация и проверка репутации IP" : "Geolocation, ISP info & IP reputation check",
+      title: t("dashboard.checkTypes.ip"),
+      description: lang === "uk" ? "Геолокація, ISP інформація та перевірка репутації IP" : lang === "ru" ? "Геолокация, ISP информация и проверка репутации IP" : lang === "es" ? "Geolocalización, información ISP y reputación IP" : lang === "de" ? "Geolokalisierung, ISP-Info & IP-Reputation" : "Geolocation, ISP info & IP reputation check",
       apis: ["Shodan", "AbuseIPDB"]
     },
     {
       icon: <Search className="w-5 h-5" />,
-      title: lang === "UA" ? "Domain Intel" : lang === "RU" ? "Домен Intel" : "Domain Intel",
-      description: lang === "UA" ? "WHOIS, DNS записи, SSL сертифікати та історія" : lang === "RU" ? "WHOIS, DNS записи, SSL сертификаты и история" : "WHOIS, DNS records, SSL certificates & history",
+      title: t("dashboard.checkTypes.domain"),
+      description: lang === "uk" ? "WHOIS, DNS записи, SSL сертифікати та історія" : lang === "ru" ? "WHOIS, DNS записи, SSL сертификаты и история" : lang === "es" ? "WHOIS, registros DNS, certificados SSL e historial" : lang === "de" ? "WHOIS, DNS-Einträge, SSL-Zertifikate & Verlauf" : "WHOIS, DNS records, SSL certificates & history",
       apis: ["urlscan.io", "SecurityTrails"]
     },
     {
       icon: <Mail className="w-5 h-5" />,
-      title: lang === "UA" ? "Email OSINT" : lang === "RU" ? "Email OSINT" : "Email OSINT",
-      description: lang === "UA" ? "Перевірка витоків, пов'язані акаунти та breach data" : lang === "RU" ? "Проверка утечек, связанные аккаунты и breach data" : "Breach check, linked accounts & leak data",
+      title: t("dashboard.checkTypes.email"),
+      description: lang === "uk" ? "Перевірка витоків, пов'язані акаунти та breach data" : lang === "ru" ? "Проверка утечек, связанные аккаунты и breach data" : lang === "es" ? "Verificación de filtraciones, cuentas vinculadas y datos de brechas" : lang === "de" ? "Leak-Prüfung, verknüpfte Konten & Breach-Daten" : "Breach check, linked accounts & leak data",
       apis: ["HIBP", "LeakCheck"]
     },
     {
       icon: <Phone className="w-5 h-5" />,
-      title: lang === "UA" ? "Phone Lookup" : lang === "RU" ? "Телефон Поиск" : "Phone Lookup",
-      description: lang === "UA" ? "Оператор, країна, лінія та перевірка spam" : lang === "RU" ? "Оператор, страна, линия и проверка spam" : "Carrier, country, line type & spam check",
+      title: t("dashboard.checkTypes.phone"),
+      description: lang === "uk" ? "Оператор, країна, лінія та перевірка spam" : lang === "ru" ? "Оператор, страна, линия и проверка spam" : lang === "es" ? "Operador, país, tipo de línea y verificación de spam" : lang === "de" ? "Anbieter, Land, Leitungstyp & Spam-Check" : "Carrier, country, line type & spam check",
       apis: ["NumVerify", "Twilio"]
     },
     {
       icon: <Bug className="w-5 h-5" />,
-      title: lang === "UA" ? "Malware Check" : lang === "RU" ? "Malware Проверка" : "Malware Check",
-      description: lang === "UA" ? "Аналіз файлів, хешів та URL на шкідливість" : lang === "RU" ? "Анализ файлов, хешей и URL на вредоносность" : "File, hash & URL malware analysis",
+      title: t("dashboard.checkTypes.hash"),
+      description: lang === "uk" ? "Аналіз файлів, хешів та URL на шкідливість" : lang === "ru" ? "Анализ файлов, хешей и URL на вредоносность" : lang === "es" ? "Análisis de archivos, hashes y URL maliciosos" : lang === "de" ? "Datei-, Hash- & URL-Malware-Analyse" : "File, hash & URL malware analysis",
       apis: ["VirusTotal", "MalwareBazaar"]
     },
     {
       icon: <Shield className="w-5 h-5" />,
-      title: lang === "UA" ? "CVE Scanner" : lang === "RU" ? "CVE Сканер" : "CVE Scanner",
-      description: lang === "UA" ? "Пошук вразливостей та exploits по CVE" : lang === "RU" ? "Поиск уязвимостей и exploits по CVE" : "Vulnerability & exploit search by CVE",
+      title: t("dashboard.checkTypes.cve"),
+      description: lang === "uk" ? "Пошук вразливостей та exploits по CVE" : lang === "ru" ? "Поиск уязвимостей и exploits по CVE" : lang === "es" ? "Búsqueda de vulnerabilidades y exploits por CVE" : lang === "de" ? "Schwachstellen- & Exploit-Suche nach CVE" : "Vulnerability & exploit search by CVE",
       apis: ["NVD NIST", "Exploit-DB"]
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
-      title: lang === "UA" ? "URL Scanner" : lang === "RU" ? "URL Сканер" : "URL Scanner",
-      description: lang === "UA" ? "Перевірка URL на фішинг та шкідливість" : lang === "RU" ? "Проверка URL на фишинг и вредоносность" : "URL phishing & malware detection",
+      title: t("dashboard.checkTypes.url"),
+      description: lang === "uk" ? "Перевірка URL на фішинг та шкідливість" : lang === "ru" ? "Проверка URL на фишинг и вредоносность" : lang === "es" ? "Detección de phishing y malware en URL" : lang === "de" ? "URL-Phishing- & Malware-Erkennung" : "URL phishing & malware detection",
       apis: ["urlscan.io", "Google Safe"]
     },
     {
       icon: <Bot className="w-5 h-5" />,
-      title: lang === "UA" ? "Bot Token" : lang === "RU" ? "Bot Token" : "Bot Token",
-      description: lang === "UA" ? "Перевірка Telegram Bot API токенів на валідність" : lang === "RU" ? "Проверка Telegram Bot API токенов на валидность" : "Validate Telegram Bot API tokens",
+      title: t("dashboard.checkTypes.bot"),
+      description: lang === "uk" ? "Перевірка Telegram Bot API токенів на валідність" : lang === "ru" ? "Проверка Telegram Bot API токенов на валидность" : lang === "es" ? "Validar tokens de API de Telegram Bot" : lang === "de" ? "Telegram Bot API Token validieren" : "Validate Telegram Bot API tokens",
       apis: ["Telegram API"]
     },
     {
       icon: <Search className="w-5 h-5" />,
-      title: lang === "UA" ? "Username OSINT" : lang === "RU" ? "Username OSINT" : "Username OSINT",
-      description: lang === "UA" ? "Пошук профілів по username на різних платформах" : lang === "RU" ? "Поиск профилей по username на разных платформах" : "Search profiles by username across platforms",
+      title: t("dashboard.checkTypes.username"),
+      description: lang === "uk" ? "Пошук профілів по username на різних платформах" : lang === "ru" ? "Поиск профилей по username на разных платформах" : lang === "es" ? "Buscar perfiles por nombre de usuario en plataformas" : lang === "de" ? "Profile nach Benutzername suchen" : "Search profiles by username across platforms",
       apis: ["GitHub", "Social"]
     }
   ];
@@ -283,7 +262,7 @@ export default function Home() {
             <Link href="/pricing">
               <Button variant="ghost" size="sm" data-testid="link-nav-pricing">
                 <CreditCard className="w-4 h-4 mr-1.5" />
-                {lang === "UA" ? "Тарифи" : lang === "RU" ? "Тарифы" : "Pricing"}
+                {t("nav.pricing")}
               </Button>
             </Link>
             <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
@@ -295,7 +274,7 @@ export default function Home() {
             <Link href="/login">
               <Button size="sm" className="ml-2" data-testid="link-nav-login">
                 <Shield className="w-4 h-4 mr-1.5" />
-                {lang === "UA" ? "Увійти" : lang === "RU" ? "Войти" : "Sign In"}
+                {t("auth.signIn")}
               </Button>
             </Link>
           </div>
@@ -303,49 +282,9 @@ export default function Home() {
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             <StatusBadge status="online" className="hidden sm:flex" />
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="bg-white/5 border border-white/10 hover:bg-white/10 px-2 sm:px-3 gap-1"
-                  data-testid="button-lang-dropdown"
-                >
-                  <span className="text-lg">
-                    {lang === "UA" ? "🇺🇦" : lang === "RU" ? "🇷🇺" : "🇬🇧"}
-                  </span>
-                  <ChevronDown className="w-3 h-3 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[140px]">
-                <DropdownMenuItem 
-                  onClick={() => toggleLang("UA")}
-                  className="gap-3 cursor-pointer"
-                  data-testid="button-lang-UA"
-                >
-                  <span className="text-lg">🇺🇦</span>
-                  <span className="font-medium">Українська</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => toggleLang("RU")}
-                  className="gap-3 cursor-pointer"
-                  data-testid="button-lang-RU"
-                >
-                  <span className="text-lg">🇷🇺</span>
-                  <span className="font-medium">Русский</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => toggleLang("EN")}
-                  className="gap-3 cursor-pointer"
-                  data-testid="button-lang-EN"
-                >
-                  <span className="text-lg">🇬🇧</span>
-                  <span className="font-medium">English</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <LanguageSwitcher />
             
-            <MobileMenu lang={lang} isAuthenticated={false} />
+            <MobileMenu lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} isAuthenticated={false} />
           </div>
         </div>
       </nav>
@@ -362,22 +301,18 @@ export default function Home() {
               >
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 border border-primary/20 text-xs sm:text-sm font-medium text-primary">
                   <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>{lang === "UA" ? "Професійна OSINT Платформа" : lang === "RU" ? "Профессиональная OSINT Платформа" : "Professional OSINT Platform"}</span>
+                  <span>{t("landing.hero.badge")}</span>
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1] overflow-hidden">
-                  {lang === "UA" ? "Кібербезпека та" : lang === "RU" ? "Кибербезопасность и" : "Cybersecurity &"} <br />
+                  {t("landing.hero.title")} <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-blue-400 overflow-hidden">
-                    {lang === "UA" ? "Розвідка Загроз" : lang === "RU" ? "Разведка Угроз" : "Threat Intelligence"}
+                    {t("landing.hero.titleHighlight")}
                   </span>
                 </h1>
 
                 <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed overflow-hidden">
-                  {lang === "UA" 
-                    ? "10+ модулів для комплексного аналізу: IP, домени, гаманці, email, телефони, malware, CVE та leak databases. Інтеграція з провідними API безпеки."
-                    : lang === "RU"
-                    ? "10+ модулей для комплексного анализа: IP, домены, кошельки, email, телефоны, malware, CVE и leak databases. Интеграция с ведущими API безопасности."
-                    : "10+ modules for comprehensive analysis: IPs, domains, wallets, emails, phones, malware, CVE & leak databases. Integration with leading security APIs."}
+                  {t("landing.hero.description")}
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -388,7 +323,7 @@ export default function Home() {
                       data-testid="button-web-dashboard"
                     >
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {t.webDashboard}
+                      {t("landing.cta.webDashboard")}
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
@@ -404,7 +339,7 @@ export default function Home() {
                       data-testid="button-launch-bot"
                     >
                       <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {t.launchBot}
+                      {t("landing.cta.telegramBot")}
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </a>
@@ -413,11 +348,11 @@ export default function Home() {
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-4 text-xs sm:text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>{lang === "UA" ? "Безкоштовний старт" : lang === "RU" ? "Бесплатный старт" : "Free to start"}</span>
+                    <span>{t("landing.cta.freeStart")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>{lang === "UA" ? "API інтеграція" : lang === "RU" ? "API интеграция" : "API integration"}</span>
+                    <span>{t("landing.cta.apiIntegration")}</span>
                   </div>
                 </div>
               </motion.div>
@@ -433,7 +368,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
                       <Activity className="w-4 h-4 text-primary" />
-                      {lang === "UA" ? "Активність" : lang === "RU" ? "Активность" : "Live Activity"}
+                      {t("landing.activity")}
                     </h3>
                     <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -471,7 +406,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
                       <Flame className="w-4 h-4 text-orange-500" />
-                      {lang === "UA" ? "Топ Хантери" : lang === "RU" ? "Топ Хантеры" : "Top Hunters"}
+                      {t("landing.topHunters")}
                     </h3>
                   </div>
                   <div className="space-y-2">
@@ -521,7 +456,7 @@ export default function Home() {
                 </div>
                 <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
                   <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t.users}
+                  {t("landing.stats.users")}
                 </div>
               </div>
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
@@ -530,7 +465,7 @@ export default function Home() {
                 </div>
                 <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
                   <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t.monitors}
+                  {t("landing.stats.monitors")}
                 </div>
               </div>
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
@@ -539,7 +474,7 @@ export default function Home() {
                 </div>
                 <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
                   <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t.threats}
+                  {t("landing.stats.threats")}
                 </div>
               </div>
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
@@ -548,7 +483,7 @@ export default function Home() {
                 </div>
                 <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
                   <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t.today}
+                  {t("landing.stats.today")}
                 </div>
               </div>
             </motion.div>
@@ -727,13 +662,13 @@ export default function Home() {
                 <Link href="/login">
                   <Button size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base" data-testid="button-dashboard-cta">
                     <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    {t.webDashboard}
+                    {t("landing.cta.webDashboard")}
                   </Button>
                 </Link>
                 <Link href="/pricing">
                   <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="button-pricing-cta">
                     <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    {lang === "UA" ? "Тарифи" : lang === "RU" ? "Тарифы" : "Pricing"}
+                    {t("nav.pricing")}
                   </Button>
                 </Link>
                 <a 

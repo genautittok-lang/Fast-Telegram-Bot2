@@ -38,6 +38,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { MobileMenu } from "@/components/MobileMenu";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface Watch {
   id: number;
@@ -387,7 +388,10 @@ export default function Monitoring() {
               <span className="font-display font-bold text-lg">Моніторинг</span>
             </div>
           </div>
-          <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="minimal" />
+            <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+          </div>
         </div>
       </header>
 
