@@ -1407,12 +1407,21 @@ Sources: ${result.sources.join(', ')}`;
                         data-testid="button-perform-check"
                       >
                         {(checkMutation.isPending || bulkCheckMutation.isPending) ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          >
-                            <Loader2 className="w-5 h-5" />
-                          </motion.div>
+                          <div className="flex items-center gap-2">
+                            <motion.div
+                              className="relative w-5 h-5"
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            >
+                              <Scan className="w-5 h-5 absolute" />
+                            </motion.div>
+                            <motion.span
+                              animate={{ opacity: [1, 0.5, 1] }}
+                              transition={{ duration: 1.2, repeat: Infinity }}
+                            >
+                              Аналіз...
+                            </motion.span>
+                          </div>
                         ) : (
                           <>
                             {bulkMode ? (
@@ -1442,29 +1451,60 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3.5 lg:p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4"
+                  className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <Skeleton className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl" />
-                    <div className="flex-1">
-                      <Skeleton className="h-5 w-40 mb-2" />
-                      <Skeleton className="h-3 w-24" />
+                  <div className="absolute inset-0 overflow-hidden">
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"
+                      animate={{ x: ['-100%', '100%'] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="relative">
+                        <Skeleton className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl skeleton-shimmer" />
+                        <motion.div 
+                          className="absolute inset-0 flex items-center justify-center"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Scan className="w-5 h-5 lg:w-6 lg:h-6 text-primary/60" />
+                        </motion.div>
+                      </div>
+                      <div className="flex-1">
+                        <Skeleton className="h-5 w-40 mb-2 skeleton-shimmer" />
+                        <Skeleton className="h-3 w-24 skeleton-shimmer" />
+                      </div>
                     </div>
-                  </div>
-                  <Skeleton className="h-16 w-full rounded-xl" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32 mb-3" />
-                    <Skeleton className="h-12 w-full rounded-xl" />
-                    <Skeleton className="h-12 w-full rounded-xl" />
-                    <Skeleton className="h-12 w-3/4 rounded-xl" />
-                  </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                    <Skeleton className="h-16 rounded-lg" />
-                    <Skeleton className="h-16 rounded-lg" />
-                    <Skeleton className="h-16 rounded-lg" />
-                    <Skeleton className="h-16 rounded-lg" />
-                    <Skeleton className="h-16 rounded-lg" />
-                    <Skeleton className="h-16 rounded-lg" />
+                    <div className="flex items-center gap-2 mb-4 text-xs text-primary/80">
+                      <motion.div
+                        className="w-2 h-2 rounded-full bg-primary"
+                        animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                      />
+                      <motion.span
+                        animate={{ opacity: [1, 0.6, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        Сканування в процесі...
+                      </motion.span>
+                    </div>
+                    <Skeleton className="h-16 w-full rounded-xl skeleton-shimmer" />
+                    <div className="space-y-2 mt-4">
+                      <Skeleton className="h-4 w-32 mb-3 skeleton-shimmer" />
+                      <Skeleton className="h-12 w-full rounded-xl skeleton-shimmer" />
+                      <Skeleton className="h-12 w-full rounded-xl skeleton-shimmer" />
+                      <Skeleton className="h-12 w-3/4 rounded-xl skeleton-shimmer" />
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-4">
+                      <Skeleton className="h-16 rounded-lg skeleton-shimmer" />
+                      <Skeleton className="h-16 rounded-lg skeleton-shimmer" />
+                      <Skeleton className="h-16 rounded-lg skeleton-shimmer" />
+                      <Skeleton className="h-16 rounded-lg skeleton-shimmer" />
+                      <Skeleton className="h-16 rounded-lg skeleton-shimmer" />
+                      <Skeleton className="h-16 rounded-lg skeleton-shimmer" />
+                    </div>
                   </div>
                 </motion.div>
               )}

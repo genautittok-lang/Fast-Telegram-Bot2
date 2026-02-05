@@ -52,6 +52,8 @@ import { ThreatFeed } from "@/components/ThreatFeed";
 import { Footer } from "@/components/Footer";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -136,7 +138,7 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
 export default function Home() {
   const { t, lang } = useTranslation();
   
-  const { data: stats } = useStats();
+  const { data: stats, isLoading: statsLoading } = useStats();
   const { data: activity } = useActivity();
   const { data: leaderboard } = useLeaderboard();
 
@@ -388,7 +390,11 @@ export default function Home() {
                           <span className="text-primary">{getTypeIcon(item.type)}</span>
                           <span className="font-mono text-muted-foreground truncate text-[11px]">{item.target}</span>
                         </div>
-                        <span className={`font-bold uppercase text-[9px] flex-shrink-0 ${getRiskColor(item.riskLevel)}`}>
+                        <span className={`font-bold uppercase text-[9px] flex-shrink-0 px-1.5 py-0.5 rounded ${getRiskColor(item.riskLevel)} ${
+                          item.riskLevel === 'critical' ? 'bg-red-500/20 animate-risk-pulse' :
+                          item.riskLevel === 'high' ? 'bg-orange-500/20 animate-risk-pulse-orange' :
+                          ''
+                        }`}>
                           {item.riskLevel}
                         </span>
                       </motion.div>
@@ -451,40 +457,76 @@ export default function Home() {
               className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
             >
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                  <AnimatedNumber value={stats?.totalUsers ?? 14582} />
-                </div>
-                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t("landing.stats.users")}
-                </div>
+                {statsLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
+                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                      <AnimatedNumber value={stats?.totalUsers ?? 14582} />
+                    </div>
+                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                      <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                      {t("landing.stats.users")}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                  <AnimatedNumber value={stats?.activeWatches ?? 3841} />
-                </div>
-                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t("landing.stats.monitors")}
-                </div>
+                {statsLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
+                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                      <AnimatedNumber value={stats?.activeWatches ?? 3841} />
+                    </div>
+                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                      <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                      {t("landing.stats.monitors")}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                  <AnimatedNumber value={stats?.threatsBlocked ?? 12459} />
-                </div>
-                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t("landing.stats.threats")}
-                </div>
+                {statsLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
+                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                      <AnimatedNumber value={stats?.threatsBlocked ?? 12459} />
+                    </div>
+                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                      <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                      {t("landing.stats.threats")}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                  <AnimatedNumber value={stats?.checksToday ?? 842} />
-                </div>
-                <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                  <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                  {t("landing.stats.today")}
-                </div>
+                {statsLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
+                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                      <AnimatedNumber value={stats?.checksToday ?? 842} />
+                    </div>
+                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                      <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                      {t("landing.stats.today")}
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </div>
@@ -689,6 +731,7 @@ export default function Home() {
       </main>
 
       <Footer lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} />
+      <ScrollToTop />
     </div>
   );
 }
