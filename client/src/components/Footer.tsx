@@ -21,7 +21,7 @@ export function Footer({ lang = "EN" }: FooterProps) {
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg tracking-tight">DARKSHARE</span>
-                <span className="text-[10px] text-primary font-mono -mt-0.5">v4.0 OSINT Platform</span>
+                <span className="text-[10px] text-primary font-mono -mt-0.5">v4.1 OSINT Platform</span>
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
@@ -87,7 +87,7 @@ export function Footer({ lang = "EN" }: FooterProps) {
 
         <div className="border-t border-white/5 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-xs text-muted-foreground font-mono order-2 sm:order-1">
-            © 2024 DARKSHARE. All rights reserved.
+            © 2025 DARKSHARE. All rights reserved.
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground order-1 sm:order-2">
             <a href="#terms" className="hover:text-primary transition-colors" data-testid="link-terms-bottom">
