@@ -19,6 +19,7 @@ import Pricing from "@/pages/Pricing";
 import Support from "@/pages/Support";
 import ApiDocs from "@/pages/ApiDocs";
 import Teams from "@/pages/Teams";
+import JoinTeam from "@/pages/JoinTeam";
 import Widget from "@/pages/Widget";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/support" component={Support} />
       <Route path="/api-docs" component={ApiDocs} />
+      <Route path="/teams/join/:code" component={JoinTeam} />
       <Route path="/teams" component={Teams} />
       <Route path="/widget" component={Widget} />
       <Route path="/terms" component={Terms} />

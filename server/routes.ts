@@ -1438,6 +1438,31 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/teams/join", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const { inviteCode } = req.body;
+      if (!inviteCode) return res.status(400).json({ error: "Invite code required" });
+      const team = await storage.getTeamByInviteCode(inviteCode.trim());
+      if (!team) return res.status(404).json({ error: "Invalid invite code" });
+      if (team.ownerId === authReq.user!.id) {
+        return res.status(400).json({ error: "You are the owner of this team" });
+      }
+      const members = await storage.getTeamMembers(team.id);
+      if (members.find(m => m.userId === authReq.user!.id)) {
+        return res.status(400).json({ error: "Already a member" });
+      }
+      if (members.length >= (team.maxMembers || 10)) {
+        return res.status(400).json({ error: "Team is full" });
+      }
+      const member = await storage.addTeamMember({ teamId: team.id, userId: authReq.user!.id, role: "member" });
+      res.json({ team, member });
+    } catch (error: any) {
+      console.error("POST /api/teams/join error:", error.message, error.stack);
+      res.status(500).json({ error: "Failed to join team" });
+    }
+  });
+
   app.post("/api/teams", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user!;
@@ -1455,6 +1480,31 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("POST /api/teams error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to create team" });
+    }
+  });
+
+  app.post("/api/teams/join", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const { inviteCode } = req.body;
+      if (!inviteCode) return res.status(400).json({ error: "Invite code required" });
+      const team = await storage.getTeamByInviteCode(inviteCode);
+      if (!team) return res.status(404).json({ error: "Invalid invite code" });
+      if (team.ownerId === authReq.user!.id) {
+        return res.status(400).json({ error: "You are the owner of this team" });
+      }
+      const members = await storage.getTeamMembers(team.id);
+      if (members.find(m => m.userId === authReq.user!.id)) {
+        return res.status(400).json({ error: "Already a member" });
+      }
+      if (members.length >= (team.maxMembers || 10)) {
+        return res.status(400).json({ error: "Team is full" });
+      }
+      const member = await storage.addTeamMember({ teamId: team.id, userId: authReq.user!.id, role: "member" });
+      res.json({ team, member });
+    } catch (error: any) {
+      console.error("POST /api/teams/join error:", error.message, error.stack);
+      res.status(500).json({ error: "Failed to join team" });
     }
   });
 
@@ -1486,10 +1536,11 @@ export async function registerRoutes(
       if (team.ownerId !== authReq.user!.id) {
         return res.status(403).json({ error: "Only team owner can add members" });
       }
-      const { username } = req.body;
-      if (!username) return res.status(400).json({ error: "Username required" });
+      const { username: rawUsername } = req.body;
+      if (!rawUsername) return res.status(400).json({ error: "Username required" });
+      const cleanUsername = rawUsername.trim().replace(/^@/, "");
       const allUsers = await storage.getAllUsers();
-      const targetUser = allUsers.find(u => u.username?.toLowerCase() === username.toLowerCase());
+      const targetUser = allUsers.find(u => u.username?.toLowerCase() === cleanUsername.toLowerCase());
       if (!targetUser) return res.status(404).json({ error: "User not found" });
       const members = await storage.getTeamMembers(teamId);
       if (members.find(m => m.userId === targetUser.id)) {

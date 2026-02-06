@@ -180,9 +180,13 @@ async function ensureTablesExist() {
         name TEXT NOT NULL,
         owner_id INTEGER REFERENCES ds_users(id) NOT NULL,
         max_members INTEGER DEFAULT 10,
+        invite_code TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    await pool.query(`ALTER TABLE ds_teams ADD COLUMN IF NOT EXISTS invite_code TEXT`).catch(() => {});
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_teams_invite_code ON ds_teams(invite_code) WHERE invite_code IS NOT NULL`).catch(() => {});
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_team_members (

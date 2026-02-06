@@ -95,6 +95,7 @@ export interface IStorage {
   removeTeamMember(teamId: number, userId: number): Promise<void>;
   getTeamMembers(teamId: number): Promise<Array<TeamMember & { username: string | null; tier: string | null }>>;
   updateTeamMemberRole(teamId: number, userId: number, role: string): Promise<TeamMember>;
+  getTeamByInviteCode(code: string): Promise<Team | undefined>;
   deleteTeam(id: number): Promise<void>;
 }
 
@@ -464,13 +465,20 @@ export class DatabaseStorage implements IStorage {
 
   async createTeam(team: InsertTeam): Promise<Team> {
     if (!db) throw new Error("Database not available");
-    const [created] = await db.insert(teams).values(team).returning();
+    const inviteCode = 'DS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const [created] = await db.insert(teams).values({ ...team, inviteCode }).returning();
     return created;
   }
 
   async getTeamById(id: number): Promise<Team | undefined> {
     if (!db) throw new Error("Database not available");
     const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team;
+  }
+
+  async getTeamByInviteCode(code: string): Promise<Team | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [team] = await db.select().from(teams).where(eq(teams.inviteCode, code));
     return team;
   }
 
@@ -844,12 +852,16 @@ export class MemStorage implements IStorage {
 
   async createTeam(team: InsertTeam): Promise<Team> {
     const id = this.nextTeamId++;
-    const created: Team = { id, name: team.name, ownerId: team.ownerId, maxMembers: team.maxMembers ?? 10, createdAt: new Date() };
+    const inviteCode = 'DS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const created: Team = { id, name: team.name, ownerId: team.ownerId, maxMembers: team.maxMembers ?? 10, inviteCode, createdAt: new Date() };
     this.memTeams.set(id, created);
     return created;
   }
   async getTeamById(id: number): Promise<Team | undefined> {
     return this.memTeams.get(id);
+  }
+  async getTeamByInviteCode(code: string): Promise<Team | undefined> {
+    return Array.from(this.memTeams.values()).find(t => t.inviteCode === code);
   }
   async getTeamsByOwner(ownerId: number): Promise<Team[]> {
     return Array.from(this.memTeams.values()).filter(t => t.ownerId === ownerId);

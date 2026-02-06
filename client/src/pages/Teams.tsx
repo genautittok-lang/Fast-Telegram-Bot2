@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
+import { QRCodeSVG } from "qrcode.react";
 import { 
   Users, 
   Plus, 
@@ -15,6 +16,10 @@ import {
   ChevronRight,
   User,
   X,
+  QrCode,
+  Share2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,11 +38,13 @@ function TeamsContent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [newTeamName, setNewTeamName] = useState("");
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [addUsername, setAddUsername] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
 
   const tier = (user?.tier || "FREE").toUpperCase();
   const canCreateTeam = tier === "GROUPS" || tier === "ENTERPRISE";
@@ -111,6 +118,20 @@ function TeamsContent() {
     },
   });
 
+  const joinTeamMutation = useMutation({
+    mutationFn: async (inviteCode: string) => {
+      const res = await apiRequest("POST", "/api/teams/join", { inviteCode });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: t('common.success'), description: "Joined team!" });
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+    },
+    onError: (err: Error) => {
+      toast({ title: t('common.error'), description: err.message, variant: "destructive" });
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -175,6 +196,70 @@ function TeamsContent() {
         <Card className="border-border/50 bg-card/50">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 flex-wrap">
+              <QrCode className="w-4 h-4 text-primary" />
+              Invite
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                value={teamDetail.team.inviteCode || "—"}
+                className="bg-white/5 border-white/10 font-mono text-sm flex-1"
+                data-testid="input-invite-code"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  if (teamDetail.team.inviteCode) {
+                    navigator.clipboard.writeText(teamDetail.team.inviteCode);
+                    setCopiedInvite(true);
+                    setTimeout(() => setCopiedInvite(false), 2000);
+                  }
+                }}
+                data-testid="button-copy-invite"
+              >
+                {copiedInvite ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowQR(!showQR)}
+                data-testid="button-show-qr"
+              >
+                <QrCode className="w-4 h-4" />
+              </Button>
+            </div>
+            <AnimatePresence>
+              {showQR && teamDetail.team.inviteCode && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex justify-center pt-2"
+                >
+                  <div className="p-4 bg-white rounded-xl" data-testid="qr-code-container">
+                    <QRCodeSVG
+                      value={`https://darkshare.store/teams/join/${teamDetail.team.inviteCode}`}
+                      size={180}
+                      level="H"
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <p className="text-[11px] text-muted-foreground text-center">
+              {lang === "uk" ? "Поділіться кодом або QR для запрошення в команду" : lang === "ru" ? "Поделитесь кодом или QR для приглашения в команду" : lang === "es" ? "Comparte el código o QR para invitar al equipo" : lang === "de" ? "Teile den Code oder QR, um ins Team einzuladen" : "Share the code or QR to invite to the team"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-card/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 flex-wrap">
               <Users className="w-4 h-4 text-violet-400" />
               Members ({teamDetail.members.length})
             </CardTitle>
@@ -220,7 +305,7 @@ function TeamsContent() {
                   <Input
                     value={addUsername}
                     onChange={(e) => setAddUsername(e.target.value)}
-                    placeholder="Telegram username..."
+                    placeholder="@username"
                     className="bg-white/5 border-white/10 flex-1"
                     data-testid="input-add-member"
                   />
@@ -321,6 +406,37 @@ function TeamsContent() {
           )}
         </AnimatePresence>
       )}
+
+      <Card className="border-border/50 bg-card/50">
+        <CardContent className="py-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const code = (e.target as HTMLFormElement).inviteCode.value.trim();
+              if (code) {
+                joinTeamMutation.mutate(code);
+              }
+            }}
+            className="flex gap-2"
+          >
+            <Input
+              name="inviteCode"
+              placeholder="DS-XXXXXX"
+              className="bg-white/5 border-white/10 font-mono flex-1"
+              data-testid="input-join-invite-code"
+            />
+            <Button
+              type="submit"
+              variant="outline"
+              disabled={joinTeamMutation.isPending}
+              data-testid="button-join-team"
+            >
+              {joinTeamMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+              {lang === "uk" ? "Приєднатися" : lang === "ru" ? "Вступить" : lang === "es" ? "Unirse" : lang === "de" ? "Beitreten" : "Join"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <div className="space-y-3">
         {teams.length === 0 && !showCreateForm && (

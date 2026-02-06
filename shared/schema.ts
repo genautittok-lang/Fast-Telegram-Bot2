@@ -115,6 +115,7 @@ export const teams = pgTable("ds_teams", {
   name: text("name").notNull(),
   ownerId: integer("owner_id").references(() => users.id).notNull(),
   maxMembers: integer("max_members").default(10),
+  inviteCode: text("invite_code"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
