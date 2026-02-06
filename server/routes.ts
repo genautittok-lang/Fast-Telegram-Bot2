@@ -1432,7 +1432,8 @@ export async function registerRoutes(
     try {
       const userTeams = await storage.getTeamsByUser(authReq.user!.id);
       res.json(userTeams);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("GET /api/teams error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to get teams" });
     }
   });
@@ -1451,7 +1452,8 @@ export async function registerRoutes(
     try {
       const team = await storage.createTeam({ name: name.trim(), ownerId: user.id, maxMembers: 10 });
       res.json(team);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("POST /api/teams error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to create team" });
     }
   });
@@ -1469,7 +1471,8 @@ export async function registerRoutes(
       const members = await storage.getTeamMembers(teamId);
       const owner = await storage.getUserById(team.ownerId);
       res.json({ team, members, owner: { id: owner?.id, username: owner?.username, tier: owner?.tier } });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("GET /api/teams/:id/members error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to get team members" });
     }
   });
@@ -1497,7 +1500,8 @@ export async function registerRoutes(
       }
       const member = await storage.addTeamMember({ teamId, userId: targetUser.id, role: "member" });
       res.json(member);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("POST /api/teams/:id/members error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to add member" });
     }
   });
@@ -1514,7 +1518,8 @@ export async function registerRoutes(
       }
       await storage.removeTeamMember(teamId, userId);
       res.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("DELETE /api/teams/:id/members error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to remove member" });
     }
   });
@@ -1530,7 +1535,8 @@ export async function registerRoutes(
       }
       await storage.deleteTeam(teamId);
       res.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("DELETE /api/teams/:id error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to delete team" });
     }
   });
