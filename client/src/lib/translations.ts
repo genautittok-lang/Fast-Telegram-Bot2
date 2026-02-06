@@ -747,7 +747,7 @@ export const translations: Record<Language, TranslationSchema> = {
       basicAnalysis: "Basic risk analysis",
       telegramBotAccess: "Telegram bot access",
       checkHistory: "Check history",
-      checksPerDay100: "100 checks per day",
+      checksPerDay100: "Unlimited checks",
       aiAnalysis: "Extended AI analysis",
       pdfReports: "PDF reports with QR code",
       realTimeMonitoring: "Real-time monitoring",
