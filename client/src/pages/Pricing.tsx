@@ -245,7 +245,7 @@ export default function Pricing() {
                   <span className="text-3xl font-bold text-emerald-400">${getPrice("PRO")}</span>
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$120</span>
+                    <span className="ml-2 text-xs text-muted-foreground line-through">$360</span>
                   )}
                 </div>
               </CardHeader>

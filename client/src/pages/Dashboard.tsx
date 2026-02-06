@@ -556,28 +556,28 @@ Sources: ${result.sources.join(', ')}`;
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
               >
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-cyan-500/20 border border-cyan-500/30">
-                      <PlayCircle className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-cyan-500/20 border border-cyan-500/30">
+                        <PlayCircle className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm lg:text-base font-display font-semibold text-white">{t('dashboard.quickActions')}</h3>
+                        <p className="text-[10px] lg:text-xs text-muted-foreground">{t('dashboard.repeatLastChecks')}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm lg:text-base font-display font-semibold text-white">{t('dashboard.quickActions')}</h3>
-                      <p className="text-[10px] lg:text-xs text-muted-foreground">{t('dashboard.repeatLastChecks')}</p>
-                    </div>
+                    <Link href="/history">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] h-7 px-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
+                        data-testid="button-view-all-history"
+                      >
+                        {t('dashboard.all')}
+                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/history">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
-                      data-testid="button-view-all-history"
-                    >
-                      {t('dashboard.all')}
-                      <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
                 
                 {reportsLoading ? (
                   <div className="flex items-center justify-center py-6">

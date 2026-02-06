@@ -106,7 +106,7 @@ export async function registerRoutes(
         prices: [
           {
             id: "price_pro_monthly",
-            unit_amount: 1000,
+            unit_amount: 3000,
             currency: "usd",
             recurring: { interval: "month" },
             active: true,
@@ -114,7 +114,7 @@ export async function registerRoutes(
           },
           {
             id: "price_pro_yearly",
-            unit_amount: 10000,
+            unit_amount: 30000,
             currency: "usd",
             recurring: { interval: "year" },
             active: true,
