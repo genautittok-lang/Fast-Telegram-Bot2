@@ -10,6 +10,22 @@ The application consists of:
 - A Telegram bot (built with Telegraf) handling user interactions and analysis workflows
 - A PostgreSQL database for user management, reports, monitoring watches, and payments
 
+## Internationalization (i18n)
+
+The entire frontend uses a centralized i18n system supporting 5 languages: English (en), Ukrainian (uk), Russian (ru), Spanish (es), German (de).
+
+### Frontend i18n Architecture
+- **Provider**: `client/src/lib/i18n.tsx` - LanguageProvider context with useTranslation() hook
+- **Translations**: `client/src/lib/translations.ts` (~3600 lines) - All translation keys for 5 languages
+- **Switcher**: `client/src/components/LanguageSwitcher.tsx` - Language selection UI
+- **Pattern**: All pages/components use `const { t } = useTranslation()` to access translations
+- **Dynamic arrays**: Arrays containing translatable text (checkTypes, navItems, etc.) are defined inside components with useMemo to access t()
+- **No lang props**: Components use the centralized context, not prop-passed language values
+
+### Bot i18n
+- **Translations**: `server/i18n.ts` (~2290 lines) - Telegram bot translations for all 5 languages
+- **Pattern**: Bot uses `getTranslation(lang, key)` helper function
+
 ## Web Dashboard Features
 
 ### Authentication
