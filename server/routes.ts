@@ -8,7 +8,7 @@ import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGe
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
-import { randomUUID } from "crypto";
+import { randomUUID, createHmac } from "crypto";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import { stripeService } from "./stripeService";
 
@@ -559,7 +559,92 @@ export async function registerRoutes(
       createdAt: authReq.user.createdAt,
       notifsOn: authReq.user.notifsOn,
       digestsOn: authReq.user.digestsOn,
+      lastLogin: authReq.user.lastLogin,
     });
+  });
+
+  app.patch("/api/user/settings", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const allowedFields = ["notifsOn", "digestsOn", "lang"];
+      const updates: Record<string, any> = {};
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: "No valid fields to update" });
+      }
+      const updatedUser = await storage.updateUser(user.id, updates);
+      res.json({ success: true, user: updatedUser });
+    } catch (error) {
+      console.error("Settings update error:", error);
+      res.status(500).json({ error: "Failed to update settings" });
+    }
+  });
+
+  app.get("/api/user/sessions", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const ua = req.headers["user-agent"] || "Unknown";
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
+      const device = /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
+      const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)/i)?.[1] || "Unknown";
+
+      res.json([
+        {
+          id: req.sessionID,
+          current: true,
+          device: `${device} - ${browser}`,
+          ip: typeof ip === "string" ? ip : ip[0],
+          lastActive: new Date().toISOString(),
+          loginTime: user.lastLogin?.toISOString() || new Date().toISOString(),
+        }
+      ]);
+    } catch (error) {
+      console.error("Sessions error:", error);
+      res.status(500).json({ error: "Failed to get sessions" });
+    }
+  });
+
+  app.get("/api/user/api-key", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const tier = (user.tier || "FREE").toUpperCase();
+      if (tier !== "PRO" && tier !== "ENTERPRISE") {
+        return res.status(403).json({ error: "API key available only for PRO/ENTERPRISE users" });
+      }
+      const secret = process.env.SESSION_SECRET || "darkshare-secret";
+      const fullKey = "dk_" + createHmac("sha256", secret).update(user.tgId + "_" + user.id).digest("hex").slice(0, 32);
+      const masked = fullKey.slice(0, 5) + "\u2022".repeat(8) + fullKey.slice(-4);
+      res.json({ key: fullKey, masked });
+    } catch (error) {
+      console.error("API key error:", error);
+      res.status(500).json({ error: "Failed to get API key" });
+    }
+  });
+
+  app.post("/api/user/api-key", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const tier = (user.tier || "FREE").toUpperCase();
+      if (tier !== "PRO" && tier !== "ENTERPRISE") {
+        return res.status(403).json({ error: "API key available only for PRO/ENTERPRISE users" });
+      }
+      const secret = process.env.SESSION_SECRET || "darkshare-secret";
+      const salt = req.body.regenerate ? Date.now().toString() : "";
+      const fullKey = "dk_" + createHmac("sha256", secret).update(user.tgId + "_" + user.id + salt).digest("hex").slice(0, 32);
+      const masked = fullKey.slice(0, 5) + "\u2022".repeat(8) + fullKey.slice(-4);
+      res.json({ key: fullKey, masked });
+    } catch (error) {
+      console.error("API key generation error:", error);
+      res.status(500).json({ error: "Failed to generate API key" });
+    }
   });
 
   app.post("/api/auth/logout", (req, res) => {

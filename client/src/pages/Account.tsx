@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -39,6 +39,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { PageLayout } from "@/components/PageLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -123,16 +124,53 @@ function StatCardSkeleton() {
 }
 
 export default function Account() {
-  const [language, setLanguage] = useState("uk");
-  const [notifications, setNotifications] = useState({
-    email: true,
-    telegram: true,
-    threats: true,
-    updates: false,
-  });
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, checkAuth } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const [language, setLanguage] = useState(user?.lang || "uk");
+  const [notifications, setNotifications] = useState({
+    email: user?.notifsOn ?? true,
+    telegram: user?.notifsOn ?? true,
+    threats: user?.notifsOn ?? true,
+    updates: user?.digestsOn ?? false,
+  });
+
+  useEffect(() => {
+    if (user) {
+      setLanguage(user.lang || "uk");
+      setNotifications({
+        email: user.notifsOn ?? true,
+        telegram: user.notifsOn ?? true,
+        threats: user.notifsOn ?? true,
+        updates: user.digestsOn ?? false,
+      });
+    }
+  }, [user?.lang, user?.notifsOn, user?.digestsOn]);
+
+  const saveSettings = useCallback(async (updates: Record<string, any>) => {
+    try {
+      await apiRequest("PATCH", "/api/user/settings", updates);
+      await checkAuth();
+      toast({ title: t('account.settingsSaved') || "Settings saved" });
+    } catch (error) {
+      toast({ title: "Error saving settings", variant: "destructive" });
+    }
+  }, [checkAuth, toast, t]);
+
+  const handleLanguageChange = useCallback((val: string) => {
+    setLanguage(val);
+    saveSettings({ lang: val });
+  }, [saveSettings]);
+
+  const handleNotificationChange = useCallback((field: string, value: boolean) => {
+    setNotifications(prev => ({ ...prev, [field]: value }));
+    if (field === "email" || field === "telegram" || field === "threats") {
+      saveSettings({ notifsOn: value });
+    } else if (field === "updates") {
+      saveSettings({ digestsOn: value });
+    }
+  }, [saveSettings]);
 
   const { data: reports = [], isLoading: reportsLoading } = useQuery<Report[]>({
     queryKey: ['/api/reports'],
@@ -150,6 +188,17 @@ export default function Account() {
   });
 
   const userTier = (user?.tier || "FREE").toUpperCase();
+  const isPaidTier = userTier === "PRO" || userTier === "ENTERPRISE";
+
+  const { data: apiKeyData, refetch: refetchApiKey } = useQuery<{ key: string; masked: string }>({
+    queryKey: ['/api/user/api-key'],
+    enabled: isAuthenticated && isPaidTier,
+  });
+
+  const { data: sessionsData } = useQuery<Array<{ id: string; current: boolean; device: string; ip: string; lastActive: string; loginTime: string }>>({
+    queryKey: ['/api/user/sessions'],
+    enabled: isAuthenticated,
+  });
 
   const stats = useMemo(() => {
     const totalChecks = reports.length;
@@ -452,7 +501,7 @@ export default function Account() {
                     <p className="text-xs lg:text-sm text-muted-foreground">{t('account.chooseLanguage')}</p>
                   </div>
                 </div>
-                <Select value={language} onValueChange={setLanguage}>
+                <Select value={language} onValueChange={handleLanguageChange}>
                   <SelectTrigger className="w-full lg:w-[180px] bg-zinc-800 border-zinc-700 text-sm" data-testid="select-language">
                     <SelectValue />
                   </SelectTrigger>
@@ -475,7 +524,7 @@ export default function Account() {
                   </div>
                   <Switch 
                     checked={notifications.email} 
-                    onCheckedChange={(v) => setNotifications({...notifications, email: v})}
+                    onCheckedChange={(v) => handleNotificationChange("email", v)}
                     data-testid="switch-email-notifications"
                   />
                 </div>
@@ -490,7 +539,7 @@ export default function Account() {
                   </div>
                   <Switch 
                     checked={notifications.telegram} 
-                    onCheckedChange={(v) => setNotifications({...notifications, telegram: v})}
+                    onCheckedChange={(v) => handleNotificationChange("telegram", v)}
                     data-testid="switch-telegram-notifications"
                   />
                 </div>
@@ -505,7 +554,7 @@ export default function Account() {
                   </div>
                   <Switch 
                     checked={notifications.threats} 
-                    onCheckedChange={(v) => setNotifications({...notifications, threats: v})}
+                    onCheckedChange={(v) => handleNotificationChange("threats", v)}
                     data-testid="switch-threat-notifications"
                   />
                 </div>
@@ -520,7 +569,7 @@ export default function Account() {
                   </div>
                   <Switch 
                     checked={notifications.updates} 
-                    onCheckedChange={(v) => setNotifications({...notifications, updates: v})}
+                    onCheckedChange={(v) => handleNotificationChange("updates", v)}
                     data-testid="switch-updates-notifications"
                   />
                 </div>
@@ -548,16 +597,17 @@ export default function Account() {
                     <p className="text-xs text-muted-foreground">{t('account.apiKeyDesc')}</p>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 flex items-center gap-1.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800 text-xs lg:text-sm text-cyan-400 border border-zinc-700 font-mono truncate" data-testid="text-api-key">
-                        dk_{`\u2022`.repeat(16)}
+                        {apiKeyData?.masked || `dk_${"•".repeat(16)}`}
                       </div>
                       <Button
                         size="icon"
                         variant="ghost"
                         data-testid="button-copy-api-key"
                         onClick={() => {
-                          const fakeKey = `dk_${user?.tgId}_${btoa(user?.tgId || '').slice(0, 12)}`;
-                          navigator.clipboard.writeText(fakeKey);
-                          toast({ title: t('account.keyCopied') });
+                          if (apiKeyData?.key) {
+                            navigator.clipboard.writeText(apiKeyData.key);
+                            toast({ title: t('account.keyCopied') });
+                          }
                         }}
                       >
                         <Copy className="w-4 h-4" />
@@ -566,8 +616,14 @@ export default function Account() {
                         size="icon"
                         variant="ghost"
                         data-testid="button-regenerate-api-key"
-                        onClick={() => {
-                          toast({ title: t('account.regenerateKey') });
+                        onClick={async () => {
+                          try {
+                            await apiRequest("POST", "/api/user/api-key", { regenerate: true });
+                            await refetchApiKey();
+                            toast({ title: t('account.regenerateKey') || "API key regenerated" });
+                          } catch {
+                            toast({ title: "Error regenerating key", variant: "destructive" });
+                          }
                         }}
                       >
                         <RefreshCw className="w-4 h-4" />
@@ -672,7 +728,7 @@ export default function Account() {
                   <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium text-white text-sm lg:text-base">{t('account.lastLogin')}</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground truncate">{new Date().toLocaleString('uk-UA')}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground truncate" data-testid="text-last-login">{user?.lastLogin ? new Date(user.lastLogin).toLocaleString('uk-UA') : new Date().toLocaleString('uk-UA')}</p>
                   </div>
                 </div>
               </div>
@@ -682,13 +738,15 @@ export default function Account() {
                   <Monitor className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium text-white text-sm lg:text-base">{t('account.sessionsManage')}</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.manage')}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground" data-testid="text-session-device">
+                      {sessionsData?.[0]?.device || t('account.manage')}
+                    </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-xs lg:text-sm text-muted-foreground hover:text-white px-2 h-auto py-1" data-testid="button-manage-sessions">
-                  {t('account.manage')}
-                  <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 ml-0.5 lg:ml-1" />
-                </Button>
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs lg:text-sm px-2 py-0.5 flex-shrink-0" data-testid="button-manage-sessions">
+                  <Activity className="w-2.5 h-2.5 lg:w-3 lg:h-3 mr-0.5" />
+                  {t('account.active') || "Active"}
+                </Badge>
               </div>
             </div>
           </motion.div>

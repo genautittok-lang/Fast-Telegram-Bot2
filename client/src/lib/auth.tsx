@@ -14,6 +14,10 @@ interface User {
   email?: string;
   provider?: "telegram" | "google";
   profileImageUrl?: string;
+  lastLogin?: string;
+  notifsOn?: boolean;
+  digestsOn?: boolean;
+  lang?: string;
 }
 
 interface AuthContextType {
@@ -46,6 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             streakDays: data.streakDays,
             refCode: data.refCode,
             provider: "telegram",
+            lastLogin: data.lastLogin,
+            notifsOn: data.notifsOn,
+            digestsOn: data.digestsOn,
+            lang: data.lang,
           });
         } else {
           setUser(null);
