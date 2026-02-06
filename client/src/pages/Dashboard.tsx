@@ -86,6 +86,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/PageLayout";
 import { useTranslation } from "@/lib/i18n";
+import { useStats } from "@/hooks/use-stats";
 
 interface AIInsights {
   summary: string;
@@ -234,6 +235,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [location] = useLocation();
   const { t } = useTranslation();
+  const { data: platformStats } = useStats();
 
   const checkTypes = useMemo(() => checkTypeStyles.map(style => ({
     ...style,
@@ -1264,10 +1266,10 @@ Sources: ${result.sources.join(', ')}`;
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
                 {[
-                  { icon: Shield, label: t('dashboard.checks'), value: "12.4K+", color: "text-primary", gradient: "from-primary/20 to-transparent", border: "border-primary/20" },
-                  { icon: AlertTriangle, label: t('dashboard.threats'), value: "847", color: "text-orange-400", gradient: "from-orange-500/20 to-transparent", border: "border-orange-500/20" },
+                  { icon: Shield, label: t('dashboard.checks'), value: platformStats ? platformStats.totalReports.toLocaleString() : "—", color: "text-primary", gradient: "from-primary/20 to-transparent", border: "border-primary/20" },
+                  { icon: AlertTriangle, label: t('dashboard.threats'), value: platformStats ? platformStats.threatsBlocked.toLocaleString() : "—", color: "text-orange-400", gradient: "from-orange-500/20 to-transparent", border: "border-orange-500/20" },
                   { icon: Database, label: t('dashboard.sources'), value: "50+", color: "text-blue-400", gradient: "from-blue-500/20 to-transparent", border: "border-blue-500/20" },
-                  { icon: TrendingUp, label: "Uptime", value: "99.9%", color: "text-green-400", gradient: "from-green-500/20 to-transparent", border: "border-green-500/20" },
+                  { icon: TrendingUp, label: t('dashboard.checksToday') || "Today", value: platformStats ? platformStats.checksToday.toLocaleString() : "—", color: "text-green-400", gradient: "from-green-500/20 to-transparent", border: "border-green-500/20" },
                 ].map((stat, idx) => (
                   <motion.div
                     key={stat.label}
@@ -1278,8 +1280,8 @@ Sources: ${result.sources.join(', ')}`;
                     className={`p-4 lg:p-6 rounded-xl lg:rounded-2xl border ${stat.border} bg-gradient-to-br ${stat.gradient} backdrop-blur-sm hover:border-white/20 transition-all duration-300 group`}
                   >
                     <stat.icon className={`w-5 h-5 lg:w-6 lg:h-6 ${stat.color} mb-2 lg:mb-3 group-hover:scale-110 transition-transform duration-300`} />
-                    <p className="text-xl lg:text-2xl font-display font-bold">{stat.value}</p>
-                    <p className="text-[10px] lg:text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-xl lg:text-2xl font-display font-bold" data-testid={`stat-value-${idx}`}>{stat.value}</p>
+                    <p className="text-[10px] lg:text-sm text-muted-foreground" data-testid={`stat-label-${idx}`}>{stat.label}</p>
                   </motion.div>
                 ))}
               </motion.div>

@@ -317,6 +317,9 @@ ${t(lang, "dashboard.selectModule")}`;
       ],
       [
         Markup.button.callback(t(lang, "modules.card"), "mod_card"),
+        Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
+      ],
+      [
         Markup.button.callback(t(lang, "modules.iot"), "mod_iot"),
         Markup.button.callback(t(lang, "modules.cloud"), "mod_cloud")
       ],
@@ -512,7 +515,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     });
   });
 
-  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username", "mod_card"];
+  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username", "mod_card", "mod_bot"];
   const moduleMap: Record<string, string> = {
     "mod_ip": "ip",
     "mod_wallet": "wallet", 
@@ -523,7 +526,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     "mod_cve": "cve",
     "mod_hash": "hash",
     "mod_username": "username",
-    "mod_card": "card"
+    "mod_card": "card",
+    "mod_bot": "bot"
   };
 
   for (const action of moduleActions) {

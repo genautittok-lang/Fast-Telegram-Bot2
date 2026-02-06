@@ -26,8 +26,8 @@ import {
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 
 const PRICES = {
-  PRO: { monthly: 30, yearly: 300 },
-  ENTERPRISE: { monthly: 50, yearly: 500 },
+  PRO: { monthly: 10, yearly: 100 },
+  ENTERPRISE: { monthly: 50, yearly: 498 },
 };
 
 function PricingContent() {
@@ -250,7 +250,10 @@ function PricingContent() {
                   <span className="text-3xl font-bold text-emerald-400">${getPrice("PRO")}</span>
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$360</span>
+                    <span className="ml-2 text-xs text-muted-foreground line-through">$120</span>
+                  )}
+                  {isYearly && (
+                    <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
                   )}
                 </div>
               </CardHeader>
@@ -295,6 +298,9 @@ function PricingContent() {
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
                     <span className="ml-2 text-xs text-muted-foreground line-through">$600</span>
+                  )}
+                  {isYearly && (
+                    <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
                   )}
                 </div>
               </CardHeader>

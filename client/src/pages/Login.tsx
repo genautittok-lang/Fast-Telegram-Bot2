@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe } from "lucide-react";
+import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe, AlertTriangle, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
@@ -8,6 +8,31 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useStats } from "@/hooks/use-stats";
+
+function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (target <= 0) return;
+    const stepTime = 30;
+    const steps = Math.ceil(duration / stepTime);
+    let current = 0;
+    const increment = target / steps;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setValue(target);
+        clearInterval(timer);
+      } else {
+        setValue(Math.floor(current));
+      }
+    }, stepTime);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+
+  return <span data-testid="animated-counter">{value.toLocaleString()}</span>;
+}
 
 declare global {
   interface Window {
@@ -24,6 +49,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { data: platformStats } = useStats();
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -137,6 +163,35 @@ export default function Login() {
                 </motion.div>
               ))}
             </div>
+
+            {platformStats && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="grid grid-cols-3 gap-3 mt-8"
+                data-testid="login-stats-bar"
+              >
+                <div className="text-center p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="text-xl font-bold font-display text-primary" data-testid="login-stat-checks">
+                    <AnimatedCounter target={platformStats.totalReports} />
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">{t('dashboard.checks')}</div>
+                </div>
+                <div className="text-center p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="text-xl font-bold font-display text-orange-400" data-testid="login-stat-threats">
+                    <AnimatedCounter target={platformStats.threatsBlocked} />
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">{t('dashboard.threats')}</div>
+                </div>
+                <div className="text-center p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="text-xl font-bold font-display text-green-400" data-testid="login-stat-today">
+                    <AnimatedCounter target={platformStats.checksToday} />
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">{t('dashboard.checksToday') || "Today"}</div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </div>
 

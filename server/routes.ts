@@ -674,8 +674,8 @@ export async function registerRoutes(
       res.json({
         referralCode: user.refCode || `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         referralCount: referralData.count,
-        totalEarned: referralData.count * 3,
-        pendingBonus: referralData.pendingCount * 3,
+        totalEarned: referralData.count * 2,
+        pendingBonus: referralData.pendingCount * 2,
         referredUsers: referralData.referredUsers.map(r => ({
           id: r.id,
           username: r.username || "user",

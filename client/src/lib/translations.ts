@@ -304,6 +304,7 @@ export interface TranslationSchema {
     requestsRemaining: string;
     statistics: string;
     checks: string;
+    checksToday: string;
     threats: string;
     recentChecksLabel: string;
     systemLoading: string;
@@ -614,6 +615,7 @@ export interface TranslationSchema {
   mobile: {
     home: string;
     checks: string;
+    checksToday: string;
     history: string;
     monitoring: string;
     referrals: string;
@@ -957,6 +959,7 @@ export const translations: Record<Language, TranslationSchema> = {
       requestsRemaining: "Requests remaining",
       statistics: "Statistics",
       checks: "Checks",
+      checksToday: "Today",
       threats: "Threats",
       recentChecksLabel: "Recent checks",
       systemLoading: "Loading system...",
@@ -1267,6 +1270,7 @@ export const translations: Record<Language, TranslationSchema> = {
     mobile: {
       home: "Home",
       checks: "Checks",
+      checksToday: "Today",
       history: "History",
       monitoring: "Monitoring",
       referrals: "Referrals",
@@ -1608,6 +1612,7 @@ export const translations: Record<Language, TranslationSchema> = {
       requestsRemaining: "Залишилось запитів",
       statistics: "Статистика",
       checks: "Перевірок",
+      checksToday: "Сьогодні",
       threats: "Загроз",
       recentChecksLabel: "Останні перевірки",
       systemLoading: "Завантаження системи...",
@@ -1918,6 +1923,7 @@ export const translations: Record<Language, TranslationSchema> = {
     mobile: {
       home: "Головна",
       checks: "Перевірки",
+      checksToday: "Сьогодні",
       history: "Історія",
       monitoring: "Моніторинг",
       referrals: "Реферали",
@@ -2259,6 +2265,7 @@ export const translations: Record<Language, TranslationSchema> = {
       requestsRemaining: "Осталось запросов",
       statistics: "Статистика",
       checks: "Проверок",
+      checksToday: "Сегодня",
       threats: "Угроз",
       recentChecksLabel: "Последние проверки",
       systemLoading: "Загрузка системы...",
@@ -2569,6 +2576,7 @@ export const translations: Record<Language, TranslationSchema> = {
     mobile: {
       home: "Главная",
       checks: "Проверки",
+      checksToday: "Сегодня",
       history: "История",
       monitoring: "Мониторинг",
       referrals: "Рефералы",
@@ -2910,6 +2918,7 @@ export const translations: Record<Language, TranslationSchema> = {
       requestsRemaining: "Solicitudes restantes",
       statistics: "Estadísticas",
       checks: "Verificaciones",
+      checksToday: "Hoy",
       threats: "Amenazas",
       recentChecksLabel: "Verificaciones recientes",
       systemLoading: "Cargando sistema...",
@@ -3220,6 +3229,7 @@ export const translations: Record<Language, TranslationSchema> = {
     mobile: {
       home: "Inicio",
       checks: "Verificaciones",
+      checksToday: "Hoy",
       history: "Historial",
       monitoring: "Monitoreo",
       referrals: "Referidos",
@@ -3561,6 +3571,7 @@ export const translations: Record<Language, TranslationSchema> = {
       requestsRemaining: "Verbleibende Anfragen",
       statistics: "Statistiken",
       checks: "Prüfungen",
+      checksToday: "Heute",
       threats: "Bedrohungen",
       recentChecksLabel: "Letzte Prüfungen",
       systemLoading: "System wird geladen...",
@@ -3871,6 +3882,7 @@ export const translations: Record<Language, TranslationSchema> = {
     mobile: {
       home: "Startseite",
       checks: "Prüfungen",
+      checksToday: "Heute",
       history: "Verlauf",
       monitoring: "Überwachung",
       referrals: "Empfehlungen",

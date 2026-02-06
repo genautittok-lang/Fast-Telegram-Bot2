@@ -167,6 +167,16 @@ export default function History() {
     };
   }, [reports]);
 
+  const riskDistribution = useMemo(() => {
+    if (!reports) return { high: 0, medium: 0, low: 0, critical: 0 };
+    return {
+      critical: reports.filter(r => r.riskLevel === "critical").length,
+      high: reports.filter(r => r.riskLevel === "high").length,
+      medium: reports.filter(r => r.riskLevel === "medium").length,
+      low: reports.filter(r => r.riskLevel === "low").length,
+    };
+  }, [reports]);
+
   const getRiskConfig = (level: string) => {
     switch (level) {
       case "critical": 
@@ -339,6 +349,42 @@ export default function History() {
             <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.pdfDownloaded')}</p>
           </motion.div>
         </motion.div>
+
+        {reports && reports.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="flex flex-wrap items-center gap-2"
+            data-testid="risk-distribution-summary"
+          >
+            <span className="text-xs text-muted-foreground mr-1">{t('history.riskDistribution') || "Risk Distribution"}:</span>
+            {riskDistribution.critical > 0 && (
+              <Badge className="bg-red-500/20 text-red-400 border-red-500/30 no-default-hover-elevate no-default-active-elevate" data-testid="badge-risk-critical">
+                <AlertCircle className="w-3 h-3 mr-1" />
+                {riskDistribution.critical} {t('dashboard.riskLevels.critical')}
+              </Badge>
+            )}
+            {riskDistribution.high > 0 && (
+              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 no-default-hover-elevate no-default-active-elevate" data-testid="badge-risk-high">
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                {riskDistribution.high} {t('dashboard.riskLevels.high')}
+              </Badge>
+            )}
+            {riskDistribution.medium > 0 && (
+              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 no-default-hover-elevate no-default-active-elevate" data-testid="badge-risk-medium">
+                <Clock className="w-3 h-3 mr-1" />
+                {riskDistribution.medium} {t('dashboard.riskLevels.medium')}
+              </Badge>
+            )}
+            {riskDistribution.low > 0 && (
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 no-default-hover-elevate no-default-active-elevate" data-testid="badge-risk-low">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                {riskDistribution.low} {t('dashboard.riskLevels.low')}
+              </Badge>
+            )}
+          </motion.div>
+        )}
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
