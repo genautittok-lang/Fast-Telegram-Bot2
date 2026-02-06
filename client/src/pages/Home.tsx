@@ -682,6 +682,136 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="py-8 sm:py-10 md:py-14 lg:py-16 border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 md:mb-14 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-medium text-blue-400">
+                <SiTelegram className="w-3 h-3" />
+                {lang === "uk" ? "Telegram Бот" : lang === "ru" ? "Telegram Бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram Bot" : "Telegram Bot"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Як працює бот?" : lang === "ru" ? "Как работает бот?" : lang === "es" ? "¿Cómo funciona el bot?" : lang === "de" ? "Wie funktioniert der Bot?" : "How Does the Bot Work?"}
+              </h2>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+                {lang === "uk" 
+                  ? "Три прості кроки для повного аналізу безпеки прямо в Telegram"
+                  : lang === "ru"
+                  ? "Три простых шага для полного анализа безопасности прямо в Telegram"
+                  : lang === "es"
+                  ? "Tres simples pasos para un análisis de seguridad completo directamente en Telegram"
+                  : lang === "de"
+                  ? "Drei einfache Schritte für eine vollständige Sicherheitsanalyse direkt in Telegram"
+                  : "Three simple steps for a complete security analysis right in Telegram"}
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
+              {[
+                {
+                  step: "01",
+                  img: "/images/bot-step1-start.png",
+                  title: lang === "uk" ? "Запустіть бота" : lang === "ru" ? "Запустите бота" : lang === "es" ? "Inicia el bot" : lang === "de" ? "Starte den Bot" : "Start the Bot",
+                  desc: lang === "uk" 
+                    ? "Відкрийте @DARKSHAREN1_BOT в Telegram та натисніть /start. Оберіть тип перевірки з меню."
+                    : lang === "ru"
+                    ? "Откройте @DARKSHAREN1_BOT в Telegram и нажмите /start. Выберите тип проверки из меню."
+                    : lang === "es"
+                    ? "Abre @DARKSHAREN1_BOT en Telegram y pulsa /start. Elige el tipo de verificación del menú."
+                    : lang === "de"
+                    ? "Öffne @DARKSHAREN1_BOT in Telegram und drücke /start. Wähle den Prüftyp aus dem Menü."
+                    : "Open @DARKSHAREN1_BOT in Telegram and press /start. Choose the check type from the menu."
+                },
+                {
+                  step: "02",
+                  img: "/images/bot-step2-check.png",
+                  title: lang === "uk" ? "Введіть ціль" : lang === "ru" ? "Введите цель" : lang === "es" ? "Introduce el objetivo" : lang === "de" ? "Ziel eingeben" : "Enter the Target",
+                  desc: lang === "uk" 
+                    ? "Надішліть IP, домен, email, гаманець або інші дані. Бот миттєво почне аналіз."
+                    : lang === "ru"
+                    ? "Отправьте IP, домен, email, кошелёк или другие данные. Бот мгновенно начнёт анализ."
+                    : lang === "es"
+                    ? "Envía una IP, dominio, email, billetera u otros datos. El bot comenzará el análisis al instante."
+                    : lang === "de"
+                    ? "Sende eine IP, Domain, E-Mail, Wallet oder andere Daten. Der Bot beginnt sofort mit der Analyse."
+                    : "Send an IP, domain, email, wallet or other data. The bot will instantly start the analysis."
+                },
+                {
+                  step: "03",
+                  img: "/images/bot-step3-results.png",
+                  title: lang === "uk" ? "Отримайте звіт" : lang === "ru" ? "Получите отчёт" : lang === "es" ? "Recibe el informe" : lang === "de" ? "Erhalte den Bericht" : "Get the Report",
+                  desc: lang === "uk" 
+                    ? "Отримайте детальний звіт з оцінкою ризику, знахідками та рекомендаціями. Завантажте PDF."
+                    : lang === "ru"
+                    ? "Получите подробный отчёт с оценкой риска, находками и рекомендациями. Скачайте PDF."
+                    : lang === "es"
+                    ? "Recibe un informe detallado con puntuación de riesgo, hallazgos y recomendaciones. Descarga el PDF."
+                    : lang === "de"
+                    ? "Erhalte einen detaillierten Bericht mit Risikobewertung, Ergebnissen und Empfehlungen. Lade das PDF herunter."
+                    : "Receive a detailed report with risk score, findings and recommendations. Download the PDF."
+                }
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.15, duration: 0.5 }}
+                  className="group relative"
+                >
+                  <div className="relative rounded-xl overflow-hidden border border-white/10 bg-card/50 backdrop-blur-sm" data-testid={`card-bot-step-${idx + 1}`}>
+                    <div className="relative aspect-[3/4] overflow-hidden bg-black/50">
+                      <img 
+                        src={item.img} 
+                        alt={item.title}
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                        loading="lazy"
+                        data-testid={`img-bot-step-${idx + 1}`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <div className="absolute top-3 left-3 w-8 h-8 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-mono text-xs font-bold backdrop-blur-sm">
+                        {item.step}
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      <h3 className="text-sm sm:text-base font-bold" data-testid={`text-bot-step-title-${idx + 1}`}>{item.title}</h3>
+                      <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed" data-testid={`text-bot-step-desc-${idx + 1}`}>{item.desc}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+              className="text-center mt-8 sm:mt-10"
+            >
+              <a 
+                href="https://t.me/DARKSHAREN1_BOT" 
+                target="_blank" 
+                rel="noreferrer"
+              >
+                <Button 
+                  size="lg"
+                  className="px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base group"
+                  data-testid="button-try-bot-how-it-works"
+                >
+                  <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  {lang === "uk" ? "Спробувати бота" : lang === "ru" ? "Попробовать бота" : lang === "es" ? "Probar el bot" : lang === "de" ? "Bot ausprobieren" : "Try the Bot"}
+                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </a>
+            </motion.div>
+          </div>
+        </section>
+
         <section className="py-8 sm:py-10 md:py-12 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full">
             <motion.div

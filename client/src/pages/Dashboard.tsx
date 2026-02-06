@@ -1126,33 +1126,33 @@ Sources: ${result.sources.join(', ')}`;
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                         <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
                       </div>
-                      <div className="flex gap-2 w-full">
-                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-xs lg:text-sm border-white/10 hover:border-white/20 hover:bg-white/5 touch-manipulation" data-testid="button-download-pdf">
-                            <Download className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
-                            PDF
+                      <div className="flex gap-1.5 sm:gap-2 w-full">
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
+                          <Button variant="outline" size="sm" className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-white/10 touch-manipulation" data-testid="button-download-pdf">
+                            <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+                            <span className="truncate">PDF</span>
                           </Button>
                         </motion.div>
-                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="w-full rounded-xl h-10 text-xs lg:text-sm border-cyan-500/30 hover:border-cyan-500/50 hover:bg-cyan-500/10 text-cyan-400 touch-manipulation" 
+                            className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-cyan-500/30 text-cyan-400 touch-manipulation" 
                             onClick={copyResultsToClipboard}
                             data-testid="button-copy-results"
                           >
                             {copiedResult ? (
-                              <Check className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                              <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
                             ) : (
-                              <Copy className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
+                              <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
                             )}
-                            {copiedResult ? t('common.copied') : t('common.copy')}
+                            <span className="truncate">{copiedResult ? t('common.copied') : t('common.copy')}</span>
                           </Button>
                         </motion.div>
-                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-xs lg:text-sm border-primary/30 hover:border-primary/50 hover:bg-primary/10 text-primary touch-manipulation" data-testid="button-add-to-monitor">
-                            <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
-                            {t('dashboard.addToMonitor')}
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
+                          <Button variant="outline" size="sm" className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-primary/30 text-primary touch-manipulation" data-testid="button-add-to-monitor">
+                            <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+                            <span className="truncate">{t('dashboard.addToMonitor')}</span>
                           </Button>
                         </motion.div>
                       </div>
