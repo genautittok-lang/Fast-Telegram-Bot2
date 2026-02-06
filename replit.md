@@ -2,176 +2,7 @@
 
 ## Overview
 
-DARKSHARE is a professional security OSINT platform deployed on Railway (www.darkshare.store). The platform enables users to analyze various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs for potential risks. The system provides AI-enhanced risk scoring, generates PDF reports with QR verification, and offers real-time monitoring capabilities.
-
-The application consists of:
-- A React-based landing page showcasing features and live statistics
-- A full web dashboard for performing security checks, viewing history, and managing monitors
-- A Telegram bot (built with Telegraf) handling user interactions and analysis workflows
-- A PostgreSQL database for user management, reports, monitoring watches, and payments
-
-## Internationalization (i18n)
-
-The entire frontend uses a centralized i18n system supporting 5 languages: English (en), Ukrainian (uk), Russian (ru), Spanish (es), German (de).
-
-### Frontend i18n Architecture
-- **Provider**: `client/src/lib/i18n.tsx` - LanguageProvider context with useTranslation() hook
-- **Translations**: `client/src/lib/translations.ts` (~3600 lines) - All translation keys for 5 languages
-- **Switcher**: `client/src/components/LanguageSwitcher.tsx` - Language selection UI
-- **Pattern**: All pages/components use `const { t } = useTranslation()` to access translations
-- **Dynamic arrays**: Arrays containing translatable text (checkTypes, navItems, etc.) are defined inside components with useMemo to access t()
-- **No lang props**: Components use the centralized context, not prop-passed language values
-
-### Bot i18n
-- **Translations**: `server/i18n.ts` (~2290 lines) - Telegram bot translations for all 5 languages
-- **Pattern**: Bot uses `getTranslation(lang, key)` helper function
-
-## Web Dashboard Features
-
-### Authentication
-- **Telegram Login Widget**: Users authenticate via Telegram OAuth
-- **Session Management**: PostgreSQL-backed sessions with `connect-pg-simple`
-- **Unified Accounts**: Telegram bot users automatically have web access with same tier/quota
-- **HMAC Verification**: Telegram auth payloads verified server-side
-- **Session Security**: HttpOnly, SameSite=Lax, session regeneration on login
-
-### Routes
-- `/` - Landing page with "Web Dashboard" and "Telegram Bot" buttons
-- `/login` - Telegram authentication page
-- `/dashboard` - Check form with 11 check types (protected route)
-- `/history` - Report history with PDF download (protected route)
-- `/monitoring` - Watchlist management (protected route)
-- `/referral` - Referral program with stats and share links (protected route)
-- `/account` - User profile, stats, achievements, settings (protected route)
-
-### API Endpoints
-
-#### Authentication
-- `POST /api/auth/telegram` - Telegram login (HMAC verified)
-- `GET /api/auth/me` - Get current authenticated user
-- `POST /api/auth/logout` - Logout and destroy session
-
-#### Protected Endpoints (require authentication)
-- `POST /api/check` - Performs security checks
-- `GET /api/reports` - Lists user's reports
-- `GET /api/reports/:id/pdf` - Downloads PDF (ownership verified)
-- `GET /api/watches` - Lists user's monitors
-- `POST /api/watches` - Creates a new monitor
-- `DELETE /api/watches/:id` - Deletes a monitor
-- `GET /api/referrals` - Gets user's referral stats and referred users
-
-### Shared Check Service
-The `server/checkService.ts` module provides:
-- Input validation for all check types
-- Real API integrations where possible (free services only)
-- Risk scoring (0-100) with levels: low, medium, high, critical
-- Detailed findings and metadata generation
-
-**Check Types & APIs (v2.0):**
-- **IP Check**: Uses ip-api.com, ipinfo.io, Shodan InternetDB (ports/vulns), GreyNoise, DNS blacklists (Spamhaus, Spamcop)
-- **Wallet Check**: EVM/BTC/TRX/SOL support, Blockscout API, Blockchain.com API, sanctions check, known mixer detection
-- **Email Check**: MX validation via dns.google, disposable email detection, Hunter.io integration (optional)
-- **Domain Check**: RDAP/WHOIS via rdap.org, DNS checks, **SSL/TLS certificate analysis** (SSL Labs + crt.sh), typosquatting detection, domain age analysis
-- **Phone Check**: Country detection, VOIP patterns, Numverify integration (optional)
-- **URL Check**: urlscan.io API, Google Safe Browsing (optional), **SSL/TLS verification for HTTPS**, phishing patterns, dangerous extensions
-- **CVE Check (NEW)**: NVD NIST API, CVSS scoring, CISA KEV catalog, CVE Details integration
-- **Hash Check (NEW)**: VirusTotal API (optional), MalwareBazaar, URLhaus - file malware detection
-- **Username Check (NEW)**: GitHub API, cross-platform existence check, pattern analysis
-- **Bot Token Check**: Telegram Bot API validation, capability analysis
-
-### SSL/TLS Verification Features (v2.1 - NEW)
-The checkService now includes comprehensive SSL/TLS certificate analysis:
-
-**Domain Check SSL Analysis:**
-- Validates SSL certificate validity using SSL Labs API (with crt.sh fallback)
-- Extracts and displays certificate issue dates
-- Calculates days until certificate expiration
-- Shows certificate issuer information
-- Identifies expired or expiring certificates (alerts for <90 days to expiry)
-- Detects multiple certificates and Subject Alternative Names (SANs)
-- Includes organization details and signature algorithms
-
-**URL Check SSL Verification (for HTTPS):**
-- Automatically checks SSL certificates for URLs starting with https://
-- Validates certificate chain and expiration status
-- Provides same detailed certificate analysis as domain check
-- Flags critical issues (expired certs, missing certs for HTTPS)
-- Integrates findings into overall URL risk assessment
-
-**APIs Used:**
-- **SSL Labs API** (primary): `https://api.ssllabs.com/api/v3/analyze`
-- **crt.sh API** (fallback): `https://crt.sh/?q={domain}&output=json` - Free, no rate limits
-- Supports timeout and error handling with graceful fallback
-
-### Payment System (v4.2)
-
-Three payment methods available on `/pricing`:
-
-**1. Card Payment (Stripe)**
-- Visa/Mastercard, Google Pay, Apple Pay
-- Requires Stripe integration setup
-- Automatic subscription management
-
-**2. Crypto Payment (USDT TRC-20)**
-- TRON network address: `TRYbty4Ew9knf61brdrixeY5M34mQTt3zY`
-- Manual verification via Telegram bot
-- User sends tx hash after payment
-
-**3. Ko-fi (Donations)**
-- External payment via Ko-fi page
-- Works with PayPal in Ukraine
-- 0% platform fee for donations
-- Ko-fi page: `ko-fi.com/darkshare` (update KOFI_PAGE constant)
-
-**Manual Payment Verification:**
-1. User sends screenshot or tx hash via Telegram bot
-2. Moderator (ADMIN_IDS) receives notification with Approve/Reject buttons
-3. On approval: user tier and request quota updated, confirmation sent
-4. On rejection: user notified with rejection reason
-
-**Payment table tracks:**
-- `screenshot_url`: Image file path
-- `tx_hash`: Transaction hash
-- `status`: pending, approved, rejected
-- `tier_requested`: basic, pro, elite
-- `amount`: Payment amount
-
-### Telegram Bot Commands
-
-**User Commands:**
-- `/start` - Welcome message and language selection
-- `/menu` - Main dashboard with all modules
-- `/check <type> <value>` - Quick check without menu (e.g., `/check ip 8.8.8.8`)
-- `/stats` - Personal statistics (checks, referrals, streak)
-- `/ref` - Referral program with shareable link
-- `/help` - Full command reference
-
-**Check Types for /check:**
-- `ip` - IP address analysis
-- `wallet` - Crypto wallet check
-- `email` - Email verification
-- `phone` - Phone number lookup
-- `domain` - Domain analysis with SSL
-- `url` - URL security scan
-- `cve` - CVE vulnerability lookup
-- `hash` - File hash malware check
-- `username` - Username OSINT
-
-**Admin Commands (ADMIN_IDS only):**
-- `/admin` - Admin panel
-- `/broadcast` - Mass message to all users
-- `/block <tg_id>` - Block user
-- `/unblock <tg_id>` - Unblock user
-
-### AI-Enhanced Analysis (v4.1)
-
-When OpenAI credentials are configured, the system provides:
-- AI-generated security summaries in Ukrainian
-- Threat level assessment (БЕЗПЕЧНО/УВАГА/НЕБЕЗПЕЧНО/КРИТИЧНО)
-- Actionable security recommendations
-- Professional verdict for each check
-
-Fallback to rule-based analysis when AI is unavailable.
+DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## User Preferences
 
@@ -181,130 +12,85 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
-- **Routing**: Wouter (lightweight router)
+- **Routing**: Wouter
 - **State Management**: TanStack React Query for server state
-- **Styling**: Tailwind CSS with custom dark theme, CSS variables for theming
-- **UI Components**: shadcn/ui component library (Radix UI primitives)
-- **Animations**: Framer Motion for terminal-style effects and transitions
-- **Fonts**: JetBrains Mono (code), Inter (body), Space Grotesk (display)
-- **Build Tool**: Vite with path aliases (@/, @shared/, @assets/)
+- **Styling**: Tailwind CSS with custom dark theme and shadcn/ui components
+- **Animations**: Framer Motion for UI effects
+- **Fonts**: JetBrains Mono, Inter, Space Grotesk
+- **Build Tool**: Vite
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express
 - **Language**: TypeScript (ES modules)
-- **Bot Framework**: Telegraf for Telegram bot interactions
-- **PDF Generation**: PDFKit for generating analysis reports
-- **API Design**: RESTful endpoints defined in shared/routes.ts with Zod validation
+- **Bot Framework**: Telegraf for Telegram bot
+- **PDF Generation**: PDFKit
+- **API Design**: RESTful endpoints with Zod validation
+- **Check Service**: `server/checkService.ts` handles input validation, API integrations, risk scoring (0-100), and detailed findings for 11 check types including IP, Wallet, Email, Domain (with SSL/TLS analysis), Phone, URL (with SSL/TLS verification), CVE, Hash, Username, and Bot Token.
 
 ### Data Storage
 - **Database**: PostgreSQL with Drizzle ORM
-- **Schema Location**: shared/schema.ts
-- **Key Tables**:
-  - `users`: User profiles, subscription tiers, request quotas, referral codes
-  - `reports`: Generated analysis reports with PDF paths
-  - `watches`: Active monitoring configurations with alert thresholds
-  - `payments`: Payment records for subscriptions
-  - `referrals`: Referral tracking between users
+- **Key Tables**: `users`, `reports`, `watches`, `payments`, `referrals`
+- **Schema Location**: `shared/schema.ts`
 
 ### Code Organization
-- `client/` - React frontend application
+- `client/` - React frontend
 - `server/` - Express backend and Telegram bot
 - `shared/` - Shared types, schemas, and route definitions
 - `migrations/` - Drizzle database migrations
 
 ### Key Design Patterns
-- **Storage Interface**: `IStorage` abstraction allows for different storage implementations
-- **Shared Schemas**: Drizzle schemas generate both database types and Zod validation
-- **Type-Safe Routes**: API routes defined with Zod schemas for request/response validation
-- **Bot State Management**: In-memory Map for tracking user conversation states
+- **Storage Interface**: `IStorage` abstraction
+- **Shared Schemas**: Drizzle schemas for DB types and Zod validation
+- **Type-Safe Routes**: API routes with Zod schemas
+- **Bot State Management**: In-memory Map for conversation states
+
+### Internationalization (i18n)
+- **Frontend**: Centralized system using `LanguageProvider` context (`client/src/lib/i18n.tsx`) supporting 5 languages (en, uk, ru, es, de).
+- **Bot**: Uses `getTranslation(lang, key)` helper with translations in `server/i18n.ts`.
+
+### Unified Navigation
+- Shared `AppSidebar`, `PageLayout`, and `MobileMenu` components for authenticated pages.
+
+### Authentication
+- Telegram Login Widget with HMAC verification.
+- PostgreSQL-backed sessions using `connect-pg-simple`.
+- Unified accounts for bot and web users.
+
+### Payment System
+- Supports Card payments (Stripe), Crypto payments (USDT TRC-20), and Ko-fi donations.
+- Manual payment verification process via Telegram bot for crypto and Ko-fi.
+
+### AI-Enhanced Analysis
+- Integrates with OpenAI for AI-generated security summaries, threat level assessments, and actionable recommendations when configured. Fallbacks to rule-based analysis.
+
+### Bot-Web Synchronization
+- Unified report storage and listing across bot and web.
+- Consistent PDF generation using the same data structure.
+- Live statistics derived from combined bot and web activities.
 
 ## External Dependencies
 
-### Required Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string
-- `TELEGRAM_BOT_TOKEN`: Telegram Bot API token (optional - bot won't start without it)
-
-### Third-Party Services
-- **Telegram Bot API**: Primary user interface via Telegraf
-- **PostgreSQL**: Database (use Replit's PostgreSQL or provision externally)
+- **Telegram Bot API**: For bot interactions.
+- **PostgreSQL**: Primary database.
+- **Stripe**: For card payments.
+- **Ko-fi**: External donation platform.
+- **SSL Labs API**: For SSL/TLS certificate analysis.
+- **crt.sh API**: Fallback for SSL/TLS certificate analysis.
+- **ip-api.com, ipinfo.io, Shodan InternetDB, GreyNoise, DNS blacklists (Spamhaus, Spamcop)**: For IP checks.
+- **Blockscout API, Blockchain.com API**: For Wallet checks.
+- **Hunter.io**: Optional for Email checks.
+- **RDAP/WHOIS via rdap.org**: For Domain checks.
+- **Numverify**: Optional for Phone checks.
+- **urlscan.io API, Google Safe Browsing**: Optional for URL checks.
+- **NVD NIST API, CVE Details**: For CVE checks.
+- **VirusTotal API, MalwareBazaar, URLhaus**: For Hash checks.
+- **GitHub API**: For Username checks.
+- **OpenAI API**: For AI-enhanced analysis (optional).
 
 ### Key NPM Packages
-- `telegraf`: Telegram bot framework
-- `drizzle-orm` + `drizzle-kit`: Database ORM and migrations
-- `pdfkit`: PDF report generation
-- `@tanstack/react-query`: Frontend data fetching
-- `framer-motion`: UI animations
-- `zod`: Runtime type validation
-
-### Database Commands
-- `npm run db:push`: Push schema changes to database
-
-## Bot-Web Synchronization (v4.1+)
-
-### Unified Report Storage
-Both Telegram bot and web dashboard store reports with identical data structure for seamless synchronization:
-
-**Report dataJson structure:**
-```javascript
-{
-  target: string,                // The checked value (IP, email, wallet, etc.)
-  riskScore: number,            // 0-100 risk score
-  riskLevel: "low|medium|high|critical",
-  findings: string[],           // List of findings/risks
-  details: Record<string, any>, // Additional technical details
-  sources: string[],            // Data sources used for the check
-  summary: string               // Brief summary of findings
-}
-```
-
-### Unified Report Listing
-- `GET /api/reports` - Returns all reports for authenticated user regardless of source
-- Works for both bot-generated and web-generated reports
-- Reports include: id, type, target, riskLevel, riskScore, createdAt
-
-### PDF Generation Consistency
-- **Web**: Uses stored report data for PDF generation
-- **Bot**: Generates PDFs immediately after check using fresh check result
-- Both use `generateDetailedPDF()` with same data structure
-- PDFs are consistent and contain all check metadata
-
-### Live Statistics
-Real-time statistics endpoint (`GET /api/stats`) now counts from database:
-- `totalUsers`: Count of all users (bot + web)
-- `totalReports`: Count of all reports from both sources
-- `checksToday`: Reports generated today (24h window)
-- `activeWatches`: Active monitoring watches
-- `threatsBlocked`: Estimated threats (10% of total reports)
-
-### History Page
-The History page (`/history`) displays:
-- All reports from both bot and web sources
-- Sorted by creation date (newest first)
-- Download PDF for any report
-- Works seamlessly for unified user experience
-
-## Deployment on Replit
-
-### Web Application + Bot (Combined)
-The application runs both the web server (Express + Vite) and Telegram bot in a single process:
-- Use **Web Service** deployment type
-- The bot runs integrated with the web server
-- Default command: `npm run dev`
-
-### Deployment Steps
-1. Ensure `TELEGRAM_BOT_TOKEN` is set in Secrets
-2. Ensure `DATABASE_URL` is configured (use Replit PostgreSQL)
-3. Click "Deploy" or use the "Reserved VM" option for continuous operation
-4. For production, the bot uses long-polling (no webhook needed)
-
-### Reserved VM (Recommended for Bot)
-For 24/7 bot operation, use **Reserved VM Deployment**:
-- Provides dedicated computing resources
-- Bot runs continuously without interruption
-- Predictable costs and performance
-- Set application type to "Web" (since we serve both web and bot)
-
-### Environment Variables for Production
-- `DATABASE_URL`: PostgreSQL connection (automatically set by Replit)
-- `TELEGRAM_BOT_TOKEN`: Your bot token from @BotFather
-- `NODE_ENV`: Set to "production" for production builds
+- `telegraf`
+- `drizzle-orm` + `drizzle-kit`
+- `pdfkit`
+- `@tanstack/react-query`
+- `framer-motion`
+- `zod`
