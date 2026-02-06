@@ -126,6 +126,20 @@ async function ensureTablesExist() {
         unlocked_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_support_tickets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES ds_users(id),
+        name TEXT NOT NULL,
+        contact TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status TEXT DEFAULT 'open',
+        admin_reply TEXT,
+        source TEXT DEFAULT 'web',
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
     
     console.log("Database tables ready!");
   } catch (error: any) {
