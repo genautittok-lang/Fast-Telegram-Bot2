@@ -16,6 +16,10 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Added GROUPS pricing tier ($65/month)
 - Expanded bot admin panel with Stats, Coupons, Revenue, Reports, Broadcast sections
 - Updated navigation: Teams and Widget in sidebar and mobile menu
+- Multi-network crypto payments: TON (-5% discount), ERC-20, BEP-20, Solana, ETH, XRP (with memo)
+- Fixed Railway healthcheck: /health endpoint registered before async DB/Stripe init
+- Fixed bot 409 conflict: limited retries with exponential backoff instead of infinite retry
+- Improved bot dashboard formatting: clean mobile-friendly layout without broken box characters
 
 ## User Preferences
 

@@ -295,6 +295,11 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
+// Early health check - responds before full initialization for Railway
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",

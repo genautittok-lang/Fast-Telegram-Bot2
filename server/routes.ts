@@ -40,11 +40,6 @@ export async function registerRoutes(
   // Setup Google OAuth - MUST be before other routes
   await setupGoogleAuth(app);
   
-  // Health check endpoint for Railway
-  app.get("/health", (req, res) => {
-    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
-  });
-  
   app.get("/", (req, res, next) => {
     // If it's an API call or accepts HTML, let it through to frontend
     if (req.accepts("html")) {

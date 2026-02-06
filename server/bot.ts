@@ -308,15 +308,14 @@ ${t(lang, "startWelcome.selectLang")}`;
 
     const systemStatus = requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 3 ? "⚡ LOW" : "✅ READY";
     
-    const dashboardText = `╔═══════════════════════╗
-║  🌑 DARKSHARE v4.1   ║
-╚═══════════════════════╝
+    const dashboardText = `🌑 *DARKSHARE v4.2*
+━━━━━━━━━━━━━━━━━━━━
 
-⚙️ ${systemStatus}
+${systemStatus}
 
 ${tierEmoji} ${t(lang, "common.tier")}: *${tierName}*
-📊 ${t(lang, "dashboard.stats", { requestsLeft: String(requestsLeft), requestsLimit: String(requestsLimit) })}
-    ${progressBar}
+${t(lang, "dashboard.stats", { requestsLeft: String(requestsLeft), requestsLimit: String(requestsLimit) })}
+${progressBar}
 🔥 ${t(lang, "common.streak")}: *${user?.streakDays || 0}*
 🕐 ${lastActivity}${requestsWarning}
 
@@ -3387,14 +3386,20 @@ ${allTypesText}
 
   console.log("Starting bot polling...");
   
+  let retryCount = 0;
+  const maxRetries = 3;
+  
   const startBot = () => {
     bot.launch({ dropPendingUpdates: true })
       .catch((err: Error) => {
         console.error("Bot error:", err.message);
-        // If conflict error (409), retry after delay
-        if (err.message.includes("409") || err.message.includes("Conflict")) {
-          console.log("Bot conflict detected, retrying in 5 seconds...");
-          setTimeout(startBot, 5000);
+        if ((err.message.includes("409") || err.message.includes("Conflict")) && retryCount < maxRetries) {
+          retryCount++;
+          const delay = 5000 * Math.pow(2, retryCount - 1);
+          console.log(`Bot conflict detected, retry ${retryCount}/${maxRetries} in ${delay / 1000}s...`);
+          setTimeout(startBot, delay);
+        } else if (retryCount >= maxRetries) {
+          console.warn("Bot polling failed after max retries. Another instance may be running.");
         }
       });
   };
