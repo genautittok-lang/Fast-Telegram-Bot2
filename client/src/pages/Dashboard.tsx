@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -99,6 +99,7 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 
 interface AIInsights {
   summary: string;
@@ -120,220 +121,41 @@ interface CheckResult {
   aiInsights?: AIInsights;
 }
 
-const checkTypes = [
-  { 
-    id: "ip", 
-    label: "IP/GEO", 
-    icon: Globe, 
-    placeholder: "8.8.8.8", 
-    description: "Аналіз IP-адреси через ip-api.com для визначення геолокації, ISP провайдера та виявлення VPN/Proxy сервісів",
-    shortDescription: "Геолокація, провайдер, чорні списки",
-    gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
-    iconColor: "text-blue-400",
-    borderColor: "border-blue-500/30 hover:border-blue-400/50",
-    glowColor: "shadow-blue-500/20",
-    services: [
-      { name: "Геолокація", icon: MapPin, desc: "Країна, місто, координати" },
-      { name: "ISP Info", icon: Server, desc: "Провайдер, ASN, організація" },
-      { name: "Proxy/VPN", icon: ShieldAlert, desc: "Виявлення проксі та VPN" },
-      { name: "Blacklists", icon: Ban, desc: "Перевірка спам-листів" },
-    ]
-  },
-  { 
-    id: "wallet", 
-    label: "Crypto Wallet", 
-    icon: Wallet, 
-    placeholder: "0x1234...abcd", 
-    description: "Аналіз криптовалютних гаманців: патерни адрес, виявлення mixer-сервісів, підтримка ETH/BTC/TRX/SOL/LTC/XRP/DOGE та Bybit/Binance UID",
-    shortDescription: "Транзакції, mixers, санкції",
-    gradient: "from-orange-500/20 via-yellow-500/10 to-transparent",
-    iconColor: "text-orange-400",
-    borderColor: "border-orange-500/30 hover:border-orange-400/50",
-    glowColor: "shadow-orange-500/20",
-    services: [
-      { name: "Pattern Analysis", icon: Fingerprint, desc: "Аналіз формату адреси" },
-      { name: "Mixer Detection", icon: Shuffle, desc: "Виявлення Tornado Cash та ін." },
-      { name: "Multi-Chain", icon: Coins, desc: "ETH, BTC, TRX, SOL, LTC, XRP, DOGE" },
-      { name: "Exchange UID", icon: Hash, desc: "Bybit, Binance UID перевірка" },
-    ]
-  },
-  { 
-    id: "email", 
-    label: "Email OSINT", 
-    icon: Mail, 
-    placeholder: "user@example.com", 
-    description: "OSINT-аналіз email: валідація домену, виявлення disposable-адрес, перевірка на витоки даних (breaches)",
-    shortDescription: "Витоки даних, пов'язані акаунти",
-    gradient: "from-purple-500/20 via-pink-500/10 to-transparent",
-    iconColor: "text-purple-400",
-    borderColor: "border-purple-500/30 hover:border-purple-400/50",
-    glowColor: "shadow-purple-500/20",
-    services: [
-      { name: "Domain Check", icon: AtSign, desc: "Валідація MX та домену" },
-      { name: "Disposable", icon: Trash2, desc: "Виявлення тимчасових email" },
-      { name: "Breach Check", icon: Lock, desc: "Перевірка на витоки даних" },
-      { name: "OSINT Scan", icon: Search, desc: "Пошук пов'язаних акаунтів" },
-    ]
-  },
-  { 
-    id: "phone", 
-    label: "Phone Lookup", 
-    icon: Phone, 
-    placeholder: "+380501234567", 
-    description: "Аналіз телефонних номерів: визначення коду країни, ідентифікація оператора зв'язку, валідація формату",
-    shortDescription: "Оператор, регіон, спам-рейтинг",
-    gradient: "from-green-500/20 via-emerald-500/10 to-transparent",
-    iconColor: "text-green-400",
-    borderColor: "border-green-500/30 hover:border-green-400/50",
-    glowColor: "shadow-green-500/20",
-    services: [
-      { name: "Country Code", icon: Globe2, desc: "Визначення країни за кодом" },
-      { name: "Carrier ID", icon: Signal, desc: "Ідентифікація оператора" },
-      { name: "Format Check", icon: FileCheck, desc: "Валідація формату номера" },
-      { name: "Type Detection", icon: Phone, desc: "Мобільний / стаціонарний" },
-    ]
-  },
-  { 
-    id: "domain", 
-    label: "Domain Intel", 
-    icon: Building, 
-    placeholder: "example.com", 
-    description: "Інтелект по домену: аналіз TLD, виявлення typosquatting-атак, пошук підозрілих патернів у назві",
-    shortDescription: "WHOIS, DNS, репутація",
-    gradient: "from-indigo-500/20 via-violet-500/10 to-transparent",
-    iconColor: "text-indigo-400",
-    borderColor: "border-indigo-500/30 hover:border-indigo-400/50",
-    glowColor: "shadow-indigo-500/20",
-    services: [
-      { name: "TLD Analysis", icon: Globe, desc: "Аналіз доменної зони" },
-      { name: "Typosquatting", icon: Type, desc: "Виявлення схожих доменів" },
-      { name: "Patterns", icon: AlertTriangle, desc: "Підозрілі патерни в назві" },
-      { name: "Reputation", icon: ShieldCheck, desc: "Перевірка репутації" },
-    ]
-  },
-  { 
-    id: "url", 
-    label: "URL Scanner", 
-    icon: Link2, 
-    placeholder: "https://example.com/path", 
-    description: "Сканування URL: аналіз протоколу, виявлення shortener-сервісів, детекція фішингових патернів",
-    shortDescription: "Malware, фішинг, редиректи",
-    gradient: "from-red-500/20 via-rose-500/10 to-transparent",
-    iconColor: "text-red-400",
-    borderColor: "border-red-500/30 hover:border-red-400/50",
-    glowColor: "shadow-red-500/20",
-    services: [
-      { name: "Protocol", icon: LinkIcon, desc: "Аналіз HTTP/HTTPS протоколу" },
-      { name: "Shorteners", icon: ExternalLink, desc: "Виявлення bit.ly, t.co та ін." },
-      { name: "Phishing", icon: Bug, desc: "Детекція фішингових URL" },
-      { name: "Redirect Scan", icon: ChevronRight, desc: "Аналіз редиректів" },
-    ]
-  },
-  { 
-    id: "bot", 
-    label: "Bot Token", 
-    icon: Bot, 
-    placeholder: "123456789:ABC-DEF...", 
-    description: "Перевірка Telegram Bot Token: валідація через API, інформація про бота, аналіз можливостей та безпеки токену",
-    shortDescription: "Валідність, права, безпека",
-    gradient: "from-cyan-500/20 via-teal-500/10 to-transparent",
-    iconColor: "text-cyan-400",
-    borderColor: "border-cyan-500/30 hover:border-cyan-400/50",
-    glowColor: "shadow-cyan-500/20",
-    services: [
-      { name: "Token Verify", icon: Key, desc: "Перевірка валідності токену" },
-      { name: "Bot Info", icon: Bot, desc: "Username, ім'я, ID бота" },
-      { name: "Permissions", icon: Users, desc: "Права доступу до груп" },
-      { name: "Capabilities", icon: Sparkles, desc: "Inline, WebApp, бізнес" },
-    ]
-  },
-  { 
-    id: "cve", 
-    label: "CVE Scan", 
-    icon: Bug, 
-    placeholder: "CVE-2024-1234", 
-    description: "Перевірка CVE вразливостей через NVD NIST API: CVSS скоринг, опис, рекомендації, CISA KEV каталог",
-    shortDescription: "Вразливості, CVSS, рекомендації",
-    gradient: "from-rose-500/20 via-red-500/10 to-transparent",
-    iconColor: "text-rose-400",
-    borderColor: "border-rose-500/30 hover:border-rose-400/50",
-    glowColor: "shadow-rose-500/20",
-    services: [
-      { name: "NVD Lookup", icon: Database, desc: "Пошук в базі NVD NIST" },
-      { name: "CVSS Score", icon: AlertCircle, desc: "Оцінка критичності" },
-      { name: "CISA KEV", icon: ShieldAlert, desc: "Каталог активних вразливостей" },
-      { name: "Recommendations", icon: FileText, desc: "Рекомендації щодо виправлення" },
-    ]
-  },
-  { 
-    id: "hash", 
-    label: "Hash Check", 
-    icon: Hash, 
-    placeholder: "d41d8cd98f00b204e9800998ecf8427e", 
-    description: "Перевірка MD5/SHA1/SHA256 хешів файлів на malware через MalwareBazaar, URLhaus, VirusTotal",
-    shortDescription: "Malware, сигнатури, репутація",
-    gradient: "from-slate-500/20 via-zinc-500/10 to-transparent",
-    iconColor: "text-slate-400",
-    borderColor: "border-slate-500/30 hover:border-slate-400/50",
-    glowColor: "shadow-slate-500/20",
-    services: [
-      { name: "MalwareBazaar", icon: Bug, desc: "База шкідливих файлів" },
-      { name: "URLhaus", icon: Link2, desc: "Перевірка URL-асоціацій" },
-      { name: "VirusTotal", icon: Shield, desc: "Мультисканер антивірусів" },
-      { name: "Signature Match", icon: FileCheck, desc: "Пошук відомих сигнатур" },
-    ]
-  },
-  { 
-    id: "username", 
-    label: "Username OSINT", 
-    icon: User, 
-    placeholder: "johndoe", 
-    description: "OSINT пошук по username на різних платформах: GitHub, соціальні мережі, форуми",
-    shortDescription: "Профілі, соцмережі, витоки",
-    gradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
-    iconColor: "text-amber-400",
-    borderColor: "border-amber-500/30 hover:border-amber-400/50",
-    glowColor: "shadow-amber-500/20",
-    services: [
-      { name: "GitHub Profile", icon: Users, desc: "Профіль та репозиторії" },
-      { name: "Social Media", icon: Globe, desc: "Соціальні мережі" },
-      { name: "Forums", icon: MessageSquare, desc: "Форуми та спільноти" },
-      { name: "Data Breaches", icon: Lock, desc: "Перевірка витоків даних" },
-    ]
-  },
-  { 
-    id: "card", 
-    label: "Card BIN", 
-    icon: CreditCard, 
-    placeholder: "411111", 
-    description: "Валідація BIN номера банківської картки: виявлення банку-емітента, типу картки, країни та можливих ризиків",
-    shortDescription: "Банк, тип картки, країна",
-    gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
-    iconColor: "text-emerald-400",
-    borderColor: "border-emerald-500/30 hover:border-emerald-400/50",
-    glowColor: "shadow-emerald-500/20",
-    services: [
-      { name: "BIN Lookup", icon: CreditCard, desc: "Інформація про BIN номер" },
-      { name: "Bank Info", icon: Building, desc: "Банк-емітент картки" },
-      { name: "Card Type", icon: Wallet, desc: "Дебетова/кредитна" },
-      { name: "Country", icon: Globe, desc: "Країна випуску" },
-    ]
-  },
+const checkTypeStyles = [
+  { id: "ip", icon: Globe, gradient: "from-blue-500/20 via-cyan-500/10 to-transparent", iconColor: "text-blue-400", borderColor: "border-blue-500/30 hover:border-blue-400/50", glowColor: "shadow-blue-500/20", serviceIcons: [MapPin, Server, ShieldAlert, Ban] },
+  { id: "wallet", icon: Wallet, gradient: "from-orange-500/20 via-yellow-500/10 to-transparent", iconColor: "text-orange-400", borderColor: "border-orange-500/30 hover:border-orange-400/50", glowColor: "shadow-orange-500/20", serviceIcons: [Fingerprint, Shuffle, Coins, Hash] },
+  { id: "email", icon: Mail, gradient: "from-purple-500/20 via-pink-500/10 to-transparent", iconColor: "text-purple-400", borderColor: "border-purple-500/30 hover:border-purple-400/50", glowColor: "shadow-purple-500/20", serviceIcons: [AtSign, Trash2, Lock, Search] },
+  { id: "phone", icon: Phone, gradient: "from-green-500/20 via-emerald-500/10 to-transparent", iconColor: "text-green-400", borderColor: "border-green-500/30 hover:border-green-400/50", glowColor: "shadow-green-500/20", serviceIcons: [Globe2, Signal, FileCheck, Phone] },
+  { id: "domain", icon: Building, gradient: "from-indigo-500/20 via-violet-500/10 to-transparent", iconColor: "text-indigo-400", borderColor: "border-indigo-500/30 hover:border-indigo-400/50", glowColor: "shadow-indigo-500/20", serviceIcons: [Globe, Type, AlertTriangle, ShieldCheck] },
+  { id: "url", icon: Link2, gradient: "from-red-500/20 via-rose-500/10 to-transparent", iconColor: "text-red-400", borderColor: "border-red-500/30 hover:border-red-400/50", glowColor: "shadow-red-500/20", serviceIcons: [LinkIcon, ExternalLink, Bug, ChevronRight] },
+  { id: "bot", icon: Bot, gradient: "from-cyan-500/20 via-teal-500/10 to-transparent", iconColor: "text-cyan-400", borderColor: "border-cyan-500/30 hover:border-cyan-400/50", glowColor: "shadow-cyan-500/20", serviceIcons: [Key, Bot, Users, Sparkles] },
+  { id: "cve", icon: Bug, gradient: "from-rose-500/20 via-red-500/10 to-transparent", iconColor: "text-rose-400", borderColor: "border-rose-500/30 hover:border-rose-400/50", glowColor: "shadow-rose-500/20", serviceIcons: [Database, AlertCircle, ShieldAlert, FileText] },
+  { id: "hash", icon: Hash, gradient: "from-slate-500/20 via-zinc-500/10 to-transparent", iconColor: "text-slate-400", borderColor: "border-slate-500/30 hover:border-slate-400/50", glowColor: "shadow-slate-500/20", serviceIcons: [Bug, Link2, Shield, FileCheck] },
+  { id: "username", icon: User, gradient: "from-amber-500/20 via-yellow-500/10 to-transparent", iconColor: "text-amber-400", borderColor: "border-amber-500/30 hover:border-amber-400/50", glowColor: "shadow-amber-500/20", serviceIcons: [Users, Globe, MessageSquare, Lock] },
+  { id: "card", icon: CreditCard, gradient: "from-emerald-500/20 via-teal-500/10 to-transparent", iconColor: "text-emerald-400", borderColor: "border-emerald-500/30 hover:border-emerald-400/50", glowColor: "shadow-emerald-500/20", serviceIcons: [CreditCard, Building, Wallet, Globe] },
 ];
 
-const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
-  { id: "history", label: "Історія", icon: History, href: "/history" },
-  { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
-  { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
-  { id: "pricing", label: "Тарифи", icon: CreditCard, href: "/pricing" },
-  { id: "account", label: "Акаунт", icon: User, href: "/account" },
-];
+const serviceKeyMap: Record<string, string[][]> = {
+  ip: [["geolocation", "geolocationDesc"], ["ispInfo", "ispInfoDesc"], ["proxyVpn", "proxyVpnDesc"], ["blacklists", "blacklistsDesc"]],
+  wallet: [["patternAnalysis", "patternAnalysisDesc"], ["mixerDetection", "mixerDetectionDesc"], ["multiChain", "multiChainDesc"], ["exchangeUid", "exchangeUidDesc"]],
+  email: [["domainCheck", "domainCheckDesc"], ["disposable", "disposableDesc"], ["breachCheck", "breachCheckDesc"], ["osintScan", "osintScanDesc"]],
+  phone: [["countryCode", "countryCodeDesc"], ["carrierId", "carrierIdDesc"], ["formatCheck", "formatCheckDesc"], ["typeDetection", "typeDetectionDesc"]],
+  domain: [["tldAnalysis", "tldAnalysisDesc"], ["typosquatting", "typosquattingDesc"], ["patterns", "patternsDesc"], ["reputation", "reputationDesc"]],
+  url: [["protocol", "protocolDesc"], ["shorteners", "shortenersDesc"], ["phishing", "phishingDesc"], ["redirectScan", "redirectScanDesc"]],
+  bot: [["tokenVerify", "tokenVerifyDesc"], ["botInfo", "botInfoDesc"], ["permissions", "permissionsDesc"], ["capabilities", "capabilitiesDesc"]],
+  cve: [["nvdLookup", "nvdLookupDesc"], ["cvssScore", "cvssScoreDesc"], ["cisaKev", "cisaKevDesc"], ["recommendations", "recommendationsDesc"]],
+  hash: [["malwareBazaar", "malwareBazaarDesc"], ["urlhaus", "urlhausDesc"], ["virusTotal", "virusTotalDesc"], ["signatureMatch", "signatureMatchDesc"]],
+  username: [["githubProfile", "githubProfileDesc"], ["socialMedia", "socialMediaDesc"], ["forums", "forumsDesc"], ["dataBreaches", "dataBreachesDesc"]],
+  card: [["binLookup", "binLookupDesc"], ["bankInfo", "bankInfoDesc"], ["cardType", "cardTypeDesc"], ["country", "countryDesc"]],
+};
 
-const recentChecks = [
-  { target: "192.168.1.1", type: "IP", status: "safe", time: "5 хв тому" },
-  { target: "test@mail.com", type: "Email", status: "warning", time: "12 хв тому" },
-  { target: "0x1a2b...", type: "Wallet", status: "danger", time: "1 год тому" },
+const navItemDefs = [
+  { id: "dashboard", labelKey: "nav.dashboard", icon: Home, href: "/dashboard" },
+  { id: "history", labelKey: "nav.history", icon: History, href: "/history" },
+  { id: "monitoring", labelKey: "nav.monitoring", icon: Activity, href: "/monitoring" },
+  { id: "referral", labelKey: "nav.referral", icon: Users, href: "/referral" },
+  { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
+  { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
 ];
 
 function TierBadge({ tier }: { tier: string }) {
@@ -366,39 +188,40 @@ function TierBadge({ tier }: { tier: string }) {
 }
 
 function RiskBadge({ level, score }: { level: string; score: number }) {
+  const { t } = useTranslation();
   const config = {
     critical: {
       className: "bg-gradient-to-r from-red-600 to-rose-500 text-white border-red-400/50",
       glow: "shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse",
       icon: AlertCircle,
-      label: "КРИТИЧНИЙ"
+      labelKey: "dashboard.riskLevels.critical"
     },
     high: {
       className: "bg-gradient-to-r from-orange-600 to-amber-500 text-white border-orange-400/50",
       glow: "shadow-[0_0_15px_rgba(249,115,22,0.4)]",
       icon: AlertTriangle,
-      label: "ВИСОКИЙ"
+      labelKey: "dashboard.riskLevels.high"
     },
     medium: {
       className: "bg-gradient-to-r from-yellow-600 to-amber-400 text-black border-yellow-400/50",
       glow: "shadow-[0_0_12px_rgba(234,179,8,0.3)]",
       icon: Clock,
-      label: "СЕРЕДНІЙ"
+      labelKey: "dashboard.riskLevels.medium"
     },
     low: {
       className: "bg-gradient-to-r from-green-600 to-emerald-500 text-white border-green-400/50",
       glow: "shadow-[0_0_12px_rgba(34,197,94,0.3)]",
       icon: ShieldCheck,
-      label: "НИЗЬКИЙ"
+      labelKey: "dashboard.riskLevels.low"
     },
   };
   
-  const { className, glow, icon: Icon, label } = config[level as keyof typeof config] || config.low;
+  const { className, glow, icon: Icon, labelKey } = config[level as keyof typeof config] || config.low;
   
   return (
     <Badge className={`${className} ${glow} border px-3 py-1 text-sm font-bold tracking-wide`}>
       <Icon className="w-4 h-4 mr-1.5" />
-      {label} — {score}/100
+      {t(labelKey).toUpperCase()} — {score}/100
     </Badge>
   );
 }
@@ -433,6 +256,31 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
+  const { t } = useTranslation();
+
+  const checkTypes = useMemo(() => checkTypeStyles.map(style => ({
+    ...style,
+    label: t(`dashboard.checkLabels.${style.id}`),
+    placeholder: t(`dashboard.checkPlaceholders.${style.id}`),
+    description: t(`dashboard.checkDescriptions.${style.id}`),
+    shortDescription: t(`dashboard.checkShortDescs.${style.id}`),
+    services: (serviceKeyMap[style.id] || []).map((keys, idx) => ({
+      name: t(`dashboard.services.${style.id}.${keys[0]}`),
+      icon: style.serviceIcons[idx],
+      desc: t(`dashboard.services.${style.id}.${keys[1]}`),
+    })),
+  })), [t]);
+
+  const navItems = useMemo(() => navItemDefs.map(item => ({
+    ...item,
+    label: t(item.labelKey),
+  })), [t]);
+
+  const recentChecks = useMemo(() => [
+    { target: "192.168.1.1", type: "IP", status: "safe", time: `5 ${t('time.minutesAgo')}` },
+    { target: "test@mail.com", type: "Email", status: "warning", time: `12 ${t('time.minutesAgo')}` },
+    { target: "0x1a2b...", type: "Wallet", status: "danger", time: `1 ${t('time.hoursAgo')}` },
+  ], [t]);
 
   const paymentMutation = useMutation({
     mutationFn: async ({ tier, txHash }: { tier: string; txHash?: string }) => {
@@ -441,16 +289,16 @@ export default function Dashboard() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Заявку відправлено!",
-        description: `Заявка #${data.paymentId} створена. Очікуйте підтвердження від адміністратора.`,
+        title: t('dashboard.requestSent'),
+        description: t('dashboard.requestSentDesc').replace('{id}', data.paymentId),
       });
       setTxHash("");
       setShowSubscription(false);
     },
     onError: (error: any) => {
       toast({
-        title: "Помилка",
-        description: error.message || "Не вдалося відправити заявку",
+        title: t('common.error'),
+        description: error.message || t('common.error'),
         variant: "destructive",
       });
     },
@@ -484,8 +332,8 @@ export default function Dashboard() {
     },
     onError: (error: any) => {
       toast({
-        title: "Помилка",
-        description: error.message || "Не вдалося виконати перевірку",
+        title: t('common.error'),
+        description: error.message || t('dashboard.checkError'),
         variant: "destructive",
       });
     },
@@ -507,14 +355,14 @@ export default function Dashboard() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
       toast({
-        title: "Bulk перевірка завершена",
-        description: `Перевірено ${data.length} об'єктів`,
+        title: t('dashboard.bulkComplete'),
+        description: t('dashboard.bulkChecked').replace('{count}', String(data.length)),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Помилка",
-        description: error.message || "Не вдалося виконати bulk перевірку",
+        title: t('common.error'),
+        description: error.message || t('dashboard.checkError'),
         variant: "destructive",
       });
     },
@@ -553,10 +401,10 @@ export default function Dashboard() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "щойно";
-    if (diffMins < 60) return `${diffMins} хв тому`;
-    if (diffHours < 24) return `${diffHours} год тому`;
-    return `${diffDays} д тому`;
+    if (diffMins < 1) return t('time.justNow');
+    if (diffMins < 60) return `${diffMins} ${t('time.minutesAgo')}`;
+    if (diffHours < 24) return `${diffHours} ${t('time.hoursAgo')}`;
+    return `${diffDays} ${t('time.daysAgo')}`;
   };
 
   const getRiskConfig = (level: string) => {
@@ -607,14 +455,14 @@ Sources: ${result.sources.join(', ')}`;
       await navigator.clipboard.writeText(textToCopy);
       setCopiedResult(true);
       toast({
-        title: "Скопійовано!",
-        description: "Результат перевірки скопійовано до буфера обміну",
+        title: t('dashboard.resultCopied'),
+        description: t('dashboard.resultCopiedDesc'),
       });
       setTimeout(() => setCopiedResult(false), 2000);
     } catch {
       toast({
-        title: "Помилка",
-        description: "Не вдалося скопіювати",
+        title: t('common.error'),
+        description: t('dashboard.copyFailed'),
         variant: "destructive",
       });
     }
@@ -624,8 +472,8 @@ Sources: ${result.sources.join(', ')}`;
     if (user && (user.requestsLeft ?? 0) <= 0) {
       setShowSubscription(true);
       toast({
-        title: "Ліміт вичерпано",
-        description: "Ваші безкоштовні запити закінчились. Оберіть тарифний план для продовження.",
+        title: t('dashboard.limitReachedTitle'),
+        description: t('dashboard.limitReachedDesc'),
         variant: "destructive",
       });
       return;
@@ -635,8 +483,8 @@ Sources: ${result.sources.join(', ')}`;
     if (!value) {
       triggerShake();
       toast({
-        title: "Помилка",
-        description: "Введіть значення для перевірки",
+        title: t('common.error'),
+        description: t('dashboard.enterValueError'),
         variant: "destructive",
       });
       return;
@@ -648,8 +496,8 @@ Sources: ${result.sources.join(', ')}`;
     if (user && (user.requestsLeft ?? 0) <= 0) {
       setShowSubscription(true);
       toast({
-        title: "Ліміт вичерпано",
-        description: "Ваші безкоштовні запити закінчились. Оберіть тарифний план для продовження.",
+        title: t('dashboard.limitReachedTitle'),
+        description: t('dashboard.limitReachedDesc'),
         variant: "destructive",
       });
       return;
@@ -662,8 +510,8 @@ Sources: ${result.sources.join(', ')}`;
     
     if (values.length === 0) {
       toast({
-        title: "Помилка",
-        description: "Введіть значення для перевірки (по одному на рядок)",
+        title: t('common.error'),
+        description: t('dashboard.enterValueError'),
         variant: "destructive",
       });
       return;
@@ -671,8 +519,8 @@ Sources: ${result.sources.join(', ')}`;
 
     if (values.length > 20) {
       toast({
-        title: "Помилка",
-        description: "Максимум 20 значень за один раз",
+        title: t('common.error'),
+        description: t('dashboard.bulkMax'),
         variant: "destructive",
       });
       return;
@@ -715,7 +563,7 @@ Sources: ${result.sources.join(', ')}`;
             <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
             <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <p className="text-muted-foreground font-mono text-sm">Завантаження системи...</p>
+          <p className="text-muted-foreground font-mono text-sm">{t('dashboard.systemLoading')}</p>
         </div>
       </div>
     );
@@ -782,16 +630,16 @@ Sources: ${result.sources.join(', ')}`;
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent border border-white/10 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-3">
               <BarChart3 className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs font-semibold text-white/80">Статистика</span>
+              <span className="text-xs font-semibold text-white/80">{t('dashboard.statistics')}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
                 <p className="text-lg font-bold text-primary font-mono">247</p>
-                <p className="text-[10px] text-muted-foreground">Перевірок</p>
+                <p className="text-[10px] text-muted-foreground">{t('dashboard.checks')}</p>
               </div>
               <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
                 <p className="text-lg font-bold text-orange-400 font-mono">12</p>
-                <p className="text-[10px] text-muted-foreground">Загроз</p>
+                <p className="text-[10px] text-muted-foreground">{t('dashboard.threats')}</p>
               </div>
             </div>
           </div>
@@ -801,7 +649,7 @@ Sources: ${result.sources.join(', ')}`;
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent border border-white/10 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-3">
               <Clock className="w-4 h-4 text-blue-400" />
-              <span className="text-xs font-semibold text-white/80">Останні перевірки</span>
+              <span className="text-xs font-semibold text-white/80">{t('dashboard.recentChecksLabel')}</span>
             </div>
             <div className="space-y-2">
               {recentChecks.map((check, idx) => (
@@ -861,7 +709,7 @@ Sources: ${result.sources.join(', ')}`;
             
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Залишилось запитів</span>
+                <span className="text-muted-foreground">{t('dashboard.requestsRemaining')}</span>
                 <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}/15</span>
               </div>
               <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
@@ -891,7 +739,7 @@ Sources: ${result.sources.join(', ')}`;
               data-testid="button-profile"
             >
               <User className="w-4 h-4 mr-2" />
-              Профіль
+              {t('dashboard.profile')}
             </Button>
             <Button 
               variant="ghost" 
@@ -901,7 +749,7 @@ Sources: ${result.sources.join(', ')}`;
               data-testid="button-subscription"
             >
               <Crown className="w-4 h-4 mr-2" />
-              Підписка
+              {t('dashboard.subscription')}
             </Button>
             <Button 
               variant="ghost" 
@@ -911,7 +759,7 @@ Sources: ${result.sources.join(', ')}`;
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Вийти
+              {t('common.logout')}
             </Button>
           </div>
         </div>
@@ -990,7 +838,7 @@ Sources: ${result.sources.join(', ')}`;
                   <div className="p-4 space-y-1 flex flex-col h-[calc(100%-100px)]">
                     <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">Залишилось запитів</span>
+                        <span className="text-muted-foreground">{t('dashboard.requestsRemaining')}</span>
                         <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}/15</span>
                       </div>
                       <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
@@ -1046,7 +894,7 @@ Sources: ${result.sources.join(', ')}`;
                         data-testid="menu-button-profile"
                       >
                         <User className="w-5 h-5 mr-3" />
-                        Профіль
+                        {t('dashboard.profile')}
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -1059,7 +907,7 @@ Sources: ${result.sources.join(', ')}`;
                         data-testid="menu-button-subscription"
                       >
                         <Crown className="w-5 h-5 mr-3" />
-                        Підписка
+                        {t('dashboard.subscription')}
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -1072,7 +920,7 @@ Sources: ${result.sources.join(', ')}`;
                         data-testid="menu-button-logout"
                       >
                         <LogOut className="w-5 h-5 mr-3" />
-                        Вийти
+                        {t('common.logout')}
                       </Button>
                     </div>
                   </div>
@@ -1099,7 +947,7 @@ Sources: ${result.sources.join(', ')}`;
                     </div>
                     <span className="bg-gradient-to-r from-white via-white to-primary/80 bg-clip-text text-transparent">Security Scanner</span>
                   </h1>
-                  <p className="text-muted-foreground mt-2 ml-14">Виберіть тип перевірки та введіть дані для аналізу</p>
+                  <p className="text-muted-foreground mt-2 ml-14">{t('dashboard.selectTypeAndEnter')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <motion.div 
@@ -1110,7 +958,7 @@ Sources: ${result.sources.join(', ')}`;
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <Radio className="w-4 h-4 text-green-400 animate-pulse" />
-                    <span className="text-sm font-medium text-green-400">Система активна</span>
+                    <span className="text-sm font-medium text-green-400">{t('dashboard.systemActive')}</span>
                   </motion.div>
                 </div>
               </motion.div>
@@ -1130,8 +978,8 @@ Sources: ${result.sources.join(', ')}`;
                       <PlayCircle className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
                     </div>
                     <div>
-                      <h3 className="text-sm lg:text-base font-display font-semibold text-white">Quick Actions</h3>
-                      <p className="text-[10px] lg:text-xs text-muted-foreground">Повторіть останні перевірки одним кліком</p>
+                      <h3 className="text-sm lg:text-base font-display font-semibold text-white">{t('dashboard.quickActions')}</h3>
+                      <p className="text-[10px] lg:text-xs text-muted-foreground">{t('dashboard.repeatLastChecks')}</p>
                     </div>
                   </div>
                   <Link href="/history">
@@ -1141,7 +989,7 @@ Sources: ${result.sources.join(', ')}`;
                       className="text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
                       data-testid="button-view-all-history"
                     >
-                      Усі
+                      {t('dashboard.all')}
                       <ChevronRight className="w-3.5 h-3.5 ml-1" />
                     </Button>
                   </Link>
@@ -1150,7 +998,7 @@ Sources: ${result.sources.join(', ')}`;
                 {reportsLoading ? (
                   <div className="flex items-center justify-center py-6">
                     <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-                    <span className="text-xs text-muted-foreground ml-2">Завантаження...</span>
+                    <span className="text-xs text-muted-foreground ml-2">{t('common.loading')}</span>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3">
@@ -1311,7 +1159,7 @@ Sources: ${result.sources.join(', ')}`;
                       <div className="p-3 lg:p-4 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
                         <div className="flex items-center gap-2 mb-2.5">
                           <Info className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider">Що аналізується</span>
+                          <span className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('dashboard.whatIsAnalyzed')}</span>
                         </div>
                         <p className="text-[10px] lg:text-xs text-muted-foreground/80 mb-3 leading-relaxed">
                           {selectedCheck.description}
@@ -1356,7 +1204,7 @@ Sources: ${result.sources.join(', ')}`;
                           }}
                           data-testid="switch-bulk-mode"
                         />
-                        <span className="text-xs text-muted-foreground">{bulkMode ? "Увімкнено" : "Вимкнено"}</span>
+                        <span className="text-xs text-muted-foreground">{bulkMode ? t('dashboard.enabled') : t('dashboard.disabled')}</span>
                       </div>
                     </div>
                     
@@ -1366,12 +1214,12 @@ Sources: ${result.sources.join(', ')}`;
                           ref={bulkTextareaRef}
                           value={bulkInput}
                           onChange={(e) => setBulkInput(e.target.value)}
-                          placeholder={`Введіть значення (по одному на рядок, макс. 20)\nПриклад:\n${selectedCheck?.placeholder || ''}\n${selectedCheck?.placeholder || ''}`}
+                          placeholder={`${t('dashboard.bulkPlaceholder')}\n${selectedCheck?.placeholder || ''}\n${selectedCheck?.placeholder || ''}`}
                           className="min-h-[120px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
                           data-testid="textarea-bulk-input"
                         />
                         <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                          <span>{bulkInput.split('\n').filter(v => v.trim()).length} / 20 значень</span>
+                          <span>{bulkInput.split('\n').filter(v => v.trim()).length} / 20 {t('dashboard.values')}</span>
                         </div>
                       </div>
                     ) : (
@@ -1392,7 +1240,7 @@ Sources: ${result.sources.join(', ')}`;
                     {bulkCheckMutation.isPending && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Прогрес перевірки...</span>
+                          <span>{t('dashboard.checkProgress')}</span>
                           <span>{bulkProgress}%</span>
                         </div>
                         <Progress value={bulkProgress} className="h-2" />
@@ -1419,7 +1267,7 @@ Sources: ${result.sources.join(', ')}`;
                               animate={{ opacity: [1, 0.5, 1] }}
                               transition={{ duration: 1.2, repeat: Infinity }}
                             >
-                              Аналіз...
+                              {t('dashboard.analyzing')}
                             </motion.span>
                           </div>
                         ) : (
@@ -1427,12 +1275,12 @@ Sources: ${result.sources.join(', ')}`;
                             {bulkMode ? (
                               <>
                                 <Layers className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                                Bulk Сканування
+                                {t('dashboard.bulkScan')}
                               </>
                             ) : (
                               <>
                                 <Search className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                                Сканувати
+                                {t('dashboard.scan')}
                               </>
                             )}
                           </>
@@ -1487,7 +1335,7 @@ Sources: ${result.sources.join(', ')}`;
                         animate={{ opacity: [1, 0.6, 1] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
                       >
-                        Сканування в процесі...
+                        {t('dashboard.scanInProgress')}
                       </motion.span>
                     </div>
                     <Skeleton className="h-16 w-full rounded-xl skeleton-shimmer" />
@@ -1540,7 +1388,7 @@ Sources: ${result.sources.join(', ')}`;
                           )}
                         </motion.div>
                         <div className="flex-1 min-w-0">
-                          <h2 className="text-base lg:text-2xl font-display font-bold">Результат аналізу</h2>
+                          <h2 className="text-base lg:text-2xl font-display font-bold">{t('dashboard.results')}</h2>
                           <p className="text-[10px] lg:text-sm text-muted-foreground font-mono">{result.timestamp}</p>
                         </div>
                       </div>
@@ -1555,7 +1403,7 @@ Sources: ${result.sources.join(', ')}`;
                     >
                       <div className="flex items-center gap-2 text-[10px] lg:text-xs text-muted-foreground mb-1.5 lg:mb-2">
                         <Database className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                        Ціль сканування
+                        {t('dashboard.scan')}
                       </div>
                       <p className="font-mono text-xs lg:text-xl break-all text-primary leading-relaxed">{result.target}</p>
                     </motion.div>
@@ -1563,13 +1411,13 @@ Sources: ${result.sources.join(', ')}`;
                     <div className="mb-3 lg:mb-6">
                       <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
                         <AlertTriangle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-500" />
-                        Знахідки ({result.findings.length})
+                        {t('dashboard.findings')} ({result.findings.length})
                       </h4>
                       <div className="space-y-1.5 lg:space-y-2 max-h-[200px] sm:max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
                         {result.findings.map((finding, idx) => {
-                          const isCritical = finding.includes("КРИТИЧНО");
-                          const isWarning = finding.includes("УВАГА");
-                          const isSafe = finding.includes("не виявлено") || finding.includes("Чиста") || finding.includes("Безпечн");
+                          const isCritical = finding.includes("CRITICAL") || finding.includes("КРИТИЧНО");
+                          const isWarning = finding.includes("WARNING") || finding.includes("УВАГА");
+                          const isSafe = finding.includes("not found") || finding.includes("Clean") || finding.includes("Safe") || finding.includes("не виявлено") || finding.includes("Чиста") || finding.includes("Безпечн");
                           
                           return (
                             <motion.div 
@@ -1602,12 +1450,12 @@ Sources: ${result.sources.join(', ')}`;
                       >
                         <div className="flex items-center gap-2 mb-3">
                           <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
-                          <h4 className="text-xs lg:text-sm font-semibold">AI Аналіз</h4>
+                          <h4 className="text-xs lg:text-sm font-semibold">{t('dashboard.aiAnalysis')}</h4>
                           <Badge 
                             className={`text-[9px] lg:text-xs ml-auto ${
-                              result.aiInsights.threatLevel === "КРИТИЧНО" ? "bg-red-500/20 text-red-400 border-red-500/30" :
-                              result.aiInsights.threatLevel === "НЕБЕЗПЕЧНО" ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
-                              result.aiInsights.threatLevel === "УВАГА" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
+                              result.aiInsights.threatLevel === "CRITICAL" || result.aiInsights.threatLevel === "КРИТИЧНО" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                              result.aiInsights.threatLevel === "DANGEROUS" || result.aiInsights.threatLevel === "НЕБЕЗПЕЧНО" ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                              result.aiInsights.threatLevel === "WARNING" || result.aiInsights.threatLevel === "УВАГА" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" :
                               "bg-green-500/20 text-green-400 border-green-500/30"
                             }`}
                           >
@@ -1619,7 +1467,7 @@ Sources: ${result.sources.join(', ')}`;
                         <p className="text-[10px] lg:text-xs text-muted-foreground mb-3 leading-relaxed">{result.aiInsights.summary}</p>
                         
                         <div className="space-y-1.5">
-                          <p className="text-[9px] lg:text-xs font-semibold text-white/70">Рекомендації:</p>
+                          <p className="text-[9px] lg:text-xs font-semibold text-white/70">{t('dashboard.services.cve.recommendations')}:</p>
                           {result.aiInsights.recommendations.slice(0, 3).map((rec, idx) => (
                             <div key={idx} className="flex items-start gap-2 text-[9px] lg:text-xs text-muted-foreground">
                               <CheckCircle2 className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
@@ -1633,7 +1481,7 @@ Sources: ${result.sources.join(', ')}`;
                     <div className="mb-3 lg:mb-6">
                       <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
                         <Terminal className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
-                        Технічні деталі
+                        {t('dashboard.technicalDetails') || 'Technical Details'}
                       </h4>
                       <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
                         {Object.entries(result.details).map(([key, value], idx) => (
@@ -1650,7 +1498,7 @@ Sources: ${result.sources.join(', ')}`;
                             <p className="font-mono text-[10px] lg:text-sm break-all leading-relaxed">
                               {typeof value === "boolean" ? (
                                 <Badge variant={value ? "destructive" : "secondary"} className="text-[9px] lg:text-xs px-1.5">
-                                  {value ? "Так" : "Ні"}
+                                  {value ? "Yes" : "No"}
                                 </Badge>
                               ) : typeof value === "object" ? 
                                 JSON.stringify(value) : 
@@ -1664,7 +1512,7 @@ Sources: ${result.sources.join(', ')}`;
                     <div className="flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/10">
                       <div className="flex items-center gap-1.5 text-[9px] lg:text-xs text-muted-foreground">
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
-                        <span className="truncate">Джерела: {result.sources.join(", ")}</span>
+                        <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
                       </div>
                       <div className="flex gap-2 w-full">
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
@@ -1686,13 +1534,13 @@ Sources: ${result.sources.join(', ')}`;
                             ) : (
                               <Copy className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
                             )}
-                            {copiedResult ? "Скопійовано" : "Копіювати"}
+                            {copiedResult ? t('common.copied') : t('common.copy')}
                           </Button>
                         </motion.div>
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full rounded-xl h-10 text-xs lg:text-sm border-primary/30 hover:border-primary/50 hover:bg-primary/10 text-primary touch-manipulation" data-testid="button-add-to-monitor">
                             <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
-                            Моніторити
+                            {t('dashboard.addToMonitor')}
                           </Button>
                         </motion.div>
                       </div>
@@ -1713,10 +1561,10 @@ Sources: ${result.sources.join(', ')}`;
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <List className="w-5 h-5 text-primary" />
-                      <h3 className="text-sm lg:text-lg font-display font-semibold">Результати Bulk перевірки</h3>
+                      <h3 className="text-sm lg:text-lg font-display font-semibold">{t('dashboard.bulkComplete')}</h3>
                     </div>
                     <Badge className="bg-primary/20 text-primary border-primary/30">
-                      {bulkResults.length} результатів
+                      {bulkResults.length} {t('dashboard.results')}
                     </Badge>
                   </div>
                   
@@ -1758,7 +1606,7 @@ Sources: ${result.sources.join(', ')}`;
                                   </span>
                                   {bulkResult.error && (
                                     <Badge variant="destructive" className="text-[9px] px-1.5">
-                                      Помилка
+                                      {t('common.error')}
                                     </Badge>
                                   )}
                                 </div>
@@ -1809,15 +1657,15 @@ Sources: ${result.sources.join(', ')}`;
                   <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
-                      <span>{bulkResults.filter(r => r.riskLevel === 'low').length} безпечних</span>
+                      <span>{bulkResults.filter(r => r.riskLevel === 'low').length} {t('dashboard.riskLevels.low')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <AlertTriangle className="w-4 h-4 text-orange-400" />
-                      <span>{bulkResults.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length} небезпечних</span>
+                      <span>{bulkResults.filter(r => r.riskLevel === 'high' || r.riskLevel === 'critical').length} {t('dashboard.riskLevels.high')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <XCircle className="w-4 h-4 text-red-400" />
-                      <span>{bulkResults.filter(r => r.error).length} помилок</span>
+                      <span>{bulkResults.filter(r => r.error).length} {t('common.error')}</span>
                     </div>
                   </div>
                 </div>
@@ -1832,9 +1680,9 @@ Sources: ${result.sources.join(', ')}`;
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
                 {[
-                  { icon: Shield, label: "Перевірок", value: "12.4K+", color: "text-primary", gradient: "from-primary/20 to-transparent", border: "border-primary/20" },
-                  { icon: AlertTriangle, label: "Загроз виявлено", value: "847", color: "text-orange-400", gradient: "from-orange-500/20 to-transparent", border: "border-orange-500/20" },
-                  { icon: Database, label: "Баз даних", value: "50+", color: "text-blue-400", gradient: "from-blue-500/20 to-transparent", border: "border-blue-500/20" },
+                  { icon: Shield, label: t('dashboard.checks'), value: "12.4K+", color: "text-primary", gradient: "from-primary/20 to-transparent", border: "border-primary/20" },
+                  { icon: AlertTriangle, label: t('dashboard.threats'), value: "847", color: "text-orange-400", gradient: "from-orange-500/20 to-transparent", border: "border-orange-500/20" },
+                  { icon: Database, label: t('dashboard.sources'), value: "50+", color: "text-blue-400", gradient: "from-blue-500/20 to-transparent", border: "border-blue-500/20" },
                   { icon: TrendingUp, label: "Uptime", value: "99.9%", color: "text-green-400", gradient: "from-green-500/20 to-transparent", border: "border-green-500/20" },
                 ].map((stat, idx) => (
                   <motion.div
@@ -1862,10 +1710,10 @@ Sources: ${result.sources.join(', ')}`;
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <User className="w-5 h-5 text-cyan-400" />
-              Мій профіль
+              {t('dashboard.profile')}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Акаунт синхронізований з ботом
+              {t('dashboard.botSyncOk')}
             </DialogDescription>
           </DialogHeader>
           
@@ -1880,28 +1728,28 @@ Sources: ${result.sources.join(', ')}`;
                 <div className="font-mono text-primary text-sm" data-testid="text-username">@{user?.username || "—"}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Тариф</div>
+                <div className="text-[10px] text-muted-foreground mb-1">{t('account.tier')}</div>
                 <div className="font-mono text-yellow-400 text-sm" data-testid="text-tier">{user?.tier || "FREE"}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Залишилось</div>
+                <div className="text-[10px] text-muted-foreground mb-1">{t('account.remaining')}</div>
                 <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{user?.requestsLeft ?? 0}/15</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Серія
+                  <Zap className="w-3 h-3" /> {t('account.streak')}
                 </div>
-                <div className="font-mono text-orange-400 text-sm" data-testid="text-streak">{user?.streakDays ?? 0} днів</div>
+                <div className="font-mono text-orange-400 text-sm" data-testid="text-streak">{user?.streakDays ?? 0} {t('account.streakDays')}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Реф. код</div>
+                <div className="text-[10px] text-muted-foreground mb-1">{t('referral.yourCode')}</div>
                 <div className="font-mono text-purple-400 text-sm" data-testid="text-ref-code">{user?.refCode || "—"}</div>
               </div>
             </div>
             
             <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2" data-testid="status-bot-sync">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs text-emerald-400">Синхронізація з ботом активна</span>
+              <span className="text-xs text-emerald-400">{t('dashboard.botSyncOk')}</span>
             </div>
           </div>
         </DialogContent>
@@ -1912,16 +1760,16 @@ Sources: ${result.sources.join(', ')}`;
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary" />
-              Тарифні плани
+              {t('account.subscriptionTitle')}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Оберіть план та подайте заявку на активацію
+              {t('dashboard.selectTypeAndEnter')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 mt-4">
             <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
-              <div className="text-xs text-muted-foreground mb-2">Адреса оплати (TRC20 USDT)</div>
+              <div className="text-xs text-muted-foreground mb-2">{t('dashboard.paymentAddress')}</div>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
                   {TRC20_ADDRESS}
@@ -1943,9 +1791,9 @@ Sources: ${result.sources.join(', ')}`;
             </div>
             
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">TX Hash (опціонально)</label>
+              <label className="text-xs text-muted-foreground">{t('dashboard.txHashLabel')}</label>
               <Input
-                placeholder="Введіть TX Hash транзакції..."
+                placeholder={t('dashboard.txHashPlaceholder')}
                 value={txHash}
                 onChange={(e) => setTxHash(e.target.value)}
                 className="bg-black/50 border-white/10 focus:border-primary/50"
@@ -1966,7 +1814,7 @@ Sources: ${result.sources.join(', ')}`;
                   <Shield className="w-4 h-4 mr-2" />
                 )}
                 <div className="flex items-center justify-between w-full">
-                  <span className="font-semibold">Подати заявку на PRO</span>
+                  <span className="font-semibold">{t('dashboard.submitRequestBtn')} PRO</span>
                   <span className="text-sm opacity-80">$10</span>
                 </div>
               </Button>
@@ -1983,7 +1831,7 @@ Sources: ${result.sources.join(', ')}`;
                   <Crown className="w-4 h-4 mr-2" />
                 )}
                 <div className="flex items-center justify-between w-full">
-                  <span className="font-semibold">Подати заявку на ENTERPRISE</span>
+                  <span className="font-semibold">{t('dashboard.submitRequestBtn')} ENTERPRISE</span>
                   <span className="text-sm opacity-80">$50</span>
                 </div>
               </Button>
@@ -1991,7 +1839,7 @@ Sources: ${result.sources.join(', ')}`;
 
             <div className="pt-2 border-t border-white/10">
               <p className="text-xs text-muted-foreground text-center">
-                Заявка буде відправлена адміністратору в Telegram для підтвердження
+                {t('dashboard.requestWillBeSent')}
               </p>
             </div>
           </div>
@@ -2003,10 +1851,10 @@ Sources: ${result.sources.join(', ')}`;
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <Keyboard className="w-5 h-5 text-primary" />
-              Гарячі клавіші
+              {t('dashboard.keyboardShortcuts')}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Використовуйте клавіатуру для швидкої навігації
+              {t('dashboard.selectTypeAndEnter')}
             </DialogDescription>
           </DialogHeader>
           
@@ -2036,7 +1884,7 @@ Sources: ${result.sources.join(', ')}`;
           
           <div className="mt-4 pt-3 border-t border-white/10">
             <p className="text-xs text-muted-foreground text-center">
-              Натисніть <kbd className="px-1.5 py-0.5 text-xs bg-black/50 border border-white/20 rounded">?</kbd> щоб відкрити цю підказку
+              {t('dashboard.keyboardShortcuts')} <kbd className="px-1.5 py-0.5 text-xs bg-black/50 border border-white/20 rounded">?</kbd>
             </p>
           </div>
         </DialogContent>
@@ -2047,7 +1895,7 @@ Sources: ${result.sources.join(', ')}`;
         onClick={() => setShowShortcuts(true)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
-        title="Гарячі клавіші (?)"
+        title={t('dashboard.keyboardShortcuts')}
         data-testid="button-shortcuts-help"
       >
         <HelpCircle className="w-5 h-5" />

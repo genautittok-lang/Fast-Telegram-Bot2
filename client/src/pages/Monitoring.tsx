@@ -39,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { MobileMenu } from "@/components/MobileMenu";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 
 interface Watch {
   id: number;
@@ -51,9 +52,8 @@ interface Watch {
   previousRiskScore?: number;
 }
 
-const typeConfig: Record<string, {
+const typeStyleConfig: Record<string, {
   icon: any;
-  label: string;
   gradient: string;
   borderColor: string;
   bgGradient: string;
@@ -61,7 +61,6 @@ const typeConfig: Record<string, {
 }> = {
   ip: {
     icon: Globe,
-    label: "IP Address",
     gradient: "from-blue-500 to-cyan-400",
     borderColor: "border-l-blue-500",
     bgGradient: "from-blue-500/20 via-blue-500/5 to-transparent",
@@ -69,7 +68,6 @@ const typeConfig: Record<string, {
   },
   wallet: {
     icon: Wallet,
-    label: "Wallet",
     gradient: "from-orange-500 to-amber-400",
     borderColor: "border-l-orange-500",
     bgGradient: "from-orange-500/20 via-orange-500/5 to-transparent",
@@ -77,7 +75,6 @@ const typeConfig: Record<string, {
   },
   email: {
     icon: Mail,
-    label: "Email",
     gradient: "from-purple-500 to-pink-400",
     borderColor: "border-l-purple-500",
     bgGradient: "from-purple-500/20 via-purple-500/5 to-transparent",
@@ -85,7 +82,6 @@ const typeConfig: Record<string, {
   },
   phone: {
     icon: Phone,
-    label: "Phone",
     gradient: "from-green-500 to-emerald-400",
     borderColor: "border-l-green-500",
     bgGradient: "from-green-500/20 via-green-500/5 to-transparent",
@@ -93,7 +89,6 @@ const typeConfig: Record<string, {
   },
   domain: {
     icon: Building,
-    label: "Domain",
     gradient: "from-indigo-500 to-violet-400",
     borderColor: "border-l-indigo-500",
     bgGradient: "from-indigo-500/20 via-indigo-500/5 to-transparent",
@@ -101,7 +96,6 @@ const typeConfig: Record<string, {
   },
   url: {
     icon: Link2,
-    label: "URL",
     gradient: "from-red-500 to-rose-400",
     borderColor: "border-l-red-500",
     bgGradient: "from-red-500/20 via-red-500/5 to-transparent",
@@ -109,19 +103,13 @@ const typeConfig: Record<string, {
   },
 };
 
-const formatTimeAgo = (dateString: string | null) => {
-  if (!dateString) return "Очікує";
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "щойно";
-  if (diffMins < 60) return `${diffMins} хв тому`;
-  if (diffHours < 24) return `${diffHours} год тому`;
-  return `${diffDays} д тому`;
+const typeTranslationKeys: Record<string, string> = {
+  ip: 'monitoring.typeIp',
+  wallet: 'monitoring.typeWallet',
+  email: 'monitoring.typeEmail',
+  phone: 'monitoring.typePhone',
+  domain: 'monitoring.typeDomain',
+  url: 'monitoring.typeUrl',
 };
 
 function StatCard({ 
@@ -187,15 +175,31 @@ function MonitorCard({
   onDelete: () => void; 
   isDeleting: boolean;
 }) {
-  const config = typeConfig[watch.objectType] || typeConfig.ip;
+  const { t } = useTranslation();
+  const config = typeStyleConfig[watch.objectType] || typeStyleConfig.ip;
   const TypeIcon = config.icon;
   const isActive = watch.status === 'active';
+
+  const formatTimeAgo = (dateString: string | null) => {
+    if (!dateString) return t('time.waiting');
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return t('time.justNow');
+    if (diffMins < 60) return `${diffMins} ${t('time.minutesAgo')}`;
+    if (diffHours < 24) return `${diffHours} ${t('time.hoursAgo')}`;
+    return `${diffDays} ${t('time.daysAgo')}`;
+  };
   
   const getRiskTrend = () => {
     if (watch.riskScore === undefined || watch.previousRiskScore === undefined) return null;
-    if (watch.riskScore > watch.previousRiskScore) return { icon: TrendingUp, color: "text-red-400", label: "Зріс" };
-    if (watch.riskScore < watch.previousRiskScore) return { icon: TrendingDown, color: "text-green-400", label: "Знизився" };
-    return { icon: Minus, color: "text-muted-foreground", label: "Стабільний" };
+    if (watch.riskScore > watch.previousRiskScore) return { icon: TrendingUp, color: "text-red-400", label: t('monitoring.riskTrendUp') };
+    if (watch.riskScore < watch.previousRiskScore) return { icon: TrendingDown, color: "text-green-400", label: t('monitoring.riskTrendDown') };
+    return { icon: Minus, color: "text-muted-foreground", label: t('monitoring.riskTrendStable') };
   };
   
   const trend = getRiskTrend();
@@ -220,7 +224,7 @@ function MonitorCard({
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
               <p className="font-mono text-xs sm:text-sm truncate max-w-[140px] sm:max-w-none">{watch.value}</p>
               <Badge variant="outline" className="text-[10px] px-1 sm:px-1.5 py-0 border-white/20 text-muted-foreground hidden sm:inline-flex">
-                {config.label}
+                {t(typeTranslationKeys[watch.objectType] || 'monitoring.typeIp')}
               </Badge>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-muted-foreground">
@@ -247,7 +251,7 @@ function MonitorCard({
                 : 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'
               } border`}>
                 <span className={`w-1.5 h-1.5 rounded-full sm:mr-1.5 ${isActive ? 'bg-green-400' : 'bg-zinc-400'}`} />
-                <span className="hidden sm:inline">{isActive ? 'Активний' : 'Пауза'}</span>
+                <span className="hidden sm:inline">{isActive ? t('monitoring.status.active') : t('monitoring.status.paused')}</span>
               </Badge>
             </div>
             
@@ -280,6 +284,7 @@ export default function Monitoring() {
   const { toast } = useToast();
   const { isLoading: authLoading, isAuthenticated, user, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const { data: watches, isLoading } = useQuery<Watch[]>({
     queryKey: ["/api/watches"],
@@ -292,6 +297,21 @@ export default function Monitoring() {
     }
   }, [authLoading, isAuthenticated, setLocation]);
 
+  const formatTimeAgo = (dateString: string | null) => {
+    if (!dateString) return t('time.waiting');
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return t('time.justNow');
+    if (diffMins < 60) return `${diffMins} ${t('time.minutesAgo')}`;
+    if (diffHours < 24) return `${diffHours} ${t('time.hoursAgo')}`;
+    return `${diffDays} ${t('time.daysAgo')}`;
+  };
+
   const createMutation = useMutation({
     mutationFn: async ({ type, value }: { type: string; value: string }) => {
       const res = await apiRequest("POST", "/api/watches", { type, value });
@@ -303,14 +323,14 @@ export default function Monitoring() {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
       toast({
-        title: "Монітор створено",
-        description: "Об'єкт додано до моніторингу",
+        title: t('monitoring.monitorCreated'),
+        description: t('monitoring.monitorCreatedDesc'),
       });
     },
     onError: () => {
       toast({
-        title: "Помилка",
-        description: "Не вдалося створити монітор",
+        title: t('monitoring.monitorError'),
+        description: t('monitoring.monitorErrorDesc'),
         variant: "destructive",
       });
     },
@@ -324,8 +344,8 @@ export default function Monitoring() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/watches"] });
       toast({
-        title: "Видалено",
-        description: "Монітор видалено",
+        title: t('monitoring.deleted'),
+        description: t('monitoring.deletedDesc'),
       });
     },
   });
@@ -333,8 +353,8 @@ export default function Monitoring() {
   const handleCreate = () => {
     if (!newValue.trim()) {
       toast({
-        title: "Помилка",
-        description: "Введіть значення для моніторингу",
+        title: t('monitoring.monitorError'),
+        description: t('monitoring.enterValueError'),
         variant: "destructive",
       });
       return;
@@ -353,7 +373,7 @@ export default function Monitoring() {
             <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
             <Shield className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <p className="text-sm text-muted-foreground">Завантаження...</p>
+          <p className="text-sm text-muted-foreground">{t('history.loadingHistory')}</p>
         </div>
       </div>
     );
@@ -363,7 +383,7 @@ export default function Monitoring() {
     return null;
   }
 
-  const currentTypeConfig = typeConfig[newType] || typeConfig.ip;
+  const currentTypeConfig = typeStyleConfig[newType] || typeStyleConfig.ip;
   const CurrentTypeIcon = currentTypeConfig.icon;
 
   return (
@@ -385,12 +405,12 @@ export default function Monitoring() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
                 <Activity className="w-4 h-4 text-primary" />
               </div>
-              <span className="font-display font-bold text-lg">Моніторинг</span>
+              <span className="font-display font-bold text-lg">{t('monitoring.title')}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher variant="minimal" />
-            <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
           </div>
         </div>
       </header>
@@ -399,21 +419,21 @@ export default function Monitoring() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           <StatCard
             icon={Eye}
-            label="Активних моніторів"
+            label={t('monitoring.totalMonitors')}
             value={isLoading ? "..." : activeCount}
             gradient="from-primary/80 to-emerald-500/80"
             delay={0}
           />
           <StatCard
             icon={Bell}
-            label="Сповіщень за тиждень"
+            label={t('monitoring.alertsTotal')}
             value={0}
             gradient="from-amber-500/80 to-orange-500/80"
             delay={0.1}
           />
           <StatCard
             icon={Clock}
-            label="Останнє сповіщення"
+            label={t('monitoring.lastAlertLabel')}
             value={lastAlert ? formatTimeAgo(lastAlert) : "—"}
             gradient="from-blue-500/80 to-cyan-500/80"
             delay={0.2}
@@ -430,7 +450,7 @@ export default function Monitoring() {
           <div className="relative p-3 sm:p-5 rounded-2xl bg-white/[0.02] backdrop-blur-sm border border-white/10">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <Sparkles className="w-4 h-4 text-primary" />
-              <h2 className="font-display font-semibold text-sm sm:text-base">Додати новий монітор</h2>
+              <h2 className="font-display font-semibold text-sm sm:text-base">{t('monitoring.addNewMonitor')}</h2>
             </div>
             
             <div className="flex flex-col gap-2 sm:gap-3">
@@ -440,16 +460,16 @@ export default function Monitoring() {
                     className={`w-full sm:w-44 bg-white/5 border-white/10 focus:border-white/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300 text-sm`}
                     data-testid="select-monitor-type"
                   >
-                    <SelectValue placeholder="Виберіть тип" />
+                    <SelectValue placeholder={t('monitoring.selectType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(typeConfig).map(([key, cfg]) => {
+                    {Object.entries(typeStyleConfig).map(([key, cfg]) => {
                       const Icon = cfg.icon;
                       return (
                         <SelectItem key={key} value={key}>
                           <div className="flex items-center gap-2">
                             <Icon className="w-4 h-4" />
-                            {cfg.label}
+                            {t(typeTranslationKeys[key] || 'monitoring.typeIp')}
                           </div>
                         </SelectItem>
                       );
@@ -461,7 +481,7 @@ export default function Monitoring() {
                   <Input
                     value={newValue}
                     onChange={(e) => setNewValue(e.target.value)}
-                    placeholder="Введіть значення..."
+                    placeholder={t('monitoring.addObjectPlaceholder')}
                     className="bg-white/5 border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 pr-10 text-sm"
                     onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                     data-testid="input-monitor-value"
@@ -492,7 +512,7 @@ export default function Monitoring() {
                 ) : (
                   <>
                     <Plus className="w-4 h-4 mr-2" />
-                    Додати
+                    {t('monitoring.addButton')}
                   </>
                 )}
               </Button>
@@ -508,11 +528,11 @@ export default function Monitoring() {
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h2 className="font-display font-semibold text-sm sm:text-base flex items-center gap-2">
               <Eye className="w-4 h-4 text-primary" />
-              Активні монітори
+              {t('monitoring.activeMonitors')}
             </h2>
             {watches && watches.length > 0 && (
               <Badge variant="outline" className="text-xs border-white/20">
-                {watches.length} об'єкт{watches.length === 1 ? '' : watches.length < 5 ? 'и' : 'ів'}
+                {watches.length}
               </Badge>
             )}
           </div>
@@ -546,8 +566,8 @@ export default function Monitoring() {
               <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
                 <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground/50" />
               </div>
-              <p className="text-sm sm:text-base text-muted-foreground">Немає активних моніторів</p>
-              <p className="text-xs sm:text-sm text-muted-foreground/60 mt-1">Додайте об'єкт для відстеження змін</p>
+              <p className="text-sm sm:text-base text-muted-foreground">{t('monitoring.noMonitors')}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground/60 mt-1">{t('monitoring.noMonitorsHint')}</p>
             </motion.div>
           )}
         </motion.div>
@@ -567,8 +587,8 @@ export default function Monitoring() {
                         <Zap className="w-4 h-4 text-primary" />
                       </div>
                       <div className="text-left">
-                        <p className="font-medium text-sm">Як працює моніторинг?</p>
-                        <p className="text-xs text-muted-foreground">Дізнайтесь більше про можливості</p>
+                        <p className="font-medium text-sm">{t('monitoring.howItWorks')}</p>
+                        <p className="text-xs text-muted-foreground">{t('monitoring.learnAbout')}</p>
                       </div>
                     </div>
                     <motion.div
@@ -586,40 +606,40 @@ export default function Monitoring() {
                       <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                         <div className="flex items-center gap-2 mb-2">
                           <Clock className="w-4 h-4 text-blue-400" />
-                          <span className="text-sm font-medium">Автоматичні перевірки</span>
+                          <span className="text-sm font-medium">{t('monitoring.monitoring247')}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Система автоматично перевіряє додані об'єкти кожні 5 хвилин на зміни рівня ризику.
+                          {t('monitoring.monitoring247Desc')}
                         </p>
                       </div>
                       
                       <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                         <div className="flex items-center gap-2 mb-2">
                           <Bell className="w-4 h-4 text-amber-400" />
-                          <span className="text-sm font-medium">Миттєві сповіщення</span>
+                          <span className="text-sm font-medium">{t('monitoring.instantAlerts')}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          При зміні рівня ризику ви отримаєте сповіщення в Telegram та на email.
+                          {t('monitoring.instantAlertsDesc')}
                         </p>
                       </div>
                       
                       <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                         <div className="flex items-center gap-2 mb-2">
                           <TrendingUp className="w-4 h-4 text-green-400" />
-                          <span className="text-sm font-medium">Трекінг трендів</span>
+                          <span className="text-sm font-medium">{t('monitoring.riskTracking')}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Відстежуйте як змінюється рівень ризику об'єктів з часом для прийняття рішень.
+                          {t('monitoring.riskTrackingDesc')}
                         </p>
                       </div>
                       
                       <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
                         <div className="flex items-center gap-2 mb-2">
                           <Shield className="w-4 h-4 text-purple-400" />
-                          <span className="text-sm font-medium">Безпека даних</span>
+                          <span className="text-sm font-medium">{t('monitoring.dataSecurity')}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Всі дані моніторингу зберігаються в зашифрованому вигляді та недоступні третім особам.
+                          {t('monitoring.dataSecurityDesc')}
                         </p>
                       </div>
                     </div>

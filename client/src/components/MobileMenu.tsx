@@ -17,9 +17,9 @@ import {
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 
 interface MobileMenuProps {
-  lang?: "UA" | "RU" | "EN";
   isAuthenticated?: boolean;
   onLogout?: () => void;
   username?: string;
@@ -27,12 +27,12 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ 
-  lang = "UA", 
   isAuthenticated = false, 
   onLogout,
   username,
   tier = "FREE"
 }: MobileMenuProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
   
@@ -63,17 +63,17 @@ export function MobileMenu({
   }, [isOpen]);
   
   const publicItems: Array<{ href: string; icon: any; label: string; highlight?: boolean }> = [
-    { href: "/", icon: Home, label: lang === "UA" ? "Головна" : lang === "RU" ? "Главная" : "Home" },
-    { href: "/pricing", icon: CreditCard, label: lang === "UA" ? "Тарифи" : lang === "RU" ? "Тарифы" : "Pricing" },
+    { href: "/", icon: Home, label: t('mobile.home') },
+    { href: "/pricing", icon: CreditCard, label: t('nav.pricing') },
   ];
 
   const authItems: Array<{ href: string; icon: any; label: string; highlight?: boolean }> = [
-    { href: "/dashboard", icon: Shield, label: lang === "UA" ? "Перевірки" : "Checks", highlight: true },
-    { href: "/history", icon: History, label: lang === "UA" ? "Історія" : "History" },
-    { href: "/monitoring", icon: Eye, label: lang === "UA" ? "Моніторинг" : "Monitoring" },
-    { href: "/referral", icon: Users, label: lang === "UA" ? "Реферали" : "Referrals" },
-    { href: "/pricing", icon: CreditCard, label: lang === "UA" ? "Тарифи" : "Pricing" },
-    { href: "/account", icon: User, label: lang === "UA" ? "Профіль" : "Profile" },
+    { href: "/dashboard", icon: Shield, label: t('mobile.checks'), highlight: true },
+    { href: "/history", icon: History, label: t('nav.history') },
+    { href: "/monitoring", icon: Eye, label: t('nav.monitoring') },
+    { href: "/referral", icon: Users, label: t('mobile.referrals') },
+    { href: "/pricing", icon: CreditCard, label: t('nav.pricing') },
+    { href: "/account", icon: User, label: t('mobile.profile') },
   ];
 
   const navItems = isAuthenticated ? authItems : publicItems;
@@ -189,7 +189,7 @@ export function MobileMenu({
                     <Link href="/login">
                       <Button className="w-full bg-primary hover:bg-primary/90 h-14 text-base" data-testid="button-mobile-login">
                         <Shield className="w-5 h-5 mr-2" />
-                        {lang === "UA" ? "Увійти через Telegram" : lang === "RU" ? "Войти через Telegram" : "Sign In with Telegram"}
+                        {t('mobile.signInTelegram')}
                       </Button>
                     </Link>
                   </motion.div>
@@ -225,7 +225,7 @@ export function MobileMenu({
                     data-testid="button-mobile-logout"
                   >
                     <LogOut className="w-5 h-5 mr-2" />
-                    {lang === "UA" ? "Вийти" : lang === "RU" ? "Выйти" : "Logout"}
+                    {t('auth.logout')}
                   </Button>
                 </div>
               )}

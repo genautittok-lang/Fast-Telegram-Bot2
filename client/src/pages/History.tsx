@@ -41,6 +41,7 @@ import { useAuth } from "@/lib/auth";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useToast } from "@/hooks/use-toast";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 
 interface Report {
   id: number;
@@ -79,25 +80,19 @@ const typeGradients: Record<string, string> = {
   card: "from-emerald-500 to-teal-400",
 };
 
-const riskFilters = [
-  { id: "all", label: "Всі", color: "bg-white/10 hover:bg-white/20" },
-  { id: "low", label: "Низький", color: "bg-green-500/20 text-green-400 hover:bg-green-500/30" },
-  { id: "medium", label: "Середній", color: "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30" },
-  { id: "high", label: "Високий", color: "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" },
-  { id: "critical", label: "Критичний", color: "bg-red-500/20 text-red-400 hover:bg-red-500/30" },
-];
-
-const dateFilters = [
-  { id: "all", label: "Весь час" },
-  { id: "today", label: "Сьогодні" },
-  { id: "week", label: "Цей тиждень" },
-  { id: "month", label: "Цей місяць" },
-];
+const localeMap: Record<string, string> = {
+  uk: "uk-UA",
+  en: "en-US",
+  ru: "ru-RU",
+  es: "es-ES",
+  de: "de-DE",
+};
 
 export default function History() {
   const { isLoading: authLoading, isAuthenticated, user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { t, lang } = useTranslation();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -114,6 +109,21 @@ export default function History() {
       setLocation("/login");
     }
   }, [authLoading, isAuthenticated, setLocation]);
+
+  const riskFilters = [
+    { id: "all", label: t('history.all'), color: "bg-white/10 hover:bg-white/20" },
+    { id: "low", label: t('dashboard.riskLevels.low'), color: "bg-green-500/20 text-green-400 hover:bg-green-500/30" },
+    { id: "medium", label: t('dashboard.riskLevels.medium'), color: "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30" },
+    { id: "high", label: t('dashboard.riskLevels.high'), color: "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" },
+    { id: "critical", label: t('dashboard.riskLevels.critical'), color: "bg-red-500/20 text-red-400 hover:bg-red-500/30" },
+  ];
+
+  const dateFilters = [
+    { id: "all", label: t('history.allTime') },
+    { id: "today", label: t('history.today') },
+    { id: "week", label: t('history.thisWeek') },
+    { id: "month", label: t('history.thisMonth') },
+  ];
 
   const filteredReports = useMemo(() => {
     if (!reports) return [];
@@ -192,7 +202,7 @@ export default function History() {
           border: "border-l-red-500",
           glow: "shadow-red-500/20",
           icon: AlertCircle,
-          label: "Критичний"
+          label: t('dashboard.riskLevels.critical')
         };
       case "high": 
         return { 
@@ -201,7 +211,7 @@ export default function History() {
           border: "border-l-orange-500",
           glow: "shadow-orange-500/20",
           icon: AlertTriangle,
-          label: "Високий"
+          label: t('dashboard.riskLevels.high')
         };
       case "medium": 
         return { 
@@ -210,7 +220,7 @@ export default function History() {
           border: "border-l-yellow-500",
           glow: "shadow-yellow-500/20",
           icon: Clock,
-          label: "Середній"
+          label: t('dashboard.riskLevels.medium')
         };
       default: 
         return { 
@@ -219,7 +229,7 @@ export default function History() {
           border: "border-l-green-500",
           glow: "shadow-green-500/20",
           icon: CheckCircle,
-          label: "Низький"
+          label: t('dashboard.riskLevels.low')
         };
     }
   };
@@ -233,14 +243,14 @@ export default function History() {
       await navigator.clipboard.writeText(report.target);
       setCopiedId(report.id);
       toast({
-        title: "Скопійовано",
-        description: "Ціль скопійовано до буферу обміну",
+        title: t('history.copied'),
+        description: t('history.copiedDesc'),
       });
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
       toast({
-        title: "Помилка",
-        description: "Не вдалося скопіювати",
+        title: t('errors.invalidInput'),
+        description: t('history.copyError'),
         variant: "destructive",
       });
     }
@@ -254,12 +264,14 @@ export default function History() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Щойно";
-    if (diffMins < 60) return `${diffMins} хв тому`;
-    if (diffHours < 24) return `${diffHours} год тому`;
-    if (diffDays < 7) return `${diffDays} д тому`;
-    return date.toLocaleDateString('uk-UA');
+    if (diffMins < 1) return t('time.justNow');
+    if (diffMins < 60) return `${diffMins} ${t('time.minutesAgo')}`;
+    if (diffHours < 24) return `${diffHours} ${t('time.hoursAgo')}`;
+    if (diffDays < 7) return `${diffDays} ${t('time.daysAgo')}`;
+    return date.toLocaleDateString(localeMap[lang] || 'en-US');
   };
+
+  const locale = localeMap[lang] || 'en-US';
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -306,12 +318,12 @@ export default function History() {
             <Link href="/dashboard">
               <Button size="sm" className="hidden sm:flex gap-1.5 text-xs sm:text-sm h-8" data-testid="button-new-check">
                 <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden md:inline">Нова перевірка</span>
-                <span className="inline md:hidden">Нова</span>
+                <span className="hidden md:inline">{t('dashboard.newCheck')}</span>
+                <span className="inline md:hidden">{t('dashboard.newCheck')}</span>
               </Button>
             </Link>
             <LanguageSwitcher variant="minimal" />
-            <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
           </div>
         </div>
       </header>
@@ -334,7 +346,7 @@ export default function History() {
               </div>
             </div>
             <p className="text-xl sm:text-2xl font-bold font-display">{stats.total}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Всього перевірок</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.totalChecks')}</p>
           </motion.div>
 
           <motion.div 
@@ -345,7 +357,7 @@ export default function History() {
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
             </div>
             <p className="text-xl sm:text-2xl font-bold font-display">{stats.thisWeek}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Цього тижня</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.thisWeekChecks')}</p>
           </motion.div>
 
           <motion.div 
@@ -356,7 +368,7 @@ export default function History() {
               <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
             </div>
             <p className="text-xl sm:text-2xl font-bold font-display">{stats.critical}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Критичних ризиків</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.criticalRisks')}</p>
           </motion.div>
 
           <motion.div 
@@ -367,7 +379,7 @@ export default function History() {
               <Download className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
             </div>
             <p className="text-xl sm:text-2xl font-bold font-display">{stats.downloads}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Завантажено PDF</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.pdfDownloaded')}</p>
           </motion.div>
         </motion.div>
 
@@ -381,7 +393,7 @@ export default function History() {
             <div className="relative w-full sm:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Пошук по цілі..."
+                placeholder={t('history.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
@@ -445,7 +457,7 @@ export default function History() {
               <div className="relative">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 border-2 sm:border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Завантаження історії...</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{t('history.loadingHistory')}</p>
             </div>
           ) : filteredReports.length > 0 ? (
             <AnimatePresence mode="popLayout">
@@ -486,7 +498,7 @@ export default function History() {
                         <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-muted-foreground">
                           <span>{formatDate(report.createdAt)}</span>
                           <span className="hidden sm:inline-block w-1 h-1 rounded-full bg-white/20" />
-                          <span className="hidden sm:inline">{new Date(report.createdAt).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="hidden sm:inline">{new Date(report.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
 
@@ -545,15 +557,15 @@ export default function History() {
               <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <Search className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
               </div>
-              <p className="text-base sm:text-lg font-medium mb-1">Нічого не знайдено</p>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">Спробуйте змінити фільтри або пошуковий запит</p>
+              <p className="text-base sm:text-lg font-medium mb-1">{t('history.nothingFound')}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">{t('history.changeFilters')}</p>
               <Button 
                 variant="outline"
                 size="sm"
                 onClick={() => { setSearchQuery(""); setRiskFilter("all"); setDateFilter("all"); }}
                 data-testid="button-clear-filters"
               >
-                Очистити фільтри
+                {t('history.clearFilters')}
               </Button>
             </motion.div>
           ) : (
@@ -580,9 +592,9 @@ export default function History() {
                 </div>
               </motion.div>
               
-              <h3 className="text-lg sm:text-xl font-display font-bold mb-1.5 sm:mb-2">Історія порожня</h3>
+              <h3 className="text-lg sm:text-xl font-display font-bold mb-1.5 sm:mb-2">{t('history.emptyHistory')}</h3>
               <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-sm mx-auto">
-                Виконайте вашу першу перевірку щоб побачити результати тут
+                {t('history.emptyHistoryHint')}
               </p>
               
               <Link href="/dashboard">
@@ -594,7 +606,7 @@ export default function History() {
                   >
                     <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
                       <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      Почати перевірку
+                      {t('history.startChecking')}
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Button>
@@ -610,7 +622,7 @@ export default function History() {
             animate={{ opacity: 1 }}
             className="text-center text-xs text-muted-foreground pt-4"
           >
-            Показано {filteredReports.length} з {reports?.length || 0} записів
+            {t('history.showingResults', { filtered: String(filteredReports.length), total: String(reports?.length || 0) })}
           </motion.p>
         )}
       </main>

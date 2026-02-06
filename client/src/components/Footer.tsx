@@ -1,14 +1,9 @@
 import { Shield, ExternalLink, Mail } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
+import { useTranslation } from "@/lib/i18n";
 
-interface FooterProps {
-  lang?: "UA" | "RU" | "EN";
-}
-
-export function Footer({ lang = "EN" }: FooterProps) {
-  const getTranslation = (ua: string, ru: string, en: string) => {
-    return lang === "UA" ? ua : lang === "RU" ? ru : en;
-  };
+export function Footer() {
+  const { t } = useTranslation();
 
   return (
     <footer className="border-t border-white/10 bg-background/95 backdrop-blur-sm relative z-10">
@@ -25,11 +20,7 @@ export function Footer({ lang = "EN" }: FooterProps) {
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-              {getTranslation(
-                "Професійна платформа для OSINT розвідки та аналізу кіберзагроз. Безпечний та етичний збір відкритих даних.",
-                "Профессиональная платформа для OSINT разведки и анализа киберугроз. Безопасный и этичный сбор открытых данных.",
-                "Professional platform for OSINT intelligence and cyber threat analysis. Secure and ethical open-source data collection."
-              )}
+              {t('footer.description')}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a 
@@ -49,23 +40,23 @@ export function Footer({ lang = "EN" }: FooterProps) {
           <div className="space-y-4">
             <h4 className="font-semibold text-sm flex items-center gap-2">
               <Shield className="w-4 h-4 text-primary" />
-              {getTranslation("Правова інформація", "Правовая информация", "Legal")}
+              {t('footer.legal')}
             </h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li>
                 <a href="#terms" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-terms">
-                  {getTranslation("Умови використання", "Условия использования", "Terms of Service")}
+                  {t('footer.termsOfService')}
                 </a>
               </li>
               <li>
                 <a href="#privacy" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-privacy">
-                  {getTranslation("Політика конфіденційності", "Политика конфиденциальности", "Privacy Policy")}
+                  {t('footer.privacyPolicy')}
                 </a>
               </li>
               <li>
                 <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-contact">
                   <Mail className="w-3.5 h-3.5" />
-                  {getTranslation("Контакт", "Контакт", "Contact")}
+                  {t('footer.contact')}
                 </a>
               </li>
             </ul>
@@ -73,14 +64,10 @@ export function Footer({ lang = "EN" }: FooterProps) {
 
           <div className="space-y-4">
             <h4 className="font-semibold text-sm">
-              {getTranslation("Відмова від відповідальності", "Отказ от ответственности", "Legal Disclaimer")}
+              {t('footer.disclaimer')}
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              {getTranslation(
-                "DARKSHARE надає інструменти OSINT виключно для законних цілей кібербезпеки. Користувачі несуть відповідальність за дотримання місцевого законодавства. Ми збираємо лише загальнодоступну інформацію.",
-                "DARKSHARE предоставляет инструменты OSINT исключительно для законных целей кибербезопасности. Пользователи несут ответственность за соблюдение местного законодательства. Мы собираем только общедоступную информацию.",
-                "DARKSHARE provides OSINT tools solely for legitimate cybersecurity purposes. Users are responsible for compliance with local laws. We collect only publicly available information."
-              )}
+              {t('footer.disclaimerText')}
             </p>
           </div>
         </div>
@@ -91,16 +78,16 @@ export function Footer({ lang = "EN" }: FooterProps) {
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground order-1 sm:order-2">
             <a href="#terms" className="hover:text-primary transition-colors" data-testid="link-terms-bottom">
-              {getTranslation("Умови", "Условия", "Terms")}
+              {t('footer.terms')}
             </a>
             <span className="text-white/20">|</span>
             <a href="#privacy" className="hover:text-primary transition-colors" data-testid="link-privacy-bottom">
-              {getTranslation("Приватність", "Приватность", "Privacy")}
+              {t('footer.privacy')}
             </a>
             <span className="text-white/20">|</span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              {getTranslation("Системи онлайн", "Системы онлайн", "Systems Online")}
+              {t('footer.systemsOnline')}
             </span>
           </div>
         </div>

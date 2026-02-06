@@ -39,6 +39,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import { MobileMenu } from "@/components/MobileMenu";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -49,15 +50,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
-  { id: "history", label: "Історія", icon: History, href: "/history" },
-  { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
-  { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
-  { id: "pricing", label: "Тарифи", icon: CreditCard, href: "/pricing" },
-  { id: "account", label: "Акаунт", icon: User, href: "/account" },
-];
 
 interface Report {
   id: number;
@@ -142,6 +134,16 @@ export default function Account() {
   });
   const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { id: "dashboard", label: t('nav.dashboard'), icon: Home, href: "/dashboard" },
+    { id: "history", label: t('nav.history'), icon: History, href: "/history" },
+    { id: "monitoring", label: t('nav.monitoring'), icon: Activity, href: "/monitoring" },
+    { id: "referral", label: t('nav.referral'), icon: Users, href: "/referral" },
+    { id: "pricing", label: t('nav.pricing'), icon: CreditCard, href: "/pricing" },
+    { id: "account", label: t('nav.account'), icon: User, href: "/account" },
+  ];
 
   const { data: reports = [], isLoading: reportsLoading } = useQuery<Report[]>({
     queryKey: ['/api/reports'],
@@ -227,7 +229,7 @@ export default function Account() {
             <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
             <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <p className="text-muted-foreground font-mono text-sm">Завантаження...</p>
+          <p className="text-muted-foreground font-mono text-sm">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -299,7 +301,7 @@ export default function Account() {
             data-testid="button-logout"
           >
             <LogOut className="w-5 h-5" />
-            Вийти
+            {t('auth.logout')}
           </Button>
         </div>
       </aside>
@@ -315,7 +317,6 @@ export default function Account() {
           <div className="flex items-center gap-2">
             <LanguageSwitcher variant="minimal" />
             <MobileMenu 
-              lang="UA" 
               isAuthenticated={true} 
               username={user?.username} 
               tier={user?.tier}
@@ -358,7 +359,7 @@ export default function Account() {
                   {user?.refCode && (
                     <div className="flex items-center gap-2">
                       <Users className="w-3 h-3 lg:w-4 lg:h-4 text-purple-400" />
-                      <span data-testid="text-ref-code" className="truncate">Реф: {user.refCode}</span>
+                      <span data-testid="text-ref-code" className="truncate">{t('account.ref')}: {user.refCode}</span>
                     </div>
                   )}
                 </div>
@@ -390,7 +391,7 @@ export default function Account() {
                     <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                       <BarChart3 className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
                     </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">Всього перевірок</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.totalChecks')}</span>
                   </div>
                   <p className="text-2xl lg:text-3xl font-bold text-blue-400 font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
@@ -400,7 +401,7 @@ export default function Account() {
                     <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
                       <Activity className="w-4 h-4 lg:w-5 lg:h-5 text-green-400" />
                     </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">Активні монітори</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.activeMonitors')}</span>
                   </div>
                   <p className="text-2xl lg:text-3xl font-bold text-green-400 font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
@@ -410,7 +411,7 @@ export default function Account() {
                     <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
                       <Users className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400" />
                     </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">Рефералів</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.referrals')}</span>
                   </div>
                   <p className="text-2xl lg:text-3xl font-bold text-purple-400 font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
@@ -420,7 +421,7 @@ export default function Account() {
                     <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
                       <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
                     </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">Топ</span>
+                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.top')}</span>
                   </div>
                   <div className="flex flex-wrap gap-1 lg:gap-1.5 mt-1">
                     {stats.mostUsedTypes.map((type, idx) => (
@@ -444,7 +445,7 @@ export default function Account() {
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center">
                 <Award className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400" />
               </div>
-              <h2 className="text-lg lg:text-xl font-bold text-white">Досягнення</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">{t('account.achievements')}</h2>
             </div>
             
             {isDataLoading ? (
@@ -466,13 +467,13 @@ export default function Account() {
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <Target className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400 flex-shrink-0" />
-                      <span className="font-medium text-white text-sm lg:text-base truncate">Risk Hunter</span>
+                      <span className="font-medium text-white text-sm lg:text-base truncate">{t('account.riskHunter')}</span>
                     </div>
                     {achievements.riskHunter.completed && (
-                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
+                      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs lg:text-sm px-2 py-0.5">{t('account.completed')}</Badge>
                     )}
                   </div>
-                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">10 перевірок</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">{t('account.riskHunterDesc')}</p>
                   <Progress 
                     value={Math.min(100, (achievements.riskHunter.current / achievements.riskHunter.target) * 100)} 
                     className="h-1.5 lg:h-2 bg-orange-950/50"
@@ -486,13 +487,13 @@ export default function Account() {
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
-                      <span className="font-medium text-white text-sm lg:text-base truncate">Scam Slayer</span>
+                      <span className="font-medium text-white text-sm lg:text-base truncate">{t('account.scamSlayer')}</span>
                     </div>
                     {achievements.scamSlayer.completed && (
-                      <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
+                      <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-xs lg:text-sm px-2 py-0.5">{t('account.completed')}</Badge>
                     )}
                   </div>
-                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">50 перевірок</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">{t('account.scamSlayerDesc')}</p>
                   <Progress 
                     value={Math.min(100, (achievements.scamSlayer.current / achievements.scamSlayer.target) * 100)} 
                     className="h-1.5 lg:h-2 bg-red-950/50"
@@ -506,13 +507,13 @@ export default function Account() {
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <Flame className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-400 flex-shrink-0" />
-                      <span className="font-medium text-white text-sm lg:text-base truncate">Streak Master</span>
+                      <span className="font-medium text-white text-sm lg:text-base truncate">{t('account.streakMaster')}</span>
                     </div>
                     {achievements.streakMaster.completed && (
-                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
+                      <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs lg:text-sm px-2 py-0.5">{t('account.completed')}</Badge>
                     )}
                   </div>
-                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">7 днів підряд</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">{t('account.streakMasterDesc')}</p>
                   <Progress 
                     value={Math.min(100, (achievements.streakMaster.current / achievements.streakMaster.target) * 100)} 
                     className="h-1.5 lg:h-2 bg-yellow-950/50"
@@ -526,13 +527,13 @@ export default function Account() {
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <Crown className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
-                      <span className="font-medium text-white text-sm lg:text-base truncate">Referral King</span>
+                      <span className="font-medium text-white text-sm lg:text-base truncate">{t('account.referralKing')}</span>
                     </div>
                     {achievements.referralKing.completed && (
-                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs lg:text-sm px-2 py-0.5">Готово</Badge>
+                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs lg:text-sm px-2 py-0.5">{t('account.completed')}</Badge>
                     )}
                   </div>
-                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">5 рефералів</p>
+                  <p className="text-xs lg:text-sm text-muted-foreground mb-1.5 lg:mb-2">{t('account.referralKingDesc')}</p>
                   <Progress 
                     value={Math.min(100, (achievements.referralKing.current / achievements.referralKing.target) * 100)} 
                     className="h-1.5 lg:h-2 bg-purple-950/50"
@@ -555,7 +556,7 @@ export default function Account() {
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-slate-500/20 to-zinc-500/10 flex items-center justify-center">
                 <Settings className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
               </div>
-              <h2 className="text-lg lg:text-xl font-bold text-white">Налаштування</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">{t('account.settings')}</h2>
             </div>
             
             <div className="space-y-3 lg:space-y-6">
@@ -563,8 +564,8 @@ export default function Account() {
                 <div className="flex items-center gap-2 lg:gap-3">
                   <Globe className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-medium text-white text-sm lg:text-base">Мова інтерфейсу</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground">Оберіть зручну мову</p>
+                    <p className="font-medium text-white text-sm lg:text-base">{t('account.interfaceLanguage')}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.chooseLanguage')}</p>
                   </div>
                 </div>
                 <Select value={language} onValueChange={setLanguage}>
@@ -584,8 +585,8 @@ export default function Account() {
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-white text-sm lg:text-base truncate">Email сповіщення</p>
-                      <p className="text-xs lg:text-sm text-muted-foreground">На пошту</p>
+                      <p className="font-medium text-white text-sm lg:text-base truncate">{t('account.emailNotifications')}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{t('account.emailNotificationsDesc')}</p>
                     </div>
                   </div>
                   <Switch 
@@ -599,8 +600,8 @@ export default function Account() {
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-white text-sm lg:text-base truncate">Telegram</p>
-                      <p className="text-xs lg:text-sm text-muted-foreground">Повідомлення</p>
+                      <p className="font-medium text-white text-sm lg:text-base truncate">{t('account.telegramNotifications')}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{t('account.telegramNotificationsDesc')}</p>
                     </div>
                   </div>
                   <Switch 
@@ -614,8 +615,8 @@ export default function Account() {
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-white text-sm lg:text-base truncate">Загрози</p>
-                      <p className="text-xs lg:text-sm text-muted-foreground">Миттєві алерти</p>
+                      <p className="font-medium text-white text-sm lg:text-base truncate">{t('account.threatAlerts')}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{t('account.threatAlertsDesc')}</p>
                     </div>
                   </div>
                   <Switch 
@@ -629,8 +630,8 @@ export default function Account() {
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                     <div className="min-w-0">
-                      <p className="font-medium text-white text-sm lg:text-base truncate">Оновлення</p>
-                      <p className="text-xs lg:text-sm text-muted-foreground">Нові функції</p>
+                      <p className="font-medium text-white text-sm lg:text-base truncate">{t('account.updateNotifications')}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{t('account.updateNotificationsDesc')}</p>
                     </div>
                   </div>
                   <Switch 
@@ -645,19 +646,19 @@ export default function Account() {
                 <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
                   <Key className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-medium text-white text-sm lg:text-base">API ключ</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground">Для інтеграції</p>
+                    <p className="font-medium text-white text-sm lg:text-base">{t('account.apiKey')}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.forIntegration')}</p>
                   </div>
                 </div>
                 {userTier === "FREE" ? (
                   <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800/50 text-xs lg:text-sm text-muted-foreground border border-zinc-700">
                     <Lock className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
-                    <span className="truncate">Оновіться для API</span>
+                    <span className="truncate">{t('account.upgradeForApi')}</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800 text-xs lg:text-sm text-cyan-400 border border-zinc-700">
                     <Check className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
-                    <span>API доступний</span>
+                    <span>{t('account.apiAvailable')}</span>
                   </div>
                 )}
               </div>
@@ -674,22 +675,22 @@ export default function Account() {
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center">
                 <CreditCard className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-400" />
               </div>
-              <h2 className="text-lg lg:text-xl font-bold text-white">Підписка</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">{t('account.subscriptionTitle')}</h2>
             </div>
             
             <div className="space-y-3 lg:space-y-4">
               <div className="flex flex-col gap-3 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-transparent border border-indigo-500/20">
                 <div>
                   <div className="flex items-center gap-2 lg:gap-3 mb-1 lg:mb-2 flex-wrap">
-                    <p className="font-medium text-white text-sm lg:text-base">Поточний план</p>
+                    <p className="font-medium text-white text-sm lg:text-base">{t('account.currentPlan')}</p>
                     <TierBadge tier={userTier} />
                   </div>
                   {userTier === "FREE" ? (
-                    <p className="text-xs lg:text-sm text-muted-foreground">Базовий план</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.basicPlan')}</p>
                   ) : userTier === "PRO" ? (
-                    <p className="text-xs lg:text-sm text-muted-foreground">Професійний план</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.professionalPlan')}</p>
                   ) : (
-                    <p className="text-xs lg:text-sm text-muted-foreground">Корпоративний план</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.corporatePlan')}</p>
                   )}
                 </div>
                 {userTier === "FREE" && (
@@ -699,7 +700,7 @@ export default function Account() {
                       data-testid="button-upgrade"
                     >
                       <Crown className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
-                      Оновити план
+                      {t('account.upgradePlan')}
                       <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 ml-1 lg:ml-1" />
                     </Button>
                   </Link>
@@ -708,7 +709,7 @@ export default function Account() {
               
               <div className="p-3 lg:p-5 rounded-xl bg-zinc-900/50 border border-white/5">
                 <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
-                  <p className="font-medium text-white text-sm lg:text-base">Запити</p>
+                  <p className="font-medium text-white text-sm lg:text-base">{t('account.requests')}</p>
                   <span className="text-xs lg:text-sm font-mono text-muted-foreground" data-testid="text-requests-usage">
                     {requestsUsed.used} / {requestsUsed.total}
                   </span>
@@ -718,7 +719,7 @@ export default function Account() {
                   className="h-2 lg:h-3 bg-zinc-800"
                 />
                 <p className="text-xs lg:text-sm text-muted-foreground mt-1.5 lg:mt-2" data-testid="text-requests-left">
-                  Залишилось {requestsUsed.left}
+                  {t('account.remaining')} {requestsUsed.left}
                 </p>
               </div>
             </div>
@@ -734,7 +735,7 @@ export default function Account() {
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center">
                 <Lock className="w-4 h-4 lg:w-5 lg:h-5 text-red-400" />
               </div>
-              <h2 className="text-lg lg:text-xl font-bold text-white">Безпека</h2>
+              <h2 className="text-lg lg:text-xl font-bold text-white">{t('account.security')}</h2>
             </div>
             
             <div className="space-y-2 lg:space-y-4">
@@ -756,7 +757,7 @@ export default function Account() {
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-medium text-white text-sm lg:text-base">Останній вхід</p>
+                    <p className="font-medium text-white text-sm lg:text-base">{t('account.lastLogin')}</p>
                     <p className="text-xs lg:text-sm text-muted-foreground truncate">{new Date().toLocaleString('uk-UA')}</p>
                   </div>
                 </div>
@@ -766,12 +767,12 @@ export default function Account() {
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Monitor className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-medium text-white text-sm lg:text-base">Сесії</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground">Керування</p>
+                    <p className="font-medium text-white text-sm lg:text-base">{t('account.sessionsManage')}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground">{t('account.manage')}</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" className="text-xs lg:text-sm text-muted-foreground hover:text-white px-2 h-auto py-1" data-testid="button-manage-sessions">
-                  Керувати
+                  {t('account.manage')}
                   <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4 ml-0.5 lg:ml-1" />
                 </Button>
               </div>

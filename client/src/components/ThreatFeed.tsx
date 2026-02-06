@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "@/lib/i18n";
 
 interface ThreatItem {
   id: string;
@@ -27,54 +28,53 @@ interface ThreatItem {
   cveId?: string;
 }
 
-const severityConfig = {
+const severityStyles = {
   critical: {
     color: 'bg-red-500/20 text-red-400 border-red-500/30',
     glow: 'shadow-red-500/20',
     icon: Skull,
-    label: 'CRITICAL'
   },
   high: {
     color: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     glow: 'shadow-orange-500/20',
     icon: AlertTriangle,
-    label: 'HIGH'
   },
   medium: {
     color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     glow: 'shadow-yellow-500/20',
     icon: Shield,
-    label: 'MEDIUM'
   },
   low: {
     color: 'bg-green-500/20 text-green-400 border-green-500/30',
     glow: 'shadow-green-500/20',
     icon: Shield,
-    label: 'LOW'
   }
 };
 
-const typeConfig = {
-  cve: { icon: Bug, label: 'CVE', color: 'text-blue-400' },
-  malware: { icon: Skull, label: 'Malware', color: 'text-red-400' },
-  phishing: { icon: Target, label: 'Phishing', color: 'text-yellow-400' },
-  botnet: { icon: Network, label: 'Botnet', color: 'text-purple-400' },
-  ransomware: { icon: Flame, label: 'Ransomware', color: 'text-orange-400' },
-  apt: { icon: Shield, label: 'APT', color: 'text-cyan-400' }
+const typeStyles = {
+  cve: { icon: Bug, color: 'text-blue-400' },
+  malware: { icon: Skull, color: 'text-red-400' },
+  phishing: { icon: Target, color: 'text-yellow-400' },
+  botnet: { icon: Network, color: 'text-purple-400' },
+  ransomware: { icon: Flame, color: 'text-orange-400' },
+  apt: { icon: Shield, color: 'text-cyan-400' }
 };
 
-function formatTimeAgo(timestamp: string): string {
-  const now = new Date();
-  const date = new Date(timestamp);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+const typeTranslationKeys: Record<string, string> = {
+  cve: 'threatFeed.typeCve',
+  malware: 'threatFeed.typeMalware',
+  phishing: 'threatFeed.typePhishing',
+  botnet: 'threatFeed.typeBotnet',
+  ransomware: 'threatFeed.typeRansomware',
+  apt: 'threatFeed.typeApt',
+};
 
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
-}
+const severityTranslationKeys: Record<string, string> = {
+  critical: 'dashboard.riskLevels.critical',
+  high: 'dashboard.riskLevels.high',
+  medium: 'dashboard.riskLevels.medium',
+  low: 'dashboard.riskLevels.low',
+};
 
 interface ThreatCardProps {
   threat: ThreatItem;
@@ -83,9 +83,23 @@ interface ThreatCardProps {
 
 const ThreatCard = forwardRef<HTMLDivElement, ThreatCardProps>(
   function ThreatCardInner({ threat, index }, ref) {
-    const severity = severityConfig[threat.severity];
-    const typeInfo = typeConfig[threat.type];
+    const { t } = useTranslation();
+    const severity = severityStyles[threat.severity];
+    const typeInfo = typeStyles[threat.type];
     const TypeIcon = typeInfo.icon;
+
+    const formatTimeAgo = (timestamp: string): string => {
+      const now = new Date();
+      const date = new Date(timestamp);
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffMins < 60) return `${diffMins} ${t('time.minutesAgo')}`;
+      if (diffHours < 24) return `${diffHours} ${t('time.hoursAgo')}`;
+      return `${diffDays} ${t('time.daysAgo')}`;
+    };
 
     return (
       <motion.div
@@ -119,14 +133,14 @@ const ThreatCard = forwardRef<HTMLDivElement, ThreatCardProps>(
                 variant="outline" 
                 className={`flex-shrink-0 text-[10px] px-1.5 py-0.5 ${severity.color} border`}
               >
-                {severity.label}
+                {t(severityTranslationKeys[threat.severity]).toUpperCase()}
               </Badge>
             </div>
 
             <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
               <span className={`flex items-center gap-1 ${typeInfo.color}`}>
                 <TypeIcon className="w-3 h-3" />
-                {typeInfo.label}
+                {t(typeTranslationKeys[threat.type])}
               </span>
               <span className="opacity-40">|</span>
               <span className="flex items-center gap-1">
@@ -157,11 +171,8 @@ const ThreatCard = forwardRef<HTMLDivElement, ThreatCardProps>(
 
 ThreatCard.displayName = "ThreatCard";
 
-interface ThreatFeedProps {
-  lang?: 'UA' | 'RU' | 'EN';
-}
-
-export function ThreatFeed({ lang = 'EN' }: ThreatFeedProps) {
+export function ThreatFeed() {
+  const { t } = useTranslation();
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -215,18 +226,6 @@ export function ThreatFeed({ lang = 'EN' }: ThreatFeedProps) {
     };
   }, [isAutoScrolling, threats]);
 
-  const titles = {
-    UA: 'Стрічка Загроз',
-    RU: 'Лента Угроз',
-    EN: 'Live Threat Feed'
-  };
-
-  const subtitles = {
-    UA: 'Останні CVE та кіберзагрози в реальному часі',
-    RU: 'Последние CVE и киберугрозы в реальном времени',
-    EN: 'Real-time CVEs and cyber threats'
-  };
-
   return (
     <Card className="relative overflow-hidden bg-card/50 border-white/5">
       <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-orange-500/5 pointer-events-none" />
@@ -242,8 +241,8 @@ export function ThreatFeed({ lang = 'EN' }: ThreatFeedProps) {
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-foreground">{titles[lang]}</h3>
-              <p className="text-xs text-muted-foreground">{subtitles[lang]}</p>
+              <h3 className="text-sm font-bold text-foreground">{t('threatFeed.title')}</h3>
+              <p className="text-xs text-muted-foreground">{t('threatFeed.subtitle')}</p>
             </div>
           </div>
 
@@ -297,12 +296,10 @@ export function ThreatFeed({ lang = 'EN' }: ThreatFeedProps) {
         <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[10px] text-muted-foreground">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span>
-              {lang === 'UA' ? 'Оновлення кожні 5 хв' : lang === 'RU' ? 'Обновление каждые 5 мин' : 'Auto-refresh every 5 min'}
-            </span>
+            <span>{t('threatFeed.autoRefresh')}</span>
           </div>
           <div className="flex items-center gap-2 font-mono">
-            <span>{threats?.length || 0} {lang === 'UA' ? 'загроз' : lang === 'RU' ? 'угроз' : 'threats'}</span>
+            <span>{threats?.length || 0} {t('threatFeed.threatsCount')}</span>
           </div>
         </div>
       </div>

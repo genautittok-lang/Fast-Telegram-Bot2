@@ -286,7 +286,7 @@ export default function Home() {
             
             <LanguageSwitcher />
             
-            <MobileMenu lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} isAuthenticated={false} />
+            <MobileMenu isAuthenticated={false} />
           </div>
         </div>
       </nav>
@@ -563,7 +563,7 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="max-w-3xl mx-auto"
             >
-              <ThreatFeed lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} />
+              <ThreatFeed />
             </motion.div>
           </div>
         </section>
@@ -730,7 +730,7 @@ export default function Home() {
         </section>
       </main>
 
-      <Footer lang={lang === "uk" ? "UA" : lang === "ru" ? "RU" : "EN"} />
+      <Footer />
       <ScrollToTop />
     </div>
   );

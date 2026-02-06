@@ -30,6 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useTranslation } from "@/lib/i18n";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SiTelegram } from "react-icons/si";
 import { MobileMenu } from "@/components/MobileMenu";
@@ -48,58 +49,6 @@ interface ReferralStats {
     paid: boolean;
   }>;
 }
-
-const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: Home, href: "/dashboard" },
-  { id: "history", label: "Історія", icon: History, href: "/history" },
-  { id: "monitoring", label: "Моніторинг", icon: Activity, href: "/monitoring" },
-  { id: "referral", label: "Рефералка", icon: Users, href: "/referral" },
-  { id: "pricing", label: "Тарифи", icon: CreditCard, href: "/pricing" },
-  { id: "account", label: "Акаунт", icon: User, href: "/account" },
-];
-
-const referralTiers = [
-  {
-    level: 1,
-    name: "Starter",
-    referrals: "1-5",
-    bonus: "+5 запитів",
-    icon: Star,
-    gradient: "from-zinc-500/20 via-zinc-500/10 to-transparent",
-    iconColor: "text-zinc-400",
-    borderColor: "border-zinc-500/30",
-  },
-  {
-    level: 2,
-    name: "Active",
-    referrals: "6-15",
-    bonus: "+15 запитів + 5% знижка",
-    icon: TrendingUp,
-    gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
-    iconColor: "text-blue-400",
-    borderColor: "border-blue-500/30",
-  },
-  {
-    level: 3,
-    name: "Ambassador",
-    referrals: "16-30",
-    bonus: "+30 запитів + 10% знижка",
-    icon: Award,
-    gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
-    iconColor: "text-purple-400",
-    borderColor: "border-purple-500/30",
-  },
-  {
-    level: 4,
-    name: "Elite Partner",
-    referrals: "31+",
-    bonus: "Безлім запитів + 20% знижка",
-    icon: Crown,
-    gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
-    iconColor: "text-amber-400",
-    borderColor: "border-amber-500/30",
-  },
-];
 
 function TierBadge({ tier }: { tier: string }) {
   const config = {
@@ -136,6 +85,59 @@ export default function Referral() {
   const { toast, dismiss } = useToast();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [location, setLocation] = useLocation();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { id: "dashboard", label: t('nav.dashboard'), icon: Home, href: "/dashboard" },
+    { id: "history", label: t('nav.history'), icon: History, href: "/history" },
+    { id: "monitoring", label: t('nav.monitoring'), icon: Activity, href: "/monitoring" },
+    { id: "referral", label: t('nav.referral'), icon: Users, href: "/referral" },
+    { id: "pricing", label: t('nav.pricing'), icon: CreditCard, href: "/pricing" },
+    { id: "account", label: t('nav.account'), icon: User, href: "/account" },
+  ];
+
+  const referralTiers = [
+    {
+      level: 1,
+      name: "Starter",
+      referrals: "1-5",
+      bonus: t('referral.starterBonus'),
+      icon: Star,
+      gradient: "from-zinc-500/20 via-zinc-500/10 to-transparent",
+      iconColor: "text-zinc-400",
+      borderColor: "border-zinc-500/30",
+    },
+    {
+      level: 2,
+      name: "Active",
+      referrals: "6-15",
+      bonus: t('referral.activeBonus'),
+      icon: TrendingUp,
+      gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
+      iconColor: "text-blue-400",
+      borderColor: "border-blue-500/30",
+    },
+    {
+      level: 3,
+      name: "Ambassador",
+      referrals: "16-30",
+      bonus: t('referral.ambassadorBonus'),
+      icon: Award,
+      gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
+      iconColor: "text-purple-400",
+      borderColor: "border-purple-500/30",
+    },
+    {
+      level: 4,
+      name: "Elite Partner",
+      referrals: "31+",
+      bonus: t('referral.eliteBonus'),
+      icon: Crown,
+      gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
+      iconColor: "text-amber-400",
+      borderColor: "border-amber-500/30",
+    },
+  ];
 
   const { data: referralStats, isLoading: statsLoading } = useQuery<ReferralStats>({
     queryKey: ["/api/referrals"],
@@ -165,14 +167,14 @@ export default function Referral() {
       await navigator.clipboard.writeText(referralCode);
       setCopiedCode(true);
       toast({
-        title: "Скопійовано!",
-        description: "Реферальний код скопійовано в буфер обміну",
+        title: t('referral.codeCopied'),
+        description: t('referral.codeCopiedDesc'),
       });
       setTimeout(() => setCopiedCode(false), 2000);
     } catch (error) {
       toast({
-        title: "Помилка копіювання",
-        description: "Не вдалося скопіювати код. Спробуйте ще раз.",
+        title: t('referral.copyErrorTitle'),
+        description: t('referral.copyErrorDesc'),
         variant: "destructive",
       });
     }
@@ -183,21 +185,21 @@ export default function Referral() {
       await navigator.clipboard.writeText(referralLink);
       setCopiedLink(true);
       toast({
-        title: "Скопійовано!",
-        description: "Реферальне посилання скопійовано в буфер обміну",
+        title: t('referral.linkCopied'),
+        description: t('referral.linkCopiedDesc'),
       });
       setTimeout(() => setCopiedLink(false), 2000);
     } catch (error) {
       toast({
-        title: "Помилка копіювання",
-        description: "Не вдалося скопіювати посилання. Спробуйте ще раз.",
+        title: t('referral.copyErrorTitle'),
+        description: t('referral.copyErrorDesc'),
         variant: "destructive",
       });
     }
   };
 
   const shareToTelegram = () => {
-    const text = encodeURIComponent(`Приєднуйся до DARKSHARE - найкращого OSINT сервісу! Використай мій код ${referralCode} для отримання бонусів! ${referralLink}`);
+    const text = encodeURIComponent(t('referral.shareMessage').replace('{code}', referralCode) + ` ${referralLink}`);
     window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${text}`, "_blank");
   };
 
@@ -218,7 +220,7 @@ export default function Referral() {
             <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
             <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
-          <p className="text-muted-foreground font-mono text-sm">Завантаження...</p>
+          <p className="text-muted-foreground font-mono text-sm">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -313,7 +315,7 @@ export default function Referral() {
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Вийти
+              {t('auth.logout')}
             </Button>
           </div>
         </div>
@@ -357,7 +359,7 @@ export default function Referral() {
                 </Avatar>
               </motion.div>
               <LanguageSwitcher variant="minimal" />
-              <MobileMenu lang="UA" isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+              <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
             </div>
           </div>
         </motion.header>
@@ -377,9 +379,9 @@ export default function Referral() {
                     <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20">
                       <Users className="w-7 h-7 text-purple-400" />
                     </div>
-                    <span className="bg-gradient-to-r from-white via-white to-purple-400/80 bg-clip-text text-transparent">Реферальна програма</span>
+                    <span className="bg-gradient-to-r from-white via-white to-purple-400/80 bg-clip-text text-transparent">{t('referral.title')}</span>
                   </h1>
-                  <p className="text-muted-foreground mt-2 ml-14">Запрошуй друзів та отримуй бонуси</p>
+                  <p className="text-muted-foreground mt-2 ml-14">{t('referral.inviteFriendsDesc')}</p>
                 </div>
               </motion.div>
             </div>
@@ -387,7 +389,7 @@ export default function Referral() {
             <div className="lg:hidden mb-4">
               <h1 className="text-xl font-display font-bold flex items-center gap-2">
                 <Users className="w-5 h-5 text-purple-400" />
-                <span>Рефералка</span>
+                <span>{t('nav.referral')}</span>
               </h1>
             </div>
 
@@ -399,7 +401,7 @@ export default function Referral() {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Gift className="w-5 h-5 text-purple-400" />
-                <h2 className="font-semibold text-lg">Твій реферальний код</h2>
+                <h2 className="font-semibold text-lg">{t('referral.yourRefCode')}</h2>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3">
@@ -414,12 +416,12 @@ export default function Referral() {
                   data-testid="button-copy-code"
                 >
                   {copiedCode ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-                  {copiedCode ? "Скопійовано" : "Копіювати"}
+                  {copiedCode ? t('referral.copied') : t('referral.copyBtn')}
                 </Button>
               </div>
 
               <div className="mt-4 p-3 rounded-xl bg-black/30 border border-white/5">
-                <p className="text-xs text-muted-foreground mb-2">Реферальне посилання:</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('referral.referralLink')}:</p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1 p-2 rounded-lg bg-black/40 border border-white/10 font-mono text-xs text-cyan-400 truncate">
                     {referralLink}
@@ -457,12 +459,12 @@ export default function Referral() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <UserPlus className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs text-muted-foreground">Запрошено</span>
+                  <span className="text-xs text-muted-foreground">{t('referral.totalReferrals')}</span>
                 </div>
                 <p className="text-3xl font-bold text-emerald-400 font-mono">
                   {statsLoading ? "—" : referralStats?.referralCount || 0}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">рефералів</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('referral.referralsLabel')}</p>
               </motion.div>
 
               <motion.div
@@ -473,12 +475,12 @@ export default function Referral() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Wallet className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs text-muted-foreground">Зароблено</span>
+                  <span className="text-xs text-muted-foreground">{t('referral.totalBonus')}</span>
                 </div>
                 <p className="text-3xl font-bold text-amber-400 font-mono">
                   +{statsLoading ? "—" : referralStats?.totalEarned || 0}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">запитів</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('referral.earnedRequests')}</p>
               </motion.div>
 
               <motion.div
@@ -489,12 +491,12 @@ export default function Referral() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Gift className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs text-muted-foreground">Очікує</span>
+                  <span className="text-xs text-muted-foreground">{t('referral.pendingBonusLabel')}</span>
                 </div>
                 <p className="text-3xl font-bold text-cyan-400 font-mono">
                   +{statsLoading ? "—" : referralStats?.pendingBonus || 0}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">бонусів</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('referral.bonus')}</p>
               </motion.div>
             </div>
 
@@ -506,7 +508,7 @@ export default function Referral() {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Award className="w-5 h-5 text-amber-400" />
-                <h2 className="font-semibold text-lg">Рівні винагород</h2>
+                <h2 className="font-semibold text-lg">{t('referral.rewardLevels')}</h2>
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -532,7 +534,7 @@ export default function Referral() {
                       {isActive && (
                         <div className="absolute -top-2 -right-2">
                           <Badge className="bg-gradient-to-r from-primary to-emerald-400 text-black text-[10px] px-2 py-0.5">
-                            Поточний
+                            {t('referral.current')}
                           </Badge>
                         </div>
                       )}
@@ -552,7 +554,7 @@ export default function Referral() {
                         {tier.name}
                       </h3>
                       <p className={`text-xs mb-2 ${isActive || isCompleted ? tier.iconColor : "text-muted-foreground/60"}`}>
-                        {tier.referrals} рефералів
+                        {tier.referrals} {t('referral.referralsLabel')}
                       </p>
                       <p className={`text-xs ${isActive || isCompleted ? "text-white/80" : "text-muted-foreground/50"}`}>
                         {tier.bonus}
@@ -572,7 +574,7 @@ export default function Referral() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-cyan-400" />
-                  <h2 className="font-semibold text-lg">Запрошені користувачі</h2>
+                  <h2 className="font-semibold text-lg">{t('referral.invitedUsers')}</h2>
                 </div>
                 <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">
                   {referralStats?.referredUsers?.length || 0}
@@ -611,11 +613,11 @@ export default function Referral() {
                         {refUser.paid ? (
                           <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
                             <Check className="w-3 h-3 mr-1" />
-                            Бонус
+                            {t('referral.bonus')}
                           </Badge>
                         ) : (
                           <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
-                            Очікує
+                            {t('referral.waiting')}
                           </Badge>
                         )}
                       </div>
@@ -627,9 +629,9 @@ export default function Referral() {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 flex items-center justify-center mb-4">
                     <UserPlus className="w-8 h-8 text-purple-400/60" />
                   </div>
-                  <p className="text-muted-foreground mb-2">Поки що немає рефералів</p>
+                  <p className="text-muted-foreground mb-2">{t('referral.noReferrals')}</p>
                   <p className="text-xs text-muted-foreground/60 max-w-xs">
-                    Поділіться своїм реферальним кодом з друзями та отримуйте бонуси за кожного запрошеного користувача
+                    {t('referral.inviteFriendsHint')}
                   </p>
                 </div>
               )}
@@ -646,31 +648,31 @@ export default function Referral() {
                   <Gift className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-2">Як це працює?</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('referral.howItWorksTitle')}</h3>
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-xs text-primary font-bold">1</span>
                       </div>
-                      <p>Поділіться своїм реферальним кодом або посиланням з друзями</p>
+                      <p>{t('referral.step1')}</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-xs text-primary font-bold">2</span>
                       </div>
-                      <p>Коли друг реєструється за вашим кодом, він отримує +5 безкоштовних запитів</p>
+                      <p>{t('referral.step2')}</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-xs text-primary font-bold">3</span>
                       </div>
-                      <p>Ви отримуєте +3 запити за кожного запрошеного користувача</p>
+                      <p>{t('referral.step3')}</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-xs text-primary font-bold">4</span>
                       </div>
-                      <p>Досягайте нових рівнів для отримання більших бонусів та знижок</p>
+                      <p>{t('referral.step4')}</p>
                     </div>
                   </div>
                 </div>
