@@ -18,6 +18,8 @@ import Admin from "@/pages/Admin";
 import Pricing from "@/pages/Pricing";
 import Support from "@/pages/Support";
 import ApiDocs from "@/pages/ApiDocs";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
 
 function Router() {
   return (
@@ -34,6 +36,8 @@ function Router() {
       <Route path="/pricing" component={Pricing} />
       <Route path="/support" component={Support} />
       <Route path="/api-docs" component={ApiDocs} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
       <Route component={NotFound} />
     </Switch>
   );

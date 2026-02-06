@@ -45,14 +45,18 @@ export function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
               <li>
-                <a href="#terms" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-terms">
-                  {t('footer.termsOfService')}
-                </a>
+                <Link href="/terms">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-terms">
+                    {t('footer.termsOfService')}
+                  </span>
+                </Link>
               </li>
               <li>
-                <a href="#privacy" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-privacy">
-                  {t('footer.privacyPolicy')}
-                </a>
+                <Link href="/privacy">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-privacy">
+                    {t('footer.privacyPolicy')}
+                  </span>
+                </Link>
               </li>
               <li>
                 <Link href="/support">
@@ -85,13 +89,17 @@ export function Footer() {
             © 2025 DARKSHARE. All rights reserved.
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground order-1 sm:order-2">
-            <a href="#terms" className="hover:text-primary transition-colors" data-testid="link-terms-bottom">
-              {t('footer.terms')}
-            </a>
+            <Link href="/terms">
+              <span className="hover:text-primary transition-colors" data-testid="link-terms-bottom">
+                {t('footer.terms')}
+              </span>
+            </Link>
             <span className="text-white/20">|</span>
-            <a href="#privacy" className="hover:text-primary transition-colors" data-testid="link-privacy-bottom">
-              {t('footer.privacy')}
-            </a>
+            <Link href="/privacy">
+              <span className="hover:text-primary transition-colors" data-testid="link-privacy-bottom">
+                {t('footer.privacy')}
+              </span>
+            </Link>
             <span className="text-white/20">|</span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
