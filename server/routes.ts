@@ -499,7 +499,7 @@ export async function registerRoutes(
           username,
           lang: "UA",
           tier: "FREE",
-          requestsLeft: 15,
+          requestsLeft: 5,
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });

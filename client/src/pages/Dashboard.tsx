@@ -61,7 +61,8 @@ import {
   PlayCircle,
   Layers,
   Keyboard,
-  HelpCircle
+  HelpCircle,
+  List
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1316,7 +1317,7 @@ Sources: ${result.sources.join(', ')}`;
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1">{t('account.remaining')}</div>
-                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{user?.requestsLeft ?? 0}/15</div>
+                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{user?.requestsLeft ?? 0}/{(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999 }; return limits[(user?.tier || "FREE").toUpperCase()] || 5; })()}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">

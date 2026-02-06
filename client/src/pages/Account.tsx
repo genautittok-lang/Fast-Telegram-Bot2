@@ -190,11 +190,12 @@ export default function Account() {
 
   const requestsUsed = useMemo(() => {
     const tierLimits: Record<string, number> = {
-      FREE: 15,
-      PRO: 500,
-      ENTERPRISE: 5000,
+      FREE: 5,
+      BASIC: 30,
+      PRO: 50,
+      ENTERPRISE: 9999,
     };
-    const total = tierLimits[userTier] || 15;
+    const total = tierLimits[userTier] || 5;
     const left = user?.requestsLeft ?? total;
     return {
       used: Math.max(0, total - left),

@@ -425,7 +425,7 @@ export class MemStorage implements IStorage {
       lang: insertUser.lang || "uk",
       langSet: insertUser.langSet ?? false,
       tier: insertUser.tier || "FREE",
-      requestsLeft: insertUser.requestsLeft ?? 15,
+      requestsLeft: insertUser.requestsLeft ?? 5,
       streakDays: insertUser.streakDays ?? 0,
       refCode: insertUser.refCode || null,
       discountPct: insertUser.discountPct ?? 0,

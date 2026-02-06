@@ -49,7 +49,7 @@ export async function setupBot(storage: IStorage) {
           tgId,
           username: ctx.from.username,
           lang: detectedLang,
-          requestsLeft: 15,
+          requestsLeft: 5,
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
@@ -88,14 +88,14 @@ export async function setupBot(storage: IStorage) {
         // Give bonus to new user
         if (user) {
           await storage.updateUser(user.id, { 
-            requestsLeft: (user.requestsLeft || 15) + 5
+            requestsLeft: (user.requestsLeft || 5) + 5
           });
           user = await storage.getUserByTgId(tgId);
         }
         
         // Give bonus to referrer
         await storage.updateUser(referrer.id, {
-          requestsLeft: (referrer.requestsLeft || 15) + 2
+          requestsLeft: (referrer.requestsLeft || 5) + 2
         });
         
         // Track referral
@@ -259,14 +259,14 @@ ${t(lang, "startWelcome.selectLang")}`;
     const lang = getUserLang(user?.lang);
     userStates.delete(tgId);
 
-    const requestsLeft = user?.requestsLeft ?? 15;
+    const requestsLeft = user?.requestsLeft ?? 5;
     const tierLimits: Record<string, number> = {
-      "FREE": 15,
+      "FREE": 5,
       "BASIC": 30,
       "PRO": 50,
       "ENTERPRISE": 9999,
     };
-    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 15;
+    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const progressBar = generateProgressBar(requestsLeft, requestsLimit);
     const lastActivity = formatLastActivity(user?.lastLogin, lang);
 
@@ -394,7 +394,9 @@ ${t(lang, "dashboard.selectModule")}`;
     } catch (e) {}
 
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    const requestsBar = generateProgressBar(user.requestsLeft || 0, 15);
+    const statsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 9999 };
+    const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    const requestsBar = generateProgressBar(user.requestsLeft || 0, statsUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
     
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
@@ -416,7 +418,7 @@ ${t(lang, "dashboard.selectModule")}`;
 • 🕐 ${lastActive}
 
 🎯 ${t(lang, "common.progress")}:
-• 📊 ${requestsBar} ${user.requestsLeft || 0}/15
+• 📊 ${requestsBar} ${user.requestsLeft || 0}/${statsUserLimit}
 • 🔥 ${streakBar} ${user.streakDays || 0}/30 ${t(lang, "common.days")}
 
 🏅 ${t(lang, "buttons.achievements")}:
@@ -1046,7 +1048,7 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
     }
 
     if (user) {
-      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 15) - 1) });
+      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 5) - 1) });
       
       await storage.createReport({
         userId: user.id,
@@ -1567,7 +1569,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
       ? "API, SIEM, ∞ запитів"
       : user.tier === "PRO" 
         ? "∞ запитів, PDF, моніторинг"
-        : "15 запитів/день, 1 монітор";
+        : "5 запитів/день, 1 монітор";
     
     const riskHunterProgress = Math.min(totalChecks, 10);
     const scamSlayerProgress = Math.min(totalChecks, 50);
@@ -1604,7 +1606,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 ├ 👁 ${lang === "uk" ? "Активних моніторів" : lang === "ru" ? "Активных мониторов" : "Active monitors"}: ${activeMonitors}
 ├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: ${referralCount}
 ├ 🔥 ${lang === "uk" ? "Серія днів" : lang === "ru" ? "Серия дней" : "Streak"}: ${streakDays} ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Remaining"}: ${user.requestsLeft ?? 15} ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
+└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Remaining"}: ${user.requestsLeft ?? 5} ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
 
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -1684,7 +1686,9 @@ ${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
       .join("\n") || "├ —";
     
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    const requestsBar = generateProgressBar(user.requestsLeft || 0, 15);
+    const detailTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 9999 };
+    const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    const requestsBar = generateProgressBar(user.requestsLeft || 0, detailUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
     
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
@@ -1718,7 +1722,7 @@ ${allTypesText}
 ━━━━━━━━━━━━━━━━━━━━
 
 📊 ${lang === "uk" ? "Прогрес" : lang === "ru" ? "Прогресс" : "Progress"}:
-├ 💳 ${lang === "uk" ? "Запити" : lang === "ru" ? "Запросы" : "Requests"}: ${user.requestsLeft || 0}/15
+├ 💳 ${lang === "uk" ? "Запити" : lang === "ru" ? "Запросы" : "Requests"}: ${user.requestsLeft || 0}/${detailUserLimit}
 │   ${requestsBar}
 └ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: ${user.streakDays || 0}/30 ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
     ${streakBar}`;
@@ -2346,7 +2350,7 @@ ${allTypesText}
     
     const text = `${t(lang, "admin.settingsTitle")}\n\n` +
       `${t(lang, "admin.limitsTitle")}\n` +
-      `├ FREE: 15 ${t(lang, "admin.requestsDay")}\n` +
+      `├ FREE: 5 ${t(lang, "admin.requestsDay")}\n` +
       `├ PRO: ${t(lang, "admin.unlimited")}\n` +
       `└ ENTERPRISE: ${t(lang, "admin.unlimitedApi")}\n\n` +
       `${t(lang, "admin.pricesTitle")}\n` +
@@ -2607,7 +2611,7 @@ ${allTypesText}
     }
     
     if (!user || user.requestsLeft! <= 0) {
-      return ctx.reply(t(lang, "validation.limitReached", { limit: "15" }), 
+      return ctx.reply(t(lang, "validation.limitReached", { limit: "5" }), 
         Markup.inlineKeyboard([
           [Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")]
         ])
@@ -2692,7 +2696,9 @@ ${allTypesText}
     
     let text = `📊 *ВАША СТАТИСТИКА*\n\n`;
     text += `${tierEmoji} *Тариф:* ${user.tier}\n`;
-    text += `🎯 *Запитів залишилось:* ${user.requestsLeft}/15\n`;
+    const myStatsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 9999 };
+    const myStatsUserLimit = myStatsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    text += `🎯 *Запитів залишилось:* ${user.requestsLeft}/${myStatsUserLimit}\n`;
     text += `🔥 *Серія днів:* ${user.streakDays}\n`;
     text += `📈 *Всього перевірок:* ${reports.length}\n`;
     text += `👁 *Активних моніторів:* ${watches.length}\n`;

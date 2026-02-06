@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Shield } from "lucide-react";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -17,7 +17,13 @@ export function PageLayout({ children, headerActions }: PageLayoutProps) {
   const [, setLocation] = useLocation();
   const { t } = useTranslation();
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation("/login");
+    }
+  }, [isLoading, isAuthenticated, setLocation]);
+
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -29,11 +35,6 @@ export function PageLayout({ children, headerActions }: PageLayoutProps) {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    setLocation("/login");
-    return null;
   }
 
   return (
