@@ -268,8 +268,8 @@ export default function History() {
         <FileSpreadsheet className="w-4 h-4" />
       </Button>
       <Link href="/dashboard">
-        <Button size="sm" className="gap-1.5 text-xs h-8" data-testid="button-new-check">
-          <Sparkles className="w-3.5 h-3.5" />
+        <Button size="sm" variant="outline" className="gap-1.5 text-[10px] h-7 px-2" data-testid="button-new-check">
+          <Sparkles className="w-3 h-3" />
           {t('dashboard.newCheck')}
         </Button>
       </Link>

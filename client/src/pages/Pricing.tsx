@@ -21,7 +21,7 @@ import {
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 
 const PRICES = {
-  PRO: { monthly: 10, yearly: 100 },
+  PRO: { monthly: 30, yearly: 300 },
   ENTERPRISE: { monthly: 50, yearly: 500 },
 };
 

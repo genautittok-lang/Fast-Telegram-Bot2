@@ -107,11 +107,11 @@ export const translations = {
       title: "💳 Тарифні плани",
       free: "🆓 БЕЗКОШТОВНО (Поточний)",
       freeDetails: "• 5 запитів/день\n• Базові модулі\n• 1 об'єкт моніторингу",
-      pro: "⭐ PRO - $10/місяць",
+      pro: "⭐ PRO - $30/місяць",
       proDetails: "• Безлімітні запити\n• Всі модулі (CVE, IoT, Cloud)\n• Безлімітний моніторинг\n• PDF без водяного знаку\n• Пріоритетна підтримка",
       enterprise: "💎 ENTERPRISE - $50/місяць",
       enterpriseDetails: "• Все з PRO\n• API доступ\n• SIEM інтеграція\n• Персональна підтримка",
-      buyPro: "⭐ Купити PRO $10",
+      buyPro: "⭐ Купити PRO $30",
       buyEnterprise: "💎 Купити ENTERPRISE $50",
     },
     
