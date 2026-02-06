@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Zap,
   Code2,
+  Blocks,
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -82,8 +83,10 @@ export function MobileMenu({
     { href: "/referral", icon: Users, label: t('mobile.referrals'), desc: "Invite & Earn" },
     { href: "/pricing", icon: CreditCard, label: t('nav.pricing'), desc: "PRO & Enterprise" },
     { href: "/account", icon: User, label: t('mobile.profile'), desc: "Settings" },
+    { href: "/teams", icon: Users, label: t('nav.teams'), desc: "Team Collaboration" },
     { href: "/support", icon: MessageSquare, label: t('nav.support'), desc: "Help Center" },
     { href: "/api-docs", icon: Code2, label: t('nav.apiDocs'), desc: "REST API" },
+    { href: "/widget", icon: Blocks, label: t('nav.widget'), desc: "Security Badge" },
   ];
 
   const navItems = isAuthenticated ? authItems : publicItems;

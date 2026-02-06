@@ -14,6 +14,7 @@ import {
   Mail,
   MessageSquare,
   Code2,
+  Blocks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -26,8 +27,10 @@ const navItems = [
   { id: "referral", labelKey: "nav.referral", icon: Users, href: "/referral" },
   { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
   { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
+  { id: "teams", labelKey: "nav.teams", icon: Users, href: "/teams" },
   { id: "support", labelKey: "nav.support", icon: MessageSquare, href: "/support" },
   { id: "api-docs", labelKey: "nav.apiDocs", icon: Code2, href: "/api-docs" },
+  { id: "widget", labelKey: "nav.widget", icon: Blocks, href: "/widget" },
 ];
 
 export function AppSidebar() {
@@ -93,14 +96,18 @@ export function AppSidebar() {
 
       <div className="px-4 py-3 border-t border-white/5">
         <div className="space-y-1">
-          <a href="#terms" className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg" data-testid="link-sidebar-terms">
-            <FileText className="w-3.5 h-3.5" />
-            {t('footer.termsOfService')}
-          </a>
-          <a href="#privacy" className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg" data-testid="link-sidebar-privacy">
-            <Lock className="w-3.5 h-3.5" />
-            {t('footer.privacyPolicy')}
-          </a>
+          <Link href="/terms">
+            <span className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg cursor-pointer" data-testid="link-sidebar-terms">
+              <FileText className="w-3.5 h-3.5" />
+              {t('footer.termsOfService')}
+            </span>
+          </Link>
+          <Link href="/privacy">
+            <span className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg cursor-pointer" data-testid="link-sidebar-privacy">
+              <Lock className="w-3.5 h-3.5" />
+              {t('footer.privacyPolicy')}
+            </span>
+          </Link>
           <Link href="/support">
             <span className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg cursor-pointer" data-testid="link-sidebar-support">
               <MessageSquare className="w-3.5 h-3.5" />

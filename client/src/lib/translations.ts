@@ -10,6 +10,8 @@ export interface TranslationSchema {
     account: string;
     support: string;
     apiDocs: string;
+    teams: string;
+    widget: string;
   };
   common: {
     loading: string;
@@ -107,6 +109,15 @@ export interface TranslationSchema {
     whiteLabelIntegration: string;
     slaGuarantees: string;
     teamAccess: string;
+    forGroups: string;
+    newLabel: string;
+    groupsAllEnterprise: string;
+    groupsTeamMembers: string;
+    groupsSharedReports: string;
+    groupsTeamDashboard: string;
+    groupsRoleManagement: string;
+    groupsCentralBilling: string;
+    groupsActivityLog: string;
   };
   dashboard: {
     title: string;
@@ -666,6 +677,8 @@ export const translations: Record<Language, TranslationSchema> = {
       account: "Account",
       support: "Support",
       apiDocs: "API Docs",
+      teams: "Teams",
+      widget: "Widget",
     },
     common: {
       loading: "Loading...",
@@ -763,6 +776,15 @@ export const translations: Record<Language, TranslationSchema> = {
       whiteLabelIntegration: "White-label integration",
       slaGuarantees: "SLA guarantees",
       teamAccess: "Team access",
+      forGroups: "For collaborative teams",
+      newLabel: "New",
+      groupsAllEnterprise: "All Enterprise features included",
+      groupsTeamMembers: "Up to 10 team members",
+      groupsSharedReports: "Shared report library",
+      groupsTeamDashboard: "Team analytics dashboard",
+      groupsRoleManagement: "Role-based access control",
+      groupsCentralBilling: "Centralized billing",
+      groupsActivityLog: "Team activity log",
     },
     dashboard: {
       title: "Dashboard",
@@ -1320,6 +1342,8 @@ export const translations: Record<Language, TranslationSchema> = {
       account: "Акаунт",
       support: "Підтримка",
       apiDocs: "API Документація",
+      teams: "Команди",
+      widget: "Віджет",
     },
     common: {
       loading: "Завантаження...",
@@ -1417,6 +1441,15 @@ export const translations: Record<Language, TranslationSchema> = {
       whiteLabelIntegration: "White-label інтеграція",
       slaGuarantees: "SLA гарантії",
       teamAccess: "Командний доступ",
+      forGroups: "Для спільних команд",
+      newLabel: "Нове",
+      groupsAllEnterprise: "Всі функції Enterprise включено",
+      groupsTeamMembers: "До 10 учасників команди",
+      groupsSharedReports: "Спільна бібліотека звітів",
+      groupsTeamDashboard: "Командна аналітика",
+      groupsRoleManagement: "Контроль доступу за ролями",
+      groupsCentralBilling: "Централізована оплата",
+      groupsActivityLog: "Журнал активності команди",
     },
     dashboard: {
       title: "Дашборд",
@@ -1974,6 +2007,8 @@ export const translations: Record<Language, TranslationSchema> = {
       account: "Аккаунт",
       support: "Поддержка",
       apiDocs: "API Документация",
+      teams: "Команды",
+      widget: "Виджет",
     },
     common: {
       loading: "Загрузка...",
@@ -2071,6 +2106,15 @@ export const translations: Record<Language, TranslationSchema> = {
       whiteLabelIntegration: "White-label интеграция",
       slaGuarantees: "SLA гарантии",
       teamAccess: "Командный доступ",
+      forGroups: "Для совместных команд",
+      newLabel: "Новое",
+      groupsAllEnterprise: "Все функции Enterprise включены",
+      groupsTeamMembers: "До 10 участников команды",
+      groupsSharedReports: "Общая библиотека отчётов",
+      groupsTeamDashboard: "Командная аналитика",
+      groupsRoleManagement: "Управление доступом по ролям",
+      groupsCentralBilling: "Централизованная оплата",
+      groupsActivityLog: "Журнал активности команды",
     },
     dashboard: {
       title: "Дашборд",
@@ -2628,6 +2672,8 @@ export const translations: Record<Language, TranslationSchema> = {
       account: "Cuenta",
       support: "Soporte",
       apiDocs: "API Docs",
+      teams: "Equipos",
+      widget: "Widget",
     },
     common: {
       loading: "Cargando...",
@@ -2725,6 +2771,15 @@ export const translations: Record<Language, TranslationSchema> = {
       whiteLabelIntegration: "Integración white-label",
       slaGuarantees: "Garantías SLA",
       teamAccess: "Acceso de equipo",
+      forGroups: "Para equipos colaborativos",
+      newLabel: "Nuevo",
+      groupsAllEnterprise: "Todas las funciones Enterprise incluidas",
+      groupsTeamMembers: "Hasta 10 miembros del equipo",
+      groupsSharedReports: "Biblioteca de informes compartida",
+      groupsTeamDashboard: "Panel de análisis del equipo",
+      groupsRoleManagement: "Control de acceso basado en roles",
+      groupsCentralBilling: "Facturación centralizada",
+      groupsActivityLog: "Registro de actividad del equipo",
     },
     dashboard: {
       title: "Panel",
@@ -3282,6 +3337,8 @@ export const translations: Record<Language, TranslationSchema> = {
       account: "Konto",
       support: "Support",
       apiDocs: "API Doku",
+      teams: "Teams",
+      widget: "Widget",
     },
     common: {
       loading: "Laden...",
@@ -3379,6 +3436,15 @@ export const translations: Record<Language, TranslationSchema> = {
       whiteLabelIntegration: "White-Label-Integration",
       slaGuarantees: "SLA-Garantien",
       teamAccess: "Team-Zugang",
+      forGroups: "Für kollaborative Teams",
+      newLabel: "Neu",
+      groupsAllEnterprise: "Alle Enterprise-Funktionen inklusive",
+      groupsTeamMembers: "Bis zu 10 Teammitglieder",
+      groupsSharedReports: "Gemeinsame Berichtsbibliothek",
+      groupsTeamDashboard: "Team-Analyse-Dashboard",
+      groupsRoleManagement: "Rollenbasierte Zugriffskontrolle",
+      groupsCentralBilling: "Zentralisierte Abrechnung",
+      groupsActivityLog: "Team-Aktivitätsprotokoll",
     },
     dashboard: {
       title: "Dashboard",

@@ -20,7 +20,8 @@ import {
   Star,
   ArrowLeft,
   Copy,
-  Lock
+  Lock,
+  Users
 } from "lucide-react";
 
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
@@ -28,6 +29,7 @@ const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 const PRICES = {
   PRO: { monthly: 10, yearly: 100 },
   ENTERPRISE: { monthly: 50, yearly: 498 },
+  GROUPS: { monthly: 65, yearly: 647 },
 };
 
 function PricingContent() {
@@ -36,7 +38,7 @@ function PricingContent() {
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const [isYearly, setIsYearly] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState<"PRO" | "ENTERPRISE" | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState<"PRO" | "ENTERPRISE" | "GROUPS" | null>(null);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [txHash, setTxHash] = useState("");
 
@@ -58,7 +60,7 @@ function PricingContent() {
     }
   };
 
-  const handlePayment = (tier: "PRO" | "ENTERPRISE") => {
+  const handlePayment = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
     if (!user) {
       setLocation("/login");
       return;
@@ -66,11 +68,11 @@ function PricingContent() {
     setShowPaymentModal(tier);
   };
 
-  const getPrice = (tier: "PRO" | "ENTERPRISE") => {
+  const getPrice = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
     return isYearly ? PRICES[tier].yearly : PRICES[tier].monthly;
   };
 
-  const submitPayment = async (tier: "PRO" | "ENTERPRISE") => {
+  const submitPayment = async (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
     if (!txHash.trim()) {
       toast({
         title: t('common.error'),
@@ -137,11 +139,20 @@ function PricingContent() {
       t('pricing.slaGuarantees'),
       t('pricing.teamAccess'),
     ],
+    groups: [
+      t('pricing.groupsAllEnterprise'),
+      t('pricing.groupsTeamMembers'),
+      t('pricing.groupsSharedReports'),
+      t('pricing.groupsTeamDashboard'),
+      t('pricing.groupsRoleManagement'),
+      t('pricing.groupsCentralBilling'),
+      t('pricing.groupsActivityLog'),
+    ],
   };
 
   return (
     <div className="min-h-full">
-      <div className="relative container mx-auto px-4 py-6 sm:py-8 max-w-5xl">
+      <div className="relative container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
         {!isAuthenticated && (
           <Button
             variant="ghost"
@@ -190,7 +201,7 @@ function PricingContent() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -284,7 +295,6 @@ function PricingContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="sm:col-span-2 lg:col-span-1"
           >
             <Card className="h-full border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent" data-testid="card-enterprise-plan">
               <CardHeader className="pb-3">
@@ -326,12 +336,62 @@ function PricingContent() {
               </CardFooter>
             </Card>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="sm:col-span-2 lg:col-span-1"
+          >
+            <Card className="h-full border-violet-500/50 bg-gradient-to-b from-violet-500/10 to-transparent" data-testid="card-groups-plan">
+              <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-violet-500 text-white text-xs font-medium rounded-bl-lg">
+                {t('pricing.newLabel')}
+              </div>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <Users className="h-5 w-5 text-violet-500" />
+                  <CardTitle className="text-lg text-violet-400">GROUPS</CardTitle>
+                </div>
+                <CardDescription className="text-xs">{t('pricing.forGroups')}</CardDescription>
+                <div className="mt-3">
+                  <span className="text-3xl font-bold text-violet-400">${getPrice("GROUPS")}</span>
+                  <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
+                  {isYearly && (
+                    <span className="ml-2 text-xs text-muted-foreground line-through">$780</span>
+                  )}
+                  {isYearly && (
+                    <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <ul className="space-y-2">
+                  {features.groups.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-violet-500 shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  className="w-full bg-violet-600"
+                  onClick={() => handlePayment("GROUPS")}
+                  data-testid="button-groups-plan"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  {t('pricing.payAmount')} ${getPrice("GROUPS")} USDT
+                </Button>
+              </CardFooter>
+            </Card>
+          </motion.div>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
           className="mt-6 sm:mt-8 text-center"
         >
           <p className="text-muted-foreground text-sm">
@@ -365,12 +425,16 @@ function PricingContent() {
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
                     showPaymentModal === "PRO" 
                       ? "bg-emerald-500/20" 
-                      : "bg-amber-500/20"
+                      : showPaymentModal === "ENTERPRISE"
+                      ? "bg-amber-500/20"
+                      : "bg-violet-500/20"
                   }`}>
                     {showPaymentModal === "PRO" ? (
                       <Star className="w-5 h-5 text-emerald-400" />
-                    ) : (
+                    ) : showPaymentModal === "ENTERPRISE" ? (
                       <Crown className="w-5 h-5 text-amber-400" />
+                    ) : (
+                      <Users className="w-5 h-5 text-violet-400" />
                     )}
                   </div>
                   <div>
@@ -418,14 +482,16 @@ function PricingContent() {
                   </div>
 
                   <Button
-                    className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : "bg-amber-600"}`}
+                    className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : showPaymentModal === "ENTERPRISE" ? "bg-amber-600" : "bg-violet-600"}`}
                     onClick={() => submitPayment(showPaymentModal)}
                     data-testid="button-submit-payment"
                   >
                     {showPaymentModal === "PRO" ? (
                       <Star className="w-4 h-4 mr-2" />
-                    ) : (
+                    ) : showPaymentModal === "ENTERPRISE" ? (
                       <Crown className="w-4 h-4 mr-2" />
+                    ) : (
+                      <Users className="w-4 h-4 mr-2" />
                     )}
                     {t('pricing.submitApplication')} {showPaymentModal} - ${getPrice(showPaymentModal)}
                   </Button>

@@ -1425,6 +1425,135 @@ export async function registerRoutes(
     }
   });
 
+  // ============ Team Management Routes ============
+
+  app.get("/api/teams", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const userTeams = await storage.getTeamsByUser(authReq.user!.id);
+      res.json(userTeams);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get teams" });
+    }
+  });
+
+  app.post("/api/teams", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user!;
+    const tier = (user.tier || "FREE").toUpperCase();
+    if (tier !== "GROUPS" && tier !== "ENTERPRISE") {
+      return res.status(403).json({ error: "Team creation requires GROUPS or ENTERPRISE tier" });
+    }
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return res.status(400).json({ error: "Team name must be at least 2 characters" });
+    }
+    try {
+      const team = await storage.createTeam({ name: name.trim(), ownerId: user.id, maxMembers: 10 });
+      res.json(team);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create team" });
+    }
+  });
+
+  app.get("/api/teams/:id/members", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const teamId = parseInt(req.params.id);
+      const team = await storage.getTeamById(teamId);
+      if (!team) return res.status(404).json({ error: "Team not found" });
+      const userTeams = await storage.getTeamsByUser(authReq.user!.id);
+      if (!userTeams.find(t => t.id === teamId)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const members = await storage.getTeamMembers(teamId);
+      const owner = await storage.getUserById(team.ownerId);
+      res.json({ team, members, owner: { id: owner?.id, username: owner?.username, tier: owner?.tier } });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get team members" });
+    }
+  });
+
+  app.post("/api/teams/:id/members", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const teamId = parseInt(req.params.id);
+    try {
+      const team = await storage.getTeamById(teamId);
+      if (!team) return res.status(404).json({ error: "Team not found" });
+      if (team.ownerId !== authReq.user!.id) {
+        return res.status(403).json({ error: "Only team owner can add members" });
+      }
+      const { username } = req.body;
+      if (!username) return res.status(400).json({ error: "Username required" });
+      const allUsers = await storage.getAllUsers();
+      const targetUser = allUsers.find(u => u.username?.toLowerCase() === username.toLowerCase());
+      if (!targetUser) return res.status(404).json({ error: "User not found" });
+      const members = await storage.getTeamMembers(teamId);
+      if (members.find(m => m.userId === targetUser.id)) {
+        return res.status(400).json({ error: "User already in team" });
+      }
+      if (members.length >= (team.maxMembers || 10)) {
+        return res.status(400).json({ error: "Team is full" });
+      }
+      const member = await storage.addTeamMember({ teamId, userId: targetUser.id, role: "member" });
+      res.json(member);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to add member" });
+    }
+  });
+
+  app.delete("/api/teams/:id/members/:userId", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const teamId = parseInt(req.params.id);
+    const userId = parseInt(req.params.userId);
+    try {
+      const team = await storage.getTeamById(teamId);
+      if (!team) return res.status(404).json({ error: "Team not found" });
+      if (team.ownerId !== authReq.user!.id) {
+        return res.status(403).json({ error: "Only team owner can remove members" });
+      }
+      await storage.removeTeamMember(teamId, userId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove member" });
+    }
+  });
+
+  app.delete("/api/teams/:id", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const teamId = parseInt(req.params.id);
+    try {
+      const team = await storage.getTeamById(teamId);
+      if (!team) return res.status(404).json({ error: "Team not found" });
+      if (team.ownerId !== authReq.user!.id) {
+        return res.status(403).json({ error: "Only team owner can delete team" });
+      }
+      await storage.deleteTeam(teamId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete team" });
+    }
+  });
+
+  // ============ Widget Verification Route ============
+
+  app.get("/api/widget/verify/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.getUserById(userId);
+      if (!user) return res.status(404).json({ verified: false });
+      const tier = (user.tier || "FREE").toUpperCase();
+      res.json({
+        verified: true,
+        username: user.username || "User",
+        tier,
+        memberSince: user.createdAt?.toISOString(),
+      });
+    } catch {
+      res.status(500).json({ verified: false });
+    }
+  });
+
   // Start the bot
   try {
       await setupBot(storage);

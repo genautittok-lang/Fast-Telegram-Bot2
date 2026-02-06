@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
 
@@ -85,6 +85,17 @@ export interface IStorage {
   getTicketById(id: number): Promise<SupportTicket | undefined>;
   getLatestReportsAll(limit: number): Promise<Report[]>;
   addRequestsToUser(userId: number, amount: number): Promise<User>;
+
+  // Teams
+  createTeam(team: InsertTeam): Promise<Team>;
+  getTeamById(id: number): Promise<Team | undefined>;
+  getTeamsByOwner(ownerId: number): Promise<Team[]>;
+  getTeamsByUser(userId: number): Promise<Array<Team & { role: string }>>;
+  addTeamMember(member: InsertTeamMember): Promise<TeamMember>;
+  removeTeamMember(teamId: number, userId: number): Promise<void>;
+  getTeamMembers(teamId: number): Promise<Array<TeamMember & { username: string | null; tier: string | null }>>;
+  updateTeamMemberRole(teamId: number, userId: number, role: string): Promise<TeamMember>;
+  deleteTeam(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -450,6 +461,71 @@ export class DatabaseStorage implements IStorage {
     // Sort by checksCount and return top N
     return result.sort((a, b) => b.checksCount - a.checksCount).slice(0, limit);
   }
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(teams).values(team).returning();
+    return created;
+  }
+
+  async getTeamById(id: number): Promise<Team | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [team] = await db.select().from(teams).where(eq(teams.id, id));
+    return team;
+  }
+
+  async getTeamsByOwner(ownerId: number): Promise<Team[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(teams).where(eq(teams.ownerId, ownerId));
+  }
+
+  async getTeamsByUser(userId: number): Promise<Array<Team & { role: string }>> {
+    if (!db) throw new Error("Database not available");
+    const owned = await db.select().from(teams).where(eq(teams.ownerId, userId));
+    const memberships = await db.select().from(teamMembers).where(eq(teamMembers.userId, userId));
+    const result: Array<Team & { role: string }> = owned.map(t => ({ ...t, role: "owner" }));
+    for (const m of memberships) {
+      const [team] = await db.select().from(teams).where(eq(teams.id, m.teamId));
+      if (team && !result.find(r => r.id === team.id)) {
+        result.push({ ...team, role: m.role || "member" });
+      }
+    }
+    return result;
+  }
+
+  async addTeamMember(member: InsertTeamMember): Promise<TeamMember> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(teamMembers).values(member).returning();
+    return created;
+  }
+
+  async removeTeamMember(teamId: number, userId: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.delete(teamMembers).where(sql`${teamMembers.teamId} = ${teamId} AND ${teamMembers.userId} = ${userId}`);
+  }
+
+  async getTeamMembers(teamId: number): Promise<Array<TeamMember & { username: string | null; tier: string | null }>> {
+    if (!db) throw new Error("Database not available");
+    const members = await db.select().from(teamMembers).where(eq(teamMembers.teamId, teamId));
+    const result: Array<TeamMember & { username: string | null; tier: string | null }> = [];
+    for (const m of members) {
+      const [user] = await db.select().from(users).where(eq(users.id, m.userId));
+      result.push({ ...m, username: user?.username || null, tier: user?.tier || null });
+    }
+    return result;
+  }
+
+  async updateTeamMemberRole(teamId: number, userId: number, role: string): Promise<TeamMember> {
+    if (!db) throw new Error("Database not available");
+    const [updated] = await db.update(teamMembers).set({ role }).where(sql`${teamMembers.teamId} = ${teamId} AND ${teamMembers.userId} = ${userId}`).returning();
+    return updated;
+  }
+
+  async deleteTeam(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.delete(teamMembers).where(eq(teamMembers.teamId, id));
+    await db.delete(teams).where(eq(teams.id, id));
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -759,6 +835,63 @@ export class MemStorage implements IStorage {
       .map(u => ({ id: u.id, username: u.username, checksCount: userReportCounts.get(u.id) || 0, streakDays: u.streakDays || 0 }))
       .sort((a, b) => b.checksCount - a.checksCount)
       .slice(0, limit);
+  }
+
+  private memTeams: Map<number, Team> = new Map();
+  private memTeamMembers: Map<number, TeamMember> = new Map();
+  private nextTeamId = 1;
+  private nextTeamMemberId = 1;
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    const id = this.nextTeamId++;
+    const created: Team = { id, name: team.name, ownerId: team.ownerId, maxMembers: team.maxMembers ?? 10, createdAt: new Date() };
+    this.memTeams.set(id, created);
+    return created;
+  }
+  async getTeamById(id: number): Promise<Team | undefined> {
+    return this.memTeams.get(id);
+  }
+  async getTeamsByOwner(ownerId: number): Promise<Team[]> {
+    return Array.from(this.memTeams.values()).filter(t => t.ownerId === ownerId);
+  }
+  async getTeamsByUser(userId: number): Promise<Array<Team & { role: string }>> {
+    const owned = Array.from(this.memTeams.values()).filter(t => t.ownerId === userId).map(t => ({ ...t, role: "owner" }));
+    const memberOf = Array.from(this.memTeamMembers.values()).filter(m => m.userId === userId);
+    for (const m of memberOf) {
+      const team = this.memTeams.get(m.teamId);
+      if (team && !owned.find(o => o.id === team.id)) owned.push({ ...team, role: m.role || "member" });
+    }
+    return owned;
+  }
+  async addTeamMember(member: InsertTeamMember): Promise<TeamMember> {
+    const id = this.nextTeamMemberId++;
+    const created: TeamMember = { id, teamId: member.teamId, userId: member.userId, role: member.role ?? "member", joinedAt: new Date() };
+    this.memTeamMembers.set(id, created);
+    return created;
+  }
+  async removeTeamMember(teamId: number, userId: number): Promise<void> {
+    Array.from(this.memTeamMembers.entries()).forEach(([key, m]) => {
+      if (m.teamId === teamId && m.userId === userId) this.memTeamMembers.delete(key);
+    });
+  }
+  async getTeamMembers(teamId: number): Promise<Array<TeamMember & { username: string | null; tier: string | null }>> {
+    return Array.from(this.memTeamMembers.values()).filter(m => m.teamId === teamId).map(m => {
+      const user = this.users.get(m.userId);
+      return { ...m, username: user?.username || null, tier: user?.tier || null };
+    });
+  }
+  async updateTeamMemberRole(teamId: number, userId: number, role: string): Promise<TeamMember> {
+    const entry = Array.from(this.memTeamMembers.entries()).find(([, m]) => m.teamId === teamId && m.userId === userId);
+    if (!entry) throw new Error("Team member not found");
+    const updated = { ...entry[1], role };
+    this.memTeamMembers.set(entry[0], updated);
+    return updated;
+  }
+  async deleteTeam(id: number): Promise<void> {
+    Array.from(this.memTeamMembers.entries()).forEach(([key, m]) => {
+      if (m.teamId === id) this.memTeamMembers.delete(key);
+    });
+    this.memTeams.delete(id);
   }
 }
 
