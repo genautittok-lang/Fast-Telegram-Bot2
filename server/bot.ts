@@ -222,7 +222,8 @@ ${t(lang, "startWelcome.selectLang")}`;
   });
 
   function generateProgressBar(current: number, max: number, length: number = 10): string {
-    const filled = Math.round((current / max) * length);
+    const ratio = Math.min(current / Math.max(max, 1), 1);
+    const filled = Math.round(ratio * length);
     const empty = length - filled;
     return '▓'.repeat(Math.max(0, filled)) + '░'.repeat(Math.max(0, empty));
   }
@@ -259,7 +260,13 @@ ${t(lang, "startWelcome.selectLang")}`;
     userStates.delete(tgId);
 
     const requestsLeft = user?.requestsLeft ?? 15;
-    const requestsLimit = 15;
+    const tierLimits: Record<string, number> = {
+      "FREE": 15,
+      "BASIC": 30,
+      "PRO": 50,
+      "ENTERPRISE": 9999,
+    };
+    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 15;
     const progressBar = generateProgressBar(requestsLeft, requestsLimit);
     const lastActivity = formatLastActivity(user?.lastLogin, lang);
 
@@ -339,14 +346,16 @@ ${t(lang, "dashboard.selectModule")}`;
     
     const keyboard = Markup.inlineKeyboard(keyboardRows);
 
+    const safeText = dashboardText.length > 4000 ? dashboardText.substring(0, 3990) + '...' : dashboardText;
+
     try {
       if (isEdit) {
-        await ctx.editMessageText(dashboardText, { parse_mode: "Markdown", ...keyboard });
+        await ctx.editMessageText(safeText, { parse_mode: "Markdown", ...keyboard });
       } else {
-        await ctx.reply(dashboardText, { parse_mode: "Markdown", ...keyboard });
+        await ctx.reply(safeText, { parse_mode: "Markdown", ...keyboard });
       }
     } catch {
-      await ctx.reply(dashboardText, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(safeText, { parse_mode: "Markdown", ...keyboard });
     }
   }
 

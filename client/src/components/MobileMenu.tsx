@@ -13,7 +13,9 @@ import {
   ExternalLink,
   CreditCard,
   User,
-  Lock
+  Lock,
+  FileText,
+  Mail
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -210,6 +212,21 @@ export function MobileMenu({
                     <span className="font-semibold text-base">Telegram Bot</span>
                     <ExternalLink className="w-5 h-5 text-muted-foreground ml-auto" />
                   </motion.a>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <a href="#terms" className="flex items-center gap-4 px-4 py-3 text-muted-foreground" data-testid="link-mobile-terms">
+                    <FileText className="w-5 h-5" />
+                    <span className="text-sm">{t('footer.termsOfService')}</span>
+                  </a>
+                  <a href="#privacy" className="flex items-center gap-4 px-4 py-3 text-muted-foreground" data-testid="link-mobile-privacy">
+                    <Lock className="w-5 h-5" />
+                    <span className="text-sm">{t('footer.privacyPolicy')}</span>
+                  </a>
+                  <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noreferrer" className="flex items-center gap-4 px-4 py-3 text-muted-foreground" data-testid="link-mobile-contact">
+                    <Mail className="w-5 h-5" />
+                    <span className="text-sm">{t('footer.contact')}</span>
+                  </a>
                 </div>
               </nav>
 

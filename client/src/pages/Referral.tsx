@@ -9,32 +9,24 @@ import {
   Gift,
   Crown,
   Zap,
-  Home,
-  History,
-  Activity,
   ChevronRight,
   ExternalLink,
   Share2,
   TrendingUp,
   Star,
   Wallet,
-  LogOut,
-  User,
-  CheckCircle2,
   Award,
-  UserPlus,
-  CreditCard
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PageLayout } from "@/components/PageLayout";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SiTelegram } from "react-icons/si";
-import { MobileMenu } from "@/components/MobileMenu";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface ReferralStats {
   referralCode: string;
@@ -83,18 +75,9 @@ export default function Referral() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const { toast, dismiss } = useToast();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
-  const [location, setLocation] = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const [location] = useLocation();
   const { t } = useTranslation();
-
-  const navItems = [
-    { id: "dashboard", label: t('nav.dashboard'), icon: Home, href: "/dashboard" },
-    { id: "history", label: t('nav.history'), icon: History, href: "/history" },
-    { id: "monitoring", label: t('nav.monitoring'), icon: Activity, href: "/monitoring" },
-    { id: "referral", label: t('nav.referral'), icon: Users, href: "/referral" },
-    { id: "pricing", label: t('nav.pricing'), icon: CreditCard, href: "/pricing" },
-    { id: "account", label: t('nav.account'), icon: User, href: "/account" },
-  ];
 
   const referralTiers = [
     {
@@ -147,17 +130,6 @@ export default function Referral() {
   useEffect(() => {
     dismiss();
   }, [location]);
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [isLoading, isAuthenticated, setLocation]);
-
-  const handleLogout = async () => {
-    await logout();
-    setLocation("/login");
-  };
 
   const referralCode = referralStats?.referralCode || user?.refCode || "DARK-XXXXXX";
   const referralLink = `https://www.darkshare.store/r/${referralCode}`;
@@ -212,158 +184,9 @@ export default function Referral() {
     return 0;
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="text-muted-foreground font-mono text-sm">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-background flex overflow-hidden max-w-full">
-      <aside className="hidden lg:flex flex-col w-[280px] min-w-[280px] border-r border-white/5 bg-black/50 backdrop-blur-2xl">
-        <div className="p-6 border-b border-white/5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5" />
-          <Link href="/">
-            <div className="relative flex items-center gap-3 group cursor-pointer">
-              <motion.div 
-                className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_25px_rgba(34,197,94,0.4)] group-hover:shadow-[0_0_35px_rgba(34,197,94,0.6)] transition-all duration-500"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              >
-                <Shield className="w-6 h-6 text-black" />
-              </motion.div>
-              <div>
-                <h1 className="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-white to-primary bg-clip-text">DARKSHARE</h1>
-                <p className="text-[10px] text-muted-foreground tracking-[0.2em]">SECURITY OSINT</p>
-              </div>
-            </div>
-          </Link>
-        </div>
-        
-        <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = location === item.href;
-            return (
-              <Link key={item.id} href={item.href}>
-                <motion.button
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isActive 
-                      ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]" 
-                      : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  data-testid={`nav-${item.id}`}
-                >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
-                  {item.label}
-                  {isActive && (
-                    <motion.div
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.8)]"
-                      layoutId="navIndicator"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                </motion.button>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-white/5 mt-auto">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/20 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <div className="flex items-center gap-3 mb-3">
-              <Avatar className="w-12 h-12 border-2 border-primary/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                <AvatarImage src={user?.photoUrl} />
-                <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold">
-                  {user?.username?.slice(0, 2).toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">@{user?.username}</p>
-                <TierBadge tier={user?.tier || "FREE"} />
-              </div>
-            </div>
-            
-            <div className="mt-2 pt-2 border-t border-white/5">
-              <div className="flex items-center gap-1.5 text-[9px] text-emerald-400">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Bot sync OK</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-3 space-y-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all duration-300"
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              {t('auth.logout')}
-            </Button>
-          </div>
-        </div>
-      </aside>
-
+    <PageLayout>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <motion.header 
-          className="lg:hidden sticky top-0 z-50 bg-gradient-to-b from-black via-black/95 to-black/90 backdrop-blur-2xl"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-purple-500/5" />
-          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="relative flex items-center justify-between px-4 py-3 max-w-full">
-            <Link href="/">
-              <motion.div 
-                className="flex items-center gap-2.5 min-w-0"
-                whileTap={{ scale: 0.97 }}
-              >
-                <motion.div 
-                  className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] flex-shrink-0"
-                  whileHover={{ rotate: 5, scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                >
-                  <Shield className="w-4.5 h-4.5 text-black" />
-                </motion.div>
-                <div className="flex flex-col">
-                  <span className="font-display font-bold text-sm tracking-tight bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">DARKSHARE</span>
-                  <span className="text-[8px] text-primary/60 tracking-[0.15em] font-medium">SECURITY OSINT</span>
-                </div>
-              </motion.div>
-            </Link>
-            <div className="flex items-center gap-2.5 flex-shrink-0">
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Avatar className="w-8 h-8 border-2 border-primary/30 shadow-[0_0_12px_rgba(34,197,94,0.2)]">
-                  <AvatarImage src={user?.photoUrl} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary text-xs font-bold">
-                    {user?.username?.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </motion.div>
-              <LanguageSwitcher variant="minimal" />
-              <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
-            </div>
-          </div>
-        </motion.header>
-
         <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
           <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
             <div className="hidden lg:block relative">
@@ -681,37 +504,7 @@ export default function Referral() {
           </div>
         </main>
 
-        <nav className="lg:hidden sticky bottom-0 border-t border-white/5 bg-gradient-to-t from-black via-black/98 to-black/95 backdrop-blur-2xl">
-          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="flex justify-around py-2 px-2">
-            {navItems.map((item) => {
-              const isActive = location === item.href;
-              return (
-                <Link key={item.id} href={item.href}>
-                  <motion.button
-                    className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300 ${
-                      isActive 
-                        ? "bg-gradient-to-t from-primary/20 to-transparent text-primary" 
-                        : "text-muted-foreground active:text-white"
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    data-testid={`nav-mobile-${item.id}`}
-                  >
-                    <item.icon className={`w-5 h-5 ${isActive ? 'drop-shadow-[0_0_6px_rgba(34,197,94,0.6)]' : ''}`} />
-                    <span className="text-[10px] font-medium">{item.label}</span>
-                    {isActive && (
-                      <motion.div
-                        className="absolute bottom-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_rgba(34,197,94,0.8)]"
-                        layoutId="mobileNavIndicator"
-                      />
-                    )}
-                  </motion.button>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
       </div>
-    </div>
+    </PageLayout>
   );
 }

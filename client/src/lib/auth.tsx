@@ -38,8 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         if (data.authenticated) {
           setUser({
-            id: data.userId,
+            id: data.id || data.userId,
             tgId: data.tgId,
+            username: data.username,
+            tier: data.tier,
+            requestsLeft: data.requestsLeft,
+            streakDays: data.streakDays,
+            refCode: data.refCode,
             provider: "telegram",
           });
         } else {

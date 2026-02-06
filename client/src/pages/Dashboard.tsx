@@ -17,14 +17,10 @@ import {
   Loader2,
   Download,
   Eye,
-  LogOut,
   User,
   CreditCard,
   Zap,
   Crown,
-  Home,
-  History,
-  Activity,
   AlertCircle,
   ShieldAlert,
   ShieldCheck,
@@ -61,14 +57,10 @@ import {
   Users,
   MessageSquare,
   Sparkles,
-  Menu,
-  X,
   RotateCcw,
   PlayCircle,
-  List,
   Layers,
   Keyboard,
-  Command,
   HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -90,15 +82,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PageLayout } from "@/components/PageLayout";
 import { useTranslation } from "@/lib/i18n";
 
 interface AIInsights {
@@ -149,14 +134,6 @@ const serviceKeyMap: Record<string, string[][]> = {
   card: [["binLookup", "binLookupDesc"], ["bankInfo", "bankInfoDesc"], ["cardType", "cardTypeDesc"], ["country", "countryDesc"]],
 };
 
-const navItemDefs = [
-  { id: "dashboard", labelKey: "nav.dashboard", icon: Home, href: "/dashboard" },
-  { id: "history", labelKey: "nav.history", icon: History, href: "/history" },
-  { id: "monitoring", labelKey: "nav.monitoring", icon: Activity, href: "/monitoring" },
-  { id: "referral", labelKey: "nav.referral", icon: Users, href: "/referral" },
-  { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
-  { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
-];
 
 function TierBadge({ tier }: { tier: string }) {
   const config = {
@@ -238,7 +215,6 @@ export default function Dashboard() {
   const [result, setResult] = useState<CheckResult | null>(null);
   const [showSubscription, setShowSubscription] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [bulkMode, setBulkMode] = useState(false);
@@ -254,8 +230,8 @@ export default function Dashboard() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
-  const { user, isLoading, isAuthenticated, logout } = useAuth();
-  const [location, setLocation] = useLocation();
+  const { user } = useAuth();
+  const [location] = useLocation();
   const { t } = useTranslation();
 
   const checkTypes = useMemo(() => checkTypeStyles.map(style => ({
@@ -271,16 +247,6 @@ export default function Dashboard() {
     })),
   })), [t]);
 
-  const navItems = useMemo(() => navItemDefs.map(item => ({
-    ...item,
-    label: t(item.labelKey),
-  })), [t]);
-
-  const recentChecks = useMemo(() => [
-    { target: "192.168.1.1", type: "IP", status: "safe", time: `5 ${t('time.minutesAgo')}` },
-    { target: "test@mail.com", type: "Email", status: "warning", time: `12 ${t('time.minutesAgo')}` },
-    { target: "0x1a2b...", type: "Wallet", status: "danger", time: `1 ${t('time.hoursAgo')}` },
-  ], [t]);
 
   const paymentMutation = useMutation({
     mutationFn: async ({ tier, txHash }: { tier: string; txHash?: string }) => {
@@ -420,17 +386,6 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [isLoading, isAuthenticated, setLocation]);
-
-  const handleLogout = async () => {
-    await logout();
-    setLocation("/login");
-  };
-
   const triggerShake = () => {
     setInputShake(true);
     setTimeout(() => setInputShake(false), 500);
@@ -555,382 +510,10 @@ Sources: ${result.sources.join(', ')}`;
 
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="text-muted-foreground font-mono text-sm">{t('dashboard.systemLoading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-background flex overflow-hidden max-w-full">
-      <aside className="hidden lg:flex flex-col w-[280px] min-w-[280px] border-r border-white/5 bg-black/50 backdrop-blur-2xl">
-        <div className="p-6 border-b border-white/5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5" />
-          <Link href="/">
-            <div className="relative flex items-center gap-3 group cursor-pointer">
-              <motion.div 
-                className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_25px_rgba(34,197,94,0.4)] group-hover:shadow-[0_0_35px_rgba(34,197,94,0.6)] transition-all duration-500"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              >
-                <Shield className="w-6 h-6 text-black" />
-              </motion.div>
-              <div>
-                <h1 className="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-white to-primary bg-clip-text">DARKSHARE</h1>
-                <p className="text-[10px] text-muted-foreground tracking-[0.2em]">SECURITY OSINT</p>
-              </div>
-            </div>
-          </Link>
-        </div>
-        
-        <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = location === item.href;
-            return (
-              <Link key={item.id} href={item.href}>
-                <motion.button
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isActive 
-                      ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]" 
-                      : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  data-testid={`nav-${item.id}`}
-                >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
-                  {item.label}
-                  {isActive && (
-                    <motion.div
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.8)]"
-                      layoutId="navIndicator"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                </motion.button>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="px-4 py-3">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent border border-white/10 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs font-semibold text-white/80">{t('dashboard.statistics')}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
-                <p className="text-lg font-bold text-primary font-mono">247</p>
-                <p className="text-[10px] text-muted-foreground">{t('dashboard.checks')}</p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-black/40 border border-white/5">
-                <p className="text-lg font-bold text-orange-400 font-mono">12</p>
-                <p className="text-[10px] text-muted-foreground">{t('dashboard.threats')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-4 py-2 flex-1">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent border border-white/10 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-4 h-4 text-blue-400" />
-              <span className="text-xs font-semibold text-white/80">{t('dashboard.recentChecksLabel')}</span>
-            </div>
-            <div className="space-y-2">
-              {recentChecks.map((check, idx) => (
-                <motion.div
-                  key={idx}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-black/30 border border-white/5 hover:border-white/10 transition-colors cursor-pointer"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.1, duration: 0.3 }}
-                  whileHover={{ x: 2 }}
-                >
-                  {check.status === 'safe' && <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />}
-                  {check.status === 'warning' && <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />}
-                  {check.status === 'danger' && <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-mono truncate text-white/80">{check.target}</p>
-                    <p className="text-[10px] text-muted-foreground">{check.type} · {check.time}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        <div className="p-4 border-t border-white/5 mt-auto">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/20 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-            <div className="flex items-center gap-3 mb-3">
-              <Avatar className="w-12 h-12 border-2 border-primary/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                <AvatarImage src={user?.photoUrl} />
-                <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold">
-                  {user?.username?.slice(0, 2).toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">@{user?.username}</p>
-                <TierBadge tier={user?.tier || "FREE"} />
-              </div>
-            </div>
-            
-            <div className="space-y-1.5 mb-3 text-[10px]">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Telegram ID</span>
-                <span className="font-mono text-cyan-400">{user?.tgId || "—"}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Ref. code</span>
-                <span className="font-mono text-primary">{user?.refCode || "—"}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-orange-400" />
-                  Streak
-                </span>
-                <span className="font-mono text-orange-400">{user?.streakDays ?? 0}</span>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">{t('dashboard.requestsRemaining')}</span>
-                <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}/15</span>
-              </div>
-              <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
-                <motion.div 
-                  className="h-full bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(((user?.requestsLeft ?? 0) / 15) * 100, 100)}%` }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
-                />
-              </div>
-            </div>
-            
-            <div className="mt-2 pt-2 border-t border-white/5">
-              <div className="flex items-center gap-1.5 text-[9px] text-emerald-400">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Bot sync OK</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-3 space-y-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 transition-all duration-300"
-              onClick={() => setShowProfile(true)}
-              data-testid="button-profile"
-            >
-              <User className="w-4 h-4 mr-2" />
-              {t('dashboard.profile')}
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
-              onClick={() => setShowSubscription(true)}
-              data-testid="button-subscription"
-            >
-              <Crown className="w-4 h-4 mr-2" />
-              {t('dashboard.subscription')}
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full justify-start text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all duration-300"
-              onClick={handleLogout}
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              {t('common.logout')}
-            </Button>
-          </div>
-        </div>
-      </aside>
-
+    <PageLayout>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <motion.header 
-          className="lg:hidden sticky top-0 z-50 bg-gradient-to-b from-black via-black/95 to-black/90 backdrop-blur-2xl"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-purple-500/5" />
-          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="relative flex items-center justify-between px-4 py-3 max-w-full">
-            <Link href="/">
-              <motion.div 
-                className="flex items-center gap-2.5 min-w-0"
-                whileTap={{ scale: 0.97 }}
-              >
-                <motion.div 
-                  className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] flex-shrink-0"
-                  whileHover={{ rotate: 5, scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                >
-                  <Shield className="w-4.5 h-4.5 text-black" />
-                </motion.div>
-                <div className="flex flex-col">
-                  <span className="font-display font-bold text-sm tracking-tight bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">DARKSHARE</span>
-                  <span className="text-[8px] text-primary/60 tracking-[0.15em] font-medium">SECURITY OSINT</span>
-                </div>
-              </motion.div>
-            </Link>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <motion.div 
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gradient-to-r from-green-500/10 to-transparent border border-green-500/20"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-[9px] font-medium text-green-400 hidden xs:inline">Online</span>
-              </motion.div>
-              
-              <LanguageSwitcher variant="minimal" />
-              
-              <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
-                <SheetTrigger asChild>
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    className="rounded-xl border border-white/10 bg-white/5"
-                    data-testid="button-hamburger-menu"
-                  >
-                    <Menu className="w-5 h-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent 
-                  side="left" 
-                  className="w-[300px] bg-black/98 border-r border-white/10 backdrop-blur-2xl p-0"
-                >
-                  <SheetHeader className="p-5 border-b border-white/10 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5">
-                    <SheetTitle className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 border-2 border-primary/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                        <AvatarImage src={user?.photoUrl} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary font-bold text-lg">
-                          {user?.username?.slice(0, 2).toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0 text-left">
-                        <p className="font-semibold text-base truncate text-white">@{user?.username}</p>
-                        <TierBadge tier={user?.tier || "FREE"} />
-                      </div>
-                    </SheetTitle>
-                  </SheetHeader>
-                  
-                  <div className="p-4 space-y-1 flex flex-col h-[calc(100%-100px)]">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">{t('dashboard.requestsRemaining')}</span>
-                        <span className="font-mono text-primary font-bold">{user?.requestsLeft ?? 0}/15</span>
-                      </div>
-                      <div className="h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/5">
-                        <motion.div 
-                          className="h-full bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(((user?.requestsLeft ?? 0) / 15) * 100, 100)}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                        />
-                      </div>
-                    </div>
-                    
-                    <nav className="space-y-1">
-                      {navItems.map((item) => {
-                        const isActive = location === item.href;
-                        return (
-                          <Link key={item.id} href={item.href}>
-                            <motion.button
-                              onClick={() => setShowMobileMenu(false)}
-                              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-medium transition-all duration-300 min-h-[48px] ${
-                                isActive 
-                                  ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30" 
-                                  : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
-                              }`}
-                              whileTap={{ scale: 0.98 }}
-                              data-testid={`nav-mobile-${item.id}`}
-                            >
-                              <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
-                              {item.label}
-                              {isActive && (
-                                <motion.div
-                                  className="ml-auto w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.8)]"
-                                  layoutId="mobileNavIndicator"
-                                />
-                              )}
-                            </motion.button>
-                          </Link>
-                        );
-                      })}
-                    </nav>
-                    
-                    <div className="flex-1" />
-                    
-                    <div className="pt-4 border-t border-white/10 space-y-1 mt-auto">
-                      <Button 
-                        variant="ghost" 
-                        size="lg"
-                        className="w-full justify-start text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl"
-                        onClick={() => {
-                          setShowMobileMenu(false);
-                          setShowProfile(true);
-                        }}
-                        data-testid="menu-button-profile"
-                      >
-                        <User className="w-5 h-5 mr-3" />
-                        {t('dashboard.profile')}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="lg"
-                        className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl"
-                        onClick={() => {
-                          setShowMobileMenu(false);
-                          setShowSubscription(true);
-                        }}
-                        data-testid="menu-button-subscription"
-                      >
-                        <Crown className="w-5 h-5 mr-3" />
-                        {t('dashboard.subscription')}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="lg"
-                        className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl"
-                        onClick={() => {
-                          setShowMobileMenu(false);
-                          handleLogout();
-                        }}
-                        data-testid="menu-button-logout"
-                      >
-                        <LogOut className="w-5 h-5 mr-3" />
-                        {t('common.logout')}
-                      </Button>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </motion.header>
-
-        <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
+        <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
           <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
             <div className="hidden lg:block relative">
               <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
@@ -1701,7 +1284,7 @@ Sources: ${result.sources.join(', ')}`;
               </motion.div>
             )}
           </div>
-        </main>
+        </div>
 
       </div>
 
@@ -1900,6 +1483,6 @@ Sources: ${result.sources.join(', ')}`;
       >
         <HelpCircle className="w-5 h-5" />
       </motion.button>
-    </div>
+    </PageLayout>
   );
 }

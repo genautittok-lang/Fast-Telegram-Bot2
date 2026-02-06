@@ -398,6 +398,10 @@ export interface TranslationSchema {
     forIntegration: string;
     upgradeForApi: string;
     apiAvailable: string;
+    copyKey: string;
+    keyCopied: string;
+    regenerateKey: string;
+    apiKeyDesc: string;
     subscriptionTitle: string;
     currentPlan: string;
     basicPlan: string;
@@ -1031,6 +1035,10 @@ export const translations: Record<Language, TranslationSchema> = {
       forIntegration: "For integration",
       upgradeForApi: "Upgrade for API",
       apiAvailable: "API available",
+      copyKey: "Copy",
+      keyCopied: "Copied!",
+      regenerateKey: "Regenerate",
+      apiKeyDesc: "Use this key to access the DARKSHARE API",
       subscriptionTitle: "Subscription",
       currentPlan: "Current plan",
       basicPlan: "Basic plan",
@@ -1662,6 +1670,10 @@ export const translations: Record<Language, TranslationSchema> = {
       forIntegration: "Для інтеграції",
       upgradeForApi: "Оновіться для API",
       apiAvailable: "API доступний",
+      copyKey: "Копіювати",
+      keyCopied: "Скопійовано!",
+      regenerateKey: "Перегенерувати",
+      apiKeyDesc: "Використовуйте цей ключ для доступу до DARKSHARE API",
       subscriptionTitle: "Підписка",
       currentPlan: "Поточний план",
       basicPlan: "Базовий план",
@@ -2293,6 +2305,10 @@ export const translations: Record<Language, TranslationSchema> = {
       forIntegration: "Для интеграции",
       upgradeForApi: "Обновитесь для API",
       apiAvailable: "API доступен",
+      copyKey: "Копировать",
+      keyCopied: "Скопировано!",
+      regenerateKey: "Перегенерировать",
+      apiKeyDesc: "Используйте этот ключ для доступа к DARKSHARE API",
       subscriptionTitle: "Подписка",
       currentPlan: "Текущий план",
       basicPlan: "Базовый план",
@@ -2924,6 +2940,10 @@ export const translations: Record<Language, TranslationSchema> = {
       forIntegration: "Para integración",
       upgradeForApi: "Actualice para API",
       apiAvailable: "API disponible",
+      copyKey: "Copiar",
+      keyCopied: "¡Copiado!",
+      regenerateKey: "Regenerar",
+      apiKeyDesc: "Use esta clave para acceder a la API de DARKSHARE",
       subscriptionTitle: "Suscripción",
       currentPlan: "Plan actual",
       basicPlan: "Plan básico",
@@ -3555,6 +3575,10 @@ export const translations: Record<Language, TranslationSchema> = {
       forIntegration: "Zur Integration",
       upgradeForApi: "Upgraden für API",
       apiAvailable: "API verfügbar",
+      copyKey: "Kopieren",
+      keyCopied: "Kopiert!",
+      regenerateKey: "Regenerieren",
+      apiKeyDesc: "Verwenden Sie diesen Schlüssel für den Zugriff auf die DARKSHARE API",
       subscriptionTitle: "Abonnement",
       currentPlan: "Aktueller Plan",
       basicPlan: "Basisplan",

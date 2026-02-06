@@ -531,6 +531,8 @@ export async function registerRoutes(
         username: finalUser.username,
         tier: finalUser.tier,
         requestsLeft: finalUser.requestsLeft,
+        streakDays: finalUser.streakDays,
+        refCode: finalUser.refCode,
         firstName,
         photoUrl,
       });
@@ -545,11 +547,18 @@ export async function registerRoutes(
     }
 
     res.json({
+      authenticated: true,
       id: authReq.user.id,
       tgId: authReq.user.tgId,
       username: authReq.user.username,
       tier: authReq.user.tier,
       requestsLeft: authReq.user.requestsLeft,
+      streakDays: authReq.user.streakDays,
+      refCode: authReq.user.refCode,
+      lang: authReq.user.lang,
+      createdAt: authReq.user.createdAt,
+      notifsOn: authReq.user.notifsOn,
+      digestsOn: authReq.user.digestsOn,
     });
   });
 

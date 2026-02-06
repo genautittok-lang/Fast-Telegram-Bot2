@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Shield, 
   Eye, 
-  ArrowLeft,
   Globe,
   Wallet,
   Mail,
@@ -33,13 +32,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { MobileMenu } from "@/components/MobileMenu";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/lib/i18n";
+import { PageLayout } from "@/components/PageLayout";
 
 interface Watch {
   id: number;
@@ -282,20 +280,13 @@ export default function Monitoring() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
   const { toast } = useToast();
-  const { isLoading: authLoading, isAuthenticated, user, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
 
   const { data: watches, isLoading } = useQuery<Watch[]>({
     queryKey: ["/api/watches"],
     enabled: isAuthenticated,
   });
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [authLoading, isAuthenticated, setLocation]);
 
   const formatTimeAgo = (dateString: string | null) => {
     if (!dateString) return t('time.waiting');
@@ -365,57 +356,18 @@ export default function Monitoring() {
   const activeCount = watches?.filter(w => w.status === 'active').length || 0;
   const lastAlert = watches?.[0]?.lastCheck || null;
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-            <Shield className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="text-sm text-muted-foreground">{t('history.loadingHistory')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   const currentTypeConfig = typeStyleConfig[newType] || typeStyleConfig.ip;
   const CurrentTypeIcon = currentTypeConfig.icon;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-3xl" />
-      </div>
-      
-      <header className="border-b border-white/5 bg-background/60 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="hidden sm:flex" data-testid="button-back-dashboard">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-                <Activity className="w-4 h-4 text-primary" />
-              </div>
-              <span className="font-display font-bold text-lg">{t('monitoring.title')}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher variant="minimal" />
-            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
-          </div>
+    <PageLayout>
+      <div className="min-h-screen bg-background">
+        <div className="fixed inset-0 z-0">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-3xl" />
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 relative z-10 space-y-6">
+        <main className="max-w-6xl mx-auto px-4 py-6 relative z-10 space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           <StatCard
             icon={Eye}
@@ -650,6 +602,7 @@ export default function Monitoring() {
           </div>
         </motion.div>
       </main>
-    </div>
+      </div>
+    </PageLayout>
   );
 }

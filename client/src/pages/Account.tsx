@@ -7,10 +7,6 @@ import {
   Crown,
   Zap,
   ShieldAlert,
-  Home,
-  History,
-  Activity,
-  Users,
   Settings,
   Bell,
   Globe,
@@ -24,12 +20,14 @@ import {
   BarChart3,
   CreditCard,
   ChevronRight,
-  LogOut,
   Smartphone,
   Clock,
   Monitor,
-  Menu,
-  Check
+  Check,
+  Copy,
+  RefreshCw,
+  Users,
+  Activity
 } from "lucide-react";
 import { FireStreak } from "@/components/FireStreak";
 import { Button } from "@/components/ui/button";
@@ -37,11 +35,11 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
-import { MobileMenu } from "@/components/MobileMenu";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useToast } from "@/hooks/use-toast";
+import { PageLayout } from "@/components/PageLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -132,18 +130,9 @@ export default function Account() {
     threats: true,
     updates: false,
   });
-  const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
-  const [location, setLocation] = useLocation();
+  const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
-
-  const navItems = [
-    { id: "dashboard", label: t('nav.dashboard'), icon: Home, href: "/dashboard" },
-    { id: "history", label: t('nav.history'), icon: History, href: "/history" },
-    { id: "monitoring", label: t('nav.monitoring'), icon: Activity, href: "/monitoring" },
-    { id: "referral", label: t('nav.referral'), icon: Users, href: "/referral" },
-    { id: "pricing", label: t('nav.pricing'), icon: CreditCard, href: "/pricing" },
-    { id: "account", label: t('nav.account'), icon: User, href: "/account" },
-  ];
+  const { toast } = useToast();
 
   const { data: reports = [], isLoading: reportsLoading } = useQuery<Report[]>({
     queryKey: ['/api/reports'],
@@ -159,11 +148,6 @@ export default function Account() {
     queryKey: ['/api/referrals'],
     enabled: isAuthenticated,
   });
-
-  const handleLogout = async () => {
-    await logout();
-    setLocation("/login");
-  };
 
   const userTier = (user?.tier || "FREE").toUpperCase();
 
@@ -221,110 +205,9 @@ export default function Account() {
 
   const isDataLoading = reportsLoading || watchesLoading || referralsLoading;
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="text-muted-foreground font-mono text-sm">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    setLocation("/login");
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-background flex overflow-hidden max-w-full">
-      <aside className="hidden lg:flex flex-col w-[280px] min-w-[280px] border-r border-white/5 bg-black/50 backdrop-blur-2xl">
-        <div className="p-6 border-b border-white/5 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5" />
-          <Link href="/">
-            <div className="relative flex items-center gap-3 group cursor-pointer">
-              <motion.div 
-                className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_25px_rgba(34,197,94,0.4)] group-hover:shadow-[0_0_35px_rgba(34,197,94,0.6)] transition-all duration-500"
-                whileHover={{ scale: 1.05, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              >
-                <Shield className="w-6 h-6 text-black" />
-              </motion.div>
-              <div>
-                <h1 className="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-white to-primary bg-clip-text">DARKSHARE</h1>
-                <p className="text-[10px] text-muted-foreground tracking-[0.2em]">SECURITY OSINT</p>
-              </div>
-            </div>
-          </Link>
-        </div>
-        
-        <nav className="p-4 space-y-1 flex-1">
-          {navItems.map((item) => {
-            const isActive = location === item.href;
-            return (
-              <Link key={item.id} href={item.href}>
-                <motion.button
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isActive 
-                      ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]" 
-                      : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
-                  }`}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  data-testid={`nav-${item.id}`}
-                >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
-                  {item.label}
-                  {isActive && (
-                    <motion.div
-                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.8)]"
-                      layoutId="navIndicator"
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
-                  )}
-                </motion.button>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-white/5 mt-auto">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start gap-3 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
-            onClick={handleLogout}
-            data-testid="button-logout"
-          >
-            <LogOut className="w-5 h-5" />
-            {t('auth.logout')}
-          </Button>
-        </div>
-      </aside>
-
+    <PageLayout>
       <main className="flex-1 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-        <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-black" />
-            </div>
-            <span className="font-bold">DARKSHARE</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher variant="minimal" />
-            <MobileMenu 
-              isAuthenticated={true} 
-              username={user?.username} 
-              tier={user?.tier}
-              onLogout={logout}
-            />
-          </div>
-        </div>
-
         <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
             className="relative p-4 lg:p-8 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 overflow-hidden"
@@ -656,9 +539,39 @@ export default function Account() {
                     <span className="truncate">{t('account.upgradeForApi')}</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800 text-xs lg:text-sm text-cyan-400 border border-zinc-700">
-                    <Check className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
-                    <span>{t('account.apiAvailable')}</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Check className="w-3 h-3 lg:w-4 lg:h-4 text-cyan-400 flex-shrink-0" />
+                      <span className="text-xs lg:text-sm text-cyan-400">{t('account.apiAvailable')}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('account.apiKeyDesc')}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 flex items-center gap-1.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800 text-xs lg:text-sm text-cyan-400 border border-zinc-700 font-mono truncate" data-testid="text-api-key">
+                        dk_{`\u2022`.repeat(16)}
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        data-testid="button-copy-api-key"
+                        onClick={() => {
+                          const fakeKey = `dk_${user?.tgId}_${btoa(user?.tgId || '').slice(0, 12)}`;
+                          navigator.clipboard.writeText(fakeKey);
+                          toast({ title: t('account.keyCopied') });
+                        }}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        data-testid="button-regenerate-api-key"
+                        onClick={() => {
+                          toast({ title: t('account.regenerateKey') });
+                        }}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -780,6 +693,6 @@ export default function Account() {
           </motion.div>
         </div>
       </main>
-    </div>
+    </PageLayout>
   );
 }

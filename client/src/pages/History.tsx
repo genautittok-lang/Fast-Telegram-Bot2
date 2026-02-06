@@ -5,7 +5,6 @@ import {
   Shield, 
   FileText, 
   Download, 
-  ArrowLeft,
   Globe,
   Wallet,
   Mail,
@@ -36,12 +35,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { MobileMenu } from "@/components/MobileMenu";
 import { useToast } from "@/hooks/use-toast";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/lib/i18n";
+import { PageLayout } from "@/components/PageLayout";
 
 interface Report {
   id: number;
@@ -89,8 +87,7 @@ const localeMap: Record<string, string> = {
 };
 
 export default function History() {
-  const { isLoading: authLoading, isAuthenticated, user, logout } = useAuth();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const { t, lang } = useTranslation();
   
@@ -103,12 +100,6 @@ export default function History() {
     queryKey: ["/api/reports"],
     enabled: isAuthenticated,
   });
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      setLocation("/login");
-    }
-  }, [authLoading, isAuthenticated, setLocation]);
 
   const riskFilters = [
     { id: "all", label: t('history.all'), color: "bg-white/10 hover:bg-white/20" },
@@ -175,23 +166,6 @@ export default function History() {
       downloads: Math.floor(reports.length * 0.7),
     };
   }, [reports]);
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   const getRiskConfig = (level: string) => {
     switch (level) {
@@ -273,62 +247,45 @@ export default function History() {
 
   const locale = localeMap[lang] || 'en-US';
 
-  return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
-      </div>
-      
-      <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9" data-testid="button-back-dashboard">
-                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
-              </div>
-              <span className="font-display font-bold text-base sm:text-lg truncate">DARKSHARE</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="hidden md:flex h-8 w-8 text-muted-foreground"
-              onClick={() => window.open('/api/reports/export/json', '_blank')}
-              data-testid="button-export-json"
-            >
-              <FileJson className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="hidden md:flex h-8 w-8 text-muted-foreground"
-              onClick={() => window.open('/api/reports/export/csv', '_blank')}
-              data-testid="button-export-csv"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-            </Button>
-            <Link href="/dashboard">
-              <Button size="sm" className="hidden sm:flex gap-1.5 text-xs sm:text-sm h-8" data-testid="button-new-check">
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden md:inline">{t('dashboard.newCheck')}</span>
-                <span className="inline md:hidden">{t('dashboard.newCheck')}</span>
-              </Button>
-            </Link>
-            <LanguageSwitcher variant="minimal" />
-            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
-          </div>
-        </div>
-      </header>
+  const headerActions = (
+    <>
+      <Button 
+        variant="ghost" 
+        size="icon"
+        className="hidden md:flex h-8 w-8 text-muted-foreground"
+        onClick={() => window.open('/api/reports/export/json', '_blank')}
+        data-testid="button-export-json"
+      >
+        <FileJson className="w-4 h-4" />
+      </Button>
+      <Button 
+        variant="ghost" 
+        size="icon"
+        className="hidden md:flex h-8 w-8 text-muted-foreground"
+        onClick={() => window.open('/api/reports/export/csv', '_blank')}
+        data-testid="button-export-csv"
+      >
+        <FileSpreadsheet className="w-4 h-4" />
+      </Button>
+      <Link href="/dashboard">
+        <Button size="sm" className="gap-1.5 text-xs h-8" data-testid="button-new-check">
+          <Sparkles className="w-3.5 h-3.5" />
+          {t('dashboard.newCheck')}
+        </Button>
+      </Link>
+    </>
+  );
 
-      <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6 relative z-10 space-y-4 sm:space-y-6">
+  return (
+    <PageLayout headerActions={headerActions}>
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+        </div>
+
+        <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6 relative z-10 space-y-4 sm:space-y-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -626,6 +583,7 @@ export default function History() {
           </motion.p>
         )}
       </main>
-    </div>
+      </div>
+    </PageLayout>
   );
 }
