@@ -1,8 +1,21 @@
-# DARKSHARE v4.1
+# DARKSHARE v4.2
 
 ## Overview
 
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
+
+## Recent Changes (Feb 2026)
+- Fixed dual-account session issues with session regeneration
+- Added missing database tables (ds_coupons, ds_coupon_usages, ds_admin_settings, ds_teams, ds_team_members) to ensureTablesExist
+- Fixed bulk check endpoint response format to return {results: [...]}
+- Added interactive 6-step onboarding tour for new dashboard users (localStorage persistence)
+- Added Teams page with team creation, member management, owner permissions
+- Added Security Widget page with embeddable HTML badge generator
+- Added API Documentation page for ENTERPRISE users
+- Added Terms of Service and Privacy Policy pages
+- Added GROUPS pricing tier ($65/month)
+- Expanded bot admin panel with Stats, Coupons, Revenue, Reports, Broadcast sections
+- Updated navigation: Teams and Widget in sidebar and mobile menu
 
 ## User Preferences
 
