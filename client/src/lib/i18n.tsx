@@ -4,18 +4,6 @@ import { translations, type Language, type TranslationSchema } from "./translati
 const STORAGE_KEY = "darkshare_language";
 const DEFAULT_LANGUAGE: Language = "en";
 
-function getBrowserLanguage(): Language {
-  const browserLang = navigator.language.toLowerCase();
-  
-  if (browserLang.startsWith("uk")) return "uk";
-  if (browserLang.startsWith("ru")) return "ru";
-  if (browserLang.startsWith("es")) return "es";
-  if (browserLang.startsWith("de")) return "de";
-  if (browserLang.startsWith("en")) return "en";
-  
-  return DEFAULT_LANGUAGE;
-}
-
 function getNestedValue(obj: any, path: string): string | undefined {
   const keys = path.split(".");
   let current = obj;
@@ -58,7 +46,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
       return stored;
     }
     
-    return getBrowserLanguage();
+    return DEFAULT_LANGUAGE;
   });
 
   useEffect(() => {

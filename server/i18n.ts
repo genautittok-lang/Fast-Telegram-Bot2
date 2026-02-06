@@ -115,6 +115,9 @@ export const translations = {
       enterpriseDetails: "• Все з PRO\n• API доступ\n• SIEM інтеграція\n• Персональна підтримка",
       buyPro: "⭐ Купити PRO $30",
       buyEnterprise: "💎 Купити ENTERPRISE $50",
+      groups: "👥 GROUPS - $65/місяць",
+      groupsDetails: "• Все з ENTERPRISE\n• Командна робота (до 10 учасників)\n• Спільні звіти та панель\n• Управління ролями\n• Централізована оплата\n• Журнал активності",
+      buyGroups: "👥 Купити GROUPS $65",
     },
     
     payment: {
@@ -505,6 +508,11 @@ export const translations = {
       sent: "✅ Ваше звернення надіслано! Наша команда зв'яжеться з вами найближчим часом.",
       error: "❌ Не вдалося надіслати звернення. Спробуйте ще раз.",
     },
+    webFeatures: {
+      teamsAvailable: "👥 Функція команд доступна на веб-панелі!\nСтворюй команди, запрошуй учасників, діліся звітами.\nЗавітай: darkshare.store",
+      widgetAvailable: "🛡️ Віджет безпеки доступний на веб-панелі!\nВстанови верифікований бейдж на свій сайт.\nЗавітай: darkshare.store",
+      apiDocsAvailable: "📚 API документація доступна на веб-панелі!\nEnterprise користувачі мають повний доступ до API.\nЗавітай: darkshare.store",
+    },
   },
   
   en: {
@@ -621,6 +629,9 @@ Select a module for analysis:`,
       enterpriseDetails: "• Everything from PRO\n• API access\n• SIEM integration\n• Dedicated support",
       buyPro: "⭐ Buy PRO $30",
       buyEnterprise: "💎 Buy ENTERPRISE $50",
+      groups: "👥 GROUPS - $65/month",
+      groupsDetails: "• Everything from ENTERPRISE\n• Team collaboration (up to 10 members)\n• Shared reports & dashboard\n• Role management\n• Centralized billing\n• Activity log",
+      buyGroups: "👥 Buy GROUPS $65",
     },
     
     payment: {
@@ -1011,6 +1022,11 @@ Select a module for analysis:`,
       sent: "✅ Your request has been sent! Our team will contact you shortly.",
       error: "❌ Failed to send request. Please try again.",
     },
+    webFeatures: {
+      teamsAvailable: "👥 Teams feature available on web panel!\nCreate teams, invite members, share reports.\nVisit: darkshare.store",
+      widgetAvailable: "🛡️ Security Widget available on web panel!\nEmbed a verified badge on your website.\nVisit: darkshare.store",
+      apiDocsAvailable: "📚 API Documentation available on web panel!\nEnterprise users can access the full API.\nVisit: darkshare.store",
+    },
   },
   
   ru: {
@@ -1127,6 +1143,9 @@ Select a module for analysis:`,
       enterpriseDetails: "• Всё из PRO\n• API доступ\n• SIEM интеграция\n• Персональная поддержка",
       buyPro: "⭐ Купить PRO $30",
       buyEnterprise: "💎 Купить ENTERPRISE $50",
+      groups: "👥 GROUPS - $65/месяц",
+      groupsDetails: "• Всё из ENTERPRISE\n• Командная работа (до 10 участников)\n• Общие отчёты и панель\n• Управление ролями\n• Централизованная оплата\n• Журнал активности",
+      buyGroups: "👥 Купить GROUPS $65",
     },
     
     payment: {
@@ -1517,6 +1536,11 @@ Select a module for analysis:`,
       sent: "✅ Ваше обращение отправлено! Наша команда свяжется с вами в ближайшее время.",
       error: "❌ Не удалось отправить обращение. Попробуйте снова.",
     },
+    webFeatures: {
+      teamsAvailable: "👥 Функция команд доступна на веб-панели!\nСоздавай команды, приглашай участников, делись отчётами.\nПосети: darkshare.store",
+      widgetAvailable: "🛡️ Виджет безопасности доступен на веб-панели!\nУстанови верифицированный бейдж на свой сайт.\nПосети: darkshare.store",
+      apiDocsAvailable: "📚 API документация доступна на веб-панели!\nEnterprise пользователи имеют полный доступ к API.\nПосети: darkshare.store",
+    },
   },
   
   es: {
@@ -1633,6 +1657,9 @@ Selecciona un módulo para análisis:`,
       enterpriseDetails: "• Todo de PRO\n• Acceso API\n• Integración SIEM\n• Soporte dedicado",
       buyPro: "⭐ Comprar PRO $30",
       buyEnterprise: "💎 Comprar ENTERPRISE $50",
+      groups: "👥 GROUPS - $65/mes",
+      groupsDetails: "• Todo de ENTERPRISE\n• Trabajo en equipo (hasta 10 miembros)\n• Informes y panel compartidos\n• Gestión de roles\n• Facturación centralizada\n• Registro de actividad",
+      buyGroups: "👥 Comprar GROUPS $65",
     },
     
     payment: {
@@ -2023,6 +2050,11 @@ Selecciona un módulo para análisis:`,
       sent: "✅ ¡Tu solicitud ha sido enviada! Nuestro equipo se pondrá en contacto contigo pronto.",
       error: "❌ No se pudo enviar la solicitud. Inténtalo de nuevo.",
     },
+    webFeatures: {
+      teamsAvailable: "👥 ¡Función de equipos disponible en el panel web!\nCrea equipos, invita miembros, comparte informes.\nVisita: darkshare.store",
+      widgetAvailable: "🛡️ ¡Widget de seguridad disponible en el panel web!\nInserta una insignia verificada en tu sitio web.\nVisita: darkshare.store",
+      apiDocsAvailable: "📚 ¡Documentación API disponible en el panel web!\nLos usuarios Enterprise tienen acceso completo a la API.\nVisita: darkshare.store",
+    },
   },
   
   de: {
@@ -2139,6 +2171,9 @@ Wähle ein Modul zur Analyse:`,
       enterpriseDetails: "• Alles aus PRO\n• API-Zugang\n• SIEM-Integration\n• Dedizierter Support",
       buyPro: "⭐ PRO kaufen $30",
       buyEnterprise: "💎 ENTERPRISE kaufen $50",
+      groups: "👥 GROUPS - $65/Monat",
+      groupsDetails: "• Alles aus ENTERPRISE\n• Teamarbeit (bis zu 10 Mitglieder)\n• Geteilte Berichte & Dashboard\n• Rollenverwaltung\n• Zentrale Abrechnung\n• Aktivitätsprotokoll",
+      buyGroups: "👥 GROUPS kaufen $65",
     },
     
     payment: {
@@ -2528,6 +2563,11 @@ Wähle ein Modul zur Analyse:`,
       askMessage: "Beschreiben Sie Ihre Frage oder Ihr Problem:",
       sent: "✅ Ihre Anfrage wurde gesendet! Unser Team wird sich in Kürze bei Ihnen melden.",
       error: "❌ Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+    },
+    webFeatures: {
+      teamsAvailable: "👥 Team-Funktion im Web-Panel verfügbar!\nErstelle Teams, lade Mitglieder ein, teile Berichte.\nBesuche: darkshare.store",
+      widgetAvailable: "🛡️ Sicherheits-Widget im Web-Panel verfügbar!\nBette ein verifiziertes Abzeichen auf deiner Website ein.\nBesuche: darkshare.store",
+      apiDocsAvailable: "📚 API-Dokumentation im Web-Panel verfügbar!\nEnterprise-Benutzer haben vollen API-Zugang.\nBesuche: darkshare.store",
     },
   },
 } as const;
