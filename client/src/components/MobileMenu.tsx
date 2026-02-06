@@ -15,7 +15,8 @@ import {
   User,
   Lock,
   FileText,
-  Mail
+  Mail,
+  MessageSquare
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,7 @@ export function MobileMenu({
     { href: "/referral", icon: Users, label: t('mobile.referrals') },
     { href: "/pricing", icon: CreditCard, label: t('nav.pricing') },
     { href: "/account", icon: User, label: t('mobile.profile') },
+    { href: "/support", icon: MessageSquare, label: t('nav.support') },
   ];
 
   const navItems = isAuthenticated ? authItems : publicItems;
@@ -223,9 +225,15 @@ export function MobileMenu({
                     <Lock className="w-5 h-5" />
                     <span className="text-sm">{t('footer.privacyPolicy')}</span>
                   </a>
-                  <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noreferrer" className="flex items-center gap-4 px-4 py-3 text-muted-foreground" data-testid="link-mobile-contact">
+                  <Link href="/support">
+                    <span className="flex items-center gap-4 px-4 py-3 text-muted-foreground cursor-pointer" data-testid="link-mobile-support" onClick={() => setIsOpen(false)}>
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="text-sm">{t('footer.contact')}</span>
+                    </span>
+                  </Link>
+                  <a href="mailto:darkshare.store@gmail.com" className="flex items-center gap-4 px-4 py-3 text-muted-foreground" data-testid="link-mobile-email">
                     <Mail className="w-5 h-5" />
-                    <span className="text-sm">{t('footer.contact')}</span>
+                    <span className="text-sm">darkshare.store@gmail.com</span>
                   </a>
                 </div>
               </nav>

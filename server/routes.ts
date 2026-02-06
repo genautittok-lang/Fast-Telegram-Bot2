@@ -1174,6 +1174,145 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // ==================== SUPPORT TICKET ROUTES ====================
+  
+  // Create support ticket (public - doesn't require auth but uses it if available)
+  app.post("/api/support", loadUser, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { name, contact, message } = req.body;
+    
+    if (!name || !contact || !message) {
+      return res.status(400).json({ error: "Name, contact and message are required" });
+    }
+    
+    if (message.length > 2000) {
+      return res.status(400).json({ error: "Message too long (max 2000 characters)" });
+    }
+    
+    try {
+      const ticket = await storage.createSupportTicket({
+        userId: authReq.user?.id || null,
+        name,
+        contact,
+        message,
+        status: "open",
+        source: "web",
+      });
+
+      // Notify admins via Telegram bot
+      if (botInstance) {
+        const msgText = `📩 Нове звернення #${ticket.id}\n\n` +
+          `👤 Ім'я: ${name}\n` +
+          `📱 Контакт: ${contact}\n` +
+          `${authReq.user ? `🔢 User ID: ${authReq.user.id} (@${authReq.user.username || '—'})\n` : ''}` +
+          `📍 Джерело: Web\n\n` +
+          `💬 Повідомлення:\n${message.substring(0, 500)}${message.length > 500 ? '...' : ''}\n\n` +
+          `⏰ ${new Date().toLocaleString('uk-UA')}`;
+
+        for (const adminId of ADMIN_IDS) {
+          try {
+            await botInstance.telegram.sendMessage(adminId, msgText, {
+              reply_markup: Markup.inlineKeyboard([
+                [
+                  Markup.button.callback("✅ Відповісти", `reply_ticket_${ticket.id}`),
+                  Markup.button.callback("🔒 Закрити", `close_ticket_${ticket.id}`)
+                ]
+              ]).reply_markup
+            });
+          } catch (e) {
+            console.log(`Failed to notify admin ${adminId}:`, e);
+          }
+        }
+      }
+
+      res.json({ success: true, ticketId: ticket.id });
+    } catch (err: any) {
+      console.error("Support ticket error:", err);
+      res.status(500).json({ error: "Failed to create support ticket" });
+    }
+  });
+
+  // Get support tickets (admin only)
+  app.get("/api/admin/tickets", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const tickets = await storage.getSupportTickets();
+    const enriched = await Promise.all(
+      tickets.map(async (t) => {
+        const user = t.userId ? await storage.getUserById(t.userId) : null;
+        return { ...t, username: user?.username || null };
+      })
+    );
+    res.json(enriched);
+  });
+
+  // Update support ticket status (admin only)
+  app.post("/api/admin/tickets/:id/status", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { status, adminReply } = req.body;
+    try {
+      const ticket = await storage.updateSupportTicketStatus(parseInt(req.params.id), status, adminReply);
+      res.json(ticket);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to update ticket" });
+    }
+  });
+
+  // Get ALL payments (admin only, not just pending)
+  app.get("/api/admin/payments/all", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const allPayments = await storage.getAllPayments();
+    const enriched = await Promise.all(
+      allPayments.map(async (p) => {
+        const user = p.userId ? await storage.getUserById(p.userId) : null;
+        return { ...p, username: user?.username || null };
+      })
+    );
+    res.json(enriched);
+  });
+
+  // Get all users (admin only)
+  app.get("/api/admin/users", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const allUsers = await storage.getAllUsers();
+    res.json(allUsers.map(u => ({
+      id: u.id,
+      tgId: u.tgId,
+      username: u.username,
+      tier: u.tier,
+      requestsLeft: u.requestsLeft,
+      streakDays: u.streakDays,
+      blocked: u.blocked,
+      createdAt: u.createdAt?.toISOString(),
+      lastLogin: u.lastLogin?.toISOString(),
+    })));
+  });
+
+  app.post("/api/admin/users/:id/block", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { blocked } = req.body;
+    try {
+      const user = await storage.blockUser(parseInt(req.params.id), blocked);
+      res.json(user);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to update user" });
+    }
+  });
+
   // Start the bot
   try {
       await setupBot(storage);

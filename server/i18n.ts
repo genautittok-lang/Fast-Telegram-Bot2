@@ -449,6 +449,15 @@ export const translations = {
       aiVerdict: "AI Вердикт",
       error: "❌ Помилка перевірки. Спробуйте ще раз.",
     },
+
+    support: {
+      command: "📩 Підтримка",
+      askName: "📩 *Звернення в підтримку*\n\nВведіть ваше ім'я:",
+      askContact: "Введіть ваш контакт (телефон, email або Telegram):",
+      askMessage: "Опишіть ваше питання або проблему:",
+      sent: "✅ Ваше звернення надіслано! Наша команда зв'яжеться з вами найближчим часом.",
+      error: "❌ Не вдалося надіслати звернення. Спробуйте ще раз.",
+    },
   },
   
   en: {
@@ -898,6 +907,15 @@ Select a module for analysis:`,
       findings: "Findings",
       aiVerdict: "AI Verdict",
       error: "❌ Check error. Please try again.",
+    },
+
+    support: {
+      command: "📩 Support",
+      askName: "📩 *Support Request*\n\nPlease enter your name:",
+      askContact: "Please enter your contact (phone, email or Telegram):",
+      askMessage: "Please describe your question or issue:",
+      sent: "✅ Your request has been sent! Our team will contact you shortly.",
+      error: "❌ Failed to send request. Please try again.",
     },
   },
   
@@ -1349,6 +1367,15 @@ Select a module for analysis:`,
       aiVerdict: "AI Вердикт",
       error: "❌ Ошибка проверки. Попробуйте снова.",
     },
+
+    support: {
+      command: "📩 Поддержка",
+      askName: "📩 *Обращение в поддержку*\n\nВведите ваше имя:",
+      askContact: "Введите ваш контакт (телефон, email или Telegram):",
+      askMessage: "Опишите ваш вопрос или проблему:",
+      sent: "✅ Ваше обращение отправлено! Наша команда свяжется с вами в ближайшее время.",
+      error: "❌ Не удалось отправить обращение. Попробуйте снова.",
+    },
   },
   
   es: {
@@ -1799,6 +1826,15 @@ Selecciona un módulo para análisis:`,
       aiVerdict: "Veredicto AI",
       error: "❌ Error de verificación. Inténtalo de nuevo.",
     },
+
+    support: {
+      command: "📩 Soporte",
+      askName: "📩 *Solicitud de soporte*\n\nIngresa tu nombre:",
+      askContact: "Ingresa tu contacto (teléfono, email o Telegram):",
+      askMessage: "Describe tu pregunta o problema:",
+      sent: "✅ ¡Tu solicitud ha sido enviada! Nuestro equipo se pondrá en contacto contigo pronto.",
+      error: "❌ No se pudo enviar la solicitud. Inténtalo de nuevo.",
+    },
   },
   
   de: {
@@ -2248,6 +2284,15 @@ Wähle ein Modul zur Analyse:`,
       findings: "Ergebnisse",
       aiVerdict: "KI-Urteil",
       error: "❌ Prüfungsfehler. Bitte erneut versuchen.",
+    },
+
+    support: {
+      command: "📩 Support",
+      askName: "📩 *Supportanfrage*\n\nBitte geben Sie Ihren Namen ein:",
+      askContact: "Bitte geben Sie Ihren Kontakt ein (Telefon, E-Mail oder Telegram):",
+      askMessage: "Beschreiben Sie Ihre Frage oder Ihr Problem:",
+      sent: "✅ Ihre Anfrage wurde gesendet! Unser Team wird sich in Kürze bei Ihnen melden.",
+      error: "❌ Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
     },
   },
 } as const;

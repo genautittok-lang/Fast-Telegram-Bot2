@@ -9,7 +9,7 @@ export const users = pgTable("ds_users", {
   lang: text("lang").default("uk"),
   langSet: boolean("lang_set").default(false),
   tier: text("tier").default("FREE"),
-  requestsLeft: integer("requests_left").default(15),
+  requestsLeft: integer("requests_left").default(5),
   streakDays: integer("streak_days").default(0),
   refCode: text("ref_code").unique(),
   discountPct: integer("discount_pct").default(0),
@@ -98,6 +98,18 @@ export const adminSettings = pgTable("ds_admin_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const supportTickets = pgTable("ds_support_tickets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  name: text("name").notNull(),
+  contact: text("contact").notNull(),
+  message: text("message").notNull(),
+  status: text("status").default("open"),
+  adminReply: text("admin_reply"),
+  source: text("source").default("web"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
@@ -107,6 +119,7 @@ export const insertReferralSchema = createInsertSchema(referrals).omit({ id: tru
 export const insertAchievementSchema = createInsertSchema(achievements).omit({ id: true, unlockedAt: true });
 export const insertCouponSchema = createInsertSchema(coupons).omit({ id: true, createdAt: true, usedCount: true });
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true, updatedAt: true });
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -118,6 +131,8 @@ export type Achievement = typeof achievements.$inferSelect;
 export type Coupon = typeof coupons.$inferSelect;
 export type InsertCoupon = z.infer<typeof insertCouponSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 
 // Note: Replit Auth tables are in shared/models/auth.ts
 // Import them directly where needed to avoid type conflicts

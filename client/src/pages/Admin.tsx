@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Shield,
@@ -11,25 +11,27 @@ import {
   Settings,
   Plus,
   Trash2,
-  Ban,
   Check,
   X,
   Loader2,
-  RefreshCw,
   Shuffle,
   Calendar,
   Crown,
   Zap,
   ShieldAlert,
   ArrowLeft,
-  DollarSign,
   Save,
-  AlertCircle,
   CheckCircle,
-  Clock,
+  MessageSquare,
+  Mail,
+  Search,
+  UserCheck,
+  UserX,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -54,7 +56,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -85,7 +87,7 @@ interface PaymentSettings {
   enterprisePrice: string;
 }
 
-interface PendingPayment {
+interface PaymentRecord {
   id: number;
   userId: number;
   username: string | null;
@@ -96,17 +98,32 @@ interface PendingPayment {
   createdAt: string;
 }
 
-function StatCardSkeleton() {
-  return (
-    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-      <div className="flex items-center gap-3 mb-2">
-        <Skeleton className="w-10 h-10 rounded-lg" />
-        <Skeleton className="h-4 w-20" />
-      </div>
-      <Skeleton className="h-8 w-16" />
-    </div>
-  );
+interface SupportTicketRecord {
+  id: number;
+  userId: number | null;
+  username: string | null;
+  name: string;
+  contact: string;
+  message: string;
+  status: string;
+  adminReply: string | null;
+  source: string;
+  createdAt: string;
 }
+
+interface AdminUser {
+  id: number;
+  tgId: string;
+  username: string | null;
+  tier: string | null;
+  requestsLeft: number | null;
+  streakDays: number | null;
+  blocked: boolean | null;
+  createdAt: string | null;
+  lastLogin: string | null;
+}
+
+type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings";
 
 function generateCouponCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -118,9 +135,11 @@ function generateCouponCode(): string {
 }
 
 export default function Admin() {
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
+  const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
+  const [userSearch, setUserSearch] = useState("");
+  const [ticketReply, setTicketReply] = useState<{ id: number; text: string } | null>(null);
 
   const [couponForm, setCouponForm] = useState({
     code: "",
@@ -136,10 +155,11 @@ export default function Admin() {
     enterprisePrice: "50",
   });
 
-  const { data: isAdmin, isLoading: adminLoading, error: adminError } = useQuery<boolean>({
+  const { data: isAdminData, isLoading: adminLoading, error: adminError } = useQuery<{ isAdmin: boolean }>({
     queryKey: ["/api/admin/verify"],
     retry: false,
   });
+  const isAdmin = isAdminData?.isAdmin;
 
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
@@ -148,104 +168,107 @@ export default function Admin() {
 
   const { data: coupons, isLoading: couponsLoading } = useQuery<Coupon[]>({
     queryKey: ["/api/admin/coupons"],
-    enabled: !!isAdmin,
+    enabled: !!isAdmin && activeTab === "coupons",
   });
 
   const { data: settings, isLoading: settingsLoading } = useQuery<PaymentSettings>({
     queryKey: ["/api/admin/settings"],
-    enabled: !!isAdmin,
+    enabled: !!isAdmin && activeTab === "settings",
   });
 
-  const { data: pendingPayments, isLoading: paymentsLoading } = useQuery<PendingPayment[]>({
+  const { data: pendingPayments } = useQuery<PaymentRecord[]>({
     queryKey: ["/api/admin/payments"],
     enabled: !!isAdmin,
   });
 
+  const { data: allPayments, isLoading: allPaymentsLoading } = useQuery<PaymentRecord[]>({
+    queryKey: ["/api/admin/payments/all"],
+    enabled: !!isAdmin && activeTab === "payments",
+  });
+
+  const { data: tickets, isLoading: ticketsLoading } = useQuery<SupportTicketRecord[]>({
+    queryKey: ["/api/admin/tickets"],
+    enabled: !!isAdmin && (activeTab === "tickets" || activeTab === "dashboard"),
+  });
+
+  const { data: allUsers, isLoading: usersLoading } = useQuery<AdminUser[]>({
+    queryKey: ["/api/admin/users"],
+    enabled: !!isAdmin && activeTab === "users",
+  });
+
   useEffect(() => {
     if (settings) {
-      setSettingsForm({
-        proPrice: settings.proPrice,
-        enterprisePrice: settings.enterprisePrice,
-      });
+      setSettingsForm({ proPrice: settings.proPrice, enterprisePrice: settings.enterprisePrice });
     }
   }, [settings]);
 
   const createCouponMutation = useMutation({
     mutationFn: async (data: typeof couponForm) => {
-      const res = await apiRequest("POST", "/api/admin/coupons", {
-        ...data,
-        expiresAt: data.expiresAt?.toISOString() || null,
-      });
+      const res = await apiRequest("POST", "/api/admin/coupons", { ...data, expiresAt: data.expiresAt?.toISOString() || null });
       return res.json();
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
-      toast({ title: "Успіх", description: "Купон створено" });
-      setCouponForm({
-        code: "",
-        type: "checks",
-        value: 10,
-        tier: "PRO",
-        maxUses: 100,
-        expiresAt: null,
-      });
+      toast({ title: "Купон створено" });
+      setCouponForm({ code: "", type: "checks", value: 10, tier: "PRO", maxUses: 100, expiresAt: null });
     },
-    onError: (error: Error) => {
-      toast({ title: "Помилка", description: error.message, variant: "destructive" });
-    },
+    onError: (error: Error) => { toast({ title: "Помилка", description: error.message, variant: "destructive" }); },
   });
 
   const deleteCouponMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/admin/coupons/${id}`);
-    },
+    mutationFn: async (id: number) => { await apiRequest("DELETE", `/api/admin/coupons/${id}`); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
-      toast({ title: "Успіх", description: "Купон видалено" });
-    },
-    onError: (error: Error) => {
-      toast({ title: "Помилка", description: error.message, variant: "destructive" });
+      toast({ title: "Купон видалено" });
     },
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: PaymentSettings) => {
-      await apiRequest("POST", "/api/admin/settings", data);
-    },
+    mutationFn: async (data: PaymentSettings) => { await apiRequest("POST", "/api/admin/settings", data); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/settings"] });
-      toast({ title: "Успіх", description: "Налаштування збережено" });
-    },
-    onError: (error: Error) => {
-      toast({ title: "Помилка", description: error.message, variant: "destructive" });
+      toast({ title: "Налаштування збережено" });
     },
   });
 
   const approvePaymentMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("POST", `/api/admin/payments/${id}/approve`);
-    },
+    mutationFn: async (id: number) => { await apiRequest("POST", `/api/admin/payments/${id}/approve`); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments"] });
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments/all"] });
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      toast({ title: "Успіх", description: "Платіж підтверджено" });
-    },
-    onError: (error: Error) => {
-      toast({ title: "Помилка", description: error.message, variant: "destructive" });
+      toast({ title: "Платіж підтверджено" });
     },
   });
 
   const rejectPaymentMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("POST", `/api/admin/payments/${id}/reject`);
-    },
+    mutationFn: async (id: number) => { await apiRequest("POST", `/api/admin/payments/${id}/reject`); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments"] });
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments/all"] });
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      toast({ title: "Успіх", description: "Платіж відхилено" });
+      toast({ title: "Платіж відхилено" });
     },
-    onError: (error: Error) => {
-      toast({ title: "Помилка", description: error.message, variant: "destructive" });
+  });
+
+  const updateTicketMutation = useMutation({
+    mutationFn: async ({ id, status, adminReply }: { id: number; status: string; adminReply?: string }) => {
+      await apiRequest("POST", `/api/admin/tickets/${id}/status`, { status, adminReply });
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/tickets"] });
+      setTicketReply(null);
+      toast({ title: "Тікет оновлено" });
+    },
+  });
+
+  const blockUserMutation = useMutation({
+    mutationFn: async ({ userId, blocked }: { userId: number; blocked: boolean }) => {
+      await apiRequest("POST", `/api/admin/users/${userId}/block`, { blocked });
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({ title: "Користувача оновлено" });
     },
   });
 
@@ -266,11 +289,7 @@ export default function Admin() {
   if (adminError || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center space-y-4"
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
             <ShieldAlert className="w-10 h-10 text-red-500" />
           </div>
@@ -287,36 +306,27 @@ export default function Admin() {
     );
   }
 
-  const statsCards = [
-    {
-      label: "Користувачі",
-      value: stats?.totalUsers ?? 0,
-      icon: Users,
-      gradient: "from-blue-500/20 to-cyan-500/10",
-      iconColor: "text-blue-400",
-    },
-    {
-      label: "Звіти",
-      value: stats?.totalReports ?? 0,
-      icon: FileText,
-      gradient: "from-purple-500/20 to-pink-500/10",
-      iconColor: "text-purple-400",
-    },
-    {
-      label: "Моніторинг",
-      value: stats?.activeWatches ?? 0,
-      icon: Activity,
-      gradient: "from-green-500/20 to-emerald-500/10",
-      iconColor: "text-green-400",
-    },
-    {
-      label: "Очікують оплату",
-      value: stats?.pendingPayments ?? 0,
-      icon: CreditCard,
-      gradient: "from-orange-500/20 to-yellow-500/10",
-      iconColor: "text-orange-400",
-    },
+  const tabs: { id: AdminTab; label: string; icon: any; count?: number }[] = [
+    { id: "dashboard", label: "Огляд", icon: Activity },
+    { id: "tickets", label: "Звернення", icon: MessageSquare, count: tickets?.filter(t => t.status === "open").length },
+    { id: "payments", label: "Платежі", icon: CreditCard, count: pendingPayments?.length },
+    { id: "users", label: "Користувачі", icon: Users },
+    { id: "coupons", label: "Купони", icon: Ticket },
+    { id: "settings", label: "Налаштування", icon: Settings },
   ];
+
+  const statsCards = [
+    { label: "Користувачі", value: stats?.totalUsers ?? 0, icon: Users, gradient: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-400" },
+    { label: "Звіти", value: stats?.totalReports ?? 0, icon: FileText, gradient: "from-purple-500/20 to-pink-500/10", iconColor: "text-purple-400" },
+    { label: "Моніторинг", value: stats?.activeWatches ?? 0, icon: Activity, gradient: "from-green-500/20 to-emerald-500/10", iconColor: "text-green-400" },
+    { label: "Очікують оплату", value: stats?.pendingPayments ?? 0, icon: CreditCard, gradient: "from-orange-500/20 to-yellow-500/10", iconColor: "text-orange-400" },
+  ];
+
+  const filteredUsers = allUsers?.filter(u => {
+    if (!userSearch) return true;
+    const q = userSearch.toLowerCase();
+    return u.username?.toLowerCase().includes(q) || u.tgId.includes(q) || u.id.toString().includes(q);
+  }) || [];
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -330,7 +340,7 @@ export default function Admin() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="h-9 w-9" data-testid="button-back">
+              <Button variant="ghost" size="icon" data-testid="button-back">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
@@ -341,446 +351,587 @@ export default function Admin() {
               <span className="font-display font-bold text-lg">ADMIN</span>
             </div>
           </div>
-          <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
-            <ShieldAlert className="w-3 h-3 mr-1" />
-            Адміністратор
-          </Badge>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground hidden sm:block">darkshare.store@gmail.com</span>
+            <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/30">
+              <ShieldAlert className="w-3 h-3 mr-1" />
+              Admin
+            </Badge>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 relative z-10 space-y-6">
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Activity className="w-5 h-5 text-primary" />
-            Статистика
-          </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {statsLoading
-              ? Array(4)
-                  .fill(0)
-                  .map((_, i) => <StatCardSkeleton key={i} />)
-              : statsCards.map((stat, i) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className={`p-4 rounded-xl bg-gradient-to-br ${stat.gradient} border border-white/10 hover:border-white/20 transition-all`}
-                    data-testid={`stat-${stat.label.toLowerCase()}`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center ${stat.iconColor}`}>
-                        <stat.icon className="w-4 h-4" />
+      <div className="max-w-7xl mx-auto px-4 py-4 relative z-10">
+        <div className="flex gap-1 overflow-x-auto pb-2 mb-6 border-b border-white/5">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                activeTab === tab.id
+                  ? "bg-primary/10 text-primary border border-primary/30"
+                  : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
+              }`}
+              data-testid={`tab-${tab.id}`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+              {tab.count !== undefined && tab.count > 0 && (
+                <Badge variant="secondary" className="ml-1 bg-red-500/20 text-red-400 border-none text-xs px-1.5 py-0">
+                  {tab.count}
+                </Badge>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <main className="space-y-6 pb-8">
+          {activeTab === "dashboard" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {statsLoading
+                  ? Array(4).fill(0).map((_, i) => (
+                      <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <Skeleton className="h-4 w-20 mb-2" />
+                        <Skeleton className="h-8 w-16" />
                       </div>
-                      <span className="text-xs text-muted-foreground">{stat.label}</span>
-                    </div>
-                    <p className="text-2xl font-bold">{stat.value.toLocaleString()}</p>
-                  </motion.div>
-                ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="space-y-4"
-        >
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Ticket className="w-5 h-5 text-primary" />
-            Керування купонами
-          </h2>
-
-          <Card className="border-white/10 bg-white/5">
-            <CardHeader>
-              <CardTitle className="text-base">Новий купон</CardTitle>
-              <CardDescription>Створіть новий промокод для користувачів</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Код</label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="DS-XXXXXXXX"
-                      value={couponForm.code}
-                      onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
-                      className="bg-white/5 border-white/10"
-                      data-testid="input-coupon-code"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setCouponForm({ ...couponForm, code: generateCouponCode() })}
-                      data-testid="button-generate-code"
-                    >
-                      <Shuffle className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Тип</label>
-                  <Select
-                    value={couponForm.type}
-                    onValueChange={(v: "checks" | "tier") => setCouponForm({ ...couponForm, type: v })}
-                  >
-                    <SelectTrigger className="bg-white/5 border-white/10" data-testid="select-coupon-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="checks">Перевірки</SelectItem>
-                      <SelectItem value="tier">Підписка</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {couponForm.type === "checks" && (
-                  <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">Кількість перевірок</label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={couponForm.value}
-                      onChange={(e) => setCouponForm({ ...couponForm, value: parseInt(e.target.value) || 0 })}
-                      className="bg-white/5 border-white/10"
-                      data-testid="input-coupon-value"
-                    />
-                  </div>
-                )}
-
-                {couponForm.type === "tier" && (
-                  <div className="space-y-2">
-                    <label className="text-sm text-muted-foreground">Рівень підписки</label>
-                    <Select
-                      value={couponForm.tier}
-                      onValueChange={(v) => setCouponForm({ ...couponForm, tier: v })}
-                    >
-                      <SelectTrigger className="bg-white/5 border-white/10" data-testid="select-coupon-tier">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PRO">PRO</SelectItem>
-                        <SelectItem value="ENTERPRISE">ENTERPRISE</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Макс. використань</label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={couponForm.maxUses}
-                    onChange={(e) => setCouponForm({ ...couponForm, maxUses: parseInt(e.target.value) || 0 })}
-                    className="bg-white/5 border-white/10"
-                    data-testid="input-coupon-maxuses"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Термін дії (опціонально)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal bg-white/5 border-white/10"
-                        data-testid="button-coupon-expiry"
+                    ))
+                  : statsCards.map((stat, i) => (
+                      <motion.div
+                        key={stat.label}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className={`p-4 rounded-xl bg-gradient-to-br ${stat.gradient} border border-white/10`}
+                        data-testid={`stat-${stat.label.toLowerCase()}`}
                       >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {couponForm.expiresAt ? format(couponForm.expiresAt, "dd.MM.yyyy", { locale: uk }) : "Без обмежень"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={couponForm.expiresAt || undefined}
-                        onSelect={(date) => setCouponForm({ ...couponForm, expiresAt: date || null })}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                      {couponForm.expiresAt && (
-                        <div className="p-2 border-t border-white/10">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => setCouponForm({ ...couponForm, expiresAt: null })}
-                          >
-                            Очистити
-                          </Button>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center ${stat.iconColor}`}>
+                            <stat.icon className="w-4 h-4" />
+                          </div>
+                          <span className="text-xs text-muted-foreground">{stat.label}</span>
                         </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="flex items-end">
-                  <Button
-                    onClick={() => createCouponMutation.mutate(couponForm)}
-                    disabled={!couponForm.code || createCouponMutation.isPending}
-                    className="w-full gap-2"
-                    data-testid="button-create-coupon"
-                  >
-                    {createCouponMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Plus className="w-4 h-4" />
-                    )}
-                    Створити
-                  </Button>
-                </div>
+                        <p className="text-2xl font-bold">{stat.value.toLocaleString()}</p>
+                      </motion.div>
+                    ))}
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="border-white/10 bg-white/5">
-            <CardHeader>
-              <CardTitle className="text-base">Активні купони</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {couponsLoading ? (
-                <div className="space-y-2">
-                  {Array(3)
-                    .fill(0)
-                    .map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
-                    ))}
-                </div>
-              ) : !coupons?.length ? (
-                <p className="text-center text-muted-foreground py-8">Немає купонів</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-white/10">
-                        <TableHead>Код</TableHead>
-                        <TableHead>Тип</TableHead>
-                        <TableHead>Значення</TableHead>
-                        <TableHead className="hidden md:table-cell">Використано</TableHead>
-                        <TableHead className="hidden md:table-cell">Статус</TableHead>
-                        <TableHead className="hidden lg:table-cell">Термін</TableHead>
-                        <TableHead className="text-right">Дії</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {coupons.map((coupon) => (
-                        <TableRow key={coupon.id} className="border-white/10" data-testid={`coupon-row-${coupon.id}`}>
-                          <TableCell className="font-mono text-sm">{coupon.code}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={coupon.type === "tier" ? "bg-purple-500/10 text-purple-400 border-purple-500/30" : "bg-blue-500/10 text-blue-400 border-blue-500/30"}>
-                              {coupon.type === "tier" ? <Crown className="w-3 h-3 mr-1" /> : <Zap className="w-3 h-3 mr-1" />}
-                              {coupon.type === "tier" ? "Підписка" : "Перевірки"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {coupon.type === "tier" ? coupon.tier : `+${coupon.value}`}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {coupon.usedCount} / {coupon.maxUses}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {coupon.isActive ? (
-                              <Badge className="bg-green-500/10 text-green-400 border-green-500/30">Активний</Badge>
-                            ) : (
-                              <Badge className="bg-zinc-500/10 text-zinc-400 border-zinc-500/30">Неактивний</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
-                            {coupon.expiresAt ? format(new Date(coupon.expiresAt), "dd.MM.yyyy") : "—"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              onClick={() => deleteCouponMutation.mutate(coupon.id)}
-                              disabled={deleteCouponMutation.isPending}
-                              data-testid={`button-delete-coupon-${coupon.id}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
+              {tickets && tickets.filter(t => t.status === "open").length > 0 && (
+                <Card className="border-white/10 bg-white/5">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-primary" />
+                      Нові звернення ({tickets.filter(t => t.status === "open").length})
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab("tickets")} data-testid="button-view-all-tickets">
+                      Переглянути всі
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {tickets.filter(t => t.status === "open").slice(0, 3).map((ticket) => (
+                        <div key={ticket.id} className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-sm font-medium">#{ticket.id} {ticket.name}</span>
+                            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30 text-xs">{ticket.source}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">{ticket.message}</p>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
-        </motion.section>
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="space-y-4"
-        >
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Settings className="w-5 h-5 text-primary" />
-            Налаштування цін
-          </h2>
-
-          <Card className="border-white/10 bg-white/5">
-            <CardContent className="pt-6">
-              {settingsLoading ? (
-                <div className="flex gap-4">
-                  <Skeleton className="h-10 flex-1" />
-                  <Skeleton className="h-10 flex-1" />
-                  <Skeleton className="h-10 w-24" />
-                </div>
-              ) : (
-                <div className="flex flex-col md:flex-row gap-4 items-end">
-                  <div className="flex-1 space-y-2">
-                    <label className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Crown className="w-4 h-4 text-blue-400" />
-                      PRO ціна (USDT)
-                    </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={settingsForm.proPrice}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, proPrice: e.target.value })}
-                      className="bg-white/5 border-white/10"
-                      data-testid="input-pro-price"
-                    />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <label className="text-sm text-muted-foreground flex items-center gap-2">
-                      <ShieldAlert className="w-4 h-4 text-purple-400" />
-                      ENTERPRISE ціна (USDT)
-                    </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={settingsForm.enterprisePrice}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, enterprisePrice: e.target.value })}
-                      className="bg-white/5 border-white/10"
-                      data-testid="input-enterprise-price"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => updateSettingsMutation.mutate(settingsForm)}
-                    disabled={updateSettingsMutation.isPending}
-                    className="gap-2"
-                    data-testid="button-save-settings"
-                  >
-                    {updateSettingsMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4" />
-                    )}
-                    Зберегти
-                  </Button>
-                </div>
+              {pendingPayments && pendingPayments.length > 0 && (
+                <Card className="border-white/10 bg-white/5">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-orange-400" />
+                      Очікуючі платежі ({pendingPayments.length})
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab("payments")} data-testid="button-view-all-payments">
+                      Переглянути всі
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {pendingPayments.slice(0, 3).map((p) => (
+                        <div key={p.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-4 flex-wrap">
+                          <div>
+                            <span className="text-sm font-medium">{p.username || `User #${p.userId}`}</span>
+                            <span className="text-xs text-muted-foreground ml-2">{p.tier} - ${p.amountUsdt}</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="text-green-400" onClick={() => approvePaymentMutation.mutate(p.id)} data-testid={`button-quick-approve-${p.id}`}>
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-red-400" onClick={() => rejectPaymentMutation.mutate(p.id)} data-testid={`button-quick-reject-${p.id}`}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
-        </motion.section>
+            </motion.div>
+          )}
 
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="space-y-4"
-        >
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-primary" />
-            Очікуючі платежі
-          </h2>
-
-          <Card className="border-white/10 bg-white/5">
-            <CardContent className="pt-6">
-              {paymentsLoading ? (
-                <div className="space-y-2">
-                  {Array(3)
-                    .fill(0)
-                    .map((_, i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                </div>
-              ) : !pendingPayments?.length ? (
-                <div className="text-center py-8">
-                  <CheckCircle className="w-12 h-12 mx-auto text-green-400 mb-3" />
-                  <p className="text-muted-foreground">Немає очікуючих платежів</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-white/10">
-                        <TableHead>Користувач</TableHead>
-                        <TableHead>Підписка</TableHead>
-                        <TableHead>Сума</TableHead>
-                        <TableHead className="hidden md:table-cell">TX Hash</TableHead>
-                        <TableHead className="hidden md:table-cell">Дата</TableHead>
-                        <TableHead className="text-right">Дії</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingPayments.map((payment) => (
-                        <TableRow key={payment.id} className="border-white/10" data-testid={`payment-row-${payment.id}`}>
-                          <TableCell className="font-medium">{payment.username}</TableCell>
-                          <TableCell>
+          {activeTab === "tickets" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                Звернення користувачів
+              </h2>
+              <Card className="border-white/10 bg-white/5">
+                <CardContent className="pt-6">
+                  {ticketsLoading ? (
+                    <div className="space-y-2">{Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
+                  ) : !tickets?.length ? (
+                    <div className="text-center py-12">
+                      <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">Немає звернень</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {tickets.map((ticket) => (
+                        <div key={ticket.id} className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3" data-testid={`ticket-${ticket.id}`}>
+                          <div className="flex items-start justify-between gap-3 flex-wrap">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium">#{ticket.id}</span>
+                                <span className="text-sm">{ticket.name}</span>
+                                {ticket.username && <Badge variant="outline" className="text-xs">@{ticket.username}</Badge>}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                                <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{ticket.contact}</span>
+                                <span>{ticket.source}</span>
+                                <span>{ticket.createdAt ? format(new Date(ticket.createdAt), "dd.MM.yyyy HH:mm") : ""}</span>
+                              </div>
+                            </div>
                             <Badge
+                              variant="outline"
                               className={
-                                payment.tier === "ENTERPRISE"
-                                  ? "bg-purple-500/10 text-purple-400 border-purple-500/30"
-                                  : "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                ticket.status === "open"
+                                  ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                                  : ticket.status === "replied"
+                                  ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                  : "bg-green-500/10 text-green-400 border-green-500/30"
                               }
                             >
-                              {payment.tier}
+                              {ticket.status === "open" ? "Відкрито" : ticket.status === "replied" ? "Відповідь" : "Закрито"}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="font-mono">
-                            ${payment.amountUsdt} USDT
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground max-w-[150px] truncate">
-                            {payment.txHash || "—"}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
-                            {format(new Date(payment.createdAt), "dd.MM.yyyy HH:mm")}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
-                                onClick={() => approvePaymentMutation.mutate(payment.id)}
-                                disabled={approvePaymentMutation.isPending}
-                                data-testid={`button-approve-payment-${payment.id}`}
-                              >
-                                <Check className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                onClick={() => rejectPaymentMutation.mutate(payment.id)}
-                                disabled={rejectPaymentMutation.isPending}
-                                data-testid={`button-reject-payment-${payment.id}`}
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
+                          </div>
+                          <p className="text-sm text-muted-foreground bg-black/20 p-3 rounded-lg">{ticket.message}</p>
+                          {ticket.adminReply && (
+                            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                              <p className="text-xs text-primary mb-1">Відповідь адміна:</p>
+                              <p className="text-sm">{ticket.adminReply}</p>
                             </div>
-                          </TableCell>
-                        </TableRow>
+                          )}
+                          {ticketReply?.id === ticket.id ? (
+                            <div className="flex gap-2">
+                              <Textarea
+                                value={ticketReply.text}
+                                onChange={(e) => setTicketReply({ ...ticketReply, text: e.target.value })}
+                                placeholder="Введіть відповідь..."
+                                className="bg-white/5 border-white/10 min-h-[80px]"
+                                data-testid={`textarea-reply-${ticket.id}`}
+                              />
+                              <div className="flex flex-col gap-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => updateTicketMutation.mutate({ id: ticket.id, status: "replied", adminReply: ticketReply.text })}
+                                  disabled={!ticketReply.text.trim() || updateTicketMutation.isPending}
+                                  data-testid={`button-send-reply-${ticket.id}`}
+                                >
+                                  {updateTicketMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => setTicketReply(null)}>
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 flex-wrap">
+                              <Button variant="outline" size="sm" onClick={() => setTicketReply({ id: ticket.id, text: "" })} data-testid={`button-reply-${ticket.id}`}>
+                                <MessageSquare className="w-3 h-3 mr-1" />
+                                Відповісти
+                              </Button>
+                              {ticket.status !== "closed" && (
+                                <Button variant="outline" size="sm" onClick={() => updateTicketMutation.mutate({ id: ticket.id, status: "closed" })} data-testid={`button-close-ticket-${ticket.id}`}>
+                                  <Check className="w-3 h-3 mr-1" />
+                                  Закрити
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {activeTab === "payments" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-primary" />
+                Історія платежів
+              </h2>
+              <Card className="border-white/10 bg-white/5">
+                <CardContent className="pt-6">
+                  {allPaymentsLoading ? (
+                    <div className="space-y-2">{Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+                  ) : !allPayments?.length ? (
+                    <div className="text-center py-12">
+                      <CreditCard className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-muted-foreground">Немає платежів</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-white/10">
+                            <TableHead>ID</TableHead>
+                            <TableHead>Користувач</TableHead>
+                            <TableHead>Підписка</TableHead>
+                            <TableHead>Сума</TableHead>
+                            <TableHead className="hidden md:table-cell">TX Hash</TableHead>
+                            <TableHead>Статус</TableHead>
+                            <TableHead className="hidden md:table-cell">Дата</TableHead>
+                            <TableHead className="text-right">Дії</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {allPayments.map((payment) => (
+                            <TableRow key={payment.id} className="border-white/10" data-testid={`payment-row-${payment.id}`}>
+                              <TableCell className="font-mono text-xs">#{payment.id}</TableCell>
+                              <TableCell className="font-medium">{payment.username || `#${payment.userId}`}</TableCell>
+                              <TableCell>
+                                <Badge className={payment.tier === "ENTERPRISE" ? "bg-purple-500/10 text-purple-400 border-purple-500/30" : "bg-blue-500/10 text-blue-400 border-blue-500/30"}>
+                                  {payment.tier}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-mono">${payment.amountUsdt}</TableCell>
+                              <TableCell className="hidden md:table-cell font-mono text-xs text-muted-foreground max-w-[120px] truncate">{payment.txHash || "—"}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={
+                                  payment.status === "approved" ? "bg-green-500/10 text-green-400 border-green-500/30"
+                                  : payment.status === "rejected" ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                  : "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                                }>
+                                  {payment.status === "approved" ? "Підтверджено" : payment.status === "rejected" ? "Відхилено" : "Очікує"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
+                                {payment.createdAt ? format(new Date(payment.createdAt), "dd.MM.yyyy HH:mm") : ""}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {payment.status === "pending" && (
+                                  <div className="flex justify-end gap-1">
+                                    <Button variant="ghost" size="icon" className="text-green-400" onClick={() => approvePaymentMutation.mutate(payment.id)} data-testid={`button-approve-${payment.id}`}>
+                                      <Check className="w-4 h-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="text-red-400" onClick={() => rejectPaymentMutation.mutate(payment.id)} data-testid={`button-reject-${payment.id}`}>
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {activeTab === "users" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  Користувачі
+                </h2>
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="Пошук..."
+                    className="pl-9 bg-white/5 border-white/10"
+                    data-testid="input-search-users"
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.section>
-      </main>
+              </div>
+              <Card className="border-white/10 bg-white/5">
+                <CardContent className="pt-6">
+                  {usersLoading ? (
+                    <div className="space-y-2">{Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-white/10">
+                            <TableHead>ID</TableHead>
+                            <TableHead>Username</TableHead>
+                            <TableHead>TG ID</TableHead>
+                            <TableHead>Тариф</TableHead>
+                            <TableHead className="hidden md:table-cell">Запити</TableHead>
+                            <TableHead className="hidden md:table-cell">Streak</TableHead>
+                            <TableHead>Статус</TableHead>
+                            <TableHead className="hidden lg:table-cell">Останній вхід</TableHead>
+                            <TableHead className="text-right">Дії</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredUsers.map((user) => (
+                            <TableRow key={user.id} className="border-white/10" data-testid={`user-row-${user.id}`}>
+                              <TableCell className="font-mono text-xs">#{user.id}</TableCell>
+                              <TableCell className="font-medium">{user.username || "—"}</TableCell>
+                              <TableCell className="font-mono text-xs text-muted-foreground">{user.tgId}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={
+                                  user.tier === "ENTERPRISE" ? "bg-purple-500/10 text-purple-400 border-purple-500/30"
+                                  : user.tier === "PRO" ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                  : "bg-zinc-500/10 text-zinc-400 border-zinc-500/30"
+                                }>
+                                  {user.tier || "FREE"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">{user.requestsLeft ?? 0}</TableCell>
+                              <TableCell className="hidden md:table-cell">{user.streakDays ?? 0}</TableCell>
+                              <TableCell>
+                                {user.blocked ? (
+                                  <Badge className="bg-red-500/10 text-red-400 border-red-500/30">Blocked</Badge>
+                                ) : (
+                                  <Badge className="bg-green-500/10 text-green-400 border-green-500/30">Active</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
+                                {user.lastLogin ? format(new Date(user.lastLogin), "dd.MM.yyyy HH:mm") : "—"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className={user.blocked ? "text-green-400" : "text-red-400"}
+                                  onClick={() => blockUserMutation.mutate({ userId: user.id, blocked: !user.blocked })}
+                                  disabled={blockUserMutation.isPending}
+                                  data-testid={`button-toggle-block-${user.id}`}
+                                >
+                                  {user.blocked ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      <p className="text-xs text-muted-foreground mt-3">{filteredUsers.length} / {allUsers?.length || 0} користувачів</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {activeTab === "coupons" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-primary" />
+                Керування купонами
+              </h2>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Новий купон</CardTitle>
+                  <CardDescription>Створіть промокод для користувачів</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Код</label>
+                      <div className="flex gap-2">
+                        <Input placeholder="DS-XXXXXXXX" value={couponForm.code} onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })} className="bg-white/5 border-white/10" data-testid="input-coupon-code" />
+                        <Button variant="outline" size="icon" onClick={() => setCouponForm({ ...couponForm, code: generateCouponCode() })} data-testid="button-generate-code">
+                          <Shuffle className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Тип</label>
+                      <Select value={couponForm.type} onValueChange={(v: "checks" | "tier") => setCouponForm({ ...couponForm, type: v })}>
+                        <SelectTrigger className="bg-white/5 border-white/10" data-testid="select-coupon-type"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="checks">Перевірки</SelectItem>
+                          <SelectItem value="tier">Підписка</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {couponForm.type === "checks" && (
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Кількість</label>
+                        <Input type="number" min={1} value={couponForm.value} onChange={(e) => setCouponForm({ ...couponForm, value: parseInt(e.target.value) || 0 })} className="bg-white/5 border-white/10" data-testid="input-coupon-value" />
+                      </div>
+                    )}
+                    {couponForm.type === "tier" && (
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">Рівень</label>
+                        <Select value={couponForm.tier} onValueChange={(v) => setCouponForm({ ...couponForm, tier: v })}>
+                          <SelectTrigger className="bg-white/5 border-white/10" data-testid="select-coupon-tier"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PRO">PRO</SelectItem>
+                            <SelectItem value="ENTERPRISE">ENTERPRISE</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Макс. використань</label>
+                      <Input type="number" min={1} value={couponForm.maxUses} onChange={(e) => setCouponForm({ ...couponForm, maxUses: parseInt(e.target.value) || 0 })} className="bg-white/5 border-white/10" data-testid="input-coupon-maxuses" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">Термін дії</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/10" data-testid="button-coupon-expiry">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {couponForm.expiresAt ? format(couponForm.expiresAt, "dd.MM.yyyy", { locale: uk }) : "Без обмежень"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent mode="single" selected={couponForm.expiresAt || undefined} onSelect={(date) => setCouponForm({ ...couponForm, expiresAt: date || null })} disabled={(date) => date < new Date()} initialFocus />
+                          {couponForm.expiresAt && (
+                            <div className="p-2 border-t border-white/10">
+                              <Button variant="ghost" size="sm" className="w-full" onClick={() => setCouponForm({ ...couponForm, expiresAt: null })}>Очистити</Button>
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="flex items-end">
+                      <Button onClick={() => createCouponMutation.mutate(couponForm)} disabled={!couponForm.code || createCouponMutation.isPending} className="w-full gap-2" data-testid="button-create-coupon">
+                        {createCouponMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        Створити
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Активні купони</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {couponsLoading ? (
+                    <div className="space-y-2">{Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+                  ) : !coupons?.length ? (
+                    <p className="text-center text-muted-foreground py-8">Немає купонів</p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-white/10">
+                            <TableHead>Код</TableHead>
+                            <TableHead>Тип</TableHead>
+                            <TableHead>Значення</TableHead>
+                            <TableHead className="hidden md:table-cell">Використано</TableHead>
+                            <TableHead className="hidden md:table-cell">Статус</TableHead>
+                            <TableHead className="hidden lg:table-cell">Термін</TableHead>
+                            <TableHead className="text-right">Дії</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {coupons.map((coupon) => (
+                            <TableRow key={coupon.id} className="border-white/10" data-testid={`coupon-row-${coupon.id}`}>
+                              <TableCell className="font-mono text-sm">{coupon.code}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className={coupon.type === "tier" ? "bg-purple-500/10 text-purple-400 border-purple-500/30" : "bg-blue-500/10 text-blue-400 border-blue-500/30"}>
+                                  {coupon.type === "tier" ? <Crown className="w-3 h-3 mr-1" /> : <Zap className="w-3 h-3 mr-1" />}
+                                  {coupon.type === "tier" ? "Підписка" : "Перевірки"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{coupon.type === "tier" ? coupon.tier : `+${coupon.value}`}</TableCell>
+                              <TableCell className="hidden md:table-cell">{coupon.usedCount} / {coupon.maxUses}</TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                {coupon.isActive ? <Badge className="bg-green-500/10 text-green-400 border-green-500/30">Активний</Badge> : <Badge className="bg-zinc-500/10 text-zinc-400 border-zinc-500/30">Неактивний</Badge>}
+                              </TableCell>
+                              <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{coupon.expiresAt ? format(new Date(coupon.expiresAt), "dd.MM.yyyy") : "—"}</TableCell>
+                              <TableCell className="text-right">
+                                <Button variant="ghost" size="icon" className="text-red-400" onClick={() => deleteCouponMutation.mutate(coupon.id)} disabled={deleteCouponMutation.isPending} data-testid={`button-delete-coupon-${coupon.id}`}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {activeTab === "settings" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" />
+                Налаштування
+              </h2>
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Ціни підписок (USDT)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {settingsLoading ? (
+                    <div className="flex gap-4"><Skeleton className="h-10 flex-1" /><Skeleton className="h-10 flex-1" /><Skeleton className="h-10 w-24" /></div>
+                  ) : (
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                      <div className="flex-1 space-y-2">
+                        <label className="text-sm text-muted-foreground flex items-center gap-2"><Crown className="w-4 h-4 text-blue-400" />PRO</label>
+                        <Input type="number" min={1} value={settingsForm.proPrice} onChange={(e) => setSettingsForm({ ...settingsForm, proPrice: e.target.value })} className="bg-white/5 border-white/10" data-testid="input-pro-price" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <label className="text-sm text-muted-foreground flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-purple-400" />ENTERPRISE</label>
+                        <Input type="number" min={1} value={settingsForm.enterprisePrice} onChange={(e) => setSettingsForm({ ...settingsForm, enterprisePrice: e.target.value })} className="bg-white/5 border-white/10" data-testid="input-enterprise-price" />
+                      </div>
+                      <Button onClick={() => updateSettingsMutation.mutate(settingsForm)} disabled={updateSettingsMutation.isPending} className="gap-2" data-testid="button-save-settings">
+                        {updateSettingsMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Зберегти
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Підтримка</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Email підтримки</p>
+                      <p className="text-sm font-medium">darkshare.store@gmail.com</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

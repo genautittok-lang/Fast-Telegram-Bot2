@@ -1,5 +1,6 @@
 import { Shield, ExternalLink, Mail } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
+import { Link } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 
 export function Footer() {
@@ -54,9 +55,16 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-contact">
-                  <Mail className="w-3.5 h-3.5" />
-                  {t('footer.contact')}
+                <Link href="/support">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-contact">
+                    <Mail className="w-3.5 h-3.5" />
+                    {t('footer.contact')}
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <a href="mailto:darkshare.store@gmail.com" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-support-email">
+                  darkshare.store@gmail.com
                 </a>
               </li>
             </ul>

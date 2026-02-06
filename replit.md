@@ -29,7 +29,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 - **Database**: PostgreSQL with Drizzle ORM
-- **Key Tables**: `users`, `reports`, `watches`, `payments`, `referrals`
+- **Key Tables**: `users`, `reports`, `watches`, `payments`, `referrals`, `support_tickets`
 - **Schema Location**: `shared/schema.ts`
 
 ### Code Organization
@@ -62,6 +62,14 @@ Preferred communication style: Simple, everyday language.
 
 ### AI-Enhanced Analysis
 - Integrates with OpenAI for AI-generated security summaries, threat level assessments, and actionable recommendations when configured. Fallbacks to rule-based analysis.
+
+### Support System
+- Contact form on web (`/support` page) and bot (`/support` command).
+- Support email: darkshare.store@gmail.com displayed in Footer, AppSidebar, MobileMenu.
+- Support tickets stored in `support_tickets` table with userId, name, contact, message, status (open/replied/closed), adminReply, source (web/telegram).
+- Admin receives Telegram notifications when tickets are created (web or bot).
+- Admin panel (`/admin`) has tabbed layout: Dashboard, Tickets, Payments, Users, Coupons, Settings.
+- Free tier: 5 requests per day.
 
 ### Bot-Web Synchronization
 - Unified report storage and listing across bot and web.

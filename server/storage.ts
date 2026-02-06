@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
 
@@ -71,6 +71,15 @@ export interface IStorage {
   getAdminSetting(key: string): Promise<string | undefined>;
   setAdminSetting(key: string, value: string): Promise<void>;
   getAllAdminSettings(): Promise<AdminSetting[]>;
+
+  // Support tickets
+  createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
+  getSupportTickets(): Promise<SupportTicket[]>;
+  getSupportTicketsByUser(userId: number): Promise<SupportTicket[]>;
+  updateSupportTicketStatus(id: number, status: string, adminReply?: string): Promise<SupportTicket>;
+
+  // All payments (not just pending)
+  getAllPayments(): Promise<Payment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -332,6 +341,35 @@ export class DatabaseStorage implements IStorage {
   async getAllAdminSettings(): Promise<AdminSetting[]> {
     if (!db) throw new Error("Database not available");
     return db.select().from(adminSettings);
+  }
+
+  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(supportTickets).values(ticket).returning();
+    return created;
+  }
+
+  async getSupportTickets(): Promise<SupportTicket[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(supportTickets).orderBy(desc(supportTickets.createdAt));
+  }
+
+  async getSupportTicketsByUser(userId: number): Promise<SupportTicket[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(supportTickets).where(eq(supportTickets.userId, userId)).orderBy(desc(supportTickets.createdAt));
+  }
+
+  async updateSupportTicketStatus(id: number, status: string, adminReply?: string): Promise<SupportTicket> {
+    if (!db) throw new Error("Database not available");
+    const updates: any = { status };
+    if (adminReply !== undefined) updates.adminReply = adminReply;
+    const [ticket] = await db.update(supportTickets).set(updates).where(eq(supportTickets.id, id)).returning();
+    return ticket;
+  }
+
+  async getAllPayments(): Promise<Payment[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(payments).orderBy(desc(payments.createdAt));
   }
 
   async getUsersCount(): Promise<number> {
@@ -609,6 +647,49 @@ export class MemStorage implements IStorage {
   async getAdminSetting(key: string): Promise<string | undefined> { return undefined; }
   async setAdminSetting(key: string, value: string): Promise<void> {}
   async getAllAdminSettings(): Promise<AdminSetting[]> { return []; }
+
+  private supportTicketsMap: Map<number, SupportTicket> = new Map();
+  private nextSupportTicketId = 1;
+
+  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
+    const id = this.nextSupportTicketId++;
+    const created: SupportTicket = {
+      id,
+      userId: ticket.userId || null,
+      name: ticket.name,
+      contact: ticket.contact,
+      message: ticket.message,
+      status: ticket.status || "open",
+      adminReply: ticket.adminReply || null,
+      source: ticket.source || "web",
+      createdAt: new Date(),
+    };
+    this.supportTicketsMap.set(id, created);
+    return created;
+  }
+
+  async getSupportTickets(): Promise<SupportTicket[]> {
+    return Array.from(this.supportTicketsMap.values()).sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getSupportTicketsByUser(userId: number): Promise<SupportTicket[]> {
+    return Array.from(this.supportTicketsMap.values())
+      .filter(t => t.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async updateSupportTicketStatus(id: number, status: string, adminReply?: string): Promise<SupportTicket> {
+    const ticket = this.supportTicketsMap.get(id);
+    if (!ticket) throw new Error("Ticket not found");
+    ticket.status = status;
+    if (adminReply !== undefined) ticket.adminReply = adminReply;
+    this.supportTicketsMap.set(id, ticket);
+    return ticket;
+  }
+
+  async getAllPayments(): Promise<Payment[]> {
+    return Array.from(this.payments.values()).sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
 
   // Stats methods for MemStorage
   async getUsersCount(): Promise<number> { return this.users.size; }

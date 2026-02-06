@@ -12,6 +12,7 @@ import {
   FileText,
   Lock,
   Mail,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -24,6 +25,7 @@ const navItems = [
   { id: "referral", labelKey: "nav.referral", icon: Users, href: "/referral" },
   { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
   { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
+  { id: "support", labelKey: "nav.support", icon: MessageSquare, href: "/support" },
 ];
 
 export function AppSidebar() {
@@ -97,9 +99,15 @@ export function AppSidebar() {
             <Lock className="w-3.5 h-3.5" />
             {t('footer.privacyPolicy')}
           </a>
-          <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg" data-testid="link-sidebar-contact">
+          <Link href="/support">
+            <span className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg cursor-pointer" data-testid="link-sidebar-support">
+              <MessageSquare className="w-3.5 h-3.5" />
+              {t('footer.contact')}
+            </span>
+          </Link>
+          <a href="mailto:darkshare.store@gmail.com" className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg" data-testid="link-sidebar-email">
             <Mail className="w-3.5 h-3.5" />
-            {t('footer.contact')}
+            darkshare.store@gmail.com
           </a>
         </div>
       </div>

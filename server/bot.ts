@@ -336,6 +336,7 @@ ${t(lang, "dashboard.selectModule")}`;
         Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard")
       ],
       [
+        Markup.button.callback(t(lang, "support.command"), "open_support"),
         Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl)
       ]
     ];
@@ -753,6 +754,75 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         }
       }
       return;
+    }
+
+    if (state?.module === "support") {
+      if (!user) return;
+
+      if (state.step === "name") {
+        userStates.set(tgId, { module: "support", step: "contact", data: { name: text.trim() } });
+        return ctx.reply(t(lang, "support.askContact"), {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]])
+        });
+      }
+
+      if (state.step === "contact") {
+        userStates.set(tgId, { module: "support", step: "message", data: { ...state.data, contact: text.trim() } });
+        return ctx.reply(t(lang, "support.askMessage"), {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]])
+        });
+      }
+
+      if (state.step === "message") {
+        const name = state.data?.name || "";
+        const contact = state.data?.contact || "";
+        const message = text.trim();
+
+        try {
+          const ticket = await storage.createSupportTicket({
+            userId: user.id,
+            name,
+            contact,
+            message,
+            source: "telegram",
+          });
+
+          userStates.delete(tgId);
+
+          await ctx.reply(t(lang, "support.sent"), {
+            parse_mode: "Markdown",
+            ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
+          });
+
+          for (const adminId of ADMIN_IDS) {
+            try {
+              await ctx.telegram.sendMessage(adminId, 
+                `📩 Нове звернення #${ticket.id}\n\n👤 Ім'я: ${name}\n📱 Контакт: ${contact}\n🔢 TG ID: ${user.tgId} (@${user.username || '—'})\n📍 Джерело: Telegram Bot\n\n💬 Повідомлення:\n${message}`,
+                {
+                  reply_markup: Markup.inlineKeyboard([
+                    [
+                      Markup.button.callback("💬 Відповісти", `reply_ticket_${ticket.id}`),
+                      Markup.button.callback("✅ Закрити", `close_ticket_${ticket.id}`)
+                    ]
+                  ]).reply_markup
+                }
+              );
+            } catch (e) {
+              console.log(`Failed to notify admin ${adminId} about support ticket:`, e);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to create support ticket:", e);
+          userStates.delete(tgId);
+          await ctx.reply(t(lang, "support.error"), {
+            parse_mode: "Markdown",
+            ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
+          });
+        }
+        return;
+      }
     }
 
     if (user && user.requestsLeft! <= 0) {
@@ -1493,6 +1563,54 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
     await ctx.editMessageCaption(`${t("uk", "admin.rejected", { admin: ctx.from!.username || t("uk", "common.na") })}\n\n${t("uk", "admin.newPayment", { id: paymentId.toString() })}\n${t("uk", "admin.user", { username: user?.username || t("uk", "common.na"), tgId: user?.tgId || t("uk", "common.na") })}`);
     await ctx.answerCbQuery(t("uk", "admin.rejectedShort"));
+  });
+
+  bot.command("support", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    userStates.set(tgId, { module: "support", step: "name" });
+    await ctx.reply(t(lang, "support.askName"), {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]])
+    });
+  });
+
+  bot.action("open_support", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    userStates.set(tgId, { module: "support", step: "name" });
+    const text = t(lang, "support.askName");
+    const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action(/^close_ticket_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Access denied");
+    }
+    const ticketId = parseInt(ctx.match[1]);
+    try {
+      await storage.updateSupportTicketStatus(ticketId, "closed");
+      await ctx.answerCbQuery(`✅ Тікет #${ticketId} закрито`);
+      await ctx.editMessageText(ctx.callbackQuery.message && 'text' in ctx.callbackQuery.message ? ctx.callbackQuery.message.text + `\n\n✅ Закрито адміном @${ctx.from!.username || '—'}` : `✅ Тікет #${ticketId} закрито`);
+    } catch (e) {
+      console.error("Failed to close ticket:", e);
+      await ctx.answerCbQuery("❌ Помилка закриття тікета");
+    }
+  });
+
+  bot.action(/^reply_ticket_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery("⛔ Access denied");
+    }
+    const ticketId = ctx.match[1];
+    await ctx.answerCbQuery(`💬 Відповідайте через email: darkshare.store@gmail.com (тікет #${ticketId})`);
   });
 
   bot.action("coupon", async (ctx) => {

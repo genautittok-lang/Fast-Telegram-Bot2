@@ -8,6 +8,7 @@ export interface TranslationSchema {
     referral: string;
     pricing: string;
     account: string;
+    support: string;
   };
   common: {
     loading: string;
@@ -634,6 +635,21 @@ export interface TranslationSchema {
     typeRansomware: string;
     typeApt: string;
   };
+  support: {
+    title: string;
+    subtitle: string;
+    contactInfo: string;
+    email: string;
+    formTitle: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    contactLabel: string;
+    contactPlaceholder: string;
+    messageLabel: string;
+    messagePlaceholder: string;
+    sent: string;
+    sentDesc: string;
+  };
 }
 
 export const translations: Record<Language, TranslationSchema> = {
@@ -645,6 +661,7 @@ export const translations: Record<Language, TranslationSchema> = {
       referral: "Referral",
       pricing: "Pricing",
       account: "Account",
+      support: "Support",
     },
     common: {
       loading: "Loading...",
@@ -1271,6 +1288,21 @@ export const translations: Record<Language, TranslationSchema> = {
       typeRansomware: "Ransomware",
       typeApt: "APT",
     },
+    support: {
+      title: "Contact Support",
+      subtitle: "Have a question or need help? Send us a message and we'll get back to you.",
+      contactInfo: "Contact Information",
+      email: "Support Email",
+      formTitle: "Send a Request",
+      nameLabel: "Your Name",
+      namePlaceholder: "Enter your name",
+      contactLabel: "Phone / Telegram / Email",
+      contactPlaceholder: "How can we reach you?",
+      messageLabel: "Message",
+      messagePlaceholder: "Describe your issue or question...",
+      sent: "Request Sent",
+      sentDesc: "Our team will review your request and get back to you shortly.",
+    },
   },
   uk: {
     nav: {
@@ -1280,6 +1312,7 @@ export const translations: Record<Language, TranslationSchema> = {
       referral: "Реферали",
       pricing: "Тарифи",
       account: "Акаунт",
+      support: "Підтримка",
     },
     common: {
       loading: "Завантаження...",
@@ -1906,6 +1939,21 @@ export const translations: Record<Language, TranslationSchema> = {
       typeRansomware: "Здирник",
       typeApt: "APT",
     },
+    support: {
+      title: "Зв'язатися з підтримкою",
+      subtitle: "Маєте питання чи потребуєте допомоги? Надішліть нам повідомлення.",
+      contactInfo: "Контактна інформація",
+      email: "Email підтримки",
+      formTitle: "Надіслати звернення",
+      nameLabel: "Ваше ім'я",
+      namePlaceholder: "Введіть ваше ім'я",
+      contactLabel: "Телефон / Telegram / Email",
+      contactPlaceholder: "Як з вами зв'язатися?",
+      messageLabel: "Повідомлення",
+      messagePlaceholder: "Опишіть вашу проблему або питання...",
+      sent: "Звернення надіслано",
+      sentDesc: "Наша команда розгляне ваше звернення та зв'яжеться з вами.",
+    },
   },
   ru: {
     nav: {
@@ -1915,6 +1963,7 @@ export const translations: Record<Language, TranslationSchema> = {
       referral: "Рефералы",
       pricing: "Тарифы",
       account: "Аккаунт",
+      support: "Поддержка",
     },
     common: {
       loading: "Загрузка...",
@@ -2541,6 +2590,21 @@ export const translations: Record<Language, TranslationSchema> = {
       typeRansomware: "Вымогатель",
       typeApt: "APT",
     },
+    support: {
+      title: "Связаться с поддержкой",
+      subtitle: "Есть вопрос или нужна помощь? Отправьте нам сообщение.",
+      contactInfo: "Контактная информация",
+      email: "Email поддержки",
+      formTitle: "Отправить обращение",
+      nameLabel: "Ваше имя",
+      namePlaceholder: "Введите ваше имя",
+      contactLabel: "Телефон / Telegram / Email",
+      contactPlaceholder: "Как с вами связаться?",
+      messageLabel: "Сообщение",
+      messagePlaceholder: "Опишите вашу проблему или вопрос...",
+      sent: "Обращение отправлено",
+      sentDesc: "Наша команда рассмотрит ваше обращение и свяжется с вами.",
+    },
   },
   es: {
     nav: {
@@ -2550,6 +2614,7 @@ export const translations: Record<Language, TranslationSchema> = {
       referral: "Referidos",
       pricing: "Precios",
       account: "Cuenta",
+      support: "Soporte",
     },
     common: {
       loading: "Cargando...",
@@ -3176,6 +3241,21 @@ export const translations: Record<Language, TranslationSchema> = {
       typeRansomware: "Ransomware",
       typeApt: "APT",
     },
+    support: {
+      title: "Contactar Soporte",
+      subtitle: "Tiene una pregunta o necesita ayuda? Envie un mensaje.",
+      contactInfo: "Informacion de Contacto",
+      email: "Email de Soporte",
+      formTitle: "Enviar Solicitud",
+      nameLabel: "Su Nombre",
+      namePlaceholder: "Ingrese su nombre",
+      contactLabel: "Telefono / Telegram / Email",
+      contactPlaceholder: "Como podemos contactarlo?",
+      messageLabel: "Mensaje",
+      messagePlaceholder: "Describa su problema o pregunta...",
+      sent: "Solicitud Enviada",
+      sentDesc: "Nuestro equipo revisara su solicitud y le contactara pronto.",
+    },
   },
   de: {
     nav: {
@@ -3185,6 +3265,7 @@ export const translations: Record<Language, TranslationSchema> = {
       referral: "Empfehlungen",
       pricing: "Preise",
       account: "Konto",
+      support: "Support",
     },
     common: {
       loading: "Laden...",
@@ -3810,6 +3891,21 @@ export const translations: Record<Language, TranslationSchema> = {
       typeBotnet: "Botnet",
       typeRansomware: "Ransomware",
       typeApt: "APT",
+    },
+    support: {
+      title: "Support kontaktieren",
+      subtitle: "Haben Sie eine Frage oder brauchen Hilfe? Senden Sie uns eine Nachricht.",
+      contactInfo: "Kontaktinformationen",
+      email: "Support-E-Mail",
+      formTitle: "Anfrage senden",
+      nameLabel: "Ihr Name",
+      namePlaceholder: "Geben Sie Ihren Namen ein",
+      contactLabel: "Telefon / Telegram / E-Mail",
+      contactPlaceholder: "Wie konnen wir Sie erreichen?",
+      messageLabel: "Nachricht",
+      messagePlaceholder: "Beschreiben Sie Ihr Problem oder Ihre Frage...",
+      sent: "Anfrage gesendet",
+      sentDesc: "Unser Team wird Ihre Anfrage prufen und sich bei Ihnen melden.",
     },
   },
 };
