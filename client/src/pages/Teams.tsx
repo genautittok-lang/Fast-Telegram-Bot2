@@ -241,7 +241,7 @@ function TeamsContent() {
                 >
                   <div className="p-4 bg-white rounded-xl" data-testid="qr-code-container">
                     <QRCodeSVG
-                      value={`https://darkshare.store/teams/join/${teamDetail.team.inviteCode}`}
+                      value={`https://www.darkshare.store/teams/join/${teamDetail.team.inviteCode}`}
                       size={180}
                       level="H"
                       bgColor="#ffffff"

@@ -152,19 +152,19 @@ ${t(lang, "startWelcome.referralGreeting", { name: userName })}
 ${t(lang, "startWelcome.referralInvited")}
 
 ${t(lang, "startWelcome.referralBonusTitle")}
-├ ${t(lang, "startWelcome.referralBonusChecks")}
-├ ${t(lang, "startWelcome.referralBonusAccess")}
-└ ${t(lang, "startWelcome.referralBonusAi")}
+  ${t(lang, "startWelcome.referralBonusChecks")}
+  ${t(lang, "startWelcome.referralBonusAccess")}
+  ${t(lang, "startWelcome.referralBonusAi")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
 ${t(lang, "startWelcome.capabilitiesTitle")}
-├ ${t(lang, "startWelcome.capIpGeo")}
-├ ${t(lang, "startWelcome.capCrypto")}
-├ ${t(lang, "startWelcome.capEmail")}
-├ ${t(lang, "startWelcome.capUrl")}
-├ ${t(lang, "startWelcome.capCve")}
-└ ${t(lang, "startWelcome.capMore")}
+  ${t(lang, "startWelcome.capIpGeo")}
+  ${t(lang, "startWelcome.capCrypto")}
+  ${t(lang, "startWelcome.capEmail")}
+  ${t(lang, "startWelcome.capUrl")}
+  ${t(lang, "startWelcome.capCve")}
+  ${t(lang, "startWelcome.capMore")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -200,14 +200,14 @@ ${t(lang, "startWelcome.platformDesc")}
 ━━━━━━━━━━━━━━━━━━━━
 
 ${t(lang, "startWelcome.modulesTitle")}
-├ ${t(lang, "startWelcome.modIpGeo")}
-├ ${t(lang, "startWelcome.modCrypto")}
-├ ${t(lang, "startWelcome.modEmail")}
-├ ${t(lang, "startWelcome.modDomain")}
-├ ${t(lang, "startWelcome.modUrl")}
-├ ${t(lang, "startWelcome.modCve")}
-├ ${t(lang, "startWelcome.modHash")}
-└ ${t(lang, "startWelcome.modUsername")}
+  ${t(lang, "startWelcome.modIpGeo")}
+  ${t(lang, "startWelcome.modCrypto")}
+  ${t(lang, "startWelcome.modEmail")}
+  ${t(lang, "startWelcome.modDomain")}
+  ${t(lang, "startWelcome.modUrl")}
+  ${t(lang, "startWelcome.modCve")}
+  ${t(lang, "startWelcome.modHash")}
+  ${t(lang, "startWelcome.modUsername")}
 
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -497,7 +497,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
 ━━━━━━━━━━━━━━━━━━━━
 
 📝 ${t(lang, "common.examples")}:
-├ IP: \`8.8.8.8\`
+• IP: \`8.8.8.8\`
 • Wallet: 0x742d35Cc...
 • Email: user@example.com
 • Domain: example.com
@@ -3370,7 +3370,7 @@ ${allTypesText}
       `👤 Username - юзернейми\n\n` +
       `*Приклад швидкої перевірки:*\n` +
       `\`/check ip 8.8.8.8\`\n\n` +
-      `🌐 Веб-панель: darkshare.store`;
+      `🌐 Веб-панель: www.darkshare.store`;
     
     await ctx.reply(text, {
       parse_mode: "Markdown",

@@ -183,7 +183,7 @@ const endpoints = [
 ];
 
 function generateCurl(endpoint: typeof endpoints[0], apiKey: string) {
-  const base = "https://darkshare.store";
+  const base = "https://www.darkshare.store";
   const headers = `-H "Authorization: Bearer ${apiKey || "YOUR_API_KEY"}" -H "Content-Type: application/json"`;
 
   if (endpoint.method === "GET") {
