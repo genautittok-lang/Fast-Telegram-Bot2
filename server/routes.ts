@@ -854,7 +854,7 @@ export async function registerRoutes(
       }
     }
 
-    res.json(results);
+    res.json({ results });
   });
 
   // Reports list endpoint (requires auth)

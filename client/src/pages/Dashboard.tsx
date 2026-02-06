@@ -87,6 +87,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/PageLayout";
 import { useTranslation } from "@/lib/i18n";
 import { useStats } from "@/hooks/use-stats";
+import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 
 interface AIInsights {
   summary: string;
@@ -236,6 +237,7 @@ export default function Dashboard() {
   const [location] = useLocation();
   const { t } = useTranslation();
   const { data: platformStats } = useStats();
+  const { showTour, completeTour } = useOnboardingTour();
 
   const checkTypes = useMemo(() => checkTypeStyles.map(style => ({
     ...style,
@@ -536,6 +538,9 @@ Sources: ${result.sources.join(', ')}`;
 
   return (
     <PageLayout>
+      <AnimatePresence>
+        {showTour && <OnboardingTour onComplete={completeTour} />}
+      </AnimatePresence>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
         <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
           <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">

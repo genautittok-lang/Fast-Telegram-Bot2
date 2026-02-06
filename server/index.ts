@@ -140,6 +140,59 @@ async function ensureTablesExist() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_coupons (
+        id SERIAL PRIMARY KEY,
+        code TEXT NOT NULL UNIQUE,
+        type TEXT NOT NULL,
+        value INTEGER NOT NULL,
+        tier TEXT,
+        max_uses INTEGER DEFAULT 1,
+        used_count INTEGER DEFAULT 0,
+        expires_at TIMESTAMP,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_coupon_usages (
+        id SERIAL PRIMARY KEY,
+        coupon_id INTEGER REFERENCES ds_coupons(id),
+        user_id INTEGER REFERENCES ds_users(id),
+        used_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_admin_settings (
+        id SERIAL PRIMARY KEY,
+        key TEXT NOT NULL UNIQUE,
+        value TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_teams (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        owner_id INTEGER REFERENCES ds_users(id) NOT NULL,
+        max_members INTEGER DEFAULT 10,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_team_members (
+        id SERIAL PRIMARY KEY,
+        team_id INTEGER REFERENCES ds_teams(id) NOT NULL,
+        user_id INTEGER REFERENCES ds_users(id) NOT NULL,
+        role TEXT DEFAULT 'member',
+        joined_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
     
     console.log("Database tables ready!");
   } catch (error: any) {
