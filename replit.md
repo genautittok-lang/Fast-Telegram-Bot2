@@ -54,6 +54,7 @@ Preferred communication style: Simple, everyday language.
 ### Authentication
 - Telegram Login Widget with HMAC verification.
 - PostgreSQL-backed sessions using `connect-pg-simple`.
+- Session regeneration on account switch (prevents cross-account session leakage).
 - Unified accounts for bot and web users.
 
 ### Payment System
@@ -69,7 +70,12 @@ Preferred communication style: Simple, everyday language.
 - Support tickets stored in `support_tickets` table with userId, name, contact, message, status (open/replied/closed), adminReply, source (web/telegram).
 - Admin receives Telegram notifications when tickets are created (web or bot).
 - Admin panel (`/admin`) has tabbed layout: Dashboard, Tickets, Payments, Users, Coupons, Settings.
+- Bot admin panel: expanded with Stats, Users, Search, Payments, Tickets, Coupons, Revenue, Reports, Broadcast, Block, Tiers, Add Requests, Settings sections.
 - Free tier: 5 requests per day.
+
+### API Documentation
+- API Docs page (`/api-docs`) for ENTERPRISE users with endpoint docs, code examples, and interactive testing.
+- Re-check from History: users can click re-check on any History report to pre-fill Dashboard with the target.
 
 ### Bot-Web Synchronization
 - Unified report storage and listing across bot and web.

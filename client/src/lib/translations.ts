@@ -9,6 +9,7 @@ export interface TranslationSchema {
     pricing: string;
     account: string;
     support: string;
+    apiDocs: string;
   };
   common: {
     loading: string;
@@ -664,6 +665,7 @@ export const translations: Record<Language, TranslationSchema> = {
       pricing: "Pricing",
       account: "Account",
       support: "Support",
+      apiDocs: "API Docs",
     },
     common: {
       loading: "Loading...",
@@ -1317,6 +1319,7 @@ export const translations: Record<Language, TranslationSchema> = {
       pricing: "Тарифи",
       account: "Акаунт",
       support: "Підтримка",
+      apiDocs: "API Документація",
     },
     common: {
       loading: "Завантаження...",
@@ -1970,6 +1973,7 @@ export const translations: Record<Language, TranslationSchema> = {
       pricing: "Тарифы",
       account: "Аккаунт",
       support: "Поддержка",
+      apiDocs: "API Документация",
     },
     common: {
       loading: "Загрузка...",
@@ -2623,6 +2627,7 @@ export const translations: Record<Language, TranslationSchema> = {
       pricing: "Precios",
       account: "Cuenta",
       support: "Soporte",
+      apiDocs: "API Docs",
     },
     common: {
       loading: "Cargando...",
@@ -3276,6 +3281,7 @@ export const translations: Record<Language, TranslationSchema> = {
       pricing: "Preise",
       account: "Konto",
       support: "Support",
+      apiDocs: "API Doku",
     },
     common: {
       loading: "Laden...",

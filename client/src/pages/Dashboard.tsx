@@ -281,6 +281,27 @@ export default function Dashboard() {
     dismiss();
   }, [location]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const recheckType = params.get("type");
+    const recheckTarget = params.get("target");
+    const isRecheck = params.get("recheck");
+    
+    if (recheckType && recheckTarget) {
+      setSelectedType(recheckType);
+      setInputValue(recheckTarget);
+      
+      if (isRecheck === "1") {
+        window.history.replaceState({}, "", "/dashboard");
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 300);
+      }
+    }
+  }, []);
+
   const copyAddress = async () => {
     await navigator.clipboard.writeText(TRC20_ADDRESS);
     setCopied(true);

@@ -18,7 +18,8 @@ import {
   Mail,
   MessageSquare,
   ChevronRight,
-  Zap
+  Zap,
+  Code2,
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,7 @@ export function MobileMenu({
     { href: "/pricing", icon: CreditCard, label: t('nav.pricing'), desc: "PRO & Enterprise" },
     { href: "/account", icon: User, label: t('mobile.profile'), desc: "Settings" },
     { href: "/support", icon: MessageSquare, label: t('nav.support'), desc: "Help Center" },
+    { href: "/api-docs", icon: Code2, label: t('nav.apiDocs'), desc: "REST API" },
   ];
 
   const navItems = isAuthenticated ? authItems : publicItems;

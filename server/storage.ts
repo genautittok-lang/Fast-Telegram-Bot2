@@ -80,6 +80,11 @@ export interface IStorage {
 
   // All payments (not just pending)
   getAllPayments(): Promise<Payment[]>;
+
+  // Additional admin methods
+  getTicketById(id: number): Promise<SupportTicket | undefined>;
+  getLatestReportsAll(limit: number): Promise<Report[]>;
+  addRequestsToUser(userId: number, amount: number): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -370,6 +375,23 @@ export class DatabaseStorage implements IStorage {
   async getAllPayments(): Promise<Payment[]> {
     if (!db) throw new Error("Database not available");
     return db.select().from(payments).orderBy(desc(payments.createdAt));
+  }
+
+  async getTicketById(id: number): Promise<SupportTicket | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [ticket] = await db.select().from(supportTickets).where(eq(supportTickets.id, id));
+    return ticket;
+  }
+
+  async getLatestReportsAll(limit: number): Promise<Report[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(reports).orderBy(desc(reports.generatedAt)).limit(limit);
+  }
+
+  async addRequestsToUser(userId: number, amount: number): Promise<User> {
+    if (!db) throw new Error("Database not available");
+    const [user] = await db.update(users).set({ requestsLeft: sql`${users.requestsLeft} + ${amount}` }).where(eq(users.id, userId)).returning();
+    return user;
   }
 
   async getUsersCount(): Promise<number> {
@@ -689,6 +711,24 @@ export class MemStorage implements IStorage {
 
   async getAllPayments(): Promise<Payment[]> {
     return Array.from(this.payments.values()).sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getTicketById(id: number): Promise<SupportTicket | undefined> {
+    return this.supportTicketsMap.get(id);
+  }
+
+  async getLatestReportsAll(limit: number): Promise<Report[]> {
+    return Array.from(this.reports.values())
+      .sort((a, b) => (b.generatedAt?.getTime() || 0) - (a.generatedAt?.getTime() || 0))
+      .slice(0, limit);
+  }
+
+  async addRequestsToUser(userId: number, amount: number): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("User not found");
+    user.requestsLeft = (user.requestsLeft || 0) + amount;
+    this.users.set(userId, user);
+    return user;
   }
 
   // Stats methods for MemStorage

@@ -30,7 +30,8 @@ import {
   Bug,
   CreditCard,
   Hash,
-  User
+  User,
+  RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -534,14 +535,14 @@ export default function History() {
                           >
                             <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
-                          <Link href="/dashboard">
+                          <Link href={`/dashboard?type=${report.type}&target=${encodeURIComponent(report.target)}&recheck=1`}>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 sm:h-8 sm:w-8 hidden sm:flex"
-                              data-testid={`button-view-${report.id}`}
+                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              data-testid={`button-recheck-${report.id}`}
                             >
-                              <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </Button>
                           </Link>
                         </div>

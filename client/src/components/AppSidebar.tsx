@@ -13,6 +13,7 @@ import {
   Lock,
   Mail,
   MessageSquare,
+  Code2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -26,6 +27,7 @@ const navItems = [
   { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
   { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
   { id: "support", labelKey: "nav.support", icon: MessageSquare, href: "/support" },
+  { id: "api-docs", labelKey: "nav.apiDocs", icon: Code2, href: "/api-docs" },
 ];
 
 export function AppSidebar() {

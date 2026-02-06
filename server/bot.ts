@@ -67,6 +67,33 @@ export async function setupBot(storage: IStorage) {
     return ADMIN_IDS.includes(tgId);
   }
 
+  function getAdminKeyboard(lang: string, exitAction: string = "back_to_dashboard") {
+    return Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
+        Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users"),
+        Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user")
+      ],
+      [
+        Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
+        Markup.button.callback(t(lang, "admin.ticketsBtn"), "admin_tickets"),
+        Markup.button.callback(t(lang, "admin.couponsBtn"), "admin_coupons")
+      ],
+      [
+        Markup.button.callback(t(lang, "admin.revenueBtn"), "admin_revenue"),
+        Markup.button.callback(t(lang, "admin.reportsBtn"), "admin_reports"),
+        Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
+      ],
+      [
+        Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user"),
+        Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
+        Markup.button.callback(t(lang, "admin.addReqBtn"), "admin_add_requests")
+      ],
+      [Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")],
+      [Markup.button.callback(t(lang, "admin.exitBtn"), exitAction)]
+    ]);
+  }
+
   bot.command("start", async (ctx) => {
     const text = ctx.message.text;
     // Match both /start ref_CODE and /start=ref_CODE formats
@@ -718,6 +745,177 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       await ctx.reply(resultText, {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard(buttons)
+      });
+      return;
+    }
+
+    if (state?.module === "admin_ticket_reply" && state?.step === "awaiting_reply") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const ticketId = state.data?.ticketId;
+      const replyText = text.trim();
+      userStates.delete(tgId);
+      
+      const ticket = await storage.getTicketById(ticketId);
+      await storage.updateSupportTicketStatus(ticketId, "answered", replyText);
+      
+      if (ticket?.userId) {
+        try {
+          const ticketUser = await storage.getUserById(ticket.userId);
+          if (ticketUser) {
+            await ctx.telegram.sendMessage(ticketUser.tgId, `${t(lang, "admin.ticketReply")}\n\n${replyText}`);
+          }
+        } catch (e) {
+          console.log("Failed to notify user about ticket reply");
+        }
+      }
+      
+      await ctx.reply(t(lang, "admin.ticketReplySent"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_tickets")]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_coupon_create" && state?.step === "awaiting_code") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const code = text.trim().toUpperCase();
+      userStates.set(tgId, { module: "admin_coupon_create", step: "awaiting_discount", data: { code } });
+      
+      await ctx.reply(t(lang, "admin.enterCouponDiscount"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_coupons")]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_coupon_create" && state?.step === "awaiting_discount") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const discount = parseInt(text.trim());
+      if (isNaN(discount) || discount < 1 || discount > 100) {
+        return ctx.reply(t(lang, "admin.invalidAmount"));
+      }
+      
+      userStates.set(tgId, { module: "admin_coupon_create", step: "awaiting_max_uses", data: { ...state.data, discount } });
+      
+      await ctx.reply(t(lang, "admin.enterCouponMaxUses"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_coupons")]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_coupon_create" && state?.step === "awaiting_max_uses") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const maxUses = parseInt(text.trim());
+      if (isNaN(maxUses) || maxUses < 0) {
+        return ctx.reply(t(lang, "admin.invalidAmount"));
+      }
+      
+      userStates.set(tgId, { module: "admin_coupon_create", step: "awaiting_expiry", data: { ...state.data, maxUses } });
+      
+      await ctx.reply(t(lang, "admin.enterCouponExpiry"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_coupons")]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_coupon_create" && state?.step === "awaiting_expiry") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const expiryDays = parseInt(text.trim());
+      if (isNaN(expiryDays) || expiryDays < 0) {
+        return ctx.reply(t(lang, "admin.invalidAmount"));
+      }
+      
+      const { code, discount, maxUses } = state.data;
+      const expiresAt = expiryDays > 0 ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null;
+      
+      userStates.delete(tgId);
+      
+      await storage.createCoupon({
+        code,
+        type: "checks",
+        value: discount,
+        maxUses: maxUses || 1,
+        expiresAt,
+        isActive: true,
+      });
+      
+      await ctx.reply(t(lang, "admin.couponCreated"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_coupons")]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_add_requests" && state?.step === "awaiting_tgid") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const targetTgId = text.trim();
+      const targetUser = await storage.getUserByTgId(targetTgId);
+      
+      if (!targetUser) {
+        return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }), {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+        });
+      }
+      
+      userStates.set(tgId, { module: "admin_add_requests", step: "awaiting_amount", data: { targetUserId: targetUser.id, targetTgId: targetUser.tgId, targetUsername: targetUser.username } });
+      
+      await ctx.reply(t(lang, "admin.enterRequestsAmount"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_back")]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_add_requests" && state?.step === "awaiting_amount") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const amount = parseInt(text.trim());
+      if (isNaN(amount) || amount <= 0) {
+        return ctx.reply(t(lang, "admin.invalidAmount"));
+      }
+      
+      const { targetUserId, targetUsername } = state.data;
+      userStates.delete(tgId);
+      
+      const updatedUser = await storage.addRequestsToUser(targetUserId, amount);
+      
+      await ctx.reply(t(lang, "admin.requestsAdded", { 
+        amount: amount.toString(), 
+        username: targetUsername || state.data.targetTgId,
+        total: (updatedUser.requestsLeft || 0).toString()
+      }), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
       });
       return;
     }
@@ -1971,25 +2169,7 @@ ${allTypesText}
 
     await ctx.reply(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [
-          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
-          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
-          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
-          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
-          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
-        ],
-        [Markup.button.callback(t(lang, "admin.exitBtn"), "back_to_dashboard")]
-      ])
+      ...getAdminKeyboard(lang)
     });
   });
 
@@ -2014,25 +2194,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [
-          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
-          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
-          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
-          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
-          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
-        ],
-        [Markup.button.callback(t(lang, "admin.back"), "back_to_dashboard")]
-      ])
+      ...getAdminKeyboard(lang, "back_to_dashboard")
     });
   });
 
@@ -2220,25 +2382,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [
-          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
-          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
-          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
-          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
-          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
-        ],
-        [Markup.button.callback(t(lang, "admin.exitBtn"), "back_to_dashboard")]
-      ])
+      ...getAdminKeyboard(lang)
     });
   });
 
@@ -2307,25 +2451,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [
-          Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
-          Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user"),
-          Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
-          Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")
-        ],
-        [
-          Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
-          Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
-        ],
-        [Markup.button.callback(t(lang, "admin.exitBtn"), "back_to_dashboard")]
-      ])
+      ...getAdminKeyboard(lang)
     });
   });
 
@@ -2629,6 +2755,355 @@ ${allTypesText}
         ...Markup.inlineKeyboard(buttons)
       });
     }
+  });
+
+  bot.action("admin_tickets", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const tickets = await storage.getSupportTickets();
+    const openTickets = tickets.filter(tk => tk.status === "open" || tk.status === "pending");
+    
+    if (openTickets.length === 0) {
+      return ctx.editMessageText(t(lang, "admin.ticketsTitle") + "\n\n" + t(lang, "admin.noTickets"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+      });
+    }
+    
+    let text = t(lang, "admin.ticketsTitle") + "\n\n";
+    const buttons: any[][] = [];
+    
+    openTickets.slice(0, 10).forEach((tk, i) => {
+      text += `${i + 1}. ${t(lang, "admin.ticketFrom")} ${tk.name || tk.contact || "?"}\n`;
+      text += `   ${t(lang, "admin.ticketStatus")} ${tk.status}\n`;
+      text += `   ${t(lang, "admin.ticketDate")} ${tk.createdAt ? new Date(tk.createdAt).toLocaleDateString() : "?"}\n\n`;
+      buttons.push([
+        Markup.button.callback(`#${tk.id} - ${(tk.message || "").slice(0, 20)}...`, `admin_ticket_view_${tk.id}`)
+      ]);
+    });
+    
+    buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action(/^admin_ticket_view_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const ticketId = parseInt(ctx.match[1]);
+    const ticket = await storage.getTicketById(ticketId);
+    
+    if (!ticket) {
+      return ctx.answerCbQuery("Ticket not found");
+    }
+    
+    const text = t(lang, "admin.ticketsTitle") + "\n\n" +
+      `${t(lang, "admin.ticketFrom")} ${ticket.name || ticket.contact || "?"}\n` +
+      `${t(lang, "admin.ticketStatus")} ${ticket.status}\n` +
+      `${t(lang, "admin.ticketDate")} ${ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : "?"}\n\n` +
+      `${t(lang, "admin.ticketMessage")}\n${ticket.message || "—"}` +
+      (ticket.adminReply ? `\n\n${t(lang, "admin.ticketReply")} ${ticket.adminReply}` : "");
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [
+          Markup.button.callback(t(lang, "admin.ticketReply"), `admin_ticket_reply_${ticketId}`),
+          Markup.button.callback(t(lang, "admin.ticketClose"), `admin_ticket_close_${ticketId}`)
+        ],
+        [Markup.button.callback(t(lang, "admin.back"), "admin_tickets")]
+      ])
+    });
+  });
+
+  bot.action(/^admin_ticket_reply_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const ticketId = parseInt(ctx.match[1]);
+    userStates.set(tgId, { module: "admin_ticket_reply", step: "awaiting_reply", data: { ticketId } });
+    
+    await ctx.editMessageText(t(lang, "admin.enterTicketReply"), {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_tickets")]])
+    });
+  });
+
+  bot.action(/^admin_ticket_close_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const ticketId = parseInt(ctx.match[1]);
+    const ticket = await storage.getTicketById(ticketId);
+    
+    await storage.updateSupportTicketStatus(ticketId, "closed");
+    await ctx.answerCbQuery(t(lang, "admin.ticketClosed"));
+    
+    if (ticket?.userId) {
+      try {
+        const ticketUser = await storage.getUserById(ticket.userId);
+        if (ticketUser) {
+          await ctx.telegram.sendMessage(ticketUser.tgId, t(lang, "admin.ticketClosed"));
+        }
+      } catch (e) {
+        console.log("Failed to notify user about ticket closure");
+      }
+    }
+    
+    const tickets = await storage.getSupportTickets();
+    const openTickets = tickets.filter(tk => tk.status === "open" || tk.status === "pending");
+    
+    if (openTickets.length === 0) {
+      return ctx.editMessageText(t(lang, "admin.ticketsTitle") + "\n\n" + t(lang, "admin.noTickets"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+      });
+    }
+    
+    let text = t(lang, "admin.ticketsTitle") + "\n\n";
+    const buttons: any[][] = [];
+    
+    openTickets.slice(0, 10).forEach((tk, i) => {
+      text += `${i + 1}. ${t(lang, "admin.ticketFrom")} ${tk.name || tk.contact || "?"}\n`;
+      text += `   ${t(lang, "admin.ticketStatus")} ${tk.status}\n\n`;
+      buttons.push([
+        Markup.button.callback(`#${tk.id} - ${(tk.message || "").slice(0, 20)}...`, `admin_ticket_view_${tk.id}`)
+      ]);
+    });
+    
+    buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action("admin_revenue", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const allPayments = await storage.getAllPayments();
+    const completed = allPayments.filter(p => p.status === "completed" || p.status === "paid");
+    
+    let totalRevenue = 0;
+    const tierCounts: Record<string, number> = {};
+    
+    completed.forEach(p => {
+      totalRevenue += parseFloat(p.amountUsdt?.toString() || "0");
+      const tier = p.tier || "UNKNOWN";
+      tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+    });
+    
+    let text = t(lang, "admin.revenueTitle") + "\n\n";
+    text += `${t(lang, "admin.totalRevenue")} $${totalRevenue.toFixed(2)} USDT\n`;
+    text += `${t(lang, "admin.completedPayments")} ${completed.length}\n\n`;
+    text += `${t(lang, "admin.paymentsByTier")}\n`;
+    
+    Object.entries(tierCounts).forEach(([tier, count]) => {
+      text += `  ${tier}: ${count}\n`;
+    });
+    
+    text += `\n${t(lang, "admin.recentPayments")}\n`;
+    completed.slice(0, 5).forEach(p => {
+      const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "?";
+      text += `  $${p.amountUsdt} - ${p.tier || "?"} - ${date}\n`;
+    });
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+    });
+  });
+
+  bot.action("admin_reports", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const latestReports = await storage.getLatestReportsAll(10);
+    
+    if (!latestReports || latestReports.length === 0) {
+      return ctx.editMessageText(t(lang, "admin.reportsTitle") + "\n\n" + t(lang, "admin.noReports"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+      });
+    }
+    
+    let text = t(lang, "admin.reportsTitle") + "\n\n";
+    
+    text += `${t(lang, "admin.latestReports")}\n`;
+    latestReports.forEach((r, i) => {
+      const date = r.generatedAt ? new Date(r.generatedAt).toLocaleDateString() : "?";
+      text += `${i + 1}. ${r.objectType || "?"} (${date})\n`;
+    });
+    
+    const typeDist: Record<string, number> = {};
+    latestReports.forEach(r => {
+      const type = r.objectType || "unknown";
+      typeDist[type] = (typeDist[type] || 0) + 1;
+    });
+    
+    text += `\n${t(lang, "admin.typeDistribution")}\n`;
+    Object.entries(typeDist).forEach(([type, count]) => {
+      text += `  ${type}: ${count}\n`;
+    });
+    
+    const topUsers = await storage.getTopUsers(5);
+    if (topUsers && topUsers.length > 0) {
+      text += `\n${t(lang, "admin.mostActiveUsers")}\n`;
+      topUsers.forEach((u, i) => {
+        text += `${i + 1}. ${u.username || "?"} - ${u.checksCount} checks\n`;
+      });
+    }
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+    });
+  });
+
+  bot.action("admin_coupons", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const coupons = await storage.getCoupons();
+    
+    if (!coupons || coupons.length === 0) {
+      return ctx.editMessageText(t(lang, "admin.couponsTitle") + "\n\n" + t(lang, "admin.noCoupons"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(t(lang, "admin.createCoupon"), "admin_coupon_create")],
+          [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
+        ])
+      });
+    }
+    
+    let text = t(lang, "admin.couponsTitle") + "\n\n";
+    const buttons: any[][] = [];
+    
+    coupons.forEach((c, i) => {
+      text += `${i + 1}. ${t(lang, "admin.couponCode")} \`${c.code}\`\n`;
+      text += `   ${t(lang, "admin.couponDiscount")} ${c.value}%\n`;
+      text += `   ${t(lang, "admin.couponUses")} ${c.usedCount || 0}/${c.maxUses || "inf"}\n`;
+      text += `   ${t(lang, "admin.couponExpiry")} ${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : "never"}\n\n`;
+      buttons.push([Markup.button.callback(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`)]);
+    });
+    
+    buttons.push([Markup.button.callback(t(lang, "admin.createCoupon"), "admin_coupon_create")]);
+    buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action("admin_coupon_create", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    userStates.set(tgId, { module: "admin_coupon_create", step: "awaiting_code" });
+    
+    await ctx.editMessageText(t(lang, "admin.enterCouponCode"), {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_coupons")]])
+    });
+  });
+
+  bot.action(/^admin_coupon_delete_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const couponId = parseInt(ctx.match[1]);
+    await storage.deleteCoupon(couponId);
+    await ctx.answerCbQuery(t(lang, "admin.couponDeleted"));
+    
+    const coupons = await storage.getCoupons();
+    
+    if (!coupons || coupons.length === 0) {
+      return ctx.editMessageText(t(lang, "admin.couponsTitle") + "\n\n" + t(lang, "admin.noCoupons"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(t(lang, "admin.createCoupon"), "admin_coupon_create")],
+          [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
+        ])
+      });
+    }
+    
+    let text = t(lang, "admin.couponsTitle") + "\n\n";
+    const buttons: any[][] = [];
+    
+    coupons.forEach((c, i) => {
+      text += `${i + 1}. ${t(lang, "admin.couponCode")} \`${c.code}\`\n`;
+      text += `   ${t(lang, "admin.couponDiscount")} ${c.value}%\n`;
+      text += `   ${t(lang, "admin.couponUses")} ${c.usedCount || 0}/${c.maxUses || "inf"}\n\n`;
+      buttons.push([Markup.button.callback(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`)]);
+    });
+    
+    buttons.push([Markup.button.callback(t(lang, "admin.createCoupon"), "admin_coupon_create")]);
+    buttons.push([Markup.button.callback(t(lang, "admin.back"), "admin_back")]);
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action("admin_add_requests", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    userStates.set(tgId, { module: "admin_add_requests", step: "awaiting_tgid" });
+    
+    await ctx.editMessageText(t(lang, "admin.addRequestsTitle") + "\n\n" + t(lang, "admin.enterTgIdForRequests"), {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.cancel"), "admin_back")]])
+    });
   });
 
   bot.command("block", async (ctx) => {

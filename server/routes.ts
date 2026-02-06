@@ -505,6 +505,10 @@ export async function registerRoutes(
         });
       } else {
         await storage.updateUserLogin(user.id);
+        if (user.username !== username && username !== "user") {
+          await storage.updateUser(user.id, { username });
+          user = { ...user, username };
+        }
       }
     } catch (dbError: any) {
       console.error("Database error during auth:", dbError.message);
@@ -513,30 +517,46 @@ export async function registerRoutes(
 
     const finalUser = user;
     
-    // Simple session assignment without regenerate (more compatible)
-    req.session.userId = finalUser.id;
-    req.session.tgId = tgId;
+    const previousTgId = req.session?.tgId;
+    const previousUserId = req.session?.userId;
     
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        if (!res.headersSent) {
-          return res.status(500).json({ error: "Session save error" });
+    const finishLogin = () => {
+      req.session.userId = finalUser.id;
+      req.session.tgId = tgId;
+      
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          if (!res.headersSent) {
+            return res.status(500).json({ error: "Session save error" });
+          }
+          return;
         }
-        return;
-      }
-      res.json({
-        id: finalUser.id,
-        tgId: finalUser.tgId,
-        username: finalUser.username,
-        tier: finalUser.tier,
-        requestsLeft: finalUser.requestsLeft,
-        streakDays: finalUser.streakDays,
-        refCode: finalUser.refCode,
-        firstName,
-        photoUrl,
+        res.json({
+          id: finalUser.id,
+          tgId: finalUser.tgId,
+          username: finalUser.username,
+          tier: finalUser.tier,
+          requestsLeft: finalUser.requestsLeft,
+          streakDays: finalUser.streakDays,
+          refCode: finalUser.refCode,
+          firstName,
+          photoUrl,
+        });
       });
-    });
+    };
+    
+    if (previousTgId && previousTgId !== tgId) {
+      console.log(`Session switch: ${previousTgId} -> ${tgId} (user ${previousUserId} -> ${finalUser.id})`);
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regenerate error:", err);
+        }
+        finishLogin();
+      });
+    } else {
+      finishLogin();
+    }
   });
 
   // Get current user

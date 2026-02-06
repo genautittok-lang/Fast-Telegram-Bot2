@@ -17,6 +17,7 @@ import Account from "@/pages/Account";
 import Admin from "@/pages/Admin";
 import Pricing from "@/pages/Pricing";
 import Support from "@/pages/Support";
+import ApiDocs from "@/pages/ApiDocs";
 
 function Router() {
   return (
@@ -32,6 +33,7 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/support" component={Support} />
+      <Route path="/api-docs" component={ApiDocs} />
       <Route component={NotFound} />
     </Switch>
   );
