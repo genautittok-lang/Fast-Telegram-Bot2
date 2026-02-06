@@ -9,13 +9,18 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
+import { PageLayout } from "@/components/PageLayout";
+import { MobileMenu } from "@/components/MobileMenu";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Footer } from "@/components/Footer";
 import { 
   Check, 
   Crown, 
   Shield, 
   Star,
   ArrowLeft,
-  Copy
+  Copy,
+  Lock
 } from "lucide-react";
 
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
@@ -25,10 +30,10 @@ const PRICES = {
   ENTERPRISE: { monthly: 50, yearly: 500 },
 };
 
-export default function Pricing() {
+function PricingContent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
   const [isYearly, setIsYearly] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState<"PRO" | "ENTERPRISE" | null>(null);
@@ -135,29 +140,29 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_50%)]" />
-      
-      <div className="relative container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => setLocation("/")}
-          data-testid="button-back"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('common.back')}
-        </Button>
+    <div className="min-h-full">
+      <div className="relative container mx-auto px-4 py-6 sm:py-8 max-w-5xl">
+        {!isAuthenticated && (
+          <Button
+            variant="ghost"
+            className="mb-6"
+            onClick={() => setLocation("/")}
+            data-testid="button-back"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t('common.back')}
+          </Button>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="text-center mb-6 sm:mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent" data-testid="text-pricing-title">
             {t('pricing.title')}
           </h1>
-          <p className="text-muted-foreground text-base max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
             {t('pricing.subtitle')}
           </p>
           
@@ -168,7 +173,7 @@ export default function Pricing() {
           </div>
         </motion.div>
 
-        <div className="flex items-center justify-center gap-4 mb-8">
+        <div className="flex items-center justify-center gap-4 mb-6 sm:mb-8">
           <span className={`text-sm ${!isYearly ? "text-foreground font-medium" : "text-muted-foreground"}`}>
             {t('pricing.monthly')}
           </span>
@@ -185,15 +190,15 @@ export default function Pricing() {
           </span>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="h-full border-border/50 bg-card/50 backdrop-blur">
+            <Card className="h-full border-border/50 bg-card/50 backdrop-blur" data-testid="card-free-plan">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Shield className="h-5 w-5 text-muted-foreground" />
                   <CardTitle className="text-lg">FREE</CardTitle>
                 </div>
@@ -206,9 +211,9 @@ export default function Pricing() {
               <CardContent className="pb-3">
                 <ul className="space-y-2">
                   {features.free.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                      {feature}
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -217,10 +222,10 @@ export default function Pricing() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => setLocation("/login")}
+                  onClick={() => setLocation(isAuthenticated ? "/dashboard" : "/login")}
                   data-testid="button-free-plan"
                 >
-                  {t('pricing.startFree')}
+                  {isAuthenticated ? t('nav.dashboard') : t('pricing.startFree')}
                 </Button>
               </CardFooter>
             </Card>
@@ -231,12 +236,12 @@ export default function Pricing() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="h-full border-emerald-500/50 bg-gradient-to-b from-emerald-500/10 to-transparent relative overflow-hidden">
+            <Card className="h-full border-emerald-500/50 bg-gradient-to-b from-emerald-500/10 to-transparent relative" data-testid="card-pro-plan">
               <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-emerald-500 text-white text-xs font-medium rounded-bl-lg">
                 {t('pricing.popular')}
               </div>
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Star className="h-5 w-5 text-emerald-500" />
                   <CardTitle className="text-lg text-emerald-400">PRO</CardTitle>
                 </div>
@@ -252,16 +257,16 @@ export default function Pricing() {
               <CardContent className="pb-3">
                 <ul className="space-y-2">
                   {features.pro.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                      {feature}
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
               <CardFooter>
                 <Button
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  className="w-full bg-emerald-600"
                   onClick={() => handlePayment("PRO")}
                   data-testid="button-pro-plan"
                 >
@@ -276,10 +281,11 @@ export default function Pricing() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            className="sm:col-span-2 lg:col-span-1"
           >
-            <Card className="h-full border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent">
+            <Card className="h-full border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent" data-testid="card-enterprise-plan">
               <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Crown className="h-5 w-5 text-amber-500" />
                   <CardTitle className="text-lg text-amber-400">ENTERPRISE</CardTitle>
                 </div>
@@ -295,16 +301,16 @@ export default function Pricing() {
               <CardContent className="pb-3">
                 <ul className="space-y-2">
                   {features.enterprise.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-amber-500 shrink-0" />
-                      {feature}
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
               <CardFooter>
                 <Button
-                  className="w-full bg-amber-600 hover:bg-amber-700"
+                  className="w-full bg-amber-600"
                   onClick={() => handlePayment("ENTERPRISE")}
                   data-testid="button-enterprise-plan"
                 >
@@ -320,12 +326,12 @@ export default function Pricing() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-8 text-center"
+          className="mt-6 sm:mt-8 text-center"
         >
           <p className="text-muted-foreground text-sm">
             {t('pricing.paymentNote')}
           </p>
-          <div className="flex items-center justify-center gap-6 mt-3 opacity-50">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 mt-3 opacity-50 flex-wrap">
             <span className="text-xs">{t('pricing.tronNetwork')}</span>
             <span className="text-xs">TRC-20 USDT</span>
             <span className="text-xs">{t('pricing.instantProcessing')}</span>
@@ -345,7 +351,7 @@ export default function Pricing() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-6"
+                className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-5 sm:p-6"
                 onClick={(e) => e.stopPropagation()}
                 data-testid="modal-payment"
               >
@@ -406,7 +412,7 @@ export default function Pricing() {
                   </div>
 
                   <Button
-                    className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-600 hover:bg-amber-700"}`}
+                    className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : "bg-amber-600"}`}
                     onClick={() => submitPayment(showPaymentModal)}
                     data-testid="button-submit-payment"
                   >
@@ -427,6 +433,55 @@ export default function Pricing() {
           )}
         </AnimatePresence>
       </div>
+    </div>
+  );
+}
+
+export default function Pricing() {
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { t } = useTranslation();
+  const [, setLocation] = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return (
+      <PageLayout>
+        <PricingContent />
+      </PageLayout>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_50%)]" />
+      <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer" onClick={() => setLocation("/")}>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30 flex-shrink-0">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+            <span className="font-bold text-base sm:text-lg">DARKSHARE</span>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher variant="minimal" />
+            <MobileMenu isAuthenticated={false} />
+          </div>
+        </div>
+      </nav>
+      <PricingContent />
+      <Footer />
     </div>
   );
 }

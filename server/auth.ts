@@ -36,10 +36,8 @@ export function verifyTelegramAuth(
     const hmac = crypto.createHmac("sha256", secretKey).update(checkString).digest("hex");
 
     if (hmac !== hash) {
-      console.log("Telegram auth: hash mismatch (Expected " + hmac + ", got " + hash + ")");
-      // FORCE BYPASS ACTIVE
-      console.log("CRITICAL: AUTH BYPASS FOR USER " + data.id);
-      return true;
+      console.log("Telegram auth: hash mismatch for user", data.id);
+      return false;
     }
 
     // Check auth date (allow 30 days for better persistence)

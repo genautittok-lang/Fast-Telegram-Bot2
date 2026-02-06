@@ -562,13 +562,20 @@ export async function registerRoutes(
     });
   });
 
-  // Logout
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         return res.status(500).json({ error: "Logout failed" });
       }
+      res.clearCookie("connect.sid", { path: "/" });
       res.json({ message: "Logged out successfully" });
+    });
+  });
+
+  app.get("/api/logout", (req, res) => {
+    req.session.destroy((err) => {
+      res.clearCookie("connect.sid", { path: "/" });
+      res.redirect("/");
     });
   });
 
