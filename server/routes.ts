@@ -1058,19 +1058,20 @@ export async function registerRoutes(
   // Payment request endpoint (requires auth)
   app.post("/api/payment-request", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
-    const { tier, txHash, amount: reqAmount, period } = req.body;
+    const { tier, txHash, amount: reqAmount, period, network } = req.body;
     
-    if (!tier || !["pro", "enterprise", "PRO", "ENTERPRISE"].includes(tier)) {
-      return res.status(400).json({ error: "Invalid tier. Must be 'pro' or 'enterprise'" });
+    if (!tier || !["pro", "enterprise", "groups", "PRO", "ENTERPRISE", "GROUPS"].includes(tier)) {
+      return res.status(400).json({ error: "Invalid tier. Must be 'pro', 'enterprise', or 'groups'" });
     }
 
     const normalizedTier = tier.toUpperCase();
     const isYearly = period === "yearly";
-    // Monthly: PRO=$10, ENTERPRISE=$50. Yearly: PRO=$100, ENTERPRISE=$500 (-17% discount)
     const amount = reqAmount?.toString() || (
       normalizedTier === "PRO" 
         ? (isYearly ? "100" : "10") 
-        : (isYearly ? "500" : "50")
+        : normalizedTier === "GROUPS"
+        ? (isYearly ? "647" : "65")
+        : (isYearly ? "498" : "50")
     );
 
     try {
@@ -1089,6 +1090,7 @@ export async function registerRoutes(
           `🔢 TG ID: ${user.tgId}\n` +
           `📦 Тариф: ${normalizedTier} (${isYearly ? "рік" : "місяць"})\n` +
           `💰 Сума: $${amount} USDT\n` +
+          `🌐 Мережа: ${network || "не вказано"}\n` +
           `${txHash ? `📝 TX Hash: ${txHash}` : "📝 TX Hash: не вказано"}\n` +
           `📍 Джерело: Web\n\n` +
           `⚡ Перевірте транзакцію та підтвердіть оплату`;
@@ -1242,7 +1244,7 @@ export async function registerRoutes(
     
     if (payment.userId) {
       const tier = payment.tier?.toUpperCase() || "PRO";
-      const requests = tier === "ENTERPRISE" ? 500 : 100;
+      const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 100;
       await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
       
       // Notify user via bot
