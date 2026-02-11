@@ -332,7 +332,7 @@ export async function registerRoutes(
     if (req.session?.userId) {
       const user = await storage.getUserById(req.session.userId);
       if (user) {
-        if (user.blocked) {
+        if (user.blocked && !ADMIN_IDS.includes(user.tgId)) {
           return res.status(403).json({ error: "Account is blocked" });
         }
         authReq.user = user;
@@ -379,6 +379,10 @@ export async function registerRoutes(
     try {
       user = await storage.getUserByTgId(tgId);
       
+      if (user && user.blocked && !ADMIN_IDS.includes(tgId)) {
+        return res.status(403).json({ error: "Account is blocked. Contact support." });
+      }
+
       if (!user) {
         user = await storage.createUser({
           tgId,
