@@ -27,7 +27,9 @@ import {
   Copy,
   RefreshCw,
   Users,
-  Activity
+  Activity,
+  Trash2,
+  LogOut
 } from "lucide-react";
 import { FireStreak } from "@/components/FireStreak";
 import { Button } from "@/components/ui/button";
@@ -162,6 +164,16 @@ export default function Account() {
     setLanguage(val);
     saveSettings({ lang: val });
   }, [saveSettings]);
+
+  const deleteSession = useCallback(async (sessionId: string) => {
+    try {
+      await apiRequest("DELETE", `/api/user/sessions/${sessionId}`);
+      toast({ title: t('account.sessionDeleted') || "Session terminated" });
+      await checkAuth();
+    } catch {
+      toast({ title: t('account.sessionDeleteError') || "Failed to terminate session", variant: "destructive" });
+    }
+  }, [toast, t, checkAuth]);
 
   const handleNotificationChange = useCallback((field: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [field]: value }));
@@ -733,20 +745,49 @@ export default function Account() {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
-                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-                  <Monitor className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
-                  <div className="min-w-0">
+              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <Monitor className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
                     <p className="font-medium text-white text-sm lg:text-base">{t('account.sessionsManage')}</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground" data-testid="text-session-device">
-                      {sessionsData?.[0]?.device || t('account.manage')}
-                    </p>
                   </div>
                 </div>
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs lg:text-sm px-2 py-0.5 flex-shrink-0" data-testid="button-manage-sessions">
-                  <Activity className="w-2.5 h-2.5 lg:w-3 lg:h-3 mr-0.5" />
-                  {t('account.active') || "Active"}
-                </Badge>
+                <div className="space-y-2 mt-2">
+                  {sessionsData?.map((session) => (
+                    <div key={session.id} className="flex items-center justify-between gap-2 p-2 lg:p-3 rounded-lg bg-zinc-800/50 border border-white/5" data-testid={`session-item-${session.id}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {session.device?.includes("Mobile") ? (
+                          <Smartphone className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                        ) : (
+                          <Monitor className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-xs lg:text-sm text-white truncate">{session.device}</p>
+                          <p className="text-[10px] lg:text-xs text-muted-foreground truncate">
+                            IP: {session.ip} {session.current ? `- ${t('account.currentSession') || "Current session"}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {session.current ? (
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] lg:text-xs px-1.5 py-0.5">
+                            <Activity className="w-2.5 h-2.5 mr-0.5" />
+                            {t('account.active') || "Active"}
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => deleteSession(session.id)}
+                            data-testid={`button-delete-session-${session.id}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,10 @@ import {
   ArrowLeft,
   Copy,
   Lock,
-  Users
+  Users,
+  Clock,
+  Upload,
+  Loader2
 } from "lucide-react";
 
 const CRYPTO_NETWORKS = [
@@ -37,8 +40,8 @@ type CryptoNetwork = typeof CRYPTO_NETWORKS[number];
 
 const PRICES = {
   PRO: { monthly: 10, yearly: 100 },
-  ENTERPRISE: { monthly: 50, yearly: 498 },
-  GROUPS: { monthly: 65, yearly: 647 },
+  ENTERPRISE: { monthly: 35, yearly: 349 },
+  GROUPS: { monthly: 55, yearly: 549 },
 };
 
 function PricingContent() {
@@ -52,6 +55,67 @@ function PricingContent() {
   const [copiedMemo, setCopiedMemo] = useState(false);
   const [txHash, setTxHash] = useState("");
   const [selectedNetwork, setSelectedNetwork] = useState<CryptoNetwork>(CRYPTO_NETWORKS[0]);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [timeLeft, setTimeLeft] = useState(600);
+  const [timerExpired, setTimerExpired] = useState(false);
+
+  useEffect(() => {
+    if (!showPaymentModal) {
+      setTimeLeft(600);
+      setTimerExpired(false);
+      return;
+    }
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setTimerExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showPaymentModal]);
+
+  const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const validatePromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoLoading(true);
+    setPromoError("");
+    try {
+      const response = await fetch("/api/promo/validate", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim(), tier: showPaymentModal }),
+      });
+      const data = await response.json();
+      if (response.ok && data.valid) {
+        setPromoDiscount(data.discount);
+        setPromoApplied(true);
+        toast({ title: t('pricing.promoApplied') || "Promo code applied!", description: `-${data.discount}%` });
+      } else {
+        setPromoError(data.error || t('pricing.promoInvalid') || "Invalid promo code");
+        setPromoDiscount(0);
+        setPromoApplied(false);
+      }
+    } catch {
+      setPromoError(t('pricing.promoInvalid') || "Invalid promo code");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
 
   const copyAddress = async () => {
     try {
@@ -103,35 +167,49 @@ function PricingContent() {
   };
 
   const getFinalAmount = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
-    const base = getPrice(tier);
+    let base = getPrice(tier);
     if ("discount" in selectedNetwork && selectedNetwork.discount) {
-      return +(base * (1 - selectedNetwork.discount / 100)).toFixed(2);
+      base = +(base * (1 - selectedNetwork.discount / 100)).toFixed(2);
+    }
+    if (promoApplied && promoDiscount > 0) {
+      base = +(base * (1 - promoDiscount / 100)).toFixed(2);
     }
     return base;
   };
 
   const submitPayment = async (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
-    if (!txHash.trim()) {
+    if (timerExpired) {
+      toast({
+        title: t('pricing.timerExpired') || "Session expired",
+        description: t('pricing.timerExpiredDesc') || "Please reopen the payment window",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!txHash.trim() && !screenshotFile) {
       toast({
         title: t('common.error'),
-        description: t('pricing.enterTxHash'),
+        description: t('pricing.enterTxOrScreenshot') || "Enter TX Hash or upload a screenshot",
         variant: "destructive",
       });
       return;
     }
 
     try {
+      const formData = new FormData();
+      formData.append("tier", tier);
+      formData.append("amount", getFinalAmount(tier).toString());
+      formData.append("period", isYearly ? "yearly" : "monthly");
+      formData.append("network", selectedNetwork.name);
+      if (txHash.trim()) formData.append("txHash", txHash.trim());
+      if (promoCode.trim() && promoApplied) formData.append("promoCode", promoCode.trim());
+      if (screenshotFile) formData.append("screenshot", screenshotFile);
+
       const response = await fetch("/api/payment-request", {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tier,
-          txHash: txHash.trim(),
-          amount: getFinalAmount(tier),
-          period: isYearly ? "yearly" : "monthly",
-          network: selectedNetwork.name,
-        }),
+        body: formData,
       });
 
       if (response.ok) {
@@ -141,6 +219,10 @@ function PricingContent() {
         });
         setShowPaymentModal(null);
         setTxHash("");
+        setScreenshotFile(null);
+        setPromoCode("");
+        setPromoDiscount(0);
+        setPromoApplied(false);
       } else {
         throw new Error("Failed to submit");
       }
@@ -151,6 +233,10 @@ function PricingContent() {
       });
       setShowPaymentModal(null);
       setTxHash("");
+      setScreenshotFile(null);
+      setPromoCode("");
+      setPromoDiscount(0);
+      setPromoApplied(false);
     }
   };
 
@@ -346,7 +432,7 @@ function PricingContent() {
                   <span className="text-3xl font-bold text-amber-400">${getPrice("ENTERPRISE")}</span>
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$600</span>
+                    <span className="ml-2 text-xs text-muted-foreground line-through">$420</span>
                   )}
                   {isYearly && (
                     <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
@@ -396,7 +482,7 @@ function PricingContent() {
                   <span className="text-3xl font-bold text-violet-400">${getPrice("GROUPS")}</span>
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$780</span>
+                    <span className="ml-2 text-xs text-muted-foreground line-through">$660</span>
                   )}
                   {isYearly && (
                     <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
@@ -483,6 +569,19 @@ function PricingContent() {
                       {isYearly ? t('pricing.yearlySubscription') : t('pricing.monthlySubscription')} - ${getPrice(showPaymentModal)} USDT
                     </p>
                   </div>
+                </div>
+
+                <div className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border ${
+                  timerExpired 
+                    ? "bg-red-500/10 border-red-500/30" 
+                    : timeLeft <= 60 
+                    ? "bg-amber-500/10 border-amber-500/30" 
+                    : "bg-emerald-500/10 border-emerald-500/30"
+                }`} data-testid="timer-display">
+                  <Clock className={`w-4 h-4 ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`} />
+                  <span className={`font-mono text-lg font-bold ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`}>
+                    {timerExpired ? (t('pricing.expired') || "Expired") : formatTimer(timeLeft)}
+                  </span>
                 </div>
 
                 <div className="space-y-4">
@@ -579,9 +678,51 @@ function PricingContent() {
                     />
                   </div>
 
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.uploadScreenshot') || "Upload payment screenshot"}</div>
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl border border-white/10 bg-black/30 cursor-pointer hover-elevate" data-testid="input-screenshot">
+                      <Upload className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground truncate">
+                        {screenshotFile ? screenshotFile.name : (t('pricing.chooseFile') || "Choose file...")}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.promoCode') || "Promo code"}</div>
+                    <div className="flex gap-2">
+                      <Input
+                        value={promoCode}
+                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(""); setPromoApplied(false); }}
+                        placeholder="DARKSHARE-XXX"
+                        className="bg-black/50 border-white/10 font-mono text-xs"
+                        disabled={promoApplied}
+                        data-testid="input-promo-code"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={validatePromo}
+                        disabled={promoLoading || promoApplied || !promoCode.trim()}
+                        data-testid="button-apply-promo"
+                      >
+                        {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : promoApplied ? <Check className="w-3 h-3" /> : (t('pricing.apply') || "Apply")}
+                      </Button>
+                    </div>
+                    {promoError && <p className="text-xs text-red-400 mt-1">{promoError}</p>}
+                    {promoApplied && <p className="text-xs text-emerald-400 mt-1">-{promoDiscount}% {t('pricing.promoAppliedLabel') || "discount applied"}</p>}
+                  </div>
+
                   <Button
                     className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : showPaymentModal === "ENTERPRISE" ? "bg-amber-600" : "bg-violet-600"}`}
                     onClick={() => submitPayment(showPaymentModal)}
+                    disabled={timerExpired}
                     data-testid="button-submit-payment"
                   >
                     {showPaymentModal === "PRO" ? (

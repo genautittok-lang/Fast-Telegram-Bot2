@@ -327,27 +327,12 @@ ${t(lang, "dashboard.selectModule")}`;
 
     const keyboardRows = [
       [
-        Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
-        Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
-        Markup.button.callback(t(lang, "modules.phone"), "mod_phone")
+        Markup.button.callback("🌐 " + (lang === "uk" ? "Мережа" : lang === "ru" ? "Сеть" : "Network"), "cat_network"),
+        Markup.button.callback("💰 " + (lang === "uk" ? "Фінанси" : lang === "ru" ? "Финансы" : "Finance"), "cat_finance")
       ],
       [
-        Markup.button.callback(t(lang, "modules.email"), "mod_email"),
-        Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
-        Markup.button.callback(t(lang, "modules.url"), "mod_url")
-      ],
-      [
-        Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
-        Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
-        Markup.button.callback(t(lang, "modules.username"), "mod_username")
-      ],
-      [
-        Markup.button.callback(t(lang, "modules.card"), "mod_card"),
-        Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
-      ],
-      [
-        Markup.button.callback(t(lang, "modules.iot"), "mod_iot"),
-        Markup.button.callback(t(lang, "modules.cloud"), "mod_cloud")
+        Markup.button.callback("🔍 OSINT", "cat_osint"),
+        Markup.button.callback("🛡 " + (lang === "uk" ? "Безпека" : lang === "ru" ? "Безопасность" : "Security"), "cat_security")
       ],
       [
         Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring"),
@@ -388,6 +373,87 @@ ${t(lang, "dashboard.selectModule")}`;
       await ctx.reply(safeText, { parse_mode: "Markdown", ...keyboard });
     }
   }
+
+  bot.action("cat_network", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const text = `🌐 *${lang === "uk" ? "Мережа & Web" : lang === "ru" ? "Сеть & Web" : "Network & Web"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
+        Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
+        Markup.button.callback(t(lang, "modules.url"), "mod_url")
+      ],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("cat_finance", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const text = `💰 *${lang === "uk" ? "Крипто & Фінанси" : lang === "ru" ? "Крипто & Финансы" : "Crypto & Finance"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
+        Markup.button.callback(t(lang, "modules.card"), "mod_card")
+      ],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("cat_osint", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const text = `🔍 *OSINT*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "modules.email"), "mod_email"),
+        Markup.button.callback(t(lang, "modules.phone"), "mod_phone")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.username"), "mod_username"),
+        Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
+      ],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("cat_security", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const text = `🛡 *${lang === "uk" ? "Безпека" : lang === "ru" ? "Безопасность" : "Security"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
+        Markup.button.callback(t(lang, "modules.hash"), "mod_hash")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.iot"), "mod_iot"),
+        Markup.button.callback(t(lang, "modules.cloud"), "mod_cloud")
+      ],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
 
   bot.action(["dashboard", "back_to_dashboard"], async (ctx) => {
     const tgId = ctx.from!.id.toString();
@@ -1625,7 +1691,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
   bot.action(["buy_pro", "buy_enterprise"], async (ctx) => {
     const tier = ctx.match.input === "buy_pro" ? "PRO" : "ENTERPRISE";
-    const amount = tier === "PRO" ? "10" : "50"; // Синхронізовано з сайтом: PRO=$10, ENTERPRISE=$50
+    const amount = tier === "PRO" ? "10" : "35"; // Синхронізовано з сайтом: PRO=$10, ENTERPRISE=$35
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
 

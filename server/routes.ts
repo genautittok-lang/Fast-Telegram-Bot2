@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { pool } from "./db";
 import { setupBot, botInstance, ADMIN_IDS } from "./bot";
 import { api } from "@shared/routes";
 import { performCheck, validateInput } from "./checkService";
@@ -11,6 +12,29 @@ import { Markup } from "telegraf";
 import { randomUUID, createHmac } from "crypto";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import { stripeService } from "./stripeService";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+const upload = multer({ storage: multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+}), limits: { fileSize: 10 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
+  if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type. Only images and PDF allowed."));
+  }
+} });
+
+const PROMO_CODES: Record<string, { discount: number; maxUses: number; uses: number; tier?: string }> = {
+  "DARKSHARE10": { discount: 10, maxUses: 100, uses: 0 },
+  "WELCOME20": { discount: 20, maxUses: 50, uses: 0 },
+  "VIP30": { discount: 30, maxUses: 20, uses: 0, tier: "ENTERPRISE" },
+};
 
 function generateVerificationId(): string {
   return `DS-${randomUUID().split('-').slice(0, 2).join('').toUpperCase()}`;
@@ -604,21 +628,50 @@ export async function registerRoutes(
     const authReq = req as AuthenticatedRequest;
     try {
       const user = authReq.user!;
-      const ua = req.headers["user-agent"] || "Unknown";
-      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
-      const device = /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
-      const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)/i)?.[1] || "Unknown";
+      const sessions: any[] = [];
 
-      res.json([
-        {
+      if (pool) {
+        const result = await pool.query(
+          `SELECT sid, sess, expire FROM sessions WHERE expire > NOW()`
+        );
+        for (const row of result.rows) {
+          try {
+            const sessData = typeof row.sess === "string" ? JSON.parse(row.sess) : row.sess;
+            const userId = sessData?.passport?.user || sessData?.userId;
+            if (userId && String(userId) === String(user.id)) {
+              const ua = sessData?.userAgent || "Unknown";
+              const ip = sessData?.ip || "Unknown";
+              const device = /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
+              const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)/i)?.[1] || "Unknown";
+              sessions.push({
+                id: row.sid,
+                current: row.sid === req.sessionID,
+                device: `${device} - ${browser}`,
+                ip: typeof ip === "string" ? ip : ip,
+                lastActive: row.expire ? new Date(row.expire).toISOString() : new Date().toISOString(),
+                loginTime: sessData?.loginTime || new Date().toISOString(),
+              });
+            }
+          } catch {}
+        }
+      }
+
+      if (sessions.length === 0) {
+        const ua = req.headers["user-agent"] || "Unknown";
+        const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
+        const device = /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
+        const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)/i)?.[1] || "Unknown";
+        sessions.push({
           id: req.sessionID,
           current: true,
           device: `${device} - ${browser}`,
           ip: typeof ip === "string" ? ip : ip[0],
           lastActive: new Date().toISOString(),
           loginTime: user.lastLogin?.toISOString() || new Date().toISOString(),
-        }
-      ]);
+        });
+      }
+
+      res.json(sessions);
     } catch (error) {
       console.error("Sessions error:", error);
       res.status(500).json({ error: "Failed to get sessions" });
@@ -1050,10 +1103,38 @@ export async function registerRoutes(
     }
   });
 
-  // Payment request endpoint (requires auth)
-  app.post("/api/payment-request", loadUser, requireAuth, async (req, res) => {
+  app.post("/api/promo/validate", loadUser, requireAuth, async (req, res) => {
+    const { code, tier } = req.body;
+    if (!code) return res.status(400).json({ error: "Promo code is required", valid: false });
+    
+    const promo = PROMO_CODES[code.toUpperCase()];
+    if (!promo) return res.status(400).json({ error: "Invalid promo code", valid: false });
+    if (promo.uses >= promo.maxUses) return res.status(400).json({ error: "Promo code expired", valid: false });
+    if (promo.tier && promo.tier !== tier?.toUpperCase()) return res.status(400).json({ error: "Promo code not valid for this plan", valid: false });
+    
+    res.json({ valid: true, discount: promo.discount, code: code.toUpperCase() });
+  });
+
+  app.delete("/api/user/sessions/:id", loadUser, requireAuth, async (req, res) => {
+    const sessionId = req.params.id;
+    if (sessionId === req.sessionID) {
+      return res.status(400).json({ error: "Cannot terminate current session" });
+    }
+    try {
+      if (pool) {
+        await pool.query(`DELETE FROM sessions WHERE sid = $1`, [sessionId]);
+      }
+      res.json({ message: "Session terminated" });
+    } catch (error) {
+      console.error("Session delete error:", error);
+      res.status(500).json({ error: "Failed to terminate session" });
+    }
+  });
+
+  app.post("/api/payment-request", loadUser, requireAuth, upload.single("screenshot"), async (req, res) => {
     const authReq = req as AuthenticatedRequest;
-    const { tier, txHash, amount: reqAmount, period, network } = req.body;
+    const { tier, txHash, amount: reqAmount, period, network, promoCode } = req.body;
+    const screenshotFile = req.file;
     
     if (!tier || !["pro", "enterprise", "groups", "PRO", "ENTERPRISE", "GROUPS"].includes(tier)) {
       return res.status(400).json({ error: "Invalid tier. Must be 'pro', 'enterprise', or 'groups'" });
@@ -1065,9 +1146,18 @@ export async function registerRoutes(
       normalizedTier === "PRO" 
         ? (isYearly ? "100" : "10") 
         : normalizedTier === "GROUPS"
-        ? (isYearly ? "647" : "65")
-        : (isYearly ? "498" : "50")
+        ? (isYearly ? "549" : "55")
+        : (isYearly ? "349" : "35")
     );
+
+    let promoValid = false;
+    if (promoCode) {
+      const promo = PROMO_CODES[promoCode.toUpperCase()];
+      if (promo && promo.uses < promo.maxUses && (!promo.tier || promo.tier === normalizedTier)) {
+        promo.uses++;
+        promoValid = true;
+      }
+    }
 
     try {
       const payment = await storage.createPayment({
@@ -1080,26 +1170,34 @@ export async function registerRoutes(
 
       if (botInstance) {
         const user = authReq.user!;
-        const messageText = `🆕 Нова заявка на оплату #${payment.id}\n\n` +
-          `👤 Користувач: @${user.username || "—"}\n` +
-          `🔢 TG ID: ${user.tgId}\n` +
-          `📦 Тариф: ${normalizedTier} (${isYearly ? "рік" : "місяць"})\n` +
-          `💰 Сума: $${amount} USDT\n` +
-          `🌐 Мережа: ${network || "не вказано"}\n` +
-          `${txHash ? `📝 TX Hash: ${txHash}` : "📝 TX Hash: не вказано"}\n` +
-          `📍 Джерело: Web\n\n` +
-          `⚡ Перевірте транзакцію та підтвердіть оплату`;
+        const messageText = `\u{1F195} Нова заявка на оплату #${payment.id}\n\n` +
+          `\u{1F464} Користувач: @${user.username || "\u2014"}\n` +
+          `\u{1F522} TG ID: ${user.tgId}\n` +
+          `\u{1F4E6} Тариф: ${normalizedTier} (${isYearly ? "рік" : "місяць"})\n` +
+          `\u{1F4B0} Сума: $${amount} USDT\n` +
+          `\u{1F310} Мережа: ${network || "не вказано"}\n` +
+          `${txHash ? `\u{1F4DD} TX Hash: ${txHash}` : "\u{1F4DD} TX Hash: не вказано"}\n` +
+          `${promoCode ? `\u{1F3AB} Промокод: ${promoCode}${promoValid ? " \u2705" : " \u274C"}\n` : ""}` +
+          `${screenshotFile ? `\u{1F4F7} Скріншот: додано\n` : ""}` +
+          `\u{1F4CD} Джерело: Web\n\n` +
+          `\u26A1 Перевірте транзакцію та підтвердіть оплату`;
 
         for (const adminId of ADMIN_IDS) {
           try {
             await botInstance.telegram.sendMessage(adminId, messageText, {
               reply_markup: Markup.inlineKeyboard([
                 [
-                  Markup.button.callback("✅ Підтвердити", `approve_pay_${payment.id}`),
-                  Markup.button.callback("❌ Відхилити", `reject_pay_${payment.id}`)
+                  Markup.button.callback("\u2705 Підтвердити", `approve_pay_${payment.id}`),
+                  Markup.button.callback("\u274C Відхилити", `reject_pay_${payment.id}`)
                 ]
               ]).reply_markup
             });
+            if (screenshotFile) {
+              await botInstance.telegram.sendDocument(adminId, { 
+                source: screenshotFile.path, 
+                filename: screenshotFile.originalname 
+              }, { caption: `\u{1F4F7} Скріншот оплати #${payment.id}` });
+            }
           } catch (e) {
             console.log(`Failed to notify admin ${adminId}:`, e);
           }

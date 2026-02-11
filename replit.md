@@ -5,6 +5,16 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Reorganized Telegram bot dashboard into categories: Network & Web, Crypto & Finance, OSINT, Security
+- Updated pricing: PRO $10/month, Enterprise $35/month (was $50), Groups $55/month (was $65)
+- Added 10-minute countdown timer to payment modal with expiry handling
+- Added promo code validation system (DARKSHARE10, WELCOME20, VIP30)
+- Added screenshot upload option for payment proof (uses multer)
+- Optimized History page for mobile: compact layout, smaller icons and spacing
+- Added session management to Account page: view sessions with device/IP info, delete non-current sessions
+- Added backend endpoints: POST /api/promo/validate, DELETE /api/user/sessions/:id
+- Payment endpoint now supports FormData (screenshot + promo code)
+- All pricing translations updated across 5 languages (uk, en, ru, es, de)
 - Fixed dual-account session issues with session regeneration
 - Added missing database tables (ds_coupons, ds_coupon_usages, ds_admin_settings, ds_teams, ds_team_members) to ensureTablesExist
 - Fixed bulk check endpoint response format to return {results: [...]}
@@ -13,7 +23,7 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Added Security Widget page with embeddable HTML badge generator
 - Added API Documentation page for ENTERPRISE users
 - Added Terms of Service and Privacy Policy pages
-- Added GROUPS pricing tier ($65/month)
+- Added GROUPS pricing tier ($55/month)
 - Expanded bot admin panel with Stats, Coupons, Revenue, Reports, Broadcast sections
 - Updated navigation: Teams and Widget in sidebar and mobile menu
 - Multi-network crypto payments: TON (-5% discount), ERC-20, BEP-20, Solana, ETH, XRP (with memo)

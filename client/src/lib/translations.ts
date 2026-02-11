@@ -120,6 +120,17 @@ export interface TranslationSchema {
     groupsRoleManagement: string;
     groupsCentralBilling: string;
     groupsActivityLog: string;
+    promoCode: string;
+    promoApplied: string;
+    promoInvalid: string;
+    promoAppliedLabel: string;
+    apply: string;
+    uploadScreenshot: string;
+    chooseFile: string;
+    timerExpired: string;
+    timerExpiredDesc: string;
+    enterTxOrScreenshot: string;
+    expired: string;
   };
   dashboard: {
     title: string;
@@ -432,6 +443,8 @@ export interface TranslationSchema {
     referrals: string;
     top: string;
     ref: string;
+    sessionDeleted: string;
+    sessionDeleteError: string;
   };
   landing: {
     hero: {
@@ -724,8 +737,8 @@ export const translations: Record<Language, TranslationSchema> = {
       features: "Features",
       subscribe: "Subscribe",
       free: "Free",
-      pro: "Pro ($30)",
-      enterprise: "Enterprise ($50)",
+      pro: "Pro ($10)",
+      enterprise: "Enterprise ($35)",
       monthly: "Monthly",
       yearly: "Yearly",
       popular: "Most Popular",
@@ -789,6 +802,17 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsRoleManagement: "Role-based access control",
       groupsCentralBilling: "Centralized billing",
       groupsActivityLog: "Team activity log",
+      promoCode: "Promo code",
+      promoApplied: "Promo code applied!",
+      promoInvalid: "Invalid promo code",
+      promoAppliedLabel: "discount applied",
+      apply: "Apply",
+      uploadScreenshot: "Upload payment screenshot",
+      chooseFile: "Choose file...",
+      timerExpired: "Session expired",
+      timerExpiredDesc: "Please reopen the payment window",
+      enterTxOrScreenshot: "Enter TX Hash or upload a screenshot",
+      expired: "Expired",
     },
     dashboard: {
       title: "Dashboard",
@@ -1101,6 +1125,8 @@ export const translations: Record<Language, TranslationSchema> = {
       referrals: "Referrals",
       top: "Top",
       ref: "Ref",
+      sessionDeleted: "Session terminated",
+      sessionDeleteError: "Failed to terminate session",
     },
     landing: {
       hero: {
@@ -1391,8 +1417,8 @@ export const translations: Record<Language, TranslationSchema> = {
       features: "Функції",
       subscribe: "Підписатися",
       free: "Безкоштовний",
-      pro: "Pro ($30)",
-      enterprise: "Enterprise ($50)",
+      pro: "Pro ($10)",
+      enterprise: "Enterprise ($35)",
       monthly: "Щомісяця",
       yearly: "Щорічно",
       popular: "Найпопулярніший",
@@ -1456,6 +1482,17 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsRoleManagement: "Контроль доступу за ролями",
       groupsCentralBilling: "Централізована оплата",
       groupsActivityLog: "Журнал активності команди",
+      promoCode: "Промокод",
+      promoApplied: "Промокод застосовано!",
+      promoInvalid: "Недійсний промокод",
+      promoAppliedLabel: "знижку застосовано",
+      apply: "Застосувати",
+      uploadScreenshot: "Завантажити скріншот оплати",
+      chooseFile: "Обрати файл...",
+      timerExpired: "Сесія завершилась",
+      timerExpiredDesc: "Будь ласка, відкрийте вікно оплати знову",
+      enterTxOrScreenshot: "Введіть TX Hash або завантажте скріншот",
+      expired: "Закінчився",
     },
     dashboard: {
       title: "Дашборд",
@@ -1768,6 +1805,8 @@ export const translations: Record<Language, TranslationSchema> = {
       referrals: "Рефералів",
       top: "Топ",
       ref: "Реф",
+      sessionDeleted: "Сесію завершено",
+      sessionDeleteError: "Не вдалося завершити сесію",
     },
     landing: {
       hero: {
@@ -2058,8 +2097,8 @@ export const translations: Record<Language, TranslationSchema> = {
       features: "Функции",
       subscribe: "Подписаться",
       free: "Бесплатный",
-      pro: "Pro ($30)",
-      enterprise: "Enterprise ($50)",
+      pro: "Pro ($10)",
+      enterprise: "Enterprise ($35)",
       monthly: "Ежемесячно",
       yearly: "Ежегодно",
       popular: "Самый популярный",
@@ -2123,6 +2162,17 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsRoleManagement: "Управление доступом по ролям",
       groupsCentralBilling: "Централизованная оплата",
       groupsActivityLog: "Журнал активности команды",
+      promoCode: "Промокод",
+      promoApplied: "Промокод применён!",
+      promoInvalid: "Недействительный промокод",
+      promoAppliedLabel: "скидка применена",
+      apply: "Применить",
+      uploadScreenshot: "Загрузить скриншот оплаты",
+      chooseFile: "Выбрать файл...",
+      timerExpired: "Сессия истекла",
+      timerExpiredDesc: "Пожалуйста, откройте окно оплаты снова",
+      enterTxOrScreenshot: "Введите TX Hash или загрузите скриншот",
+      expired: "Истёк",
     },
     dashboard: {
       title: "Дашборд",
@@ -2435,6 +2485,8 @@ export const translations: Record<Language, TranslationSchema> = {
       referrals: "Рефералов",
       top: "Топ",
       ref: "Реф",
+      sessionDeleted: "Сессия завершена",
+      sessionDeleteError: "Не удалось завершить сессию",
     },
     landing: {
       hero: {
@@ -2725,8 +2777,8 @@ export const translations: Record<Language, TranslationSchema> = {
       features: "Características",
       subscribe: "Suscribirse",
       free: "Gratis",
-      pro: "Pro ($30)",
-      enterprise: "Enterprise ($50)",
+      pro: "Pro ($10)",
+      enterprise: "Enterprise ($35)",
       monthly: "Mensual",
       yearly: "Anual",
       popular: "Más popular",
@@ -2790,6 +2842,17 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsRoleManagement: "Control de acceso basado en roles",
       groupsCentralBilling: "Facturación centralizada",
       groupsActivityLog: "Registro de actividad del equipo",
+      promoCode: "Código promocional",
+      promoApplied: "Código promocional aplicado!",
+      promoInvalid: "Código promocional inválido",
+      promoAppliedLabel: "descuento aplicado",
+      apply: "Aplicar",
+      uploadScreenshot: "Subir captura de pantalla del pago",
+      chooseFile: "Elegir archivo...",
+      timerExpired: "Sesión expirada",
+      timerExpiredDesc: "Por favor, vuelva a abrir la ventana de pago",
+      enterTxOrScreenshot: "Ingrese TX Hash o suba una captura de pantalla",
+      expired: "Expirado",
     },
     dashboard: {
       title: "Panel",
@@ -3102,6 +3165,8 @@ export const translations: Record<Language, TranslationSchema> = {
       referrals: "Referidos",
       top: "Top",
       ref: "Ref",
+      sessionDeleted: "Sesión terminada",
+      sessionDeleteError: "Error al terminar sesión",
     },
     landing: {
       hero: {
@@ -3392,8 +3457,8 @@ export const translations: Record<Language, TranslationSchema> = {
       features: "Funktionen",
       subscribe: "Abonnieren",
       free: "Kostenlos",
-      pro: "Pro ($30)",
-      enterprise: "Enterprise ($50)",
+      pro: "Pro ($10)",
+      enterprise: "Enterprise ($35)",
       monthly: "Monatlich",
       yearly: "Jährlich",
       popular: "Beliebteste",
@@ -3457,6 +3522,17 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsRoleManagement: "Rollenbasierte Zugriffskontrolle",
       groupsCentralBilling: "Zentralisierte Abrechnung",
       groupsActivityLog: "Team-Aktivitätsprotokoll",
+      promoCode: "Promo-Code",
+      promoApplied: "Promo-Code angewendet!",
+      promoInvalid: "Ungültiger Promo-Code",
+      promoAppliedLabel: "Rabatt angewendet",
+      apply: "Anwenden",
+      uploadScreenshot: "Zahlungsbeleg hochladen",
+      chooseFile: "Datei auswählen...",
+      timerExpired: "Sitzung abgelaufen",
+      timerExpiredDesc: "Bitte öffnen Sie das Zahlungsfenster erneut",
+      enterTxOrScreenshot: "TX Hash eingeben oder Screenshot hochladen",
+      expired: "Abgelaufen",
     },
     dashboard: {
       title: "Dashboard",
@@ -3769,6 +3845,8 @@ export const translations: Record<Language, TranslationSchema> = {
       referrals: "Empfehlungen",
       top: "Top",
       ref: "Ref",
+      sessionDeleted: "Sitzung beendet",
+      sessionDeleteError: "Fehler beim Beenden der Sitzung",
     },
     landing: {
       hero: {

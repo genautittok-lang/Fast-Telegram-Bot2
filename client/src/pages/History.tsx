@@ -296,15 +296,14 @@ export default function History() {
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
         </div>
 
-        <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6 relative z-10 space-y-4 sm:space-y-6">
+        <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6 relative z-10 space-y-3 sm:space-y-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3"
         >
-          <motion.div 
-            whileHover={{ scale: 1.02, y: -2 }}
-            className="p-2.5 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-primary/30 transition-all duration-300"
+          <div 
+            className="p-2 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-primary/30 transition-all duration-300"
           >
             <div className="flex items-center justify-between mb-1 sm:mb-2">
               <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -313,42 +312,39 @@ export default function History() {
                 <span>+12%</span>
               </div>
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-display">{stats.total}</p>
+            <p className="text-lg sm:text-2xl font-bold font-display">{stats.total}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.totalChecks')}</p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 1.02, y: -2 }}
-            className="p-2.5 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-cyan-500/30 transition-all duration-300"
+          <div 
+            className="p-2 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-cyan-500/30 transition-all duration-300"
           >
             <div className="flex items-center justify-between mb-1 sm:mb-2">
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-display">{stats.thisWeek}</p>
+            <p className="text-lg sm:text-2xl font-bold font-display">{stats.thisWeek}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.thisWeekChecks')}</p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 1.02, y: -2 }}
-            className="p-2.5 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-red-500/30 transition-all duration-300"
+          <div 
+            className="p-2 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-red-500/30 transition-all duration-300"
           >
             <div className="flex items-center justify-between mb-1 sm:mb-2">
               <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-display">{stats.critical}</p>
+            <p className="text-lg sm:text-2xl font-bold font-display">{stats.critical}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.criticalRisks')}</p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 1.02, y: -2 }}
-            className="p-2.5 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-purple-500/30 transition-all duration-300"
+          <div 
+            className="p-2 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 group hover:border-purple-500/30 transition-all duration-300"
           >
             <div className="flex items-center justify-between mb-1 sm:mb-2">
               <Download className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
             </div>
-            <p className="text-xl sm:text-2xl font-bold font-display">{stats.downloads}</p>
+            <p className="text-lg sm:text-2xl font-bold font-display">{stats.downloads}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.pdfDownloaded')}</p>
-          </motion.div>
+          </div>
         </motion.div>
 
         {reports && reports.length > 0 && (
@@ -479,7 +475,7 @@ export default function History() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.03 }}
                     whileHover={{ y: -2 }}
-                    className={`group relative p-2.5 sm:p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 
+                    className={`group relative p-2 sm:p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 
                       hover:bg-white/[0.06] hover:border-white/20 hover:shadow-lg hover:${riskConfig.glow}
                       transition-all duration-300 cursor-pointer border-l-2 ${riskConfig.border}`}
                     data-testid={`report-item-${report.id}`}
@@ -487,14 +483,14 @@ export default function History() {
                     <div className="flex items-center gap-2 sm:gap-4">
                       <motion.div 
                         whileHover={{ scale: 1.1, rotate: 5 }}
-                        className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg flex-shrink-0`}
+                        className={`w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg flex-shrink-0`}
                       >
                         <TypeIcon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                       </motion.div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                          <p className="font-mono text-xs sm:text-sm font-medium truncate max-w-[120px] sm:max-w-none">{report.target}</p>
+                          <p className="font-mono text-[11px] sm:text-sm font-medium truncate max-w-[120px] sm:max-w-none">{report.target}</p>
                           <Badge variant="outline" className="text-[9px] sm:text-[10px] uppercase tracking-wider opacity-60 hidden sm:inline-flex">
                             {report.type}
                           </Badge>
