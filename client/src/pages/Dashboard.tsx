@@ -228,6 +228,9 @@ export default function Dashboard() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [inputShake, setInputShake] = useState(false);
   const [copiedResult, setCopiedResult] = useState(false);
+  const [breachEmail, setBreachEmail] = useState("");
+  const [breachResult, setBreachResult] = useState<any>(null);
+  const [breachLoading, setBreachLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bulkTextareaRef = useRef<HTMLTextAreaElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -235,7 +238,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [location] = useLocation();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { data: platformStats } = useStats();
   const { showTour, completeTour } = useOnboardingTour();
 
@@ -533,6 +536,33 @@ Sources: ${result.sources.join(', ')}`;
     checkTypesCount: checkTypes.length,
     disabled: showSubscription || showProfile || showShortcuts,
   });
+
+  const checkBreach = async () => {
+    if (!breachEmail) return;
+    setBreachLoading(true);
+    try {
+      const res = await apiRequest("POST", "/api/breach-check", { email: breachEmail });
+      const data = await res.json();
+      setBreachResult(data);
+    } catch (error) {
+      toast({ title: t('common.error'), variant: "destructive" });
+    } finally {
+      setBreachLoading(false);
+    }
+  };
+
+  const breachLabels = {
+    title: lang === "uk" ? "Монітор витоків" : lang === "ru" ? "Монитор утечек" : lang === "es" ? "Monitor de filtraciones" : lang === "de" ? "Datenleck-Monitor" : "Breach Monitor",
+    description: lang === "uk" ? "Перевірте чи ваш email був скомпрометований" : lang === "ru" ? "Проверьте был ли ваш email скомпрометирован" : lang === "es" ? "Verifique si su email fue comprometido" : lang === "de" ? "Prüfen Sie ob Ihre E-Mail kompromittiert wurde" : "Check if your email has been compromised",
+    placeholder: lang === "uk" ? "Введіть email..." : lang === "ru" ? "Введите email..." : lang === "es" ? "Ingrese email..." : lang === "de" ? "E-Mail eingeben..." : "Enter email...",
+    check: lang === "uk" ? "Перевірити" : lang === "ru" ? "Проверить" : lang === "es" ? "Verificar" : lang === "de" ? "Prüfen" : "Check",
+    exposed: lang === "uk" ? "Скомпрометовано" : lang === "ru" ? "Скомпрометирован" : lang === "es" ? "Comprometido" : lang === "de" ? "Kompromittiert" : "Exposed",
+    clean: lang === "uk" ? "Безпечно" : lang === "ru" ? "Безопасно" : lang === "es" ? "Seguro" : lang === "de" ? "Sicher" : "Clean",
+    breachesFound: lang === "uk" ? "Витоків знайдено" : lang === "ru" ? "Утечек найдено" : lang === "es" ? "Filtraciones encontradas" : lang === "de" ? "Datenlecks gefunden" : "Breaches found",
+    noBreaches: lang === "uk" ? "Витоків не знайдено" : lang === "ru" ? "Утечек не найдено" : lang === "es" ? "Sin filtraciones" : lang === "de" ? "Keine Datenlecks" : "No breaches found",
+    date: lang === "uk" ? "Дата" : lang === "ru" ? "Дата" : lang === "es" ? "Fecha" : lang === "de" ? "Datum" : "Date",
+    dataTypes: lang === "uk" ? "Типи даних" : lang === "ru" ? "Типы данных" : lang === "es" ? "Tipos de datos" : lang === "de" ? "Datentypen" : "Data types",
+  };
 
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
@@ -1312,6 +1342,120 @@ Sources: ${result.sources.join(', ')}`;
                 ))}
               </motion.div>
             )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent border border-red-500/20 backdrop-blur-xl"
+              data-testid="section-breach-monitor"
+            >
+              <div className="flex items-center gap-2 mb-3 lg:mb-4">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-red-500/20 border border-red-500/30">
+                  <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm lg:text-base font-display font-semibold" data-testid="text-breach-title">{breachLabels.title}</h3>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">{breachLabels.description}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mb-3">
+                <Input
+                  type="email"
+                  placeholder={breachLabels.placeholder}
+                  value={breachEmail}
+                  onChange={(e) => setBreachEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && checkBreach()}
+                  className="bg-white/5 border-white/10 focus:border-red-500/50 text-sm flex-1"
+                  data-testid="input-breach-email"
+                />
+                <Button
+                  size="sm"
+                  onClick={checkBreach}
+                  disabled={breachLoading || !breachEmail}
+                  className="gap-1.5"
+                  data-testid="button-breach-check"
+                >
+                  {breachLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Search className="w-3.5 h-3.5" />
+                  )}
+                  {breachLabels.check}
+                </Button>
+              </div>
+
+              <AnimatePresence>
+                {breachResult && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-3"
+                  >
+                    <div className={`flex items-center gap-2 p-3 rounded-xl border ${
+                      breachResult.breaches && breachResult.breaches.length > 0
+                        ? "bg-red-500/10 border-red-500/30"
+                        : "bg-green-500/10 border-green-500/30"
+                    }`} data-testid="breach-status">
+                      <Shield className={`w-5 h-5 ${
+                        breachResult.breaches && breachResult.breaches.length > 0 ? "text-red-400" : "text-green-400"
+                      }`} />
+                      <div className="flex-1">
+                        <p className={`text-sm font-semibold ${
+                          breachResult.breaches && breachResult.breaches.length > 0 ? "text-red-400" : "text-green-400"
+                        }`} data-testid="text-breach-status">
+                          {breachResult.breaches && breachResult.breaches.length > 0 ? breachLabels.exposed : breachLabels.clean}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground" data-testid="text-breach-count">
+                          {breachResult.breaches && breachResult.breaches.length > 0
+                            ? `${breachLabels.breachesFound}: ${breachResult.breaches.length}`
+                            : breachLabels.noBreaches}
+                        </p>
+                      </div>
+                    </div>
+
+                    {breachResult.breaches && breachResult.breaches.length > 0 && (
+                      <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                        {breachResult.breaches.map((breach: any, idx: number) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="p-3 rounded-xl bg-white/5 border border-white/10"
+                            data-testid={`breach-item-${idx}`}
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <p className="text-xs lg:text-sm font-semibold truncate" data-testid={`text-breach-name-${idx}`}>
+                                {breach.name || breach.Name || `Breach #${idx + 1}`}
+                              </p>
+                              {(breach.date || breach.BreachDate) && (
+                                <Badge variant="outline" className="text-[9px] lg:text-[10px] flex-shrink-0" data-testid={`text-breach-date-${idx}`}>
+                                  {breachLabels.date}: {breach.date || breach.BreachDate}
+                                </Badge>
+                              )}
+                            </div>
+                            {(breach.dataTypes || breach.DataClasses) && (
+                              <div className="flex flex-wrap gap-1" data-testid={`breach-datatypes-${idx}`}>
+                                <span className="text-[9px] text-muted-foreground mr-1">{breachLabels.dataTypes}:</span>
+                                {(breach.dataTypes || breach.DataClasses || []).slice(0, 5).map((dt: string, dtIdx: number) => (
+                                  <Badge key={dtIdx} variant="secondary" className="text-[9px] px-1.5">
+                                    {dt}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </div>
         </div>
 

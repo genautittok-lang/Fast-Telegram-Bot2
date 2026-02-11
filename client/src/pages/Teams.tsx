@@ -20,6 +20,10 @@ import {
   Share2,
   Copy,
   Check,
+  BarChart3,
+  Activity,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +62,17 @@ function TeamsContent() {
     queryFn: async () => {
       if (!selectedTeamId) return null;
       const res = await fetch(`/api/teams/${selectedTeamId}/members`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    enabled: !!selectedTeamId,
+  });
+
+  const { data: teamStats, isLoading: statsLoading } = useQuery<any>({
+    queryKey: ["/api/teams", selectedTeamId, "stats"],
+    queryFn: async () => {
+      if (!selectedTeamId) return null;
+      const res = await fetch(`/api/teams/${selectedTeamId}/stats`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -325,6 +340,322 @@ function TeamsContent() {
             )}
           </CardContent>
         </Card>
+
+        {/* A. Team Stats Overview */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          data-testid="section-team-stats"
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                  <span className="text-xs text-muted-foreground">
+                    {lang === "uk" ? "Всього перевірок" : lang === "ru" ? "Всего проверок" : lang === "es" ? "Total verificaciones" : lang === "de" ? "Gesamtprüfungen" : "Total Checks"}
+                  </span>
+                </div>
+                <p className="text-2xl font-bold" data-testid="stat-total-checks">
+                  {statsLoading ? <span className="inline-block w-12 h-7 bg-muted-foreground/20 rounded animate-pulse" /> : (teamStats?.totalChecks ?? 0)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="w-4 h-4 text-violet-400" />
+                  <span className="text-xs text-muted-foreground">
+                    {lang === "uk" ? "Учасників" : lang === "ru" ? "Участников" : lang === "es" ? "Miembros" : lang === "de" ? "Mitglieder" : "Members"}
+                  </span>
+                </div>
+                <p className="text-2xl font-bold" data-testid="stat-total-members">
+                  {statsLoading ? <span className="inline-block w-12 h-7 bg-muted-foreground/20 rounded animate-pulse" /> : (teamStats?.totalMembers ?? 0)}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs text-muted-foreground">
+                    {lang === "uk" ? "Топ тип" : lang === "ru" ? "Топ тип" : lang === "es" ? "Tipo principal" : lang === "de" ? "Top-Typ" : "Top Check Type"}
+                  </span>
+                </div>
+                <p className="text-lg font-bold uppercase" data-testid="stat-top-check-type">
+                  {statsLoading ? (
+                    <span className="inline-block w-16 h-6 bg-muted-foreground/20 rounded animate-pulse" />
+                  ) : (
+                    (() => {
+                      const types = teamStats?.checksByType || {};
+                      const sorted = Object.entries(types).sort((a: any, b: any) => b[1] - a[1]);
+                      return sorted.length > 0 ? sorted[0][0] : "—";
+                    })()
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-green-400" />
+                  <span className="text-xs text-muted-foreground">
+                    {lang === "uk" ? "За 7 днів" : lang === "ru" ? "За 7 дней" : lang === "es" ? "Últimos 7 días" : lang === "de" ? "Letzte 7 Tage" : "Last 7 Days"}
+                  </span>
+                </div>
+                <p className="text-2xl font-bold" data-testid="stat-recent-activity">
+                  {statsLoading ? (
+                    <span className="inline-block w-12 h-7 bg-muted-foreground/20 rounded animate-pulse" />
+                  ) : (
+                    (() => {
+                      const reports = teamStats?.recentReports || [];
+                      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                      return reports.filter((r: any) => new Date(r.createdAt || r.date).getTime() > weekAgo).length;
+                    })()
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </motion.div>
+
+        {/* B. Check Type Distribution */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="border-border/50 bg-card/50" data-testid="section-check-types">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2 flex-wrap">
+                <BarChart3 className="w-4 h-4 text-blue-400" />
+                {lang === "uk" ? "Розподіл типів перевірок" : lang === "ru" ? "Распределение типов проверок" : lang === "es" ? "Distribución de tipos" : lang === "de" ? "Typverteilung" : "Check Type Distribution"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {statsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="space-y-1">
+                      <div className="w-16 h-4 bg-muted-foreground/20 rounded animate-pulse" />
+                      <div className="w-full h-5 bg-muted-foreground/10 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : (() => {
+                const types = teamStats?.checksByType || {};
+                const entries = Object.entries(types).sort((a: any, b: any) => b[1] - a[1]);
+                const maxVal = entries.length > 0 ? Math.max(...entries.map((e: any) => e[1])) : 1;
+                const typeColors: Record<string, string> = {
+                  ip: "bg-blue-500",
+                  domain: "bg-purple-500",
+                  wallet: "bg-amber-500",
+                  email: "bg-green-500",
+                  url: "bg-cyan-500",
+                  phone: "bg-pink-500",
+                  hash: "bg-red-500",
+                  cve: "bg-orange-500",
+                  username: "bg-indigo-500",
+                  bot_token: "bg-slate-500",
+                };
+                const typeBadgeColors: Record<string, string> = {
+                  ip: "border-blue-500/30 text-blue-400",
+                  domain: "border-purple-500/30 text-purple-400",
+                  wallet: "border-amber-500/30 text-amber-400",
+                  email: "border-green-500/30 text-green-400",
+                  url: "border-cyan-500/30 text-cyan-400",
+                  phone: "border-pink-500/30 text-pink-400",
+                  hash: "border-red-500/30 text-red-400",
+                  cve: "border-orange-500/30 text-orange-400",
+                  username: "border-indigo-500/30 text-indigo-400",
+                  bot_token: "border-slate-500/30 text-slate-400",
+                };
+                if (entries.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {lang === "uk" ? "Немає даних" : lang === "ru" ? "Нет данных" : lang === "es" ? "Sin datos" : lang === "de" ? "Keine Daten" : "No data"}
+                    </p>
+                  );
+                }
+                return entries.map(([type, count]: any) => (
+                  <div key={type} className="space-y-1" data-testid={`check-type-${type}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="outline" className={`text-[10px] uppercase ${typeBadgeColors[type] || "border-border text-muted-foreground"}`}>
+                        {type}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground font-mono">{count}</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-muted-foreground/10">
+                      <div
+                        className={`h-full rounded-full ${typeColors[type] || "bg-muted-foreground"}`}
+                        style={{ width: `${Math.max((count / maxVal) * 100, 2)}%` }}
+                      />
+                    </div>
+                  </div>
+                ));
+              })()}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* C. Member Leaderboard */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="border-border/50 bg-card/50" data-testid="section-member-leaderboard">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2 flex-wrap">
+                <TrendingUp className="w-4 h-4 text-amber-400" />
+                {lang === "uk" ? "Рейтинг учасників" : lang === "ru" ? "Рейтинг участников" : lang === "es" ? "Clasificación de miembros" : lang === "de" ? "Mitglieder-Rangliste" : "Member Leaderboard"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {statsLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                      <div className="w-6 h-6 bg-muted-foreground/20 rounded-full animate-pulse" />
+                      <div className="flex-1 h-4 bg-muted-foreground/20 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : (() => {
+                const memberStats = teamStats?.memberStats || [];
+                const sorted = [...memberStats].sort((a: any, b: any) => (b.checkCount || 0) - (a.checkCount || 0));
+                if (sorted.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {lang === "uk" ? "Немає даних" : lang === "ru" ? "Нет данных" : lang === "es" ? "Sin datos" : lang === "de" ? "Keine Daten" : "No data"}
+                    </p>
+                  );
+                }
+                const maxChecks = Math.max(...sorted.map((m: any) => m.checkCount || 0), 1);
+                return sorted.map((member: any, idx: number) => (
+                  <div
+                    key={member.userId || idx}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10"
+                    data-testid={`leaderboard-member-${member.userId || idx}`}
+                  >
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? "bg-amber-500/20 text-amber-400" : idx === 1 ? "bg-slate-400/20 text-slate-300" : idx === 2 ? "bg-orange-500/20 text-orange-400" : "bg-muted-foreground/10 text-muted-foreground"}`}>
+                      {idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium truncate">@{member.username || "unknown"}</span>
+                        <Badge variant="outline" className="text-[10px]">{member.tier || "FREE"}</Badge>
+                      </div>
+                      <div className="mt-1 w-full h-1.5 rounded-full bg-muted-foreground/10">
+                        <div
+                          className="h-full rounded-full bg-violet-500"
+                          style={{ width: `${Math.max(((member.checkCount || 0) / maxChecks) * 100, 2)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">
+                      {member.checkCount || 0} {lang === "uk" ? "перевірок" : lang === "ru" ? "проверок" : lang === "es" ? "verificaciones" : lang === "de" ? "Prüfungen" : "checks"}
+                    </span>
+                  </div>
+                ));
+              })()}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* D. Recent Team Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="border-border/50 bg-card/50" data-testid="section-recent-activity">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2 flex-wrap">
+                <Activity className="w-4 h-4 text-green-400" />
+                {lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : lang === "es" ? "Actividad reciente" : lang === "de" ? "Letzte Aktivität" : "Recent Activity"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {statsLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex-1 h-4 bg-muted-foreground/20 rounded animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : (() => {
+                const reports = teamStats?.recentReports || [];
+                const recent = reports.slice(0, 15);
+                if (recent.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {lang === "uk" ? "Немає активності" : lang === "ru" ? "Нет активности" : lang === "es" ? "Sin actividad" : lang === "de" ? "Keine Aktivität" : "No activity"}
+                    </p>
+                  );
+                }
+                const riskColors: Record<string, string> = {
+                  critical: "border-red-500/30 text-red-400",
+                  high: "border-red-500/30 text-red-400",
+                  medium: "border-amber-500/30 text-amber-400",
+                  low: "border-green-500/30 text-green-400",
+                };
+                const typeColors: Record<string, string> = {
+                  ip: "border-blue-500/30 text-blue-400",
+                  domain: "border-purple-500/30 text-purple-400",
+                  wallet: "border-amber-500/30 text-amber-400",
+                  email: "border-green-500/30 text-green-400",
+                  url: "border-cyan-500/30 text-cyan-400",
+                  phone: "border-pink-500/30 text-pink-400",
+                  hash: "border-red-500/30 text-red-400",
+                  cve: "border-orange-500/30 text-orange-400",
+                  username: "border-indigo-500/30 text-indigo-400",
+                  bot_token: "border-slate-500/30 text-slate-400",
+                };
+                const timeAgo = (dateStr: string) => {
+                  const diff = Date.now() - new Date(dateStr).getTime();
+                  const mins = Math.floor(diff / 60000);
+                  if (mins < 1) return lang === "uk" ? "щойно" : lang === "ru" ? "только что" : lang === "es" ? "ahora" : lang === "de" ? "gerade" : "just now";
+                  if (mins < 60) return `${mins}${lang === "uk" ? "хв" : lang === "ru" ? "мин" : lang === "es" ? "min" : lang === "de" ? "Min" : "m"}`;
+                  const hrs = Math.floor(mins / 60);
+                  if (hrs < 24) return `${hrs}${lang === "uk" ? "год" : lang === "ru" ? "ч" : lang === "es" ? "h" : lang === "de" ? "Std" : "h"}`;
+                  const days = Math.floor(hrs / 24);
+                  return `${days}${lang === "uk" ? "д" : lang === "ru" ? "д" : lang === "es" ? "d" : lang === "de" ? "T" : "d"}`;
+                };
+                const maskTarget = (target: string) => {
+                  if (!target) return "***";
+                  if (target.length <= 6) return target[0] + "***" + target[target.length - 1];
+                  return target.slice(0, 3) + "***" + target.slice(-3);
+                };
+                return recent.map((report: any, idx: number) => (
+                  <div
+                    key={report.id || idx}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10"
+                    data-testid={`activity-report-${report.id || idx}`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-muted-foreground">@{report.username || "unknown"}</span>
+                        <Badge variant="outline" className={`text-[10px] uppercase ${typeColors[report.type] || "border-border text-muted-foreground"}`}>
+                          {report.type || "?"}
+                        </Badge>
+                        <span className="text-xs font-mono text-muted-foreground truncate">{maskTarget(report.target || "")}</span>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={`text-[10px] ${riskColors[(report.riskLevel || report.risk || "").toLowerCase()] || "border-border text-muted-foreground"}`}>
+                      {report.riskLevel || report.risk || "—"}
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {timeAgo(report.createdAt || report.date || new Date().toISOString())}
+                    </span>
+                  </div>
+                ));
+              })()}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }

@@ -31,11 +31,14 @@ import {
   CreditCard,
   Hash,
   User,
-  RotateCcw
+  RotateCcw,
+  GitCompareArrows,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -96,6 +99,38 @@ export default function History() {
   const [riskFilter, setRiskFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedReports, setSelectedReports] = useState<any[]>([]);
+
+  const toggleReportSelect = (report: any) => {
+    if (!compareMode) return;
+    setSelectedReports(prev => {
+      const exists = prev.find((r: any) => r.id === report.id);
+      if (exists) return prev.filter((r: any) => r.id !== report.id);
+      if (prev.length >= 2) return [prev[1], report];
+      return [...prev, report];
+    });
+  };
+
+  const compareLabel = lang === "uk" ? "Порівняти" : lang === "ru" ? "Сравнить" : lang === "es" ? "Comparar" : lang === "de" ? "Vergleichen" : "Compare";
+  const compareTargetLabel = lang === "uk" ? "Ціль" : lang === "ru" ? "Цель" : lang === "es" ? "Objetivo" : lang === "de" ? "Ziel" : "Target";
+  const compareTypeLabel = lang === "uk" ? "Тип перевірки" : lang === "ru" ? "Тип проверки" : lang === "es" ? "Tipo de verificación" : lang === "de" ? "Prüfungstyp" : "Check Type";
+  const compareRiskScoreLabel = lang === "uk" ? "Оцінка ризику" : lang === "ru" ? "Оценка риска" : lang === "es" ? "Puntuación de riesgo" : lang === "de" ? "Risikobewertung" : "Risk Score";
+  const compareRiskLevelLabel = lang === "uk" ? "Рівень ризику" : lang === "ru" ? "Уровень риска" : lang === "es" ? "Nivel de riesgo" : lang === "de" ? "Risikostufe" : "Risk Level";
+  const compareDateLabel = lang === "uk" ? "Дата перевірки" : lang === "ru" ? "Дата проверки" : lang === "es" ? "Fecha de verificación" : lang === "de" ? "Prüfdatum" : "Date Checked";
+  const compareCloseLabel = lang === "uk" ? "Закрити" : lang === "ru" ? "Закрыть" : lang === "es" ? "Cerrar" : lang === "de" ? "Schließen" : "Close";
+  const compareTitle = lang === "uk" ? "Порівняння звітів" : lang === "ru" ? "Сравнение отчётов" : lang === "es" ? "Comparación de informes" : lang === "de" ? "Berichtsvergleich" : "Report Comparison";
+  const compareHint = lang === "uk" ? "Оберіть 2 звіти для порівняння" : lang === "ru" ? "Выберите 2 отчёта для сравнения" : lang === "es" ? "Seleccione 2 informes para comparar" : lang === "de" ? "Wählen Sie 2 Berichte zum Vergleichen" : "Select 2 reports to compare";
+  const compareVsLabel = lang === "uk" ? "проти" : lang === "ru" ? "против" : lang === "es" ? "contra" : lang === "de" ? "gegen" : "vs";
+
+  const getRiskBarColor = (level: string) => {
+    switch (level) {
+      case "critical": return "bg-red-500";
+      case "high": return "bg-orange-500";
+      case "medium": return "bg-yellow-500";
+      default: return "bg-green-500";
+    }
+  };
 
   const { data: reports, isLoading } = useQuery<Report[]>({
     queryKey: ["/api/reports"],
@@ -258,6 +293,24 @@ export default function History() {
 
   const locale = localeMap[lang] || 'en-US';
 
+  const exportCSV = async () => {
+    try {
+      const res = await fetch("/api/reports/export/csv", { credentials: "include" });
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `darkshare-reports-${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({ title: t('common.error'), description: "Export failed", variant: "destructive" });
+    }
+  };
+
+  const csvLabel = lang === "uk" ? "Експорт CSV" : lang === "ru" ? "Экспорт CSV" : lang === "es" ? "Exportar CSV" : lang === "de" ? "CSV exportieren" : "Export CSV";
+
   const headerActions = (
     <>
       <Button 
@@ -270,13 +323,27 @@ export default function History() {
         <FileJson className="w-4 h-4" />
       </Button>
       <Button 
-        variant="ghost" 
-        size="icon"
-        className="hidden md:flex h-8 w-8 text-muted-foreground"
-        onClick={() => window.open('/api/reports/export/csv', '_blank')}
+        variant="outline" 
+        size="sm"
+        className="gap-1.5 text-[10px] sm:text-xs"
+        onClick={exportCSV}
         data-testid="button-export-csv"
       >
-        <FileSpreadsheet className="w-4 h-4" />
+        <Download className="w-3.5 h-3.5" />
+        {csvLabel}
+      </Button>
+      <Button
+        variant={compareMode ? "default" : "outline"}
+        size="sm"
+        className={`gap-1.5 text-[10px] sm:text-xs toggle-elevate ${compareMode ? "toggle-elevated" : ""}`}
+        onClick={() => {
+          setCompareMode(!compareMode);
+          setSelectedReports([]);
+        }}
+        data-testid="button-compare-toggle"
+      >
+        <GitCompareArrows className="w-3.5 h-3.5" />
+        {compareLabel}
       </Button>
       <Link href="/dashboard">
         <Button size="sm" variant="outline" className="gap-1.5 text-[10px] h-7 px-2" data-testid="button-new-check">
@@ -475,12 +542,25 @@ export default function History() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.03 }}
                     whileHover={{ y: -2 }}
+                    onClick={() => toggleReportSelect(report)}
                     className={`group relative p-2 sm:p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 
                       hover:bg-white/[0.06] hover:border-white/20 hover:shadow-lg hover:${riskConfig.glow}
-                      transition-all duration-300 cursor-pointer border-l-2 ${riskConfig.border}`}
+                      transition-all duration-300 cursor-pointer border-l-2 ${riskConfig.border}
+                      ${compareMode && selectedReports.find((r: any) => r.id === report.id) ? "ring-2 ring-primary border-primary/50 bg-primary/5" : ""}`}
                     data-testid={`report-item-${report.id}`}
                   >
                     <div className="flex items-center gap-2 sm:gap-4">
+                      {compareMode && (
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                          selectedReports.find((r: any) => r.id === report.id)
+                            ? "bg-primary border-primary"
+                            : "border-white/30"
+                        }`}>
+                          {selectedReports.find((r: any) => r.id === report.id) && (
+                            <Check className="w-3 h-3 text-primary-foreground" />
+                          )}
+                        </div>
+                      )}
                       <motion.div 
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         className={`w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg flex-shrink-0`}
@@ -625,6 +705,131 @@ export default function History() {
             {t('history.showingResults', { filtered: String(filteredReports.length), total: String(reports?.length || 0) })}
           </motion.p>
         )}
+
+        <AnimatePresence>
+          {compareMode && selectedReports.length < 2 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+            >
+              <div className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-xs sm:text-sm font-medium backdrop-blur-sm shadow-lg flex items-center gap-2">
+                <GitCompareArrows className="w-4 h-4" />
+                {compareHint} ({selectedReports.length}/2)
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {compareMode && selectedReports.length === 2 && (
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              data-testid="compare-panel"
+            >
+              <Card className="p-4 sm:p-6 bg-white/[0.03] backdrop-blur-sm border-white/10">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2">
+                    <GitCompareArrows className="w-5 h-5 text-primary" />
+                    <h3 className="text-sm sm:text-base font-display font-bold">{compareTitle}</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedReports([]);
+                      setCompareMode(false);
+                    }}
+                    className="gap-1.5 text-xs"
+                    data-testid="button-compare-close"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    {compareCloseLabel}
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 sm:gap-6">
+                  {selectedReports.map((report: any, i: number) => {
+                    const TypeIcon = typeIcons[report.type] || Globe;
+                    const gradient = typeGradients[report.type] || "from-gray-500 to-gray-400";
+                    const riskConfig = getRiskConfig(report.riskLevel);
+                    const RiskIcon = riskConfig.icon;
+
+                    return (
+                      <motion.div
+                        key={report.id}
+                        initial={{ opacity: 0, x: i === 0 ? -20 : 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="space-y-3 sm:space-y-4"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                            <TypeIcon className="w-4 h-4 text-white" />
+                          </div>
+                          {i === 0 && <span className="text-[10px] text-muted-foreground uppercase tracking-wider">A</span>}
+                          {i === 1 && <span className="text-[10px] text-muted-foreground uppercase tracking-wider">B</span>}
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">{compareTargetLabel}</p>
+                          <p className="text-xs sm:text-sm font-mono font-medium truncate">{report.target}</p>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">{compareTypeLabel}</p>
+                          <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+                            {report.type}
+                          </Badge>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">{compareRiskScoreLabel}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 sm:h-3 rounded-full bg-white/10 overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${report.riskScore}%` }}
+                                transition={{ duration: 0.8, ease: "easeOut", delay: i * 0.15 }}
+                                className={`h-full rounded-full ${getRiskBarColor(report.riskLevel)}`}
+                              />
+                            </div>
+                            <span className={`text-xs sm:text-sm font-bold ${riskConfig.color}`}>{report.riskScore}</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">{compareRiskLevelLabel}</p>
+                          <Badge className={`${riskConfig.bg} ${riskConfig.color} border-0 flex items-center gap-1 w-fit px-2 py-0.5 text-[10px] sm:text-xs`}>
+                            <RiskIcon className="w-3 h-3" />
+                            {riskConfig.label}
+                          </Badge>
+                        </div>
+
+                        <div>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">{compareDateLabel}</p>
+                          <p className="text-xs sm:text-sm">{new Date(report.createdAt).toLocaleDateString(localeMap[lang] || 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-center">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="font-mono truncate max-w-[100px] sm:max-w-none">{selectedReports[0]?.target}</span>
+                    <Badge variant="outline" className="text-[10px]">{compareVsLabel}</Badge>
+                    <span className="font-mono truncate max-w-[100px] sm:max-w-none">{selectedReports[1]?.target}</span>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
       </div>
     </PageLayout>

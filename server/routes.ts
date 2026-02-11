@@ -382,6 +382,9 @@ export async function registerRoutes(
     const finishLogin = () => {
       req.session.userId = finalUser.id;
       req.session.tgId = tgId;
+      (req.session as any).userAgent = req.headers["user-agent"] || "Unknown";
+      (req.session as any).ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
+      (req.session as any).loginTime = new Date().toISOString();
       
       req.session.save((err) => {
         if (err) {
@@ -472,7 +475,7 @@ export async function registerRoutes(
 
       if (pool) {
         const result = await pool.query(
-          `SELECT sid, sess, expire FROM sessions WHERE expire > NOW()`
+          `SELECT sid, sess, expire FROM "session" WHERE expire > NOW()`
         );
         for (const row of result.rows) {
           try {
@@ -1025,7 +1028,7 @@ export async function registerRoutes(
     }
     try {
       if (pool) {
-        await pool.query(`DELETE FROM sessions WHERE sid = $1`, [sessionId]);
+        await pool.query(`DELETE FROM "session" WHERE sid = $1`, [sessionId]);
       }
       res.json({ message: "Session terminated" });
     } catch (error) {
@@ -1598,7 +1601,130 @@ export async function registerRoutes(
     }
   });
 
+  // ============ CSV Export & Breach Check Routes ============
+
+  app.get("/api/reports/export/csv", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const reports = await storage.getReportsByUserId(authReq.user!.id);
+      const csvHeader = "ID,Type,Target,Risk Level,Risk Score,Date\n";
+      const csvRows = reports.map(r => {
+        const data = r.dataJson as any || {};
+        const target = (data.target || "").replace(/,/g, ";").replace(/"/g, '""');
+        const date = r.generatedAt ? new Date(r.generatedAt).toISOString() : "";
+        return `${r.id},"${r.objectType}","${target}","${data.riskLevel || "unknown"}",${data.riskScore || 0},"${date}"`;
+      }).join("\n");
+      
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", `attachment; filename="darkshare-reports-${Date.now()}.csv"`);
+      res.send(csvHeader + csvRows);
+    } catch (error: any) {
+      console.error("CSV export error:", error.message);
+      res.status(500).json({ error: "Failed to export reports" });
+    }
+  });
+
+  app.post("/api/breach-check", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ error: "Email required" });
+      
+      const breaches: any[] = [];
+      
+      try {
+        const emailHash = email.toLowerCase().trim();
+        const response = await fetch(`https://api.xposedornot.com/v1/check-email/${encodeURIComponent(emailHash)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.breaches_details) {
+            for (const breach of data.breaches_details) {
+              breaches.push({
+                name: breach.breach || breach.domain || "Unknown",
+                date: breach.xposed_date || breach.searchable || "Unknown",
+                dataTypes: breach.xposed_data || "Email",
+                domain: breach.domain || "Unknown",
+              });
+            }
+          }
+        }
+      } catch (e) {
+      }
+      
+      res.json({
+        email,
+        breachCount: breaches.length,
+        breaches: breaches.slice(0, 20),
+        checkedAt: new Date().toISOString(),
+        status: breaches.length > 0 ? "exposed" : "clean",
+      });
+    } catch (error: any) {
+      console.error("Breach check error:", error.message);
+      res.status(500).json({ error: "Failed to check breaches" });
+    }
+  });
+
   // ============ Team Management Routes ============
+
+  app.get("/api/teams/:id/stats", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const teamId = parseInt(req.params.id);
+      const team = await storage.getTeamById(teamId);
+      if (!team) return res.status(404).json({ error: "Team not found" });
+      const userTeams = await storage.getTeamsByUser(authReq.user!.id);
+      if (!userTeams.find(t => t.id === teamId)) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const members = await storage.getTeamMembers(teamId);
+      const memberIds = [team.ownerId, ...members.map(m => m.userId)];
+      
+      let totalChecks = 0;
+      let recentReports: any[] = [];
+      const checksByType: Record<string, number> = {};
+      const memberStats: any[] = [];
+      
+      for (const memberId of memberIds) {
+        const reports = await storage.getReportsByUserId(memberId);
+        totalChecks += reports.length;
+        for (const r of reports) {
+          const data = r.dataJson as any || {};
+          const type = r.objectType || "unknown";
+          checksByType[type] = (checksByType[type] || 0) + 1;
+          recentReports.push({
+            id: r.id,
+            type: r.objectType,
+            target: data.target ? data.target.substring(0, 3) + "***" + data.target.substring(data.target.length - 3) : "***",
+            riskLevel: data.riskLevel,
+            riskScore: data.riskScore,
+            createdAt: r.generatedAt,
+            userId: memberId,
+          });
+        }
+        const memberUser = await storage.getUserById(memberId);
+        memberStats.push({
+          userId: memberId,
+          username: memberUser?.username || "unknown",
+          checks: reports.length,
+          tier: memberUser?.tier || "FREE",
+        });
+      }
+      
+      recentReports.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      recentReports = recentReports.slice(0, 20);
+      
+      res.json({
+        totalChecks,
+        totalMembers: memberIds.length,
+        checksByType,
+        memberStats,
+        recentReports,
+      });
+    } catch (error: any) {
+      console.error("GET /api/teams/:id/stats error:", error.message);
+      res.status(500).json({ error: "Failed to get team stats" });
+    }
+  });
 
   app.get("/api/teams", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
@@ -1653,31 +1779,6 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("POST /api/teams error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to create team" });
-    }
-  });
-
-  app.post("/api/teams/join", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    try {
-      const { inviteCode } = req.body;
-      if (!inviteCode) return res.status(400).json({ error: "Invite code required" });
-      const team = await storage.getTeamByInviteCode(inviteCode);
-      if (!team) return res.status(404).json({ error: "Invalid invite code" });
-      if (team.ownerId === authReq.user!.id) {
-        return res.status(400).json({ error: "You are the owner of this team" });
-      }
-      const members = await storage.getTeamMembers(team.id);
-      if (members.find(m => m.userId === authReq.user!.id)) {
-        return res.status(400).json({ error: "Already a member" });
-      }
-      if (members.length >= (team.maxMembers || 10)) {
-        return res.status(400).json({ error: "Team is full" });
-      }
-      const member = await storage.addTeamMember({ teamId: team.id, userId: authReq.user!.id, role: "member" });
-      res.json({ team, member });
-    } catch (error: any) {
-      console.error("POST /api/teams/join error:", error.message, error.stack);
-      res.status(500).json({ error: "Failed to join team" });
     }
   });
 

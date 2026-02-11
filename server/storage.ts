@@ -86,6 +86,9 @@ export interface IStorage {
   getLatestReportsAll(limit: number): Promise<Report[]>;
   addRequestsToUser(userId: number, amount: number): Promise<User>;
 
+  // Reports by user (alias)
+  getReportsByUserId(userId: number): Promise<Report[]>;
+
   // Teams
   createTeam(team: InsertTeam): Promise<Team>;
   getTeamById(id: number): Promise<Team | undefined>;
@@ -471,6 +474,10 @@ export class DatabaseStorage implements IStorage {
     return result.sort((a, b) => b.checksCount - a.checksCount).slice(0, limit);
   }
 
+  async getReportsByUserId(userId: number): Promise<Report[]> {
+    return this.getReports(userId);
+  }
+
   async createTeam(team: InsertTeam): Promise<Team> {
     if (!db) throw new Error("Database not available");
     const inviteCode = 'DS-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -625,6 +632,10 @@ export class MemStorage implements IStorage {
 
   async getReports(userId: number): Promise<Report[]> {
     return Array.from(this.reports.values()).filter(r => r.userId === userId);
+  }
+
+  async getReportsByUserId(userId: number): Promise<Report[]> {
+    return this.getReports(userId);
   }
 
   async getReportById(id: number): Promise<Report | undefined> {
