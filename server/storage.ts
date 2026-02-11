@@ -288,10 +288,18 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
+      // Deduplicate by user ID
+      const uniqueReferredUsers = referredUsers.filter((user, index, self) => 
+        index === self.findIndex(u => u.id === user.id)
+      );
+      
+      // Recalculate pending count from unique users
+      const uniquePendingCount = uniqueReferredUsers.filter(u => !u.paid).length;
+      
       return {
-        count: referralRecords.length,
-        pendingCount,
-        referredUsers,
+        count: uniqueReferredUsers.length,
+        pendingCount: uniquePendingCount,
+        referredUsers: uniqueReferredUsers,
       };
     } catch (err) {
       console.warn("Error fetching referral stats:", (err as Error).message);

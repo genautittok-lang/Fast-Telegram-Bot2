@@ -445,6 +445,15 @@ export interface TranslationSchema {
     ref: string;
     sessionDeleted: string;
     sessionDeleteError: string;
+    settingsSaved: string;
+    settingsSaveError: string;
+    apiKeyRegenerated: string;
+    apiKeyRegenerateError: string;
+    active: string;
+    connected: string;
+    deleteAllSessions: string;
+    allSessionsDeleted: string;
+    allSessionsDeleteError: string;
   };
   landing: {
     hero: {
@@ -1139,6 +1148,15 @@ export const translations: Record<Language, TranslationSchema> = {
       ref: "Ref",
       sessionDeleted: "Session terminated",
       sessionDeleteError: "Failed to terminate session",
+      settingsSaved: "Settings saved",
+      settingsSaveError: "Error saving settings",
+      apiKeyRegenerated: "API key regenerated",
+      apiKeyRegenerateError: "Error regenerating key",
+      active: "Active",
+      connected: "Connected",
+      deleteAllSessions: "Delete all other sessions",
+      allSessionsDeleted: "All other sessions deleted",
+      allSessionsDeleteError: "Error deleting sessions",
     },
     landing: {
       hero: {
@@ -1831,6 +1849,15 @@ export const translations: Record<Language, TranslationSchema> = {
       ref: "Реф",
       sessionDeleted: "Сесію завершено",
       sessionDeleteError: "Не вдалося завершити сесію",
+      settingsSaved: "Налаштування збережено",
+      settingsSaveError: "Помилка збереження налаштувань",
+      apiKeyRegenerated: "API ключ перегенеровано",
+      apiKeyRegenerateError: "Помилка перегенерації ключа",
+      active: "Активна",
+      connected: "Підключено",
+      deleteAllSessions: "Видалити всі інші сесії",
+      allSessionsDeleted: "Всі інші сесії видалено",
+      allSessionsDeleteError: "Помилка видалення сесій",
     },
     landing: {
       hero: {
@@ -2523,6 +2550,15 @@ export const translations: Record<Language, TranslationSchema> = {
       ref: "Реф",
       sessionDeleted: "Сессия завершена",
       sessionDeleteError: "Не удалось завершить сессию",
+      settingsSaved: "Настройки сохранены",
+      settingsSaveError: "Ошибка сохранения настроек",
+      apiKeyRegenerated: "API ключ перегенерирован",
+      apiKeyRegenerateError: "Ошибка перегенерации ключа",
+      active: "Активна",
+      connected: "Подключено",
+      deleteAllSessions: "Удалить все другие сессии",
+      allSessionsDeleted: "Все другие сессии удалены",
+      allSessionsDeleteError: "Ошибка удаления сессий",
     },
     landing: {
       hero: {
@@ -3215,6 +3251,15 @@ export const translations: Record<Language, TranslationSchema> = {
       ref: "Ref",
       sessionDeleted: "Sesión terminada",
       sessionDeleteError: "Error al terminar sesión",
+      settingsSaved: "Configuración guardada",
+      settingsSaveError: "Error al guardar configuración",
+      apiKeyRegenerated: "Clave API regenerada",
+      apiKeyRegenerateError: "Error al regenerar clave",
+      active: "Activa",
+      connected: "Conectado",
+      deleteAllSessions: "Eliminar todas las demás sesiones",
+      allSessionsDeleted: "Todas las demás sesiones eliminadas",
+      allSessionsDeleteError: "Error al eliminar sesiones",
     },
     landing: {
       hero: {
@@ -3907,6 +3952,15 @@ export const translations: Record<Language, TranslationSchema> = {
       ref: "Ref",
       sessionDeleted: "Sitzung beendet",
       sessionDeleteError: "Fehler beim Beenden der Sitzung",
+      settingsSaved: "Einstellungen gespeichert",
+      settingsSaveError: "Fehler beim Speichern der Einstellungen",
+      apiKeyRegenerated: "API-Schlüssel regeneriert",
+      apiKeyRegenerateError: "Fehler beim Regenerieren des Schlüssels",
+      active: "Aktiv",
+      connected: "Verbunden",
+      deleteAllSessions: "Alle anderen Sitzungen löschen",
+      allSessionsDeleted: "Alle anderen Sitzungen gelöscht",
+      allSessionsDeleteError: "Fehler beim Löschen der Sitzungen",
     },
     landing: {
       hero: {

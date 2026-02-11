@@ -70,7 +70,7 @@ function TeamsContent() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: t('common.success'), description: "Team created" });
+      toast({ title: t('common.success'), description: lang === "uk" ? "Команду створено" : lang === "ru" ? "Команда создана" : lang === "es" ? "Equipo creado" : lang === "de" ? "Team erstellt" : "Team created" });
       setNewTeamName("");
       setShowCreateForm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
@@ -86,7 +86,7 @@ function TeamsContent() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: t('common.success'), description: "Member added" });
+      toast({ title: t('common.success'), description: lang === "uk" ? "Учасника додано" : lang === "ru" ? "Участник добавлен" : lang === "es" ? "Miembro añadido" : lang === "de" ? "Mitglied hinzugefügt" : "Member added" });
       setAddUsername("");
       queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
     },
@@ -101,7 +101,7 @@ function TeamsContent() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: t('common.success'), description: "Member removed" });
+      toast({ title: t('common.success'), description: lang === "uk" ? "Учасника видалено" : lang === "ru" ? "Участник удалён" : lang === "es" ? "Miembro eliminado" : lang === "de" ? "Mitglied entfernt" : "Member removed" });
       queryClient.invalidateQueries({ queryKey: ["/api/teams", selectedTeamId, "members"] });
     },
   });
@@ -112,7 +112,7 @@ function TeamsContent() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: t('common.success'), description: "Team deleted" });
+      toast({ title: t('common.success'), description: lang === "uk" ? "Команду видалено" : lang === "ru" ? "Команда удалена" : lang === "es" ? "Equipo eliminado" : lang === "de" ? "Team gelöscht" : "Team deleted" });
       setSelectedTeamId(null);
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
     },
@@ -124,7 +124,7 @@ function TeamsContent() {
       return res.json();
     },
     onSuccess: () => {
-      toast({ title: t('common.success'), description: "Joined team!" });
+      toast({ title: t('common.success'), description: lang === "uk" ? "Приєднано до команди!" : lang === "ru" ? "Вы вступили в команду!" : lang === "es" ? "Te uniste al equipo!" : lang === "de" ? "Team beigetreten!" : "Joined team!" });
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
     },
     onError: (err: Error) => {
@@ -157,7 +157,7 @@ function TeamsContent() {
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold truncate" data-testid="text-team-name">{teamDetail.team.name}</h1>
               <p className="text-xs text-muted-foreground">
-                {teamDetail.members.length + 1}/{teamDetail.team.maxMembers || 10} members
+                {teamDetail.members.length + 1}/{teamDetail.team.maxMembers || 10} {lang === "uk" ? "учасників" : lang === "ru" ? "участников" : lang === "es" ? "miembros" : lang === "de" ? "Mitglieder" : "members"}
               </p>
             </div>
             {isOwner && (
@@ -177,7 +177,7 @@ function TeamsContent() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 flex-wrap">
               <Crown className="w-4 h-4 text-amber-400" />
-              Owner
+              {lang === "uk" ? "Власник" : lang === "ru" ? "Владелец" : lang === "es" ? "Propietario" : lang === "de" ? "Besitzer" : "Owner"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -197,7 +197,7 @@ function TeamsContent() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 flex-wrap">
               <QrCode className="w-4 h-4 text-primary" />
-              Invite
+              {lang === "uk" ? "Запросити" : lang === "ru" ? "Пригласить" : lang === "es" ? "Invitar" : lang === "de" ? "Einladen" : "Invite"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -261,12 +261,12 @@ function TeamsContent() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 flex-wrap">
               <Users className="w-4 h-4 text-violet-400" />
-              Members ({teamDetail.members.length})
+              {lang === "uk" ? "Учасники" : lang === "ru" ? "Участники" : lang === "es" ? "Miembros" : lang === "de" ? "Mitglieder" : "Members"} ({teamDetail.members.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {teamDetail.members.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">No members yet</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{lang === "uk" ? "Ще немає учасників" : lang === "ru" ? "Пока нет участников" : lang === "es" ? "Aún no hay miembros" : lang === "de" ? "Noch keine Mitglieder" : "No members yet"}</p>
             )}
             {teamDetail.members.map((member: any) => (
               <div key={member.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
@@ -336,7 +336,7 @@ function TeamsContent() {
           <Users className="w-7 h-7 text-violet-400" />
         </div>
         <h1 className="text-2xl font-bold" data-testid="text-teams-title">{t('nav.teams')}</h1>
-        <p className="text-muted-foreground text-sm">Manage your teams and collaborate</p>
+        <p className="text-muted-foreground text-sm">{lang === "uk" ? "Керуйте своїми командами та співпрацюйте" : lang === "ru" ? "Управляйте командами и сотрудничайте" : lang === "es" ? "Gestiona tus equipos y colabora" : lang === "de" ? "Verwalte deine Teams und arbeite zusammen" : "Manage your teams and collaborate"}</p>
       </div>
 
       {!canCreateTeam && (
@@ -345,8 +345,8 @@ function TeamsContent() {
             <div className="flex items-center gap-3 flex-wrap">
               <Shield className="w-5 h-5 text-violet-400 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Upgrade to GROUPS</p>
-                <p className="text-xs text-muted-foreground">Team features require GROUPS ($65/mo) or ENTERPRISE tier</p>
+                <p className="text-sm font-medium">{lang === "uk" ? "Оновити до GROUPS" : lang === "ru" ? "Обновить до GROUPS" : lang === "es" ? "Actualizar a GROUPS" : lang === "de" ? "Auf GROUPS upgraden" : "Upgrade to GROUPS"}</p>
+                <p className="text-xs text-muted-foreground">{lang === "uk" ? "Командні функції потребують GROUPS ($55/міс) або ENTERPRISE" : lang === "ru" ? "Командные функции требуют GROUPS ($55/мес) или ENTERPRISE" : lang === "es" ? "Las funciones de equipo requieren GROUPS ($55/mes) o ENTERPRISE" : lang === "de" ? "Teamfunktionen erfordern GROUPS ($55/Mo) oder ENTERPRISE" : "Team features require GROUPS ($55/mo) or ENTERPRISE tier"}</p>
               </div>
               <Button size="sm" onClick={() => setLocation("/pricing")} data-testid="button-upgrade-groups">
                 {t('pricing.upgrade')}
@@ -372,7 +372,7 @@ function TeamsContent() {
                     <Input
                       value={newTeamName}
                       onChange={(e) => setNewTeamName(e.target.value)}
-                      placeholder="Team name..."
+                      placeholder={lang === "uk" ? "Назва команди..." : lang === "ru" ? "Название команды..." : lang === "es" ? "Nombre del equipo..." : lang === "de" ? "Teamname..." : "Team name..."}
                       className="bg-white/5 border-white/10"
                       data-testid="input-team-name"
                     />
@@ -384,7 +384,7 @@ function TeamsContent() {
                         data-testid="button-create-team"
                       >
                         {createTeamMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                        Create Team
+                        {lang === "uk" ? "Створити команду" : lang === "ru" ? "Создать команду" : lang === "es" ? "Crear equipo" : lang === "de" ? "Team erstellen" : "Create Team"}
                       </Button>
                       <Button variant="ghost" onClick={() => { setShowCreateForm(false); setNewTeamName(""); }} data-testid="button-cancel-create">
                         {t('common.cancel')}
@@ -401,7 +401,7 @@ function TeamsContent() {
               data-testid="button-show-create-team"
             >
               <Plus className="w-4 h-4" />
-              Create New Team
+              {lang === "uk" ? "Створити нову команду" : lang === "ru" ? "Создать новую команду" : lang === "es" ? "Crear nuevo equipo" : lang === "de" ? "Neues Team erstellen" : "Create New Team"}
             </Button>
           )}
         </AnimatePresence>
@@ -442,7 +442,7 @@ function TeamsContent() {
         {teams.length === 0 && !showCreateForm && (
           <div className="text-center py-10">
             <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No teams yet</p>
+            <p className="text-sm text-muted-foreground">{lang === "uk" ? "Ще немає команд" : lang === "ru" ? "Пока нет команд" : lang === "es" ? "Aún no hay equipos" : lang === "de" ? "Noch keine Teams" : "No teams yet"}</p>
           </div>
         )}
 
@@ -457,19 +457,25 @@ function TeamsContent() {
               onClick={() => setSelectedTeamId(team.id)}
               data-testid={`card-team-${team.id}`}
             >
-              <CardContent className="py-4">
+              <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center border border-violet-500/30 flex-shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/10 flex items-center justify-center border border-violet-500/30 flex-shrink-0">
                     <Users className="w-5 h-5 text-violet-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate" data-testid={`text-team-name-${team.id}`}>{team.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {team.role === "owner" ? "Owner" : "Member"}
+                      {team.role === "owner" ? (lang === "uk" ? "Власник" : lang === "ru" ? "Владелец" : lang === "es" ? "Propietario" : lang === "de" ? "Besitzer" : "Owner") : (lang === "uk" ? "Учасник" : lang === "ru" ? "Участник" : lang === "es" ? "Miembro" : lang === "de" ? "Mitglied" : "Member")}
                     </p>
                   </div>
+                  {team.memberCount != null && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      <Users className="w-3 h-3 mr-1" />
+                      {team.memberCount}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className={`text-[10px] ${team.role === "owner" ? "border-amber-500/30 text-amber-400" : "border-violet-500/30 text-violet-400"}`}>
-                    {team.role === "owner" ? "Owner" : "Member"}
+                    {team.role === "owner" ? (lang === "uk" ? "Власник" : lang === "ru" ? "Владелец" : lang === "es" ? "Propietario" : lang === "de" ? "Besitzer" : "Owner") : (lang === "uk" ? "Учасник" : lang === "ru" ? "Участник" : lang === "es" ? "Miembro" : lang === "de" ? "Mitglied" : "Member")}
                   </Badge>
                   <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 </div>

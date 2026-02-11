@@ -127,7 +127,7 @@ function StatCardSkeleton() {
 
 export default function Account() {
   const { user, isAuthenticated, checkAuth } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const { toast } = useToast();
 
   const [language, setLanguage] = useState(user?.lang || "uk");
@@ -154,9 +154,9 @@ export default function Account() {
     try {
       await apiRequest("PATCH", "/api/user/settings", updates);
       await checkAuth();
-      toast({ title: t('account.settingsSaved') || "Settings saved" });
+      toast({ title: t('account.settingsSaved') });
     } catch (error) {
-      toast({ title: "Error saving settings", variant: "destructive" });
+      toast({ title: t('account.settingsSaveError'), variant: "destructive" });
     }
   }, [checkAuth, toast, t]);
 
@@ -168,10 +168,10 @@ export default function Account() {
   const deleteSession = useCallback(async (sessionId: string) => {
     try {
       await apiRequest("DELETE", `/api/user/sessions/${sessionId}`);
-      toast({ title: t('account.sessionDeleted') || "Session terminated" });
+      toast({ title: t('account.sessionDeleted') });
       await checkAuth();
     } catch {
-      toast({ title: t('account.sessionDeleteError') || "Failed to terminate session", variant: "destructive" });
+      toast({ title: t('account.sessionDeleteError'), variant: "destructive" });
     }
   }, [toast, t, checkAuth]);
 
@@ -211,6 +211,19 @@ export default function Account() {
     queryKey: ['/api/user/sessions'],
     enabled: isAuthenticated,
   });
+
+  const deleteAllOtherSessions = useCallback(async () => {
+    try {
+      const otherSessions = sessionsData?.filter(s => !s.current) || [];
+      for (const session of otherSessions) {
+        await apiRequest("DELETE", `/api/user/sessions/${session.id}`);
+      }
+      toast({ title: t('account.allSessionsDeleted') });
+      await checkAuth();
+    } catch {
+      toast({ title: t('account.allSessionsDeleteError'), variant: "destructive" });
+    }
+  }, [sessionsData, toast, t, checkAuth]);
 
   const stats = useMemo(() => {
     const totalChecks = reports.length;
@@ -299,7 +312,7 @@ export default function Account() {
                 <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Smartphone className="w-3 h-3 lg:w-4 lg:h-4 text-blue-400" />
-                    <span data-testid="text-telegram-id" className="truncate">Telegram ID: {user?.tgId || "N/A"}</span>
+                    <span data-testid="text-telegram-id" className="truncate">{t('account.telegramId')}: {user?.tgId || "N/A"}</span>
                   </div>
                   {user?.refCode && (
                     <div className="flex items-center gap-2">
@@ -521,6 +534,8 @@ export default function Account() {
                     <SelectItem value="uk">Українська</SelectItem>
                     <SelectItem value="en">English</SelectItem>
                     <SelectItem value="ru">Русский</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="de">Deutsch</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -632,9 +647,9 @@ export default function Account() {
                           try {
                             await apiRequest("POST", "/api/user/api-key", { regenerate: true });
                             await refetchApiKey();
-                            toast({ title: t('account.regenerateKey') || "API key regenerated" });
+                            toast({ title: t('account.apiKeyRegenerated') });
                           } catch {
-                            toast({ title: "Error regenerating key", variant: "destructive" });
+                            toast({ title: t('account.apiKeyRegenerateError'), variant: "destructive" });
                           }
                         }}
                       >
@@ -731,7 +746,7 @@ export default function Account() {
                 </div>
                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs lg:text-sm px-2 py-0.5 flex-shrink-0">
                   <Check className="w-2.5 h-2.5 lg:w-3 lg:h-3 mr-0.5" />
-                  OK
+                  {t('account.connected')}
                 </Badge>
               </div>
               
@@ -740,7 +755,7 @@ export default function Account() {
                   <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="font-medium text-white text-sm lg:text-base">{t('account.lastLogin')}</p>
-                    <p className="text-xs lg:text-sm text-muted-foreground truncate" data-testid="text-last-login">{user?.lastLogin ? new Date(user.lastLogin).toLocaleString('uk-UA') : new Date().toLocaleString('uk-UA')}</p>
+                    <p className="text-xs lg:text-sm text-muted-foreground truncate" data-testid="text-last-login">{user?.lastLogin ? new Date(user.lastLogin).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US") : new Date().toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US")}</p>
                   </div>
                 </div>
               </div>
@@ -764,7 +779,7 @@ export default function Account() {
                         <div className="min-w-0">
                           <p className="text-xs lg:text-sm text-white truncate">{session.device}</p>
                           <p className="text-[10px] lg:text-xs text-muted-foreground truncate">
-                            IP: {session.ip} {session.current ? `- ${t('account.currentSession') || "Current session"}` : ""}
+                            IP: {session.ip} {session.current ? `- ${t('account.currentSession')}` : ""}
                           </p>
                         </div>
                       </div>
@@ -772,7 +787,7 @@ export default function Account() {
                         {session.current ? (
                           <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] lg:text-xs px-1.5 py-0.5">
                             <Activity className="w-2.5 h-2.5 mr-0.5" />
-                            {t('account.active') || "Active"}
+                            {t('account.active')}
                           </Badge>
                         ) : (
                           <Button
@@ -787,6 +802,17 @@ export default function Account() {
                       </div>
                     </div>
                   ))}
+                  {sessionsData && sessionsData.filter(s => !s.current).length > 0 && (
+                    <Button
+                      variant="ghost"
+                      className="w-full mt-2 text-red-400 hover:text-red-300"
+                      onClick={deleteAllOtherSessions}
+                      data-testid="button-delete-all-sessions"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                      {t('account.deleteAllSessions')}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>

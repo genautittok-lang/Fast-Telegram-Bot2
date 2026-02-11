@@ -85,12 +85,12 @@ export default function Referral() {
   const { toast, dismiss } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   const referralTiers = [
     {
       level: 1,
-      name: "Starter",
+      name: lang === "uk" ? "Початківець" : lang === "ru" ? "Начинающий" : lang === "es" ? "Principiante" : lang === "de" ? "Starter" : "Starter",
       referrals: "1-5",
       bonus: t('referral.starterBonus'),
       icon: Star,
@@ -100,7 +100,7 @@ export default function Referral() {
     },
     {
       level: 2,
-      name: "Active",
+      name: lang === "uk" ? "Активний" : lang === "ru" ? "Активный" : lang === "es" ? "Activo" : lang === "de" ? "Aktiv" : "Active",
       referrals: "6-15",
       bonus: t('referral.activeBonus'),
       icon: TrendingUp,
@@ -110,7 +110,7 @@ export default function Referral() {
     },
     {
       level: 3,
-      name: "Ambassador",
+      name: lang === "uk" ? "Амбасадор" : lang === "ru" ? "Амбассадор" : lang === "es" ? "Embajador" : lang === "de" ? "Botschafter" : "Ambassador",
       referrals: "16-30",
       bonus: t('referral.ambassadorBonus'),
       icon: Award,
@@ -120,7 +120,7 @@ export default function Referral() {
     },
     {
       level: 4,
-      name: "Elite Partner",
+      name: lang === "uk" ? "Елітний Партнер" : lang === "ru" ? "Элитный Партнёр" : lang === "es" ? "Socio Élite" : lang === "de" ? "Elite-Partner" : "Elite Partner",
       referrals: "31+",
       bonus: t('referral.eliteBonus'),
       icon: Crown,
@@ -134,6 +134,11 @@ export default function Referral() {
     queryKey: ["/api/referrals"],
     enabled: isAuthenticated,
   });
+
+  // Deduplicate referred users by ID as a safety measure
+  const uniqueUsers = referralStats?.referredUsers?.filter((user, index, self) => 
+    index === self.findIndex(u => u.id === user.id)
+  ) || [];
 
   useEffect(() => {
     dismiss();
@@ -401,7 +406,7 @@ export default function Referral() {
                       data-testid="button-share-telegram"
                     >
                       <SiTelegram className="w-4 h-4 mr-1" />
-                      Telegram
+                      {lang === "uk" ? "Telegram" : lang === "ru" ? "Telegram" : lang === "es" ? "Telegram" : lang === "de" ? "Telegram" : "Telegram"}
                     </Button>
                   </div>
                 </div>
@@ -535,7 +540,7 @@ export default function Referral() {
                   <h2 className="font-semibold text-lg">{t('referral.invitedUsers')}</h2>
                 </div>
                 <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">
-                  {referralStats?.referredUsers?.length || 0}
+                  {uniqueUsers?.length || 0}
                 </Badge>
               </div>
               
@@ -543,9 +548,9 @@ export default function Referral() {
                 <div className="flex items-center justify-center py-8">
                   <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
-              ) : referralStats?.referredUsers && referralStats.referredUsers.length > 0 ? (
+              ) : uniqueUsers && uniqueUsers.length > 0 ? (
                 <div className="space-y-2">
-                  {referralStats.referredUsers.map((refUser, idx) => (
+                  {uniqueUsers.map((refUser, idx) => (
                     <motion.div
                       key={refUser.id}
                       className="flex items-center justify-between p-3 rounded-xl bg-black/30 border border-white/5 hover:border-white/10 transition-colors"
