@@ -325,7 +325,7 @@ export default function History() {
       <Button 
         variant="outline" 
         size="sm"
-        className="gap-1.5 text-[10px] sm:text-xs"
+        className="hidden sm:flex gap-1.5 text-[10px] sm:text-xs"
         onClick={exportCSV}
         data-testid="button-export-csv"
       >
@@ -335,7 +335,7 @@ export default function History() {
       <Button
         variant={compareMode ? "default" : "outline"}
         size="sm"
-        className={`gap-1.5 text-[10px] sm:text-xs toggle-elevate ${compareMode ? "toggle-elevated" : ""}`}
+        className={`hidden sm:flex gap-1.5 text-[10px] sm:text-xs toggle-elevate ${compareMode ? "toggle-elevated" : ""}`}
         onClick={() => {
           setCompareMode(!compareMode);
           setSelectedReports([]);
@@ -422,7 +422,7 @@ export default function History() {
             className="flex flex-wrap items-center gap-2"
             data-testid="risk-distribution-summary"
           >
-            <span className="text-xs text-muted-foreground mr-1">{t('history.riskDistribution') || "Risk Distribution"}:</span>
+            <span className="text-xs text-muted-foreground mr-1">{lang === "uk" ? "Розподіл ризиків" : lang === "ru" ? "Распределение рисков" : lang === "es" ? "Distribución de riesgos" : lang === "de" ? "Risikoverteilung" : "Risk Distribution"}:</span>
             {riskDistribution.critical > 0 && (
               <Badge className="bg-red-500/20 text-red-400 border-red-500/30 no-default-hover-elevate no-default-active-elevate" data-testid="badge-risk-critical">
                 <AlertCircle className="w-3 h-3 mr-1" />

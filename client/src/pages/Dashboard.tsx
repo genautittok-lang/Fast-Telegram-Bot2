@@ -606,13 +606,13 @@ Sources: ${result.sources.join(', ')}`;
               </motion.div>
             </div>
 
-            {/* Quick Actions Widget */}
+            {/* Quick Actions Widget - hidden on mobile */}
             {recentReports.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
+                className="hidden md:block p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
               >
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <div className="flex items-center gap-2">

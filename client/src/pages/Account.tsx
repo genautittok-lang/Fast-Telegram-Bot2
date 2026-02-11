@@ -41,7 +41,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PageLayout } from "@/components/PageLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -169,11 +169,11 @@ export default function Account() {
     try {
       await apiRequest("DELETE", `/api/user/sessions/${sessionId}`);
       toast({ title: t('account.sessionDeleted') });
-      await checkAuth();
+      queryClient.invalidateQueries({ queryKey: ['/api/user/sessions'] });
     } catch {
       toast({ title: t('account.sessionDeleteError'), variant: "destructive" });
     }
-  }, [toast, t, checkAuth]);
+  }, [toast, t]);
 
   const handleNotificationChange = useCallback((field: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [field]: value }));
@@ -219,11 +219,11 @@ export default function Account() {
         await apiRequest("DELETE", `/api/user/sessions/${session.id}`);
       }
       toast({ title: t('account.allSessionsDeleted') });
-      await checkAuth();
+      queryClient.invalidateQueries({ queryKey: ['/api/user/sessions'] });
     } catch {
       toast({ title: t('account.allSessionsDeleteError'), variant: "destructive" });
     }
-  }, [sessionsData, toast, t, checkAuth]);
+  }, [sessionsData, toast, t]);
 
   const stats = useMemo(() => {
     const totalChecks = reports.length;
