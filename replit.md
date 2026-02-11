@@ -5,6 +5,14 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Team stats dashboard: stat cards, check type distribution with colored bars, member leaderboard, recent team activity feed
+- CSV export functionality for report history with blob download
+- Side-by-side report comparison feature with animated panels, risk score bars, and selection mode
+- Dark Web breach monitoring using xposedornot.com API for email leak detection
+- Fixed critical sessions table name mismatch (FROM sessions → FROM "session")
+- Added session metadata storage (userAgent, IP, loginTime) during Telegram auth
+- Added 3 new backend endpoints: GET /api/teams/:id/stats, GET /api/reports/export/csv, POST /api/breach-check
+- Added getReportsByUserId storage method, removed duplicate /api/teams/join route
 - Multi-step payment flow: tier selection → payment method (Crypto/Stripe/MonoPay) → payment details with timer
 - MonoPay (Monobank) payment integration: invoice creation API + webhook for auto-confirmation (UAH pricing)
 - FREE tier daily limits enforced: 5 checks/day FREE, 100 PRO, unlimited ENTERPRISE/GROUPS (web + bot + bulk)
