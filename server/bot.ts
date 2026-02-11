@@ -67,7 +67,7 @@ export async function setupBot(storage: IStorage) {
     return ADMIN_IDS.includes(tgId);
   }
 
-  function getAdminKeyboard(lang: string, exitAction: string = "back_to_dashboard") {
+  function getAdminKeyboard(lang: Language, exitAction: string = "back_to_dashboard") {
     return Markup.inlineKeyboard([
       [
         Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
@@ -1104,6 +1104,43 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
 
     if (!state || !state.module) {
       return ctx.reply(t(lang, "common.useMenu"));
+    }
+
+    // Check daily limits per tier
+    if (user) {
+      const userTier = (user.tier || "FREE").toUpperCase();
+      
+      const DAILY_LIMITS: Record<string, number> = {
+        FREE: 5,
+        PRO: 100,
+        ENTERPRISE: Infinity,
+        GROUPS: Infinity,
+      };
+      
+      const dailyLimit = DAILY_LIMITS[userTier] || 5;
+      
+      if (dailyLimit !== Infinity) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const userReports = await storage.getReports(user.id);
+        const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
+        
+        if (todayChecks >= dailyLimit) {
+          const errorMsg = lang === "uk" 
+            ? `❌ Денний ліміт досягнутий (${todayChecks}/${dailyLimit}). Оновіться для більше перевірок.`
+            : lang === "ru"
+            ? `❌ Дневной лимит достигнут (${todayChecks}/${dailyLimit}). Обновитесь для большего количества проверок.`
+            : `❌ Daily check limit reached (${todayChecks}/${dailyLimit}). Upgrade your plan for more checks.`;
+          
+          return ctx.reply(errorMsg, {
+            parse_mode: "Markdown",
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")],
+              [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+            ])
+          });
+        }
+      }
     }
 
     const inputValue = text.trim();

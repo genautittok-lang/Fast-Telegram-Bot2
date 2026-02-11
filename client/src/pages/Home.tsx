@@ -101,27 +101,29 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
         scale: 1.02,
         transition: { duration: 0.2, ease: "easeOut" }
       }}
-      className="group relative p-3 sm:p-4 md:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 hover:shadow-[0_8px_30px_rgba(34,197,94,0.12)] transition-all duration-300 cursor-pointer"
+      className="group relative p-2 sm:p-4 md:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 hover:shadow-[0_8px_30px_rgba(34,197,94,0.12)] transition-all duration-300 cursor-pointer"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
       
-      <div className="relative z-10 space-y-2 sm:space-y-3">
+      <div className="relative z-10 space-y-1 sm:space-y-3">
         <motion.div 
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-300"
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-300"
           whileHover={{ rotate: [0, -5, 5, 0], transition: { duration: 0.4 } }}
         >
-          {icon}
+          <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+            {icon}
+          </div>
         </motion.div>
         
-        <div className="space-y-1 sm:space-y-1.5">
-          <h3 className="text-xs sm:text-sm font-bold group-hover:text-primary transition-colors leading-tight">
+        <div className="space-y-0.5 sm:space-y-1.5">
+          <h3 className="text-[11px] sm:text-sm font-bold group-hover:text-primary transition-colors leading-tight line-clamp-2">
             {title}
           </h3>
-          <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
+          <p className="hidden sm:block text-[10px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2">
             {description}
           </p>
           {apis && apis.length > 0 && (
-            <div className="flex flex-wrap gap-1 pt-0.5 sm:pt-1 min-w-0 overflow-hidden">
+            <div className="hidden sm:flex flex-wrap gap-1 pt-0.5 sm:pt-1 min-w-0 overflow-hidden">
               {apis.map((api, idx) => (
                 <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono truncate group-hover:bg-primary/10 group-hover:text-primary/80 transition-colors duration-300">
                   {api}
@@ -592,7 +594,7 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
               {modules.map((module, idx) => (
                 <ModuleCard 
                   key={idx}
@@ -628,7 +630,7 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
               {apiSources.map((source, idx) => (
                 <motion.div
                   key={idx}
@@ -636,13 +638,13 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.05 }}
-                  className="group p-3 sm:p-4 md:p-5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-300 text-center"
+                  className="group p-2 sm:p-4 md:p-5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-300 text-center"
                 >
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 sm:mb-3 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                    <Database className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1 sm:mb-3 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                    <Database className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                   </div>
-                  <h3 className="font-bold text-xs sm:text-sm mb-0.5 sm:mb-1 group-hover:text-primary transition-colors">{source.name}</h3>
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground leading-tight">{source.description}</p>
+                  <h3 className="font-bold text-[10px] sm:text-sm mb-0 sm:mb-1 group-hover:text-primary transition-colors line-clamp-1">{source.name}</h3>
+                  <p className="hidden sm:block text-[10px] sm:text-[11px] text-muted-foreground leading-tight">{source.description}</p>
                 </motion.div>
               ))}
             </div>

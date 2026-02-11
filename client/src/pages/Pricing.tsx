@@ -24,7 +24,12 @@ import {
   Users,
   Clock,
   Upload,
-  Loader2
+  Loader2,
+  CreditCard,
+  Wallet,
+  Landmark,
+  ChevronRight,
+  ArrowLeftIcon
 } from "lucide-react";
 
 const CRYPTO_NETWORKS = [
@@ -63,9 +68,11 @@ function PricingContent() {
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [timeLeft, setTimeLeft] = useState(600);
   const [timerExpired, setTimerExpired] = useState(false);
+  const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
+  const [selectedMethod, setSelectedMethod] = useState<"crypto" | "card" | "monopay" | null>(null);
 
   useEffect(() => {
-    if (!showPaymentModal) {
+    if (!showPaymentModal || paymentStep !== "details") {
       setTimeLeft(600);
       setTimerExpired(false);
       return;
@@ -81,7 +88,7 @@ function PricingContent() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [showPaymentModal]);
+  }, [showPaymentModal, paymentStep]);
 
   const formatTimer = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -159,7 +166,25 @@ function PricingContent() {
       setLocation("/login");
       return;
     }
+    setPaymentStep("method");
+    setSelectedMethod(null);
+    setPromoCode("");
+    setPromoDiscount(0);
+    setPromoApplied(false);
+    setPromoError("");
     setShowPaymentModal(tier);
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(null);
+    setPaymentStep("method");
+    setSelectedMethod(null);
+    setTxHash("");
+    setScreenshotFile(null);
+    setPromoCode("");
+    setPromoDiscount(0);
+    setPromoApplied(false);
+    setPromoError("");
   };
 
   const getPrice = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
@@ -217,12 +242,7 @@ function PricingContent() {
           title: t('pricing.applicationSent'),
           description: t('pricing.applicationSentDesc'),
         });
-        setShowPaymentModal(null);
-        setTxHash("");
-        setScreenshotFile(null);
-        setPromoCode("");
-        setPromoDiscount(0);
-        setPromoApplied(false);
+        closePaymentModal();
       } else {
         throw new Error("Failed to submit");
       }
@@ -231,12 +251,7 @@ function PricingContent() {
         title: t('pricing.applicationSent'),
         description: t('pricing.applicationSentDesc'),
       });
-      setShowPaymentModal(null);
-      setTxHash("");
-      setScreenshotFile(null);
-      setPromoCode("");
-      setPromoDiscount(0);
-      setPromoApplied(false);
+      closePaymentModal();
     }
   };
 
@@ -410,7 +425,7 @@ function PricingContent() {
                   data-testid="button-pro-plan"
                 >
                   <Star className="mr-2 h-4 w-4" />
-                  {t('pricing.payAmount')} ${getPrice("PRO")} USDT
+                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")} USDT
                 </Button>
               </CardFooter>
             </Card>
@@ -456,7 +471,7 @@ function PricingContent() {
                   data-testid="button-enterprise-plan"
                 >
                   <Crown className="mr-2 h-4 w-4" />
-                  {t('pricing.payAmount')} ${getPrice("ENTERPRISE")} USDT
+                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("ENTERPRISE")} USDT
                 </Button>
               </CardFooter>
             </Card>
@@ -506,7 +521,7 @@ function PricingContent() {
                   data-testid="button-groups-plan"
                 >
                   <Users className="mr-2 h-4 w-4" />
-                  {t('pricing.payAmount')} ${getPrice("GROUPS")} USDT
+                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("GROUPS")} USDT
                 </Button>
               </CardFooter>
             </Card>
@@ -535,17 +550,28 @@ function PricingContent() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
-              onClick={() => setShowPaymentModal(null)}
+              onClick={closePaymentModal}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-5 sm:p-6"
+                className="bg-zinc-900 border border-white/10 rounded-2xl max-w-md w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
                 data-testid="modal-payment"
               >
                 <div className="flex items-center gap-3 mb-5">
+                  {paymentStep === "details" && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setPaymentStep("method")}
+                      className="shrink-0"
+                      data-testid="button-payment-back"
+                    >
+                      <ArrowLeftIcon className="w-4 h-4" />
+                    </Button>
+                  )}
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
                     showPaymentModal === "PRO" 
                       ? "bg-emerald-500/20" 
@@ -566,179 +592,412 @@ function PricingContent() {
                       {showPaymentModal} {t('pricing.planLabel')}
                     </h3>
                     <p className="text-muted-foreground text-xs">
-                      {isYearly ? t('pricing.yearlySubscription') : t('pricing.monthlySubscription')} - ${getPrice(showPaymentModal)} USDT
+                      {isYearly ? t('pricing.yearlySubscription') : t('pricing.monthlySubscription')} — {getFinalAmount(showPaymentModal) < getPrice(showPaymentModal) ? (
+                        <>
+                          <span className="line-through">${getPrice(showPaymentModal)}</span>{" "}
+                          <span className="text-emerald-400 font-medium">${getFinalAmount(showPaymentModal)} USDT</span>
+                        </>
+                      ) : (
+                        <>${getPrice(showPaymentModal)} USDT</>
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <div className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border ${
-                  timerExpired 
-                    ? "bg-red-500/10 border-red-500/30" 
-                    : timeLeft <= 60 
-                    ? "bg-amber-500/10 border-amber-500/30" 
-                    : "bg-emerald-500/10 border-emerald-500/30"
-                }`} data-testid="timer-display">
-                  <Clock className={`w-4 h-4 ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`} />
-                  <span className={`font-mono text-lg font-bold ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`}>
-                    {timerExpired ? (t('pricing.expired') || "Expired") : formatTimer(timeLeft)}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-2">{t('pricing.selectNetwork')}</div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {CRYPTO_NETWORKS.map((net) => (
+                {paymentStep === "method" && (
+                  <div className="space-y-4" data-testid="payment-step-method">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">{t('pricing.selectPaymentMethod') || "Select payment method"}</div>
+                      <div className="space-y-2">
                         <button
-                          key={net.id}
                           type="button"
-                          onClick={() => setSelectedNetwork(net)}
-                          className={`relative text-left px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors hover-elevate ${
-                            selectedNetwork.id === net.id
-                              ? "border-primary bg-primary/10 text-foreground"
-                              : "border-white/10 bg-black/30 text-muted-foreground"
+                          onClick={() => setSelectedMethod("crypto")}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors hover-elevate ${
+                            selectedMethod === "crypto"
+                              ? "border-primary bg-primary/10"
+                              : "border-white/10 bg-black/30"
                           }`}
-                          data-testid={`button-network-${net.id}`}
+                          data-testid="button-method-crypto"
                         >
-                          <span>{net.name}</span>
-                          {"discount" in net && net.discount && (
-                            <Badge className="absolute -top-1.5 -right-1.5 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[9px] px-1 py-0">
-                              -{net.discount}%
-                            </Badge>
-                          )}
+                          <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <Wallet className="w-5 h-5 text-amber-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium">Crypto (USDT)</div>
+                            <div className="text-xs text-muted-foreground">TON, ERC-20, BEP-20, Solana, XRP</div>
+                          </div>
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] shrink-0">
+                            TON -5%
+                          </Badge>
                         </button>
-                      ))}
-                    </div>
-                  </div>
 
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
-                    <div className="text-xs text-muted-foreground mb-1.5">{t('dashboard.paymentAddress')} ({selectedNetwork.name})</div>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
-                        {selectedNetwork.address}
-                      </code>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={copyAddress}
-                        className="shrink-0"
-                        data-testid="button-copy-address"
-                      >
-                        {copiedAddress ? (
-                          <Check className="h-4 w-4 text-emerald-400" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {"memo" in selectedNetwork && selectedNetwork.memo && (
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30">
-                      <div className="text-xs text-muted-foreground mb-1.5">Memo / Tag</div>
-                      <div className="flex items-center gap-2">
-                        <code className="flex-1 text-xs font-mono text-amber-400 bg-black/50 p-2 rounded-lg break-all select-all">
-                          {selectedNetwork.memo}
-                        </code>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={copyMemo}
-                          className="shrink-0"
-                          data-testid="button-copy-memo"
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMethod("card")}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors hover-elevate ${
+                            selectedMethod === "card"
+                              ? "border-primary bg-primary/10"
+                              : "border-white/10 bg-black/30"
+                          }`}
+                          data-testid="button-method-card"
                         >
-                          {copiedMemo ? (
-                            <Check className="h-4 w-4 text-emerald-400" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
+                          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                            <CreditCard className="w-5 h-5 text-blue-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium">Card (Stripe)</div>
+                            <div className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay</div>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMethod("monopay")}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors hover-elevate ${
+                            selectedMethod === "monopay"
+                              ? "border-primary bg-primary/10"
+                              : "border-white/10 bg-black/30"
+                          }`}
+                          data-testid="button-method-monopay"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+                            <Landmark className="w-5 h-5 text-violet-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium">MonoPay</div>
+                            <div className="text-xs text-muted-foreground">{t('pricing.bankTransfer') || "Bank transfer (UAH)"}</div>
+                          </div>
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] shrink-0">
+                            UAH
+                          </Badge>
+                        </button>
                       </div>
                     </div>
-                  )}
 
-                  {"discount" in selectedNetwork && selectedNetwork.discount && showPaymentModal && (
-                    <div className="flex items-center justify-between text-xs px-1">
-                      <span className="text-muted-foreground">{t('pricing.tonDiscount')} (-{selectedNetwork.discount}%)</span>
-                      <span className="text-emerald-400 font-medium">
-                        <span className="line-through text-muted-foreground mr-2">${getPrice(showPaymentModal)}</span>
-                        ${getFinalAmount(showPaymentModal)}
-                      </span>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.promoCode') || "Promo code"}</div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={promoCode}
+                          onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(""); setPromoApplied(false); }}
+                          placeholder="DARKSHARE-XXX"
+                          className="bg-black/50 border-white/10 font-mono text-xs"
+                          disabled={promoApplied}
+                          data-testid="input-promo-code"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={validatePromo}
+                          disabled={promoLoading || promoApplied || !promoCode.trim()}
+                          data-testid="button-apply-promo"
+                        >
+                          {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : promoApplied ? <Check className="w-3 h-3" /> : (t('pricing.apply') || "Apply")}
+                        </Button>
+                      </div>
+                      {promoError && <p className="text-xs text-red-400 mt-1">{promoError}</p>}
+                      {promoApplied && <p className="text-xs text-emerald-400 mt-1">-{promoDiscount}% {t('pricing.promoAppliedLabel') || "discount applied"}</p>}
                     </div>
-                  )}
 
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.txHashOptional')}</div>
-                    <Input
-                      value={txHash}
-                      onChange={(e) => setTxHash(e.target.value)}
-                      placeholder={t('pricing.txHashPlaceholder')}
-                      className="bg-black/50 border-white/10"
-                      data-testid="input-tx-hash"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.uploadScreenshot') || "Upload payment screenshot"}</div>
-                    <label className="flex items-center gap-2 p-2.5 rounded-xl border border-white/10 bg-black/30 cursor-pointer hover-elevate" data-testid="input-screenshot">
-                      <Upload className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground truncate">
-                        {screenshotFile ? screenshotFile.name : (t('pricing.chooseFile') || "Choose file...")}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
-                      />
-                    </label>
-                  </div>
-
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.promoCode') || "Promo code"}</div>
-                    <div className="flex gap-2">
-                      <Input
-                        value={promoCode}
-                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(""); setPromoApplied(false); }}
-                        placeholder="DARKSHARE-XXX"
-                        className="bg-black/50 border-white/10 font-mono text-xs"
-                        disabled={promoApplied}
-                        data-testid="input-promo-code"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={validatePromo}
-                        disabled={promoLoading || promoApplied || !promoCode.trim()}
-                        data-testid="button-apply-promo"
-                      >
-                        {promoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : promoApplied ? <Check className="w-3 h-3" /> : (t('pricing.apply') || "Apply")}
-                      </Button>
-                    </div>
-                    {promoError && <p className="text-xs text-red-400 mt-1">{promoError}</p>}
-                    {promoApplied && <p className="text-xs text-emerald-400 mt-1">-{promoDiscount}% {t('pricing.promoAppliedLabel') || "discount applied"}</p>}
-                  </div>
-
-                  <Button
-                    className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : showPaymentModal === "ENTERPRISE" ? "bg-amber-600" : "bg-violet-600"}`}
-                    onClick={() => submitPayment(showPaymentModal)}
-                    disabled={timerExpired}
-                    data-testid="button-submit-payment"
-                  >
-                    {showPaymentModal === "PRO" ? (
-                      <Star className="w-4 h-4 mr-2" />
-                    ) : showPaymentModal === "ENTERPRISE" ? (
-                      <Crown className="w-4 h-4 mr-2" />
-                    ) : (
-                      <Users className="w-4 h-4 mr-2" />
+                    {(promoApplied || (selectedMethod === "crypto" && "discount" in selectedNetwork && selectedNetwork.discount)) && showPaymentModal && (
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/30">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{t('pricing.totalAmount') || "Total"}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="line-through text-muted-foreground text-xs">${getPrice(showPaymentModal)}</span>
+                            <span className="text-emerald-400 font-bold text-lg">${getFinalAmount(showPaymentModal)}</span>
+                          </div>
+                        </div>
+                      </div>
                     )}
-                    {t('pricing.submitApplication')} {showPaymentModal} - ${getFinalAmount(showPaymentModal)}
-                  </Button>
-                  
-                  <p className="text-xs text-center text-muted-foreground">
-                    {t('dashboard.requestWillBeSent')}
-                  </p>
-                </div>
+
+                    <Button
+                      className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : showPaymentModal === "ENTERPRISE" ? "bg-amber-600" : "bg-violet-600"}`}
+                      onClick={() => setPaymentStep("details")}
+                      disabled={!selectedMethod}
+                      data-testid="button-continue-to-details"
+                    >
+                      {t('pricing.continue') || "Continue"}
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+
+                {paymentStep === "details" && showPaymentModal && (
+                  <div className="space-y-4" data-testid="payment-step-details">
+                    <div className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border ${
+                      timerExpired 
+                        ? "bg-red-500/10 border-red-500/30" 
+                        : timeLeft <= 60 
+                        ? "bg-amber-500/10 border-amber-500/30" 
+                        : "bg-emerald-500/10 border-emerald-500/30"
+                    }`} data-testid="timer-display">
+                      <Clock className={`w-4 h-4 ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`} />
+                      <span className={`font-mono text-lg font-bold ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`}>
+                        {timerExpired ? (t('pricing.expired') || "Expired") : formatTimer(timeLeft)}
+                      </span>
+                    </div>
+
+                    {selectedMethod === "crypto" && (
+                      <>
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-2">{t('pricing.selectNetwork')}</div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {CRYPTO_NETWORKS.map((net) => (
+                              <button
+                                key={net.id}
+                                type="button"
+                                onClick={() => setSelectedNetwork(net)}
+                                className={`relative text-left px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors hover-elevate ${
+                                  selectedNetwork.id === net.id
+                                    ? "border-primary bg-primary/10 text-foreground"
+                                    : "border-white/10 bg-black/30 text-muted-foreground"
+                                }`}
+                                data-testid={`button-network-${net.id}`}
+                              >
+                                <span>{net.name}</span>
+                                {"discount" in net && net.discount && (
+                                  <Badge className="absolute -top-1.5 -right-1.5 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[9px] px-1 py-0">
+                                    -{net.discount}%
+                                  </Badge>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
+                          <div className="text-xs text-muted-foreground mb-1.5">{t('dashboard.paymentAddress')} ({selectedNetwork.name})</div>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
+                              {selectedNetwork.address}
+                            </code>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={copyAddress}
+                              className="shrink-0"
+                              data-testid="button-copy-address"
+                            >
+                              {copiedAddress ? (
+                                <Check className="h-4 w-4 text-emerald-400" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {"memo" in selectedNetwork && selectedNetwork.memo && (
+                          <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30">
+                            <div className="text-xs text-muted-foreground mb-1.5">Memo / Tag</div>
+                            <div className="flex items-center gap-2">
+                              <code className="flex-1 text-xs font-mono text-amber-400 bg-black/50 p-2 rounded-lg break-all select-all">
+                                {selectedNetwork.memo}
+                              </code>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={copyMemo}
+                                className="shrink-0"
+                                data-testid="button-copy-memo"
+                              >
+                                {copiedMemo ? (
+                                  <Check className="h-4 w-4 text-emerald-400" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {"discount" in selectedNetwork && selectedNetwork.discount && (
+                          <div className="flex items-center justify-between text-xs px-1">
+                            <span className="text-muted-foreground">{t('pricing.tonDiscount')} (-{selectedNetwork.discount}%)</span>
+                            <span className="text-emerald-400 font-medium">
+                              <span className="line-through text-muted-foreground mr-2">${getPrice(showPaymentModal)}</span>
+                              ${getFinalAmount(showPaymentModal)}
+                            </span>
+                          </div>
+                        )}
+
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.txHashOptional')}</div>
+                          <Input
+                            value={txHash}
+                            onChange={(e) => setTxHash(e.target.value)}
+                            placeholder={t('pricing.txHashPlaceholder')}
+                            className="bg-black/50 border-white/10"
+                            data-testid="input-tx-hash"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.uploadScreenshot') || "Upload payment screenshot"}</div>
+                          <label className="flex items-center gap-2 p-2.5 rounded-xl border border-white/10 bg-black/30 cursor-pointer hover-elevate" data-testid="input-screenshot">
+                            <Upload className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground truncate">
+                              {screenshotFile ? screenshotFile.name : (t('pricing.chooseFile') || "Choose file...")}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
+                            />
+                          </label>
+                        </div>
+
+                        <Button
+                          className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : showPaymentModal === "ENTERPRISE" ? "bg-amber-600" : "bg-violet-600"}`}
+                          onClick={() => submitPayment(showPaymentModal)}
+                          disabled={timerExpired}
+                          data-testid="button-submit-payment"
+                        >
+                          {showPaymentModal === "PRO" ? (
+                            <Star className="w-4 h-4 mr-2" />
+                          ) : showPaymentModal === "ENTERPRISE" ? (
+                            <Crown className="w-4 h-4 mr-2" />
+                          ) : (
+                            <Users className="w-4 h-4 mr-2" />
+                          )}
+                          {t('pricing.submitApplication')} {showPaymentModal} — ${getFinalAmount(showPaymentModal)}
+                        </Button>
+                        
+                        <p className="text-xs text-center text-muted-foreground">
+                          {t('dashboard.requestWillBeSent')}
+                        </p>
+                      </>
+                    )}
+
+                    {selectedMethod === "card" && (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 text-center">
+                          <CreditCard className="w-10 h-10 text-blue-400 mx-auto mb-3" />
+                          <p className="text-sm font-medium mb-1">{t('pricing.cardPayment') || "Card Payment via Stripe"}</p>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            {t('pricing.cardPaymentDesc') || "You will be redirected to a secure Stripe checkout page"}
+                          </p>
+                          <div className="text-2xl font-bold text-blue-400 mb-4">
+                            ${getFinalAmount(showPaymentModal)} USDT
+                          </div>
+                          <Button
+                            className="w-full bg-blue-600"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch("/api/stripe/create-checkout", {
+                                  method: "POST",
+                                  credentials: "include",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    tier: showPaymentModal,
+                                    period: isYearly ? "yearly" : "monthly",
+                                    promoCode: promoApplied ? promoCode.trim() : undefined,
+                                  }),
+                                });
+                                const data = await response.json();
+                                if (data.url) {
+                                  window.location.href = data.url;
+                                } else {
+                                  toast({
+                                    title: t('common.error'),
+                                    description: data.error || "Failed to create checkout session",
+                                    variant: "destructive",
+                                  });
+                                }
+                              } catch {
+                                toast({
+                                  title: t('common.error'),
+                                  description: "Failed to redirect to Stripe",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            disabled={timerExpired}
+                            data-testid="button-stripe-checkout"
+                          >
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            {t('pricing.redirectToStripe') || "Redirect to Stripe"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMethod === "monopay" && (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/30 text-center">
+                          <Landmark className="w-10 h-10 text-violet-400 mx-auto mb-3" />
+                          <p className="text-sm font-medium mb-1">MonoPay (Monobank)</p>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            {t('pricing.monopayDesc') || "Pay with Ukrainian hryvnia via Monobank acquiring"}
+                          </p>
+                          <div className="text-2xl font-bold text-violet-400 mb-1">
+                            {(() => {
+                              const uahPrices: Record<string, Record<string, number>> = {
+                                PRO: { monthly: 410, yearly: 4100 },
+                                ENTERPRISE: { monthly: 1435, yearly: 14309 },
+                                GROUPS: { monthly: 2255, yearly: 22509 },
+                              };
+                              const base = uahPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0;
+                              const final = promoApplied && promoDiscount > 0
+                                ? Math.round(base * (1 - promoDiscount / 100))
+                                : base;
+                              return `${final} UAH`;
+                            })()}
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-4">
+                            ~${getFinalAmount(showPaymentModal)} USD
+                          </p>
+                          <Button
+                            className="w-full bg-violet-600"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch("/api/payments/monopay/create", {
+                                  method: "POST",
+                                  credentials: "include",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    tier: showPaymentModal,
+                                    period: isYearly ? "yearly" : "monthly",
+                                    promoCode: promoApplied ? promoCode.trim() : undefined,
+                                  }),
+                                });
+                                const data = await response.json();
+                                if (response.ok && data.pageUrl) {
+                                  window.location.href = data.pageUrl;
+                                } else if (response.status === 503) {
+                                  toast({
+                                    title: "MonoPay",
+                                    description: data.error || "MonoPay is being set up. Please try another payment method.",
+                                    variant: "destructive",
+                                  });
+                                } else {
+                                  toast({
+                                    title: t('common.error'),
+                                    description: data.error || "Failed to create MonoPay invoice",
+                                    variant: "destructive",
+                                  });
+                                }
+                              } catch {
+                                toast({
+                                  title: t('common.error'),
+                                  description: "Failed to connect to MonoPay",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            disabled={timerExpired}
+                            data-testid="button-monopay-checkout"
+                          >
+                            <Landmark className="w-4 h-4 mr-2" />
+                            {t('pricing.payWithMonoPay') || "Pay with MonoPay"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
             </motion.div>
           )}

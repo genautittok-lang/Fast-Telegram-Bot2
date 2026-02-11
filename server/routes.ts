@@ -774,6 +774,34 @@ export async function registerRoutes(
       return res.status(400).json({ error: validation.error });
     }
 
+    // Check daily limits per tier
+    const user = authReq.user!;
+    const userTier = (user.tier || "FREE").toUpperCase();
+    
+    const DAILY_LIMITS: Record<string, number> = {
+      FREE: 5,
+      PRO: 100,
+      ENTERPRISE: Infinity,
+      GROUPS: Infinity,
+    };
+    
+    const dailyLimit = DAILY_LIMITS[userTier] || 5;
+    
+    if (dailyLimit !== Infinity) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const userReports = await storage.getReports(user.id);
+      const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
+      
+      if (todayChecks >= dailyLimit) {
+        return res.status(429).json({ 
+          error: `Daily check limit reached (${todayChecks}/${dailyLimit}). Upgrade your plan for more checks.`,
+          limit: dailyLimit,
+          used: todayChecks,
+        });
+      }
+    }
+
     try {
       const result = await performCheck(type, value);
       
@@ -819,6 +847,34 @@ export async function registerRoutes(
 
     if (checks.length > 20) {
       return res.status(400).json({ error: "Maximum 20 checks per request" });
+    }
+
+    // Check daily limits per tier
+    const user = authReq.user!;
+    const userTier = (user.tier || "FREE").toUpperCase();
+    
+    const DAILY_LIMITS: Record<string, number> = {
+      FREE: 5,
+      PRO: 100,
+      ENTERPRISE: Infinity,
+      GROUPS: Infinity,
+    };
+    
+    const dailyLimit = DAILY_LIMITS[userTier] || 5;
+    
+    if (dailyLimit !== Infinity) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const userReports = await storage.getReports(user.id);
+      const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
+      
+      if (todayChecks >= dailyLimit) {
+        return res.status(429).json({ 
+          error: `Daily check limit reached (${todayChecks}/${dailyLimit}). Upgrade your plan for more checks.`,
+          limit: dailyLimit,
+          used: todayChecks,
+        });
+      }
     }
 
     const results: any[] = [];
@@ -1113,7 +1169,7 @@ export async function registerRoutes(
       const coupon = await storage.getCouponByCode(code.toUpperCase());
       if (!coupon) return res.status(400).json({ error: "Invalid promo code", valid: false });
       if (!coupon.isActive) return res.status(400).json({ error: "Promo code is inactive", valid: false });
-      if (coupon.usedCount >= coupon.maxUses) return res.status(400).json({ error: "Promo code expired", valid: false });
+      if ((coupon.usedCount ?? 0) >= (coupon.maxUses ?? 0)) return res.status(400).json({ error: "Promo code expired", valid: false });
       if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return res.status(400).json({ error: "Promo code expired", valid: false });
       if (coupon.tier && coupon.tier !== tier?.toUpperCase()) return res.status(400).json({ error: "Promo code not valid for this plan", valid: false });
       
@@ -1163,7 +1219,7 @@ export async function registerRoutes(
     if (promoCode) {
       try {
         const coupon = await storage.getCouponByCode(promoCode.toUpperCase());
-        if (coupon && coupon.isActive && coupon.usedCount < coupon.maxUses && 
+        if (coupon && coupon.isActive && (coupon.usedCount ?? 0) < (coupon.maxUses ?? 0) && 
             (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
             (!coupon.tier || coupon.tier === normalizedTier)) {
           await storage.useCoupon(coupon.id, authReq.user!.id);
@@ -1223,6 +1279,175 @@ export async function registerRoutes(
     } catch (err: any) {
       console.error("Payment request error:", err);
       res.status(500).json({ error: "Failed to create payment request" });
+    }
+  });
+
+  // ==================== MONOPAY (MONOBANK) ROUTES ====================
+
+  const UAH_PER_USD = 41;
+  const MONOPAY_PRICES_UAH: Record<string, Record<string, number>> = {
+    PRO: { monthly: 410, yearly: 4100 },
+    ENTERPRISE: { monthly: 1435, yearly: 14309 },
+    GROUPS: { monthly: 2255, yearly: 22509 },
+  };
+
+  app.post("/api/payments/monopay/create", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { tier, period, promoCode } = req.body;
+
+    if (!tier || !["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) {
+      return res.status(400).json({ error: "Invalid tier" });
+    }
+    if (!period || !["monthly", "yearly"].includes(period)) {
+      return res.status(400).json({ error: "Invalid period" });
+    }
+
+    const monoToken = process.env.MONOBANK_TOKEN;
+    if (!monoToken) {
+      return res.status(503).json({ error: "MonoPay is not configured yet. Please use another payment method." });
+    }
+
+    const normalizedTier = tier.toUpperCase();
+    let amountUAH = MONOPAY_PRICES_UAH[normalizedTier]?.[period] || 0;
+    if (!amountUAH) {
+      return res.status(400).json({ error: "Could not calculate price" });
+    }
+
+    let promoValid = false;
+    let promoDiscountValue = 0;
+    if (promoCode) {
+      try {
+        const coupon = await storage.getCouponByCode(promoCode.toUpperCase());
+        if (coupon && coupon.isActive && (coupon.usedCount ?? 0) < (coupon.maxUses ?? 0) &&
+            (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
+            (!coupon.tier || coupon.tier === normalizedTier)) {
+          promoDiscountValue = coupon.value || 0;
+          amountUAH = Math.round(amountUAH * (1 - promoDiscountValue / 100));
+          await storage.useCoupon(coupon.id, authReq.user!.id);
+          promoValid = true;
+        }
+      } catch (promoError) {
+        console.error("MonoPay promo code error:", promoError);
+      }
+    }
+
+    const amountUSD = (amountUAH / UAH_PER_USD).toFixed(2);
+
+    try {
+      const payment = await storage.createPayment({
+        userId: authReq.user!.id,
+        tier: normalizedTier,
+        amountUsdt: amountUSD,
+        txHash: null,
+        status: "pending",
+      });
+
+      const appUrl = process.env.APP_URL || 'https://darkshare.store';
+      const reference = `DS-${payment.id}`;
+
+      const monoResponse = await fetch("https://api.monobank.ua/api/merchant/invoice/create", {
+        method: "POST",
+        headers: {
+          "X-Token": monoToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: amountUAH * 100,
+          ccy: 980,
+          merchantPaymInfo: {
+            reference,
+            destination: `DARKSHARE ${normalizedTier} ${period}`,
+            comment: "DARKSHARE subscription",
+          },
+          redirectUrl: `${appUrl}/pricing?payment=success`,
+          webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
+        }),
+      });
+
+      if (!monoResponse.ok) {
+        const errorText = await monoResponse.text();
+        console.error("Monobank API error:", monoResponse.status, errorText);
+        return res.status(502).json({ error: "Failed to create MonoPay invoice" });
+      }
+
+      const monoData = await monoResponse.json();
+
+      if (botInstance) {
+        const user = authReq.user!;
+        const msgText = `\u{1F4B3} MonoPay заявка #${payment.id}\n\n` +
+          `\u{1F464} @${user.username || "\u2014"} (TG: ${user.tgId})\n` +
+          `\u{1F4E6} ${normalizedTier} (${period === "yearly" ? "рік" : "місяць"})\n` +
+          `\u{1F4B0} ${amountUAH} UAH (~$${amountUSD})\n` +
+          `${promoCode ? `\u{1F3AB} Промокод: ${promoCode}${promoValid ? " \u2705" : " \u274C"}\n` : ""}` +
+          `\u{1F517} Invoice: ${monoData.invoiceId || "—"}`;
+
+        for (const adminId of ADMIN_IDS) {
+          try {
+            await botInstance.telegram.sendMessage(adminId, msgText);
+          } catch (e) {
+            console.log(`Failed to notify admin ${adminId}:`, e);
+          }
+        }
+      }
+
+      res.json({ invoiceId: monoData.invoiceId, pageUrl: monoData.pageUrl });
+    } catch (err: any) {
+      console.error("MonoPay create error:", err);
+      res.status(500).json({ error: "Failed to create MonoPay payment" });
+    }
+  });
+
+  app.post("/api/payments/monopay/webhook", async (req, res) => {
+    const { invoiceId, status, amount, ccy, reference } = req.body;
+    console.log("MonoPay webhook received:", JSON.stringify({ invoiceId, status, amount, ccy, reference }));
+
+    try {
+      if (status === "success" && reference) {
+        const paymentIdMatch = reference.match(/^DS-(\d+)$/);
+        if (paymentIdMatch) {
+          const paymentId = parseInt(paymentIdMatch[1]);
+          const payment = await storage.getPaymentById(paymentId);
+
+          if (payment && payment.status === "pending") {
+            await storage.updatePaymentStatus(paymentId, "approved");
+
+            if (payment.userId) {
+              const tier = payment.tier?.toUpperCase() || "PRO";
+              const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 100;
+              await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
+
+              const user = await storage.getUserById(payment.userId);
+              if (user && botInstance) {
+                try {
+                  await botInstance.telegram.sendMessage(user.tgId,
+                    `\u2705 MonoPay оплату підтверджено!\n\nТариф: ${tier}\nЗапитів: ${requests}`
+                  );
+                } catch (e) { /* ignore */ }
+              }
+            }
+
+            if (botInstance) {
+              const amountUAH = amount ? (amount / 100).toFixed(2) : "?";
+              const msgText = `\u2705 MonoPay оплата #${paymentId} підтверджена\n\n` +
+                `\u{1F4B0} ${amountUAH} UAH\n` +
+                `\u{1F4E6} ${payment.tier}\n` +
+                `\u{1F517} Invoice: ${invoiceId || "—"}`;
+              for (const adminId of ADMIN_IDS) {
+                try {
+                  await botInstance.telegram.sendMessage(adminId, msgText);
+                } catch (e) {
+                  console.log(`Failed to notify admin ${adminId}:`, e);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      res.json({ status: "ok" });
+    } catch (err: any) {
+      console.error("MonoPay webhook error:", err);
+      res.status(500).json({ error: "Webhook processing failed" });
     }
   });
 
