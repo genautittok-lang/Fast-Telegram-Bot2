@@ -8,11 +8,13 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Reorganized Telegram bot dashboard into categories: Network & Web, Crypto & Finance, OSINT, Security
 - Updated pricing: PRO $10/month, Enterprise $35/month (was $50), Groups $55/month (was $65)
 - Added 10-minute countdown timer to payment modal with expiry handling
-- Added promo code validation system (DARKSHARE10, WELCOME20, VIP30)
+- Promo code system now uses database (ds_coupons): admin creates promos via bot, web validates against DB
+- Activity feed targets properly masked (***middle***) to prevent raw data exposure
 - Added screenshot upload option for payment proof (uses multer)
 - Optimized History page for mobile: compact layout, smaller icons and spacing
 - Added session management to Account page: view sessions with device/IP info, delete non-current sessions
-- Added backend endpoints: POST /api/promo/validate, DELETE /api/user/sessions/:id
+- Added backend endpoints: POST /api/promo/validate, DELETE /api/user/sessions/:id, POST /api/partnership/apply
+- Added Reversh Partnership form on Referral page (name/phone/email/method/volume → admin notification)
 - Payment endpoint now supports FormData (screenshot + promo code)
 - All pricing translations updated across 5 languages (uk, en, ru, es, de)
 - Fixed dual-account session issues with session regeneration
