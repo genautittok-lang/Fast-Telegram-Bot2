@@ -37,7 +37,8 @@ import {
   Smartphone,
   Star,
   Gift,
-  CreditCard
+  CreditCard,
+  HelpCircle
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -140,6 +141,7 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
 export default function Home() {
   const { t, lang } = useTranslation();
   
+  const [openFaqItems, setOpenFaqItems] = useState<number[]>([]);
   const { data: stats, isLoading: statsLoading } = useStats();
   const { data: activity } = useActivity();
   const { data: leaderboard } = useLeaderboard();
@@ -272,7 +274,7 @@ export default function Home() {
             <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="sm" data-testid="link-nav-bot">
                 <SiTelegram className="w-4 h-4 mr-1.5" />
-                Bot
+                {lang === "uk" ? "Бот" : lang === "ru" ? "Бот" : lang === "es" ? "Bot" : lang === "de" ? "Bot" : "Bot"}
               </Button>
             </a>
             <Link href="/login">
@@ -376,7 +378,7 @@ export default function Home() {
                     </h3>
                     <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                      Real-time
+                      {lang === "uk" ? "Реал-тайм" : lang === "ru" ? "Реал-тайм" : lang === "es" ? "Tiempo Real" : lang === "de" ? "Echtzeit" : "Real-time"}
                     </span>
                   </div>
                   <div className="space-y-2 max-h-[180px] overflow-hidden">
@@ -536,6 +538,187 @@ export default function Home() {
 
         <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <Zap className="w-3 h-3" />
+                {lang === "uk" ? "Як це працює" : lang === "ru" ? "Как это работает" : lang === "es" ? "Cómo funciona" : lang === "de" ? "So funktioniert's" : "How it Works"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Почніть за 3 простих кроки" : lang === "ru" ? "Начните за 3 простых шага" : lang === "es" ? "Comienza en 3 simples pasos" : lang === "de" ? "Starten Sie in 3 einfachen Schritten" : "Start in 3 Simple Steps"}
+              </h2>
+            </motion.div>
+
+            <div className="relative grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="hidden md:block absolute top-1/2 left-[20%] right-[20%] h-px bg-gradient-to-r from-primary/30 via-primary/20 to-primary/30 -translate-y-1/2 z-0" />
+
+              {[
+                {
+                  icon: <Search className="w-5 h-5" />,
+                  num: "01",
+                  title: lang === "uk" ? "Введіть ціль" : lang === "ru" ? "Введите цель" : lang === "es" ? "Ingrese el objetivo" : lang === "de" ? "Ziel eingeben" : "Enter Target",
+                  desc: lang === "uk" ? "Введіть IP, гаманець, домен, email або будь-яку іншу ціль для аналізу" : lang === "ru" ? "Введите IP, кошелёк, домен, email или любую другую цель для анализа" : lang === "es" ? "Escriba una IP, billetera, dominio, email o cualquier otro objetivo para analizar" : lang === "de" ? "Geben Sie eine IP, Wallet, Domain, E-Mail oder ein anderes Ziel zur Analyse ein" : "Type an IP, wallet, domain, email or any other target for analysis"
+                },
+                {
+                  icon: <Scan className="w-5 h-5" />,
+                  num: "02",
+                  title: lang === "uk" ? "AI Аналіз" : lang === "ru" ? "AI Анализ" : lang === "es" ? "Análisis con IA" : lang === "de" ? "KI-Analyse" : "AI Analysis",
+                  desc: lang === "uk" ? "Наша система опитує 15+ API безпеки, а ШІ генерує комплексну оцінку ризиків" : lang === "ru" ? "Наша система запрашивает 15+ API безопасности, а ИИ генерирует комплексную оценку рисков" : lang === "es" ? "Nuestro sistema consulta más de 15 APIs de seguridad y la IA genera una evaluación integral de riesgos" : lang === "de" ? "Unser System fragt 15+ Sicherheits-APIs ab und die KI erstellt eine umfassende Risikobewertung" : "Our system queries 15+ security APIs and AI generates a comprehensive risk assessment"
+                },
+                {
+                  icon: <FileText className="w-5 h-5" />,
+                  num: "03",
+                  title: lang === "uk" ? "Отримайте звіт" : lang === "ru" ? "Получите отчёт" : lang === "es" ? "Obtenga el informe" : lang === "de" ? "Bericht erhalten" : "Get Report",
+                  desc: lang === "uk" ? "Отримайте детальні результати з оцінкою ризику, рекомендаціями та PDF для завантаження" : lang === "ru" ? "Получите детальные результаты с оценкой риска, рекомендациями и загружаемым PDF" : lang === "es" ? "Reciba hallazgos detallados con puntuación de riesgo, recomendaciones y PDF descargable" : lang === "de" ? "Erhalten Sie detaillierte Ergebnisse mit Risikobewertung, Empfehlungen und herunterladbarem PDF" : "Receive detailed findings with risk score, recommendations and downloadable PDF"
+                }
+              ].map((step, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.15, duration: 0.5 }}
+                  className="relative z-10 p-4 sm:p-5 md:p-6 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                      {step.icon}
+                    </div>
+                    <span className="text-2xl font-bold text-primary/30 font-mono">{step.num}</span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold mb-1.5">{step.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <Users className="w-3 h-3" />
+                {lang === "uk" ? "Сценарії використання" : lang === "ru" ? "Сценарии использования" : lang === "es" ? "Casos de uso" : lang === "de" ? "Anwendungsfälle" : "Use Cases"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Для будь-яких потреб безпеки" : lang === "ru" ? "Для любых потребностей безопасности" : lang === "es" ? "Para cada necesidad de seguridad" : lang === "de" ? "Für jeden Sicherheitsbedarf" : "Built for Every Security Need"}
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {[
+                {
+                  icon: <TrendingUp className="w-5 h-5" />,
+                  title: lang === "uk" ? "Бізнес та корпорації" : lang === "ru" ? "Бизнес и корпорации" : lang === "es" ? "Empresas y corporaciones" : lang === "de" ? "Unternehmen & Konzerne" : "Business & Enterprise",
+                  desc: lang === "uk" ? "Перевіряйте партнерів, аналізуйте домени постачальників, захищайтеся від шахрайства та витоків даних" : lang === "ru" ? "Проверяйте партнёров, анализируйте домены поставщиков, защищайтесь от мошенничества и утечек данных" : lang === "es" ? "Verifique socios, compruebe dominios de proveedores, protéjase contra fraudes y filtraciones de datos" : lang === "de" ? "Überprüfen Sie Partner, prüfen Sie Lieferanten-Domains, schützen Sie sich vor Betrug und Datenlecks" : "Verify partners, check supplier domains, protect against fraud and data breaches"
+                },
+                {
+                  icon: <Wallet className="w-5 h-5" />,
+                  title: lang === "uk" ? "Криптоінвестори та трейдери" : lang === "ru" ? "Криптоинвесторы и трейдеры" : lang === "es" ? "Inversores y traders de cripto" : lang === "de" ? "Krypto-Investoren & Trader" : "Crypto Investors & Traders",
+                  desc: lang === "uk" ? "Аналізуйте гаманці перед транзакціями, виявляйте міксери, перевіряйте санкційні списки" : lang === "ru" ? "Анализируйте кошельки перед транзакциями, выявляйте миксеры, проверяйте санкционные списки" : lang === "es" ? "Analice billeteras antes de transacciones, detecte el uso de mixers, verifique sanciones" : lang === "de" ? "Analysieren Sie Wallets vor Transaktionen, erkennen Sie Mixer-Nutzung, prüfen Sie Sanktionslisten" : "Analyze wallets before transactions, detect mixer usage, check for sanctions"
+                },
+                {
+                  icon: <Terminal className="w-5 h-5" />,
+                  title: lang === "uk" ? "IT та DevOps команди" : lang === "ru" ? "IT и DevOps команды" : lang === "es" ? "Equipos de IT y DevOps" : lang === "de" ? "IT- & DevOps-Teams" : "IT & DevOps Teams",
+                  desc: lang === "uk" ? "Моніторте IP інфраструктури, скануйте домени на проблеми SSL, відстежуйте CVE вразливості" : lang === "ru" ? "Мониторьте IP инфраструктуры, сканируйте домены на проблемы SSL, отслеживайте CVE уязвимости" : lang === "es" ? "Monitoree IPs de infraestructura, escanee dominios en busca de problemas SSL, rastree vulnerabilidades CVE" : lang === "de" ? "Überwachen Sie Infrastruktur-IPs, scannen Sie Domains auf SSL-Probleme, verfolgen Sie CVE-Schwachstellen" : "Monitor infrastructure IPs, scan domains for SSL issues, track CVE vulnerabilities"
+                },
+                {
+                  icon: <Shield className="w-5 h-5" />,
+                  title: lang === "uk" ? "Дослідники безпеки" : lang === "ru" ? "Исследователи безопасности" : lang === "es" ? "Investigadores de seguridad" : lang === "de" ? "Sicherheitsforscher" : "Security Researchers",
+                  desc: lang === "uk" ? "Глибокі OSINT розслідування, аналіз хешів шкідливого ПЗ, відстеження username на різних платформах" : lang === "ru" ? "Глубокие OSINT расследования, анализ хешей вредоносного ПО, отслеживание username на разных платформах" : lang === "es" ? "Investigaciones OSINT profundas, análisis de hashes de malware, rastreo de nombres de usuario en múltiples plataformas" : lang === "de" ? "Tiefgehende OSINT-Ermittlungen, Malware-Hash-Analyse, Benutzernamen-Tracking über Plattformen hinweg" : "Deep OSINT investigations, malware hash analysis, username tracking across platforms"
+                }
+              ].map((card, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.5 }}
+                >
+                  <Card className="p-4 sm:p-5 md:p-6 bg-card/50 border-white/5 hover:border-primary/30 transition-all duration-300 h-full">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 mb-3">
+                      {card.icon}
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold mb-1.5">{card.title}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <Lock className="w-3 h-3" />
+                {lang === "uk" ? "Довіра та безпека" : lang === "ru" ? "Доверие и безопасность" : lang === "es" ? "Confianza y seguridad" : lang === "de" ? "Vertrauen & Sicherheit" : "Trust & Security"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Ваша безпека — наш пріоритет" : lang === "ru" ? "Ваша безопасность — наш приоритет" : lang === "es" ? "Su seguridad es nuestra prioridad" : lang === "de" ? "Ihre Sicherheit ist unsere Priorität" : "Your Security is Our Priority"}
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+              {[
+                {
+                  icon: <Lock className="w-5 h-5" />,
+                  title: lang === "uk" ? "Конфіденційність даних" : lang === "ru" ? "Конфиденциальность данных" : lang === "es" ? "Privacidad de datos" : lang === "de" ? "Datenschutz" : "Data Privacy",
+                  desc: lang === "uk" ? "Ваші запити зашифровані і ніколи не передаються третім сторонам" : lang === "ru" ? "Ваши запросы зашифрованы и никогда не передаются третьим лицам" : lang === "es" ? "Sus búsquedas están cifradas y nunca se comparten con terceros" : lang === "de" ? "Ihre Suchanfragen sind verschlüsselt und werden nie an Dritte weitergegeben" : "Your searches are encrypted and never shared with third parties"
+                },
+                {
+                  icon: <Zap className="w-5 h-5" />,
+                  title: lang === "uk" ? "Миттєвий аналіз" : lang === "ru" ? "Мгновенный анализ" : lang === "es" ? "Análisis instantáneo" : lang === "de" ? "Sofortige Analyse" : "Instant Analysis",
+                  desc: lang === "uk" ? "Результати за секунди завдяки підключенню до баз даних безпеки в реальному часі" : lang === "ru" ? "Результаты за секунды благодаря подключению к базам данных безопасности в реальном времени" : lang === "es" ? "Resultados en segundos mediante conexiones API en tiempo real a bases de datos de seguridad" : lang === "de" ? "Ergebnisse in Sekunden dank Echtzeit-API-Verbindungen zu Sicherheitsdatenbanken" : "Results in seconds using real-time API connections to security databases"
+                },
+                {
+                  icon: <Shield className="w-5 h-5" />,
+                  title: lang === "uk" ? "Перевірені джерела" : lang === "ru" ? "Проверенные источники" : lang === "es" ? "Fuentes verificadas" : lang === "de" ? "Verifizierte Quellen" : "Verified Sources",
+                  desc: lang === "uk" ? "Дані з 15+ перевірених API безпеки, включаючи Shodan, VirusTotal, NVD" : lang === "ru" ? "Данные из 15+ проверенных API безопасности, включая Shodan, VirusTotal, NVD" : lang === "es" ? "Datos de más de 15 APIs de seguridad confiables, incluyendo Shodan, VirusTotal y NVD" : lang === "de" ? "Daten aus 15+ vertrauenswürdigen Sicherheits-APIs, darunter Shodan, VirusTotal und NVD" : "Data from 15+ trusted security APIs including Shodan, VirusTotal, NVD"
+                },
+                {
+                  icon: <Gift className="w-5 h-5" />,
+                  title: lang === "uk" ? "Безкоштовний старт" : lang === "ru" ? "Бесплатный старт" : lang === "es" ? "Empiece gratis" : lang === "de" ? "Kostenlos starten" : "Free to Start",
+                  desc: lang === "uk" ? "5 безкоштовних перевірок щодня, кредитна картка не потрібна" : lang === "ru" ? "5 бесплатных проверок ежедневно, кредитная карта не требуется" : lang === "es" ? "5 verificaciones gratuitas diarias, no se requiere tarjeta de crédito" : lang === "de" ? "5 kostenlose Prüfungen täglich, keine Kreditkarte erforderlich" : "5 free checks daily, no credit card required to begin"
+                }
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.5 }}
+                  className="text-center p-4 sm:p-5 md:p-6 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
+                >
+                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 mb-3">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold mb-1.5">{item.title}</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -544,16 +727,20 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400">
                 <AlertTriangle className="w-3 h-3" />
-                {lang === "uk" ? "Загрози в Реальному Часі" : lang === "ru" ? "Угрозы в Реальном Времени" : "Real-Time Threats"}
+                {lang === "uk" ? "Загрози в Реальному Часі" : lang === "ru" ? "Угрозы в Реальном Времени" : lang === "es" ? "Amenazas en Tiempo Real" : lang === "de" ? "Echtzeit-Bedrohungen" : "Real-Time Threats"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
-                {lang === "uk" ? "Стрічка Кіберзагроз" : lang === "ru" ? "Лента Киберугроз" : "Live Threat Intelligence"}
+                {lang === "uk" ? "Стрічка Кіберзагроз" : lang === "ru" ? "Лента Киберугроз" : lang === "es" ? "Inteligencia de Amenazas en Vivo" : lang === "de" ? "Live-Bedrohungsinformationen" : "Live Threat Intelligence"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
                 {lang === "uk" 
                   ? "Моніторинг останніх CVE, malware кампаній та активних загроз з провідних джерел безпеки"
                   : lang === "ru"
                   ? "Мониторинг последних CVE, malware кампаний и активных угроз из ведущих источников безопасности"
+                  : lang === "es"
+                  ? "Monitoreo de los últimos CVE, campañas de malware y amenazas activas de fuentes de seguridad líderes"
+                  : lang === "de"
+                  ? "Überwachung der neuesten CVEs, Malware-Kampagnen und aktiver Bedrohungen aus führenden Sicherheitsquellen"
                   : "Monitoring the latest CVEs, malware campaigns and active threats from leading security sources"}
               </p>
             </motion.div>
@@ -580,16 +767,20 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Terminal className="w-3 h-3" />
-                {lang === "uk" ? "10 Модулів" : lang === "ru" ? "10 Модулей" : "10 Modules"}
+                {lang === "uk" ? "10 Модулів" : lang === "ru" ? "10 Модулей" : lang === "es" ? "10 Módulos" : lang === "de" ? "10 Module" : "10 Modules"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
-                {lang === "uk" ? "Повний Арсенал OSINT" : lang === "ru" ? "Полный Арсенал OSINT" : "Complete OSINT Arsenal"}
+                {lang === "uk" ? "Повний Арсенал OSINT" : lang === "ru" ? "Полный Арсенал OSINT" : lang === "es" ? "Arsenal OSINT Completo" : lang === "de" ? "Vollständiges OSINT-Arsenal" : "Complete OSINT Arsenal"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
                 {lang === "uk" 
                   ? "Кожен модуль інтегрований з провідними API для максимальної точності та актуальності даних"
                   : lang === "ru"
                   ? "Каждый модуль интегрирован с ведущими API для максимальной точности и актуальности данных"
+                  : lang === "es"
+                  ? "Cada módulo está integrado con APIs líderes para máxima precisión y relevancia de datos"
+                  : lang === "de"
+                  ? "Jedes Modul ist mit führenden APIs für maximale Genauigkeit und Datenrelevanz integriert"
                   : "Each module integrated with leading APIs for maximum accuracy and data relevance"}
               </p>
             </motion.div>
@@ -616,16 +807,20 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Server className="w-3 h-3" />
-                {lang === "uk" ? "API Інтеграції" : lang === "ru" ? "API Интеграции" : "API Integrations"}
+                {lang === "uk" ? "API Інтеграції" : lang === "ru" ? "API Интеграции" : lang === "es" ? "Integraciones API" : lang === "de" ? "API-Integrationen" : "API Integrations"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold px-2">
-                {lang === "uk" ? "Джерела Даних" : lang === "ru" ? "Источники Данных" : "Data Sources"}
+                {lang === "uk" ? "Джерела Даних" : lang === "ru" ? "Источники Данных" : lang === "es" ? "Fuentes de Datos" : lang === "de" ? "Datenquellen" : "Data Sources"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto px-2">
                 {lang === "uk" 
                   ? "Інтеграція з найкращими API безпеки для актуальних та достовірних даних"
                   : lang === "ru"
                   ? "Интеграция с лучшими API безопасности для актуальных и достоверных данных"
+                  : lang === "es"
+                  ? "Integración con las mejores APIs de seguridad para datos precisos y confiables"
+                  : lang === "de"
+                  ? "Integration mit führenden Sicherheits-APIs für genaue und zuverlässige Daten"
                   : "Integration with top security APIs for accurate and reliable data"}
               </p>
             </motion.div>
@@ -684,6 +879,92 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <HelpCircle className="w-3 h-3" />
+                FAQ
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Часті Запитання" : lang === "ru" ? "Часто Задаваемые Вопросы" : lang === "es" ? "Preguntas Frecuentes" : lang === "de" ? "Häufig Gestellte Fragen" : "Frequently Asked Questions"}
+              </h2>
+            </motion.div>
+
+            <div className="space-y-3" data-testid="faq-section">
+              {[
+                {
+                  q: lang === "uk" ? "Чи є DARKSHARE безкоштовним?" : lang === "ru" ? "DARKSHARE бесплатный?" : lang === "es" ? "¿Es DARKSHARE gratuito?" : lang === "de" ? "Ist DARKSHARE kostenlos?" : "Is DARKSHARE free to use?",
+                  a: lang === "uk" ? "Так! Ви отримуєте 5 безкоштовних перевірок на день без реєстраційного внеску. Для більшої кількості перевірок оновіться до PRO ($10/міс) або Enterprise ($35/міс)." : lang === "ru" ? "Да! Вы получаете 5 бесплатных проверок в день без регистрационного взноса. Для большего количества проверок перейдите на PRO ($10/мес) или Enterprise ($35/мес)." : lang === "es" ? "¡Sí! Obtiene 5 verificaciones gratuitas por día sin tarifa de registro. Para más verificaciones, actualice a PRO ($10/mes) o Enterprise ($35/mes)." : lang === "de" ? "Ja! Sie erhalten 5 kostenlose Prüfungen pro Tag ohne Registrierungsgebühr. Für mehr Prüfungen upgraden Sie auf PRO ($10/Monat) oder Enterprise ($35/Monat)." : "Yes! You get 5 free checks per day without any registration fee. For more checks, upgrade to PRO ($10/month) or Enterprise ($35/month)."
+                },
+                {
+                  q: lang === "uk" ? "Які дані можна аналізувати?" : lang === "ru" ? "Какие данные можно анализировать?" : lang === "es" ? "¿Qué datos puedo analizar?" : lang === "de" ? "Welche Daten kann ich analysieren?" : "What data can I analyze?",
+                  a: lang === "uk" ? "Ви можете перевіряти IP-адреси, криптогаманці, електронні адреси, домени, URL-адреси, номери телефонів, CVE-вразливості, хеші файлів, імена користувачів та токени Telegram-ботів." : lang === "ru" ? "Вы можете проверять IP-адреса, криптокошельки, адреса электронной почты, домены, URL-адреса, номера телефонов, CVE-уязвимости, хеши файлов, имена пользователей и токены Telegram-ботов." : lang === "es" ? "Puede verificar direcciones IP, billeteras de criptomonedas, direcciones de correo electrónico, dominios, URLs, números de teléfono, vulnerabilidades CVE, hashes de archivos, nombres de usuario y tokens de bots de Telegram." : lang === "de" ? "Sie können IP-Adressen, Krypto-Wallets, E-Mail-Adressen, Domains, URLs, Telefonnummern, CVE-Schwachstellen, Datei-Hashes, Benutzernamen und Telegram-Bot-Token überprüfen." : "You can check IP addresses, crypto wallets, email addresses, domains, URLs, phone numbers, CVE vulnerabilities, file hashes, usernames, and Telegram bot tokens."
+                },
+                {
+                  q: lang === "uk" ? "Чи є мої дані безпечними та конфіденційними?" : lang === "ru" ? "Мои данные в безопасности?" : lang === "es" ? "¿Están mis datos seguros y privados?" : lang === "de" ? "Sind meine Daten sicher und privat?" : "Is my data safe and private?",
+                  a: lang === "uk" ? "Абсолютно. Усі пошуки зашифровані, ми не зберігаємо ваші цілі пошуку, а ваші дані ніколи не передаються третім сторонам." : lang === "ru" ? "Абсолютно. Все поиски зашифрованы, мы не храним ваши цели поиска, а ваши данные никогда не передаются третьим лицам." : lang === "es" ? "Absolutamente. Todas las búsquedas están cifradas, no almacenamos sus objetivos de búsqueda y sus datos nunca se comparten con terceros." : lang === "de" ? "Absolut. Alle Suchanfragen sind verschlüsselt, wir speichern Ihre Suchziele nicht und Ihre Daten werden niemals an Dritte weitergegeben." : "Absolutely. All searches are encrypted, we don't store your search targets, and your data is never shared with third parties."
+                },
+                {
+                  q: lang === "uk" ? "Наскільки точні результати?" : lang === "ru" ? "Насколько точны результаты?" : lang === "es" ? "¿Qué tan precisos son los resultados?" : lang === "de" ? "Wie genau sind die Ergebnisse?" : "How accurate are the results?",
+                  a: lang === "uk" ? "Ми агрегуємо дані з 15+ перевірених API безпеки, включаючи Shodan, VirusTotal та NVD NIST, у поєднанні з AI-аналізом для комплексної оцінки ризиків." : lang === "ru" ? "Мы агрегируем данные из 15+ проверенных API безопасности, включая Shodan, VirusTotal и NVD NIST, в сочетании с AI-анализом для комплексной оценки рисков." : lang === "es" ? "Agregamos datos de más de 15 APIs de seguridad verificadas, incluyendo Shodan, VirusTotal y NVD NIST, combinados con análisis de IA para una puntuación de riesgo integral." : lang === "de" ? "Wir aggregieren Daten aus über 15 verifizierten Sicherheits-APIs, darunter Shodan, VirusTotal und NVD NIST, kombiniert mit KI-Analyse für eine umfassende Risikobewertung." : "We aggregate data from 15+ verified security APIs including Shodan, VirusTotal, and NVD NIST, combined with AI analysis for comprehensive risk scoring."
+                },
+                {
+                  q: lang === "uk" ? "Чи можна використовувати DARKSHARE через Telegram?" : lang === "ru" ? "Можно ли использовать DARKSHARE через Telegram?" : lang === "es" ? "¿Puedo usar DARKSHARE a través de Telegram?" : lang === "de" ? "Kann ich DARKSHARE über Telegram nutzen?" : "Can I use DARKSHARE via Telegram?",
+                  a: lang === "uk" ? "Так! Наш Telegram-бот @DARKSHAREN1_BOT надає ті ж можливості аналізу прямо у вашому месенджері. Просто надішліть ціль і отримайте миттєві результати." : lang === "ru" ? "Да! Наш Telegram-бот @DARKSHAREN1_BOT предоставляет те же возможности анализа прямо в вашем мессенджере. Просто отправьте цель и получите мгновенные результаты." : lang === "es" ? "¡Sí! Nuestro bot de Telegram @DARKSHAREN1_BOT ofrece las mismas capacidades de análisis directamente en su mensajero. Solo envíe un objetivo y obtenga resultados instantáneos." : lang === "de" ? "Ja! Unser Telegram-Bot @DARKSHAREN1_BOT bietet die gleichen Analysefunktionen direkt in Ihrem Messenger. Senden Sie einfach ein Ziel und erhalten Sie sofortige Ergebnisse." : "Yes! Our Telegram bot @DARKSHAREN1_BOT provides the same analysis capabilities directly in your messenger. Just send a target and get instant results."
+                },
+                {
+                  q: lang === "uk" ? "Які способи оплати ви приймаєте?" : lang === "ru" ? "Какие способы оплаты вы принимаете?" : lang === "es" ? "¿Qué métodos de pago aceptan?" : lang === "de" ? "Welche Zahlungsmethoden akzeptieren Sie?" : "What payment methods do you accept?",
+                  a: lang === "uk" ? "Ми приймаємо криптовалюту (USDT у кількох мережах, включаючи TON, ERC-20, BEP-20, Solana) та платежі Monobank (UAH)." : lang === "ru" ? "Мы принимаем криптовалюту (USDT в нескольких сетях, включая TON, ERC-20, BEP-20, Solana) и платежи Monobank (UAH)." : lang === "es" ? "Aceptamos criptomonedas (USDT en múltiples redes, incluyendo TON, ERC-20, BEP-20, Solana) y pagos de Monobank (UAH)." : lang === "de" ? "Wir akzeptieren Kryptowährungen (USDT in mehreren Netzwerken, einschließlich TON, ERC-20, BEP-20, Solana) und Monobank (UAH)-Zahlungen." : "We accept cryptocurrency (USDT on multiple networks including TON, ERC-20, BEP-20, Solana) and Monobank (UAH) payments."
+                }
+              ].map((item, idx) => {
+                const isOpen = openFaqItems.includes(idx);
+                const toggleFaq = () => {
+                  setOpenFaqItems(prev => 
+                    prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+                  );
+                };
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.08, duration: 0.4 }}
+                  >
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-card/50 border border-white/5 hover:border-primary/20 transition-all duration-300 text-left"
+                      onClick={toggleFaq}
+                      aria-expanded={isOpen}
+                      data-testid={`faq-item-${idx}`}
+                    >
+                      <div className="flex items-center justify-between p-4 sm:p-5 gap-3">
+                        <h3 className="text-xs sm:text-sm font-semibold text-white leading-snug">{item.q}</h3>
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                      </div>
+                    </button>
+                    <div
+                      role="region"
+                      className={`overflow-hidden transition-all duration-300 ease-in-out rounded-b-xl bg-card/30 border border-t-0 border-white/5 ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+                      aria-hidden={!isOpen}
+                    >
+                      <p className="px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                        {item.a}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         <section className="py-8 sm:py-10 md:py-12 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full">
             <motion.div
@@ -693,13 +974,17 @@ export default function Home() {
               className="space-y-4 sm:space-y-6"
             >
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
-                {lang === "uk" ? "Готові почати?" : lang === "ru" ? "Готовы начать?" : "Ready to Start?"}
+                {lang === "uk" ? "Готові почати?" : lang === "ru" ? "Готовы начать?" : lang === "es" ? "¿Listo para empezar?" : lang === "de" ? "Bereit loszulegen?" : "Ready to Start?"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto px-2">
                 {lang === "uk" 
                   ? "Приєднуйтесь до тисяч користувачів, які довіряють DARKSHARE для своєї кібербезпеки"
                   : lang === "ru"
                   ? "Присоединяйтесь к тысячам пользователей, которые доверяют DARKSHARE для своей кибербезопасности"
+                  : lang === "es"
+                  ? "Únase a miles de usuarios que confían en DARKSHARE para su ciberseguridad"
+                  : lang === "de"
+                  ? "Schließen Sie sich Tausenden von Nutzern an, die DARKSHARE für ihre Cybersicherheit vertrauen"
                   : "Join thousands of users who trust DARKSHARE for their cybersecurity needs"}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
@@ -722,7 +1007,7 @@ export default function Home() {
                 >
                   <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base border-primary/30" data-testid="button-launch-bot-cta">
                     <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Telegram Bot
+                    {lang === "uk" ? "Telegram Бот" : lang === "ru" ? "Telegram Бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram Bot" : "Telegram Bot"}
                     <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
                   </Button>
                 </a>
