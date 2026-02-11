@@ -5,6 +5,11 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Multi-step payment flow: tier selection → payment method (Crypto/Stripe/MonoPay) → payment details with timer
+- MonoPay (Monobank) payment integration: invoice creation API + webhook for auto-confirmation (UAH pricing)
+- FREE tier daily limits enforced: 5 checks/day FREE, 100 PRO, unlimited ENTERPRISE/GROUPS (web + bot + bulk)
+- Home page modules compacted for mobile: 2-column grid, hidden descriptions/tags, smaller icons
+- Reversh Partnership redesigned as collapsible banner at top of Referral page
 - Reorganized Telegram bot dashboard into categories: Network & Web, Crypto & Finance, OSINT, Security
 - Updated pricing: PRO $10/month, Enterprise $35/month (was $50), Groups $55/month (was $65)
 - Added 10-minute countdown timer to payment modal with expiry handling
