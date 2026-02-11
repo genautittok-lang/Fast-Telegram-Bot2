@@ -1,10 +1,19 @@
-# DARKSHARE v4.2
+# DARKSHARE v4.3
 
 ## Overview
 
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Favorites system: save frequently-checked targets for quick recheck from Dashboard (ds_favorites table)
+- Public report sharing: generate unique shareable links via verification IDs
+- Report deletion: users can delete reports from History page with confirmation
+- Rate limiting: in-memory rate limiter on login (10/min), checks (30/min), breach-check (10/min)
+- Security: session deletion verifies ownership before deleting, blocked users denied at middleware level
+- Performance: getUserByUsername DB query instead of loading all users for team member add
+- Mobile UI: Quick Actions hidden on mobile Dashboard, CSV/Compare buttons hidden on small screens
+- Fixed missing riskDistribution translation key with inline 5-language mapping
+- Fixed session deletion UI update using query invalidation
 - Team stats dashboard: stat cards, check type distribution with colored bars, member leaderboard, recent team activity feed
 - CSV export functionality for report history with blob download
 - Side-by-side report comparison feature with animated panels, risk score bars, and selection mode

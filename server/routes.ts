@@ -15,6 +15,27 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimit(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  entry.count++;
+  if (entry.count > maxRequests) return true;
+  return false;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now > entry.resetAt) rateLimitMap.delete(key);
+  }
+}, 5 * 60 * 1000);
+
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
@@ -311,6 +332,9 @@ export async function registerRoutes(
     if (req.session?.userId) {
       const user = await storage.getUserById(req.session.userId);
       if (user) {
+        if (user.blocked) {
+          return res.status(403).json({ error: "Account is blocked" });
+        }
         authReq.user = user;
       }
     }
@@ -328,6 +352,9 @@ export async function registerRoutes(
 
   // Telegram Login endpoint
   app.post("/api/auth/telegram", async (req, res) => {
+    const ip = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
+    if (rateLimit("login:" + ip, 10, 60000)) return res.status(429).json({ error: "Too many login attempts. Try again later." });
+
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     if (!botToken) {
       return res.status(500).json({ error: "Bot not configured" });
@@ -604,6 +631,8 @@ export async function registerRoutes(
   // Web check endpoint (requires auth)
   app.post(api.check.perform.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
+    if (rateLimit("check:" + authReq.user!.id, 30, 60000)) return res.status(429).json({ error: "Too many requests. Please slow down." });
+
     const { type, value } = req.body;
     
     if (!type || !value) {
@@ -821,6 +850,26 @@ export async function registerRoutes(
     }));
   });
 
+  // Delete report endpoint (requires auth)
+  app.delete("/api/reports/:id", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const id = parseInt(req.params.id);
+    try {
+      const report = await storage.getReportById(id);
+      if (!report) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+      if (report.userId !== authReq.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      await storage.deleteReport(id);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Delete report error:", err);
+      res.status(500).json({ error: "Failed to delete report" });
+    }
+  });
+
   // JSON export endpoint (requires auth)
   app.get(api.reports.exportJson.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
@@ -1022,12 +1071,31 @@ export async function registerRoutes(
   });
 
   app.delete("/api/user/sessions/:id", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
     const sessionId = req.params.id;
     if (sessionId === req.sessionID) {
       return res.status(400).json({ error: "Cannot terminate current session" });
     }
     try {
       if (pool) {
+        const result = await pool.query(
+          `SELECT sess FROM "session" WHERE sid = $1`,
+          [sessionId]
+        );
+        
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: "Session not found" });
+        }
+        
+        const sessData = typeof result.rows[0].sess === "string" 
+          ? JSON.parse(result.rows[0].sess) 
+          : result.rows[0].sess;
+        const sessionUserId = sessData?.passport?.user || sessData?.userId;
+        
+        if (String(sessionUserId) !== String(authReq.user!.id)) {
+          return res.status(403).json({ error: "Cannot terminate another user's session" });
+        }
+        
         await pool.query(`DELETE FROM "session" WHERE sid = $1`, [sessionId]);
       }
       res.json({ message: "Session terminated" });
@@ -1626,6 +1694,8 @@ export async function registerRoutes(
 
   app.post("/api/breach-check", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
+    if (rateLimit("breach:" + authReq.user!.id, 10, 60000)) return res.status(429).json({ error: "Too many breach checks. Try again later." });
+
     try {
       const { email } = req.body;
       if (!email) return res.status(400).json({ error: "Email required" });
@@ -1813,8 +1883,7 @@ export async function registerRoutes(
       const { username: rawUsername } = req.body;
       if (!rawUsername) return res.status(400).json({ error: "Username required" });
       const cleanUsername = rawUsername.trim().replace(/^@/, "");
-      const allUsers = await storage.getAllUsers();
-      const targetUser = allUsers.find(u => u.username?.toLowerCase() === cleanUsername.toLowerCase());
+      const targetUser = await storage.getUserByUsername(cleanUsername);
       if (!targetUser) return res.status(404).json({ error: "User not found" });
       const members = await storage.getTeamMembers(teamId);
       if (members.find(m => m.userId === targetUser.id)) {
@@ -1897,6 +1966,38 @@ export async function registerRoutes(
 
   // ============ Widget Verification Route ============
 
+  // Favorites endpoints
+  app.get("/api/favorites", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const favs = await storage.getFavorites(authReq.user!.id);
+    res.json(favs);
+  });
+
+  app.post("/api/favorites", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { checkType, value, label } = req.body;
+    if (!checkType || !value) return res.status(400).json({ error: "checkType and value required" });
+    try {
+      const fav = await storage.addFavorite({ userId: authReq.user!.id, checkType, value, label: label || null });
+      res.json(fav);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to add favorite" });
+    }
+  });
+
+  app.delete("/api/favorites/:id", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const favs = await storage.getFavorites(authReq.user!.id);
+      const fav = favs.find(f => f.id === parseInt(req.params.id));
+      if (!fav) return res.status(404).json({ error: "Favorite not found" });
+      await storage.deleteFavorite(fav.id);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to delete favorite" });
+    }
+  });
+
   app.get("/api/widget/verify/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -1911,6 +2012,21 @@ export async function registerRoutes(
       });
     } catch {
       res.status(500).json({ verified: false });
+    }
+  });
+
+  app.get("/api/reports/:id/share-link", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const id = parseInt(req.params.id);
+    try {
+      const report = await storage.getReportById(id);
+      if (!report) return res.status(404).json({ error: "Report not found" });
+      if (report.userId !== authReq.user!.id) return res.status(403).json({ error: "Access denied" });
+      const verificationId = report.verificationId;
+      if (!verificationId) return res.status(400).json({ error: "Report has no verification ID" });
+      res.json({ shareUrl: `/verify/${verificationId}`, verificationId });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to generate share link" });
     }
   });
 

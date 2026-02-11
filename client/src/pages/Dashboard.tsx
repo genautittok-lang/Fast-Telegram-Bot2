@@ -62,7 +62,9 @@ import {
   Layers,
   Keyboard,
   HelpCircle,
-  List
+  List,
+  Star,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -562,6 +564,58 @@ Sources: ${result.sources.join(', ')}`;
     noBreaches: lang === "uk" ? "Витоків не знайдено" : lang === "ru" ? "Утечек не найдено" : lang === "es" ? "Sin filtraciones" : lang === "de" ? "Keine Datenlecks" : "No breaches found",
     date: lang === "uk" ? "Дата" : lang === "ru" ? "Дата" : lang === "es" ? "Fecha" : lang === "de" ? "Datum" : "Date",
     dataTypes: lang === "uk" ? "Типи даних" : lang === "ru" ? "Типы данных" : lang === "es" ? "Tipos de datos" : lang === "de" ? "Datentypen" : "Data types",
+  };
+
+  const favLabels = {
+    title: lang === "uk" ? "Обрані" : lang === "ru" ? "Избранное" : lang === "es" ? "Favoritos" : lang === "de" ? "Favoriten" : "Favorites",
+    addToFav: lang === "uk" ? "Додати до обраних" : lang === "ru" ? "Добавить в избранное" : lang === "es" ? "Agregar a favoritos" : lang === "de" ? "Zu Favoriten" : "Add to favorites",
+    remove: lang === "uk" ? "Видалити" : lang === "ru" ? "Удалить" : lang === "es" ? "Eliminar" : lang === "de" ? "Entfernen" : "Remove",
+    added: lang === "uk" ? "Додано до обраних" : lang === "ru" ? "Добавлено в избранное" : lang === "es" ? "Agregado a favoritos" : lang === "de" ? "Zu Favoriten hinzugefügt" : "Added to favorites",
+    removed: lang === "uk" ? "Видалено з обраних" : lang === "ru" ? "Удалено из избранного" : lang === "es" ? "Eliminado de favoritos" : lang === "de" ? "Aus Favoriten entfernt" : "Removed from favorites",
+  };
+
+  const { data: userFavorites = [], isLoading: favoritesLoading } = useQuery<Array<{ id: number; checkType: string; value: string; label: string | null; createdAt: string }>>({
+    queryKey: ["/api/favorites"],
+  });
+
+  const addFavoriteMutation = useMutation({
+    mutationFn: async (data: { checkType: string; value: string; label?: string }) => {
+      const res = await apiRequest("POST", "/api/favorites", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      toast({ title: favLabels.added });
+    },
+  });
+
+  const deleteFavoriteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/favorites/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      toast({ title: favLabels.removed });
+    },
+  });
+
+  const isCurrentTargetFavorited = result && userFavorites.some(
+    f => f.checkType === result.type && f.value === result.target
+  );
+
+  const favTypeColorMap: Record<string, string> = {
+    ip: "bg-blue-500/20 border-blue-500/30 text-blue-400",
+    domain: "bg-purple-500/20 border-purple-500/30 text-purple-400",
+    wallet: "bg-amber-500/20 border-amber-500/30 text-amber-400",
+    email: "bg-green-500/20 border-green-500/30 text-green-400",
+    url: "bg-cyan-500/20 border-cyan-500/30 text-cyan-400",
+    phone: "bg-pink-500/20 border-pink-500/30 text-pink-400",
+    hash: "bg-red-500/20 border-red-500/30 text-red-400",
+    cve: "bg-orange-500/20 border-orange-500/30 text-orange-400",
+    username: "bg-indigo-500/20 border-indigo-500/30 text-indigo-400",
+    bot: "bg-cyan-500/20 border-cyan-500/30 text-cyan-400",
+    card: "bg-emerald-500/20 border-emerald-500/30 text-emerald-400",
   };
 
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
@@ -1156,7 +1210,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                         <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
                       </div>
-                      <div className="flex gap-1.5 sm:gap-2 w-full">
+                      <div className="flex gap-1.5 sm:gap-2 w-full flex-wrap">
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
                           <Button variant="outline" size="sm" className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-white/10 touch-manipulation" data-testid="button-download-pdf">
                             <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
@@ -1185,12 +1239,95 @@ Sources: ${result.sources.join(', ')}`;
                             <span className="truncate">{t('dashboard.addToMonitor')}</span>
                           </Button>
                         </motion.div>
+                        <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className={`w-full rounded-xl text-[10px] sm:text-xs lg:text-sm touch-manipulation ${
+                              isCurrentTargetFavorited 
+                                ? "border-yellow-500/50 text-yellow-400" 
+                                : "border-yellow-500/30 text-yellow-500/70"
+                            }`}
+                            onClick={() => {
+                              if (isCurrentTargetFavorited) {
+                                const fav = userFavorites.find(f => f.checkType === result.type && f.value === result.target);
+                                if (fav) deleteFavoriteMutation.mutate(fav.id);
+                              } else {
+                                addFavoriteMutation.mutate({ checkType: result.type, value: result.target });
+                              }
+                            }}
+                            disabled={addFavoriteMutation.isPending || deleteFavoriteMutation.isPending}
+                            data-testid="button-toggle-favorite"
+                          >
+                            <Star className={`w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0 ${isCurrentTargetFavorited ? "fill-yellow-400" : ""}`} />
+                            <span className="truncate">{isCurrentTargetFavorited ? favLabels.remove : favLabels.addToFav}</span>
+                          </Button>
+                        </motion.div>
                       </div>
                     </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {(userFavorites.length > 0 || result) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="p-3 lg:p-4 rounded-xl border border-white/10 bg-gradient-to-br from-black/50 via-black/30 to-transparent backdrop-blur-xl"
+                data-testid="section-favorites"
+              >
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Star className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs lg:text-sm font-semibold">{favLabels.title}</span>
+                  <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20 text-[9px] lg:text-[10px] ml-auto">
+                    {userFavorites.length}
+                  </Badge>
+                </div>
+                {userFavorites.length > 0 ? (
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-white/10" data-testid="favorites-list">
+                    {userFavorites.map((fav) => {
+                      const typeStyle = checkTypeStyles.find(s => s.id === fav.checkType);
+                      const TypeIcon = typeStyle?.icon || Globe;
+                      const colorClass = favTypeColorMap[fav.checkType] || "bg-white/10 border-white/20 text-white/70";
+                      return (
+                        <motion.div
+                          key={fav.id}
+                          className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border cursor-pointer transition-all duration-200 flex-shrink-0 group ${colorClass}`}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => {
+                            setSelectedType(fav.checkType);
+                            setInputValue(fav.value);
+                            setResult(null);
+                          }}
+                          data-testid={`favorite-item-${fav.id}`}
+                        >
+                          <TypeIcon className="w-3 h-3 flex-shrink-0" />
+                          <span className="text-[10px] lg:text-xs font-mono max-w-[120px] truncate">
+                            {fav.value}
+                          </span>
+                          <button
+                            className="ml-1 opacity-0 group-hover:opacity-100 visible transition-opacity duration-200 flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteFavoriteMutation.mutate(fav.id);
+                            }}
+                            data-testid={`button-delete-favorite-${fav.id}`}
+                          >
+                            <X className="w-3 h-3 text-white/50 hover:text-white/80" />
+                          </button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[10px] lg:text-xs text-muted-foreground" data-testid="text-no-favorites">
+                    {lang === "uk" ? "Додайте перші обрані для швидкого доступу" : lang === "ru" ? "Добавьте первые избранные для быстрого доступа" : lang === "es" ? "Agregue los primeros favoritos para acceso rpido" : lang === "de" ? "Erste Favoriten fr Schnellzugriff hinzufgen" : "Add your first favorites for quick access"}
+                  </p>
+                )}
+              </motion.div>
+            )}
 
             {bulkMode && bulkResults.length > 0 && (
               <motion.div

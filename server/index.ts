@@ -194,6 +194,17 @@ async function ensureTablesExist() {
         joined_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_favorites (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES ds_users(id),
+        check_type TEXT NOT NULL,
+        value TEXT NOT NULL,
+        label TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
     
     console.log("Database tables ready!");
   } catch (error: any) {

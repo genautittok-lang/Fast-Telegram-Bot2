@@ -127,6 +127,15 @@ export const teamMembers = pgTable("ds_team_members", {
   joinedAt: timestamp("joined_at").defaultNow(),
 });
 
+export const favorites = pgTable("ds_favorites", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  checkType: text("check_type").notNull(),
+  value: text("value").notNull(),
+  label: text("label"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
@@ -139,6 +148,7 @@ export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({
 export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({ id: true, createdAt: true });
 export const insertTeamSchema = createInsertSchema(teams).omit({ id: true, createdAt: true });
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, joinedAt: true });
+export const insertFavoriteSchema = createInsertSchema(favorites).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -156,6 +166,8 @@ export type Team = typeof teams.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 
 // Note: Replit Auth tables are in shared/models/auth.ts
 // Import them directly where needed to avoid type conflicts

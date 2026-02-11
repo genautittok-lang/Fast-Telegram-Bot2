@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc } from "drizzle-orm";
 
@@ -19,6 +19,7 @@ export interface IStorage {
   getUserById(id: number): Promise<User | undefined>;
   getUserByTgId(tgId: string): Promise<User | undefined>;
   getUserByRefCode(refCode: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | null>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserLogin(id: number): Promise<void>;
@@ -28,6 +29,7 @@ export interface IStorage {
   getReports(userId: number): Promise<Report[]>;
   getReportById(id: number): Promise<Report | undefined>;
   getReportByVerificationId(verificationId: string): Promise<Report | undefined>;
+  deleteReport(id: number): Promise<void>;
   
   // Watches
   createWatch(watch: any): Promise<Watch>;
@@ -100,6 +102,11 @@ export interface IStorage {
   updateTeamMemberRole(teamId: number, userId: number, role: string): Promise<TeamMember>;
   getTeamByInviteCode(code: string): Promise<Team | undefined>;
   deleteTeam(id: number): Promise<void>;
+
+  // Favorites
+  getFavorites(userId: number): Promise<Favorite[]>;
+  addFavorite(data: InsertFavorite): Promise<Favorite>;
+  deleteFavorite(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -119,6 +126,12 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     const [user] = await db.select().from(users).where(eq(users.refCode, refCode));
     return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    if (!db) throw new Error("Database not available");
+    const result = await db.select().from(users).where(sql`LOWER(${users.username}) = LOWER(${username})`).limit(1);
+    return result[0] || null;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -163,6 +176,11 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     const [report] = await db.select().from(reports).where(eq(reports.verificationId, verificationId));
     return report;
+  }
+
+  async deleteReport(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.delete(reports).where(eq(reports.id, id));
   }
 
   async createWatch(insertWatch: any): Promise<Watch> {
@@ -549,6 +567,22 @@ export class DatabaseStorage implements IStorage {
     await db.delete(teamMembers).where(eq(teamMembers.teamId, id));
     await db.delete(teams).where(eq(teams.id, id));
   }
+
+  async getFavorites(userId: number): Promise<Favorite[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(favorites).where(eq(favorites.userId, userId)).orderBy(desc(favorites.createdAt));
+  }
+
+  async addFavorite(data: InsertFavorite): Promise<Favorite> {
+    if (!db) throw new Error("Database not available");
+    const [fav] = await db.insert(favorites).values(data).returning();
+    return fav;
+  }
+
+  async deleteFavorite(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.delete(favorites).where(eq(favorites.id, id));
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -573,6 +607,13 @@ export class MemStorage implements IStorage {
 
   async getUserByRefCode(refCode: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(u => u.refCode === refCode);
+  }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    const user = Array.from(this.users.values()).find(u => 
+      u.username?.toLowerCase() === username.toLowerCase()
+    );
+    return user || null;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -644,6 +685,10 @@ export class MemStorage implements IStorage {
 
   async getReportByVerificationId(verificationId: string): Promise<Report | undefined> {
     return Array.from(this.reports.values()).find(r => r.verificationId === verificationId);
+  }
+
+  async deleteReport(id: number): Promise<void> {
+    this.reports.delete(id);
   }
 
   async createWatch(insertWatch: any): Promise<Watch> {
@@ -923,6 +968,24 @@ export class MemStorage implements IStorage {
       if (m.teamId === id) this.memTeamMembers.delete(key);
     });
     this.memTeams.delete(id);
+  }
+
+  private memFavorites: Map<number, Favorite> = new Map();
+  private nextFavoriteId = 1;
+
+  async getFavorites(userId: number): Promise<Favorite[]> {
+    return Array.from(this.memFavorites.values()).filter(f => f.userId === userId);
+  }
+
+  async addFavorite(data: InsertFavorite): Promise<Favorite> {
+    const id = this.nextFavoriteId++;
+    const fav: Favorite = { id, userId: data.userId, checkType: data.checkType, value: data.value, label: data.label ?? null, createdAt: new Date() };
+    this.memFavorites.set(id, fav);
+    return fav;
+  }
+
+  async deleteFavorite(id: number): Promise<void> {
+    this.memFavorites.delete(id);
   }
 }
 

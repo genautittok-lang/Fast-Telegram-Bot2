@@ -33,7 +33,9 @@ import {
   User,
   RotateCcw,
   GitCompareArrows,
-  X
+  X,
+  Trash2,
+  Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +44,7 @@ import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
 
@@ -251,6 +254,44 @@ export default function History() {
           icon: CheckCircle,
           label: t('dashboard.riskLevels.low')
         };
+    }
+  };
+
+  const handleDeleteReport = async (id: number) => {
+    const confirmText = lang === "uk" ? "Видалити цей звіт?" : lang === "ru" ? "Удалить этот отчёт?" : lang === "es" ? "¿Eliminar este informe?" : lang === "de" ? "Diesen Bericht löschen?" : "Delete this report?";
+    if (!window.confirm(confirmText)) return;
+    try {
+      await apiRequest("DELETE", `/api/reports/${id}`);
+      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      toast({
+        title: lang === "uk" ? "Звіт видалено" : lang === "ru" ? "Отчёт удалён" : lang === "es" ? "Informe eliminado" : lang === "de" ? "Bericht gelöscht" : "Report deleted",
+        description: lang === "uk" ? "Звіт успішно видалено" : lang === "ru" ? "Отчёт успешно удалён" : lang === "es" ? "Informe eliminado con éxito" : lang === "de" ? "Bericht erfolgreich gelöscht" : "Report deleted successfully",
+      });
+    } catch {
+      toast({
+        title: lang === "uk" ? "Помилка" : lang === "ru" ? "Ошибка" : lang === "es" ? "Error" : lang === "de" ? "Fehler" : "Error",
+        description: lang === "uk" ? "Не вдалося видалити звіт" : lang === "ru" ? "Не удалось удалить отчёт" : lang === "es" ? "No se pudo eliminar el informe" : lang === "de" ? "Bericht konnte nicht gelöscht werden" : "Failed to delete report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShareLink = async (id: number) => {
+    try {
+      const res = await fetch(`/api/reports/${id}/share-link`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to get share link");
+      const data = await res.json();
+      await navigator.clipboard.writeText(window.location.origin + data.shareUrl);
+      toast({
+        title: lang === "uk" ? "Посилання скопійовано!" : lang === "ru" ? "Ссылка скопирована!" : lang === "es" ? "Enlace copiado!" : lang === "de" ? "Link kopiert!" : "Link copied!",
+        description: lang === "uk" ? "Поділіться цим посиланням" : lang === "ru" ? "Поделитесь этой ссылкой" : lang === "es" ? "Comparte este enlace" : lang === "de" ? "Teilen Sie diesen Link" : "Share this link with others",
+      });
+    } catch {
+      toast({
+        title: lang === "uk" ? "Помилка" : lang === "ru" ? "Ошибка" : lang === "es" ? "Error" : lang === "de" ? "Fehler" : "Error",
+        description: lang === "uk" ? "Не вдалося отримати посилання" : lang === "ru" ? "Не удалось получить ссылку" : lang === "es" ? "No se pudo obtener el enlace" : lang === "de" ? "Link konnte nicht abgerufen werden" : "Failed to get share link",
+        variant: "destructive",
+      });
     }
   };
 
@@ -611,6 +652,15 @@ export default function History() {
                           >
                             <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={(e) => { e.stopPropagation(); handleShareLink(report.id); }}
+                            data-testid={`button-share-${report.id}`}
+                          >
+                            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </Button>
                           <Link href={`/dashboard?type=${report.type}&target=${encodeURIComponent(report.target)}&recheck=1`}>
                             <Button
                               variant="ghost"
@@ -621,6 +671,15 @@ export default function History() {
                               <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </Button>
                           </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteReport(report.id); }}
+                            data-testid={`button-delete-${report.id}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
