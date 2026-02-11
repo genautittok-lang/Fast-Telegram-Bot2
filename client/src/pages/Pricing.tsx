@@ -69,7 +69,7 @@ function PricingContent() {
   const [timeLeft, setTimeLeft] = useState(600);
   const [timerExpired, setTimerExpired] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
-  const [selectedMethod, setSelectedMethod] = useState<"crypto" | "card" | "monopay" | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<"crypto" | "monopay" | null>(null);
 
   useEffect(() => {
     if (!showPaymentModal || paymentStep !== "details") {
@@ -633,25 +633,6 @@ function PricingContent() {
 
                         <button
                           type="button"
-                          onClick={() => setSelectedMethod("card")}
-                          className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors hover-elevate ${
-                            selectedMethod === "card"
-                              ? "border-primary bg-primary/10"
-                              : "border-white/10 bg-black/30"
-                          }`}
-                          data-testid="button-method-card"
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-                            <CreditCard className="w-5 h-5 text-blue-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium">Card (Stripe)</div>
-                            <div className="text-xs text-muted-foreground">Visa, Mastercard, Apple Pay</div>
-                          </div>
-                        </button>
-
-                        <button
-                          type="button"
                           onClick={() => setSelectedMethod("monopay")}
                           className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors hover-elevate ${
                             selectedMethod === "monopay"
@@ -869,59 +850,6 @@ function PricingContent() {
                           {t('dashboard.requestWillBeSent')}
                         </p>
                       </>
-                    )}
-
-                    {selectedMethod === "card" && (
-                      <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 text-center">
-                          <CreditCard className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-                          <p className="text-sm font-medium mb-1">{t('pricing.cardPayment') || "Card Payment via Stripe"}</p>
-                          <p className="text-xs text-muted-foreground mb-3">
-                            {t('pricing.cardPaymentDesc') || "You will be redirected to a secure Stripe checkout page"}
-                          </p>
-                          <div className="text-2xl font-bold text-blue-400 mb-4">
-                            ${getFinalAmount(showPaymentModal)} USDT
-                          </div>
-                          <Button
-                            className="w-full bg-blue-600"
-                            onClick={async () => {
-                              try {
-                                const response = await fetch("/api/stripe/create-checkout", {
-                                  method: "POST",
-                                  credentials: "include",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    tier: showPaymentModal,
-                                    period: isYearly ? "yearly" : "monthly",
-                                    promoCode: promoApplied ? promoCode.trim() : undefined,
-                                  }),
-                                });
-                                const data = await response.json();
-                                if (data.url) {
-                                  window.location.href = data.url;
-                                } else {
-                                  toast({
-                                    title: t('common.error'),
-                                    description: data.error || "Failed to create checkout session",
-                                    variant: "destructive",
-                                  });
-                                }
-                              } catch {
-                                toast({
-                                  title: t('common.error'),
-                                  description: "Failed to redirect to Stripe",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                            disabled={timerExpired}
-                            data-testid="button-stripe-checkout"
-                          >
-                            <CreditCard className="w-4 h-4 mr-2" />
-                            {t('pricing.redirectToStripe') || "Redirect to Stripe"}
-                          </Button>
-                        </div>
-                      </div>
                     )}
 
                     {selectedMethod === "monopay" && (
