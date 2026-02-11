@@ -30,12 +30,6 @@ const upload = multer({ storage: multer.diskStorage({
   }
 } });
 
-const PROMO_CODES: Record<string, { discount: number; maxUses: number; uses: number; tier?: string }> = {
-  "DARKSHARE10": { discount: 10, maxUses: 100, uses: 0 },
-  "WELCOME20": { discount: 20, maxUses: 50, uses: 0 },
-  "VIP30": { discount: 30, maxUses: 20, uses: 0, tier: "ENTERPRISE" },
-};
-
 function generateVerificationId(): string {
   return `DS-${randomUUID().split('-').slice(0, 2).join('').toUpperCase()}`;
 }
@@ -47,9 +41,17 @@ const serverStartTime = Date.now();
 const recentActivity: Array<{ type: string; target: string; riskLevel: string; timestamp: string }> = [];
 
 export function addActivity(type: string, target: string, riskLevel: string) {
+  const maskTarget = (t: string): string => {
+    const len = t.length;
+    if (len <= 4) return '***' + t[0] + '***';
+    const start = Math.floor(len / 4);
+    const mid = t.substring(start, start + Math.min(6, Math.ceil(len / 2)));
+    return '***' + mid + '***';
+  };
+  
   recentActivity.unshift({
     type,
-    target: target.length > 20 ? target.substring(0, 17) + '...' : target,
+    target: maskTarget(target),
     riskLevel,
     timestamp: new Date().toISOString(),
   });
@@ -1107,12 +1109,19 @@ export async function registerRoutes(
     const { code, tier } = req.body;
     if (!code) return res.status(400).json({ error: "Promo code is required", valid: false });
     
-    const promo = PROMO_CODES[code.toUpperCase()];
-    if (!promo) return res.status(400).json({ error: "Invalid promo code", valid: false });
-    if (promo.uses >= promo.maxUses) return res.status(400).json({ error: "Promo code expired", valid: false });
-    if (promo.tier && promo.tier !== tier?.toUpperCase()) return res.status(400).json({ error: "Promo code not valid for this plan", valid: false });
-    
-    res.json({ valid: true, discount: promo.discount, code: code.toUpperCase() });
+    try {
+      const coupon = await storage.getCouponByCode(code.toUpperCase());
+      if (!coupon) return res.status(400).json({ error: "Invalid promo code", valid: false });
+      if (!coupon.isActive) return res.status(400).json({ error: "Promo code is inactive", valid: false });
+      if (coupon.usedCount >= coupon.maxUses) return res.status(400).json({ error: "Promo code expired", valid: false });
+      if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return res.status(400).json({ error: "Promo code expired", valid: false });
+      if (coupon.tier && coupon.tier !== tier?.toUpperCase()) return res.status(400).json({ error: "Promo code not valid for this plan", valid: false });
+      
+      res.json({ valid: true, discount: coupon.value, code: coupon.code });
+    } catch (error) {
+      console.error("Promo validation error:", error);
+      res.status(500).json({ error: "Failed to validate promo code", valid: false });
+    }
   });
 
   app.delete("/api/user/sessions/:id", loadUser, requireAuth, async (req, res) => {
@@ -1152,10 +1161,16 @@ export async function registerRoutes(
 
     let promoValid = false;
     if (promoCode) {
-      const promo = PROMO_CODES[promoCode.toUpperCase()];
-      if (promo && promo.uses < promo.maxUses && (!promo.tier || promo.tier === normalizedTier)) {
-        promo.uses++;
-        promoValid = true;
+      try {
+        const coupon = await storage.getCouponByCode(promoCode.toUpperCase());
+        if (coupon && coupon.isActive && coupon.usedCount < coupon.maxUses && 
+            (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
+            (!coupon.tier || coupon.tier === normalizedTier)) {
+          await storage.useCoupon(coupon.id, authReq.user!.id);
+          promoValid = true;
+        }
+      } catch (promoError) {
+        console.error("Promo code processing error:", promoError);
       }
     }
 
@@ -1684,6 +1699,35 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("DELETE /api/teams/:id error:", error.message, error.stack);
       res.status(500).json({ error: "Failed to delete team" });
+    }
+  });
+
+  // ============ Partnership Application Route ============
+
+  app.post("/api/partnership/apply", async (req, res) => {
+    try {
+      const { name, phone, email, method, volume } = req.body;
+
+      if (!name || !phone || !email || !method || !volume) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+
+      const message = `🤝 Нова заявка на партнерство Reversh\n\n👤 Ім'я: ${name}\n📱 Телефон: ${phone}\n📧 Email: ${email}\n📊 Метод залучення: ${method}\n📈 Очікуваний обсяг: ${volume}\n\n⚡ Зв'яжіться з партнером`;
+
+      if (botInstance && ADMIN_IDS.length > 0) {
+        for (const adminId of ADMIN_IDS) {
+          try {
+            await botInstance.telegram.sendMessage(adminId, message);
+          } catch (err) {
+            console.error(`Failed to send partnership notification to admin ${adminId}:`, err);
+          }
+        }
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Partnership apply error:", error);
+      res.status(500).json({ error: "Failed to submit partnership application" });
     }
   });
 

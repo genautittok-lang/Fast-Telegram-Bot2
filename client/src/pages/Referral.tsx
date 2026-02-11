@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   Shield, 
   Users, 
@@ -16,10 +16,15 @@ import {
   Star,
   Wallet,
   Award,
-  UserPlus
+  UserPlus,
+  Handshake,
+  Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -27,6 +32,7 @@ import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SiTelegram } from "react-icons/si";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ReferralStats {
   referralCode: string;
@@ -74,6 +80,7 @@ function TierBadge({ tier }: { tier: string }) {
 export default function Referral() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [partnerForm, setPartnerForm] = useState({ name: "", phone: "", email: "", method: "", volume: "" });
   const { toast, dismiss } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [location] = useLocation();
@@ -182,6 +189,33 @@ export default function Referral() {
     if (count >= 6) return 2;
     if (count >= 1) return 1;
     return 0;
+  };
+
+  const partnershipMutation = useMutation({
+    mutationFn: async (data: typeof partnerForm) => {
+      const res = await apiRequest("POST", "/api/partnership/apply", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: t('referral.reversh.success'),
+        description: t('referral.reversh.successDesc'),
+      });
+      setPartnerForm({ name: "", phone: "", email: "", method: "", volume: "" });
+    },
+    onError: () => {
+      toast({
+        title: t('common.error'),
+        description: t('errors.serverError'),
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePartnerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partnerForm.name || !partnerForm.phone || !partnerForm.email || !partnerForm.method || !partnerForm.volume) return;
+    partnershipMutation.mutate(partnerForm);
   };
 
   return (
@@ -500,6 +534,77 @@ export default function Referral() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Card className="border-white/10 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent backdrop-blur-xl">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20">
+                      <Handshake className="w-6 h-6 text-amber-400" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg" data-testid="text-reversh-title">{t('referral.reversh.title')}</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1" data-testid="text-reversh-description">{t('referral.reversh.description')}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handlePartnerSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input
+                        placeholder={t('referral.reversh.name')}
+                        value={partnerForm.name}
+                        onChange={(e) => setPartnerForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="bg-black/30 border-white/10"
+                        data-testid="input-partner-name"
+                      />
+                      <Input
+                        placeholder={t('referral.reversh.phone')}
+                        value={partnerForm.phone}
+                        onChange={(e) => setPartnerForm(prev => ({ ...prev, phone: e.target.value }))}
+                        className="bg-black/30 border-white/10"
+                        data-testid="input-partner-phone"
+                      />
+                    </div>
+                    <Input
+                      type="email"
+                      placeholder={t('referral.reversh.email')}
+                      value={partnerForm.email}
+                      onChange={(e) => setPartnerForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="bg-black/30 border-white/10"
+                      data-testid="input-partner-email"
+                    />
+                    <Textarea
+                      placeholder={t('referral.reversh.method')}
+                      value={partnerForm.method}
+                      onChange={(e) => setPartnerForm(prev => ({ ...prev, method: e.target.value }))}
+                      className="bg-black/30 border-white/10 min-h-[80px]"
+                      data-testid="input-partner-method"
+                    />
+                    <Input
+                      placeholder={t('referral.reversh.volume')}
+                      value={partnerForm.volume}
+                      onChange={(e) => setPartnerForm(prev => ({ ...prev, volume: e.target.value }))}
+                      className="bg-black/30 border-white/10"
+                      data-testid="input-partner-volume"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={partnershipMutation.isPending || !partnerForm.name || !partnerForm.phone || !partnerForm.email || !partnerForm.method || !partnerForm.volume}
+                      className="w-full bg-gradient-to-r from-amber-600 to-orange-500 text-white border-0"
+                      data-testid="button-partner-submit"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {partnershipMutation.isPending ? t('common.loading') : t('referral.reversh.submit')}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
         </main>

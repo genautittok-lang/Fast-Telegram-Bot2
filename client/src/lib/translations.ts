@@ -610,6 +610,18 @@ export interface TranslationSchema {
     invitedUsers: string;
     copied: string;
     copyBtn: string;
+    reversh: {
+      title: string;
+      description: string;
+      name: string;
+      phone: string;
+      email: string;
+      method: string;
+      volume: string;
+      submit: string;
+      success: string;
+      successDesc: string;
+    };
   };
   time: {
     justNow: string;
@@ -1292,6 +1304,18 @@ export const translations: Record<Language, TranslationSchema> = {
       invitedUsers: "Invited users",
       copied: "Copied",
       copyBtn: "Copy",
+      reversh: {
+        title: "Reversh Partnership Program",
+        description: "Earn up to 70% from attracted clients",
+        name: "Your name",
+        phone: "Phone number",
+        email: "Email",
+        method: "How do you plan to attract clients?",
+        volume: "Expected monthly volume",
+        submit: "Submit Application",
+        success: "Application submitted!",
+        successDesc: "Our team will contact you soon",
+      },
     },
     time: {
       justNow: "just now",
@@ -1972,6 +1996,18 @@ export const translations: Record<Language, TranslationSchema> = {
       invitedUsers: "Запрошені користувачі",
       copied: "Скопійовано",
       copyBtn: "Копіювати",
+      reversh: {
+        title: "Партнерська програма Reversh",
+        description: "Заробляйте до 70% від залучених клієнтів",
+        name: "Ваше ім'я",
+        phone: "Номер телефону",
+        email: "Email",
+        method: "Як плануєте залучати клієнтів?",
+        volume: "Очікуваний обсяг на місяць",
+        submit: "Надіслати заявку",
+        success: "Заявку надіслано!",
+        successDesc: "Наша команда зв'яжеться з вами найближчим часом",
+      },
     },
     time: {
       justNow: "щойно",
@@ -2652,6 +2688,18 @@ export const translations: Record<Language, TranslationSchema> = {
       invitedUsers: "Приглашённые пользователи",
       copied: "Скопировано",
       copyBtn: "Копировать",
+      reversh: {
+        title: "Партнёрская программа Reversh",
+        description: "Зарабатывайте до 70% от привлечённых клиентов",
+        name: "Ваше имя",
+        phone: "Номер телефона",
+        email: "Email",
+        method: "Как планируете привлекать клиентов?",
+        volume: "Ожидаемый объём в месяц",
+        submit: "Отправить заявку",
+        success: "Заявка отправлена!",
+        successDesc: "Наша команда свяжется с вами в ближайшее время",
+      },
     },
     time: {
       justNow: "только что",
@@ -3332,6 +3380,18 @@ export const translations: Record<Language, TranslationSchema> = {
       invitedUsers: "Usuarios invitados",
       copied: "Copiado",
       copyBtn: "Copiar",
+      reversh: {
+        title: "Programa de socios Reversh",
+        description: "Gana hasta el 70% de los clientes atraídos",
+        name: "Tu nombre",
+        phone: "Número de teléfono",
+        email: "Email",
+        method: "¿Cómo planeas atraer clientes?",
+        volume: "Volumen mensual esperado",
+        submit: "Enviar solicitud",
+        success: "¡Solicitud enviada!",
+        successDesc: "Nuestro equipo se pondrá en contacto contigo pronto",
+      },
     },
     time: {
       justNow: "ahora mismo",
@@ -4012,6 +4072,18 @@ export const translations: Record<Language, TranslationSchema> = {
       invitedUsers: "Eingeladene Benutzer",
       copied: "Kopiert",
       copyBtn: "Kopieren",
+      reversh: {
+        title: "Reversh Partnerprogramm",
+        description: "Verdienen Sie bis zu 70% von geworbenen Kunden",
+        name: "Ihr Name",
+        phone: "Telefonnummer",
+        email: "Email",
+        method: "Wie planen Sie Kunden zu gewinnen?",
+        volume: "Erwartetes monatliches Volumen",
+        submit: "Bewerbung einreichen",
+        success: "Bewerbung eingereicht!",
+        successDesc: "Unser Team wird sich bald bei Ihnen melden",
+      },
     },
     time: {
       justNow: "gerade eben",
