@@ -1899,6 +1899,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
         
         const keyboard = Markup.inlineKeyboard([
           [Markup.button.url(`💳 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} ${uahPrices[tier]} UAH`, data.pageUrl)],
+          [Markup.button.callback(`✅ ${lang === "uk" ? "Я оплатив" : lang === "ru" ? "Я оплатил" : "I paid"}`, `check_mono_payment`)],
           [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
         ]);
         
@@ -1913,6 +1914,67 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
       }
     } catch {
       const errorText = lang === "uk" ? "❌ Помилка з'єднання з платіжною системою." : lang === "ru" ? "❌ Ошибка соединения с платёжной системой." : "❌ Payment system connection error.";
+      await ctx.answerCbQuery(errorText, { show_alert: true });
+    }
+  });
+
+  bot.action("check_mono_payment", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    try {
+      const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/payments/monopay/check-status`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Bot-Token": process.env.TELEGRAM_BOT_TOKEN || "",
+        },
+        body: JSON.stringify({ tgId }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.status === "success" && data.processed) {
+        const successText = lang === "uk" ? "\u2705 \u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E! \u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u043D\u043E\u0432\u043B\u0435\u043D\u043E. \u041A\u0432\u0438\u0442\u0430\u043D\u0446\u0456\u044E \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u043D\u043E \u0432\u0438\u0449\u0435." :
+                            lang === "ru" ? "\u2705 \u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430! \u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D. \u041A\u0432\u0438\u0442\u0430\u043D\u0446\u0438\u044F \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u0432\u044B\u0448\u0435." :
+                            "\u2705 Payment confirmed! Your plan has been upgraded. Receipt sent above.";
+        await ctx.answerCbQuery(successText, { show_alert: true });
+        
+        const doneText = lang === "uk" ? "\u2705 *\u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E!*\n\n\u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u043D\u043E." :
+                         lang === "ru" ? "\u2705 *\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!*\n\n\u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438." :
+                         "\u2705 *Payment confirmed!*\n\nYour plan has been upgraded automatically.";
+        const keyboard = Markup.inlineKeyboard([
+          [Markup.button.callback("\u{1F3E0} " + (lang === "uk" ? "\u041C\u0435\u043D\u044E" : lang === "ru" ? "\u041C\u0435\u043D\u044E" : "Menu"), "dashboard")]
+        ]);
+        try {
+          await ctx.editMessageText(doneText, { parse_mode: "Markdown", ...keyboard });
+        } catch { }
+      } else if (data.status === "expired" || data.status === "failure") {
+        const failText = lang === "uk" ? "\u274C \u041F\u043B\u0430\u0442\u0456\u0436 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E \u0430\u0431\u043E \u0447\u0430\u0441 \u043C\u0438\u043D\u0443\u0432. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437." :
+                         lang === "ru" ? "\u274C \u041F\u043B\u0430\u0442\u0451\u0436 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D \u0438\u043B\u0438 \u0432\u0440\u0435\u043C\u044F \u0438\u0441\u0442\u0435\u043A\u043B\u043E. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0441\u043D\u043E\u0432\u0430." :
+                         "\u274C Payment not completed or expired. Please try again.";
+        await ctx.answerCbQuery(failText, { show_alert: true });
+      } else if (data.alreadyProcessed) {
+        const alreadyText = lang === "uk" ? "\u2705 \u0426\u0435\u0439 \u043F\u043B\u0430\u0442\u0456\u0436 \u0432\u0436\u0435 \u043E\u0431\u0440\u043E\u0431\u043B\u0435\u043D\u043E." :
+                            lang === "ru" ? "\u2705 \u042D\u0442\u043E\u0442 \u043F\u043B\u0430\u0442\u0451\u0436 \u0443\u0436\u0435 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D." :
+                            "\u2705 This payment has already been processed.";
+        await ctx.answerCbQuery(alreadyText, { show_alert: true });
+      } else if (data.error === "No pending payment found") {
+        const noPaymentText = lang === "uk" ? "\u23F3 \u041D\u0435 \u0437\u043D\u0430\u0439\u0434\u0435\u043D\u043E \u0430\u043A\u0442\u0438\u0432\u043D\u0438\u0445 \u043F\u043B\u0430\u0442\u0435\u0436\u0456\u0432. \u0421\u0442\u0432\u043E\u0440\u0456\u0442\u044C \u043D\u043E\u0432\u0438\u0439." :
+                              lang === "ru" ? "\u23F3 \u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0445 \u043F\u043B\u0430\u0442\u0435\u0436\u0435\u0439 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u043E. \u0421\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u043D\u043E\u0432\u044B\u0439." :
+                              "\u23F3 No active payments found. Create a new one.";
+        await ctx.answerCbQuery(noPaymentText, { show_alert: true });
+      } else {
+        const pendingText = lang === "uk" ? "\u23F3 \u041E\u043F\u043B\u0430\u0442\u0443 \u0449\u0435 \u043D\u0435 \u043E\u0442\u0440\u0438\u043C\u0430\u043D\u043E. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0447\u0435\u0440\u0435\u0437 \u0445\u0432\u0438\u043B\u0438\u043D\u0443." :
+                            lang === "ru" ? "\u23F3 \u041E\u043F\u043B\u0430\u0442\u0430 \u0435\u0449\u0451 \u043D\u0435 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0447\u0435\u0440\u0435\u0437 \u043C\u0438\u043D\u0443\u0442\u0443." :
+                            "\u23F3 Payment not received yet. Try again in a minute.";
+        await ctx.answerCbQuery(pendingText, { show_alert: true });
+      }
+    } catch (err) {
+      console.error("Check mono payment error:", err);
+      const errorText = lang === "uk" ? "\u274C \u041F\u043E\u043C\u0438\u043B\u043A\u0430 \u043F\u0435\u0440\u0435\u0432\u0456\u0440\u043A\u0438. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435." :
+                        lang === "ru" ? "\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0438. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u043E\u0437\u0436\u0435." :
+                        "\u274C Check failed. Try again later.";
       await ctx.answerCbQuery(errorText, { show_alert: true });
     }
   });

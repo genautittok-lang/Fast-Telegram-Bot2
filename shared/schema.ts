@@ -54,6 +54,7 @@ export const payments = pgTable("ds_payments", {
   amountUsdt: decimal("amount_usdt").notNull(),
   txHash: text("tx_hash"),
   screenshotUrl: text("screenshot_url"),
+  invoiceId: text("invoice_id"),
   period: text("period"),
   status: text("status").default("pending"),
   createdAt: timestamp("created_at").defaultNow(),

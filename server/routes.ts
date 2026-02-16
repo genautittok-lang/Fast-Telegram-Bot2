@@ -1441,6 +1441,10 @@ export async function registerRoutes(
 
       const monoData = await monoResponse.json();
 
+      if (monoData.invoiceId) {
+        await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
+      }
+
       if (botInstance) {
         const user = authReq.user!;
         const msgText = `\u{1F4B3} MonoPay заявка #${payment.id}\n\n` +
@@ -1549,6 +1553,10 @@ export async function registerRoutes(
 
       const monoData = await monoResponse.json();
 
+      if (monoData.invoiceId) {
+        await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
+      }
+
       if (botInstance) {
         const msgText = `\u{1F4B3} MonoPay \u0437\u0430\u044F\u0432\u043A\u0430 #${payment.id}\n\n` +
           `\u{1F464} @${user.username || "\u2014"} (TG: ${user.tgId})\n` +
@@ -1604,7 +1612,6 @@ export async function registerRoutes(
               if (user && botInstance) {
                 try {
                   const lang = user.lang || "uk";
-                  const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
                   const expiryStr = expiryDate.toLocaleDateString("uk-UA");
                   const amountUAH_display = amount ? (amount / 100).toFixed(2) : "?";
                   const receiptTexts: Record<string, string> = {
@@ -1731,6 +1738,192 @@ export async function registerRoutes(
   }
 
   setInterval(processAutoRenewals, 60 * 60 * 1000);
+
+  app.post("/api/payments/monopay/check-status", async (req, res) => {
+    const botToken = req.headers["x-bot-token"];
+    const isBot = botToken === process.env.TELEGRAM_BOT_TOKEN;
+    const isAuthenticated = req.session?.userId;
+    if (!isBot && !isAuthenticated) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { paymentId, tgId } = req.body;
+    const monoToken = process.env.MONOBANK_TOKEN;
+    if (!monoToken) return res.status(503).json({ error: "MonoPay not configured" });
+
+    try {
+      let payment: any;
+      if (paymentId) {
+        payment = await storage.getPaymentById(paymentId);
+      } else if (tgId) {
+        const user = await storage.getUserByTgId(tgId);
+        if (!user) return res.status(404).json({ error: "User not found" });
+        if (pool) {
+          const result = await pool.query(
+            `SELECT * FROM ds_payments WHERE user_id = $1 AND status = 'pending' AND invoice_id IS NOT NULL ORDER BY created_at DESC LIMIT 1`,
+            [user.id]
+          );
+          if (result.rows.length > 0) {
+            const row = result.rows[0];
+            payment = {
+              id: row.id,
+              userId: row.user_id,
+              tier: row.tier,
+              amountUsdt: row.amount_usdt,
+              txHash: row.tx_hash,
+              screenshotUrl: row.screenshot_url,
+              invoiceId: row.invoice_id,
+              period: row.period,
+              status: row.status,
+              createdAt: row.created_at,
+            };
+          }
+        }
+      }
+
+      if (!payment || !payment.invoiceId) {
+        return res.status(404).json({ error: "No pending payment found" });
+      }
+
+      if (payment.status !== "pending") {
+        return res.json({ status: payment.status, alreadyProcessed: true });
+      }
+
+      const statusResponse = await fetch(`https://api.monobank.ua/api/merchant/invoice/status?invoiceId=${payment.invoiceId}`, {
+        headers: { "X-Token": monoToken },
+      });
+
+      if (!statusResponse.ok) {
+        return res.status(502).json({ error: "Failed to check MonoPay status" });
+      }
+
+      const statusData = await statusResponse.json();
+      console.log("MonoPay status check:", JSON.stringify({ invoiceId: payment.invoiceId, status: statusData.status }));
+
+      if (statusData.status === "success") {
+        await storage.updatePaymentStatus(payment.id, "approved");
+
+        if (payment.userId) {
+          const tier = payment.tier?.toUpperCase() || "PRO";
+          const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
+          const periodDays = payment.period === "yearly" ? 365 : 30;
+          const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
+          const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
+
+          await storage.updateUser(payment.userId, updateData);
+
+          const user = await storage.getUserById(payment.userId);
+          if (user && botInstance) {
+            try {
+              const lang = user.lang || "uk";
+              const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+              const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "\u221E" : "50";
+              const amountDisplay = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${payment.amountUsdt} USD`;
+              const receiptTexts: Record<string, string> = {
+                uk: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0406\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0438\u0442\u0456\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0456\u0454 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0456\u0436: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0414\u044F\u043A\u0443\u0454\u043C\u043E \u0437\u0430 \u0434\u043E\u0432\u0456\u0440\u0443! \u{1F64F}`,
+                ru: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0418\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0440\u043E\u0441\u043E\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0451\u0436: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0437\u0430 \u0434\u043E\u0432\u0435\u0440\u0438\u0435! \u{1F64F}`,
+                en: `\u{1F9FE} *DARKSHARE RECEIPT*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Payment confirmed!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Amount: ${amountDisplay}\n\u{1F522} Requests: ${requestsDisplay}/day\n\u{1F4C5} Valid until: ${expiryStr}\n\u{1F194} Payment: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nThank you for your trust! \u{1F64F}`,
+                es: `\u{1F9FE} *RECIBO DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u00A1Pago confirmado!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Monto: ${amountDisplay}\n\u{1F522} Solicitudes: ${requestsDisplay}/d\u00EDa\n\u{1F4C5} V\u00E1lido hasta: ${expiryStr}\n\u{1F194} Pago: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u00A1Gracias por su confianza! \u{1F64F}`,
+                de: `\u{1F9FE} *DARKSHARE QUITTUNG*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Zahlung best\u00E4tigt!\n\n\u{1F4E6} Tarif: *${tier}*\n\u{1F4B0} Betrag: ${amountDisplay}\n\u{1F522} Anfragen: ${requestsDisplay}/Tag\n\u{1F4C5} G\u00FCltig bis: ${expiryStr}\n\u{1F194} Zahlung: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nVielen Dank f\u00FCr Ihr Vertrauen! \u{1F64F}`,
+              };
+              const receiptText = receiptTexts[lang] || receiptTexts["en"];
+              await botInstance.telegram.sendMessage(user.tgId, receiptText, { parse_mode: "Markdown" });
+            } catch (e) { console.log("Failed to send receipt:", e); }
+          }
+
+          if (botInstance) {
+            const amountStr = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${payment.amountUsdt}`;
+            const msgText = `\u2705 MonoPay \u043E\u043F\u043B\u0430\u0442\u0430 #${payment.id} \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u0430 (manual check)\n\n\u{1F4B0} ${amountStr}\n\u{1F4E6} ${payment.tier}\n\u{1F517} Invoice: ${payment.invoiceId || "\u2014"}`;
+            for (const adminId of ADMIN_IDS) {
+              try { await botInstance.telegram.sendMessage(adminId, msgText); } catch (e) {}
+            }
+          }
+        }
+
+        return res.json({ status: "success", processed: true });
+      } else if (statusData.status === "expired" || statusData.status === "failure") {
+        await storage.updatePaymentStatus(payment.id, "expired");
+        return res.json({ status: statusData.status, processed: false });
+      }
+
+      return res.json({ status: statusData.status || "pending", processed: false });
+    } catch (err: any) {
+      console.error("MonoPay status check error:", err);
+      res.status(500).json({ error: "Status check failed" });
+    }
+  });
+
+  async function checkPendingMonoPayments() {
+    const monoToken = process.env.MONOBANK_TOKEN;
+    if (!monoToken || !pool) return;
+
+    try {
+      const result = await pool.query(
+        `SELECT * FROM ds_payments WHERE status = 'pending' AND invoice_id IS NOT NULL AND created_at > NOW() - INTERVAL '1 hour'`
+      );
+
+      for (const row of result.rows) {
+        try {
+          const statusResponse = await fetch(`https://api.monobank.ua/api/merchant/invoice/status?invoiceId=${row.invoice_id}`, {
+            headers: { "X-Token": monoToken },
+          });
+
+          if (!statusResponse.ok) continue;
+          const statusData = await statusResponse.json();
+
+          if (statusData.status === "success") {
+            await storage.updatePaymentStatus(row.id, "approved");
+
+            if (row.user_id) {
+              const tier = row.tier?.toUpperCase() || "PRO";
+              const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
+              const periodDays = row.period === "yearly" ? 365 : 30;
+              const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
+
+              await storage.updateUser(row.user_id, { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true } as any);
+
+              const user = await storage.getUserById(row.user_id);
+              if (user && botInstance) {
+                try {
+                  const lang = user.lang || "uk";
+                  const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+                  const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "\u221E" : "50";
+                  const amountDisplay = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${row.amount_usdt} USD`;
+                  const receiptTexts: Record<string, string> = {
+                    uk: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0406\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0438\u0442\u0456\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0456\u0454 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0456\u0436: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0414\u044F\u043A\u0443\u0454\u043C\u043E \u0437\u0430 \u0434\u043E\u0432\u0456\u0440\u0443! \u{1F64F}`,
+                    ru: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0418\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0440\u043E\u0441\u043E\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0451\u0436: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0437\u0430 \u0434\u043E\u0432\u0435\u0440\u0438\u0435! \u{1F64F}`,
+                    en: `\u{1F9FE} *DARKSHARE RECEIPT*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Payment confirmed!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Amount: ${amountDisplay}\n\u{1F522} Requests: ${requestsDisplay}/day\n\u{1F4C5} Valid until: ${expiryStr}\n\u{1F194} Payment: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nThank you for your trust! \u{1F64F}`,
+                    es: `\u{1F9FE} *RECIBO DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u00A1Pago confirmado!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Monto: ${amountDisplay}\n\u{1F522} Solicitudes: ${requestsDisplay}/d\u00EDa\n\u{1F4C5} V\u00E1lido hasta: ${expiryStr}\n\u{1F194} Pago: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u00A1Gracias por su confianza! \u{1F64F}`,
+                    de: `\u{1F9FE} *DARKSHARE QUITTUNG*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Zahlung best\u00E4tigt!\n\n\u{1F4E6} Tarif: *${tier}*\n\u{1F4B0} Betrag: ${amountDisplay}\n\u{1F522} Anfragen: ${requestsDisplay}/Tag\n\u{1F4C5} G\u00FCltig bis: ${expiryStr}\n\u{1F194} Zahlung: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nVielen Dank f\u00FCr Ihr Vertrauen! \u{1F64F}`,
+                  };
+                  const receiptText = receiptTexts[lang] || receiptTexts["en"];
+                  await botInstance.telegram.sendMessage(user.tgId, receiptText, { parse_mode: "Markdown" });
+                } catch (e) { console.log("Failed to send auto-receipt:", e); }
+              }
+
+              if (botInstance) {
+                const amountStr = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${row.amount_usdt}`;
+                const msgText = `\u2705 MonoPay \u043E\u043F\u043B\u0430\u0442\u0430 #${row.id} \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u0430 (auto-check)\n\n\u{1F4B0} ${amountStr}\n\u{1F4E6} ${row.tier}`;
+                for (const adminId of ADMIN_IDS) {
+                  try { await botInstance.telegram.sendMessage(adminId, msgText); } catch (e) {}
+                }
+              }
+            }
+          } else if (statusData.status === "expired" || statusData.status === "failure") {
+            await storage.updatePaymentStatus(row.id, "expired");
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (e) {
+          console.log(`Failed to check payment ${row.id}:`, e);
+        }
+      }
+    } catch (err) {
+      console.error("Pending payments check error:", err);
+    }
+  }
+
+  setInterval(checkPendingMonoPayments, 2 * 60 * 1000);
 
   // ==================== ADMIN API ROUTES ====================
   
