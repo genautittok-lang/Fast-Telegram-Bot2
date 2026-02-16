@@ -70,7 +70,7 @@ export class WebhookHandlers {
     try {
       const user = await storage.getUserByTgId(userTgId);
       if (user) {
-        const requestsLeft = TIER_REQUESTS[tier] || 100;
+        const requestsLeft = TIER_REQUESTS[tier] || 50;
         await storage.updateUser(user.id, {
           tier,
           requestsLeft,
@@ -112,7 +112,7 @@ export class WebhookHandlers {
   }
 
   private static async handleInvoicePaid(invoice: Stripe.Invoice) {
-    const subscriptionId = invoice.subscription as string;
+    const subscriptionId = (invoice as any).subscription as string;
     if (!subscriptionId) return;
 
     console.log(`Invoice paid for subscription ${subscriptionId}`);
