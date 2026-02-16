@@ -1880,7 +1880,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const methodName = "💳 Google Pay / Apple Pay";
     
     try {
-      const response = await fetch(`http://localhost:5000/api/payments/monopay/bot-create`, {
+      const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/payments/monopay/bot-create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

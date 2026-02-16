@@ -55,6 +55,7 @@ import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: number }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -84,12 +85,12 @@ function AnimatedNumber({ value, duration = 2000 }: { value: number; duration?: 
   return <span ref={ref}>{displayValue.toLocaleString()}</span>;
 }
 
-function ModuleCard({ icon, title, description, apis, delay = 0 }: { 
+function ModuleCard({ icon, title, color, delay = 0, onClick }: { 
   icon: React.ReactNode; 
   title: string; 
-  description: string;
-  apis?: string[];
+  color: string;
   delay?: number;
+  onClick?: () => void;
 }) {
   return (
     <motion.div
@@ -99,41 +100,22 @@ function ModuleCard({ icon, title, description, apis, delay = 0 }: {
       transition={{ delay, duration: 0.5 }}
       whileHover={{ 
         y: -4, 
-        scale: 1.02,
+        scale: 1.03,
         transition: { duration: 0.2, ease: "easeOut" }
       }}
-      className="group relative p-2 sm:p-4 md:p-5 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 hover:shadow-[0_8px_30px_rgba(34,197,94,0.12)] transition-all duration-300 cursor-pointer"
+      onClick={onClick}
+      className="cursor-pointer rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 min-h-[100px] sm:min-h-[120px]"
+      style={{ background: color }}
+      data-testid={`card-module-${title}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
-      
-      <div className="relative z-10 space-y-1 sm:space-y-3">
-        <motion.div 
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary/20 group-hover:border-primary/40 transition-all duration-300"
-          whileHover={{ rotate: [0, -5, 5, 0], transition: { duration: 0.4 } }}
-        >
-          <div className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
-            {icon}
-          </div>
-        </motion.div>
-        
-        <div className="space-y-0.5 sm:space-y-1.5">
-          <h3 className="text-[11px] sm:text-sm font-bold group-hover:text-primary transition-colors leading-tight line-clamp-2">
-            {title}
-          </h3>
-          <p className="hidden sm:block text-[10px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2">
-            {description}
-          </p>
-          {apis && apis.length > 0 && (
-            <div className="hidden sm:flex flex-wrap gap-1 pt-0.5 sm:pt-1 min-w-0 overflow-hidden">
-              {apis.map((api, idx) => (
-                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground font-mono truncate group-hover:bg-primary/10 group-hover:text-primary/80 transition-colors duration-300">
-                  {api}
-                </span>
-              ))}
-            </div>
-          )}
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center text-white">
+        <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center">
+          {icon}
         </div>
       </div>
+      <h3 className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
+        {title}
+      </h3>
     </motion.div>
   );
 }
@@ -142,70 +124,91 @@ export default function Home() {
   const { t, lang } = useTranslation();
   
   const [openFaqItems, setOpenFaqItems] = useState<number[]>([]);
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
   const { data: stats, isLoading: statsLoading } = useStats();
   const { data: activity } = useActivity();
   const { data: leaderboard } = useLeaderboard();
 
+  const whatIsAnalyzed = lang === "uk" ? "ЩО АНАЛІЗУЄТЬСЯ" : lang === "ru" ? "ЧТО АНАЛИЗИРУЕТСЯ" : lang === "es" ? "QUÉ SE ANALIZA" : lang === "de" ? "WAS WIRD ANALYSIERT" : "WHAT IS ANALYZED";
+  const goToCheck = lang === "uk" ? "Перейти до перевірки" : lang === "ru" ? "Перейти к проверке" : lang === "es" ? "Ir a verificación" : lang === "de" ? "Zur Überprüfung" : "Go to check";
+
   const modules = [
-    {
-      icon: <Wallet className="w-5 h-5" />,
-      title: t("dashboard.checkTypes.wallet"),
-      description: lang === "uk" ? "Аналіз криптогаманців, історія транзакцій та оцінка ризиків" : lang === "ru" ? "Анализ криптокошельков, история транзакций и оценка рисков" : lang === "es" ? "Análisis de billeteras, historial de transacciones y puntuación de riesgo" : lang === "de" ? "Wallet-Analyse, Transaktionshistorie & Risikobewertung" : "Wallet analysis, transaction history & risk scoring",
-      apis: ["Etherscan", "Blockchair"]
-    },
     {
       icon: <Globe className="w-5 h-5" />,
       title: t("dashboard.checkTypes.ip"),
       description: lang === "uk" ? "Геолокація, ISP інформація та перевірка репутації IP" : lang === "ru" ? "Геолокация, ISP информация и проверка репутации IP" : lang === "es" ? "Geolocalización, información ISP y reputación IP" : lang === "de" ? "Geolokalisierung, ISP-Info & IP-Reputation" : "Geolocation, ISP info & IP reputation check",
-      apis: ["Shodan", "AbuseIPDB"]
+      apis: ["Shodan", "AbuseIPDB"],
+      color: "linear-gradient(135deg, #2dd4bf, #059669)"
     },
     {
-      icon: <Search className="w-5 h-5" />,
-      title: t("dashboard.checkTypes.domain"),
-      description: lang === "uk" ? "WHOIS, DNS записи, SSL сертифікати та історія" : lang === "ru" ? "WHOIS, DNS записи, SSL сертификаты и история" : lang === "es" ? "WHOIS, registros DNS, certificados SSL e historial" : lang === "de" ? "WHOIS, DNS-Einträge, SSL-Zertifikate & Verlauf" : "WHOIS, DNS records, SSL certificates & history",
-      apis: ["urlscan.io", "SecurityTrails"]
+      icon: <Wallet className="w-5 h-5" />,
+      title: t("dashboard.checkTypes.wallet"),
+      description: lang === "uk" ? "Аналіз криптогаманців, історія транзакцій та оцінка ризиків" : lang === "ru" ? "Анализ криптокошельков, история транзакций и оценка рисков" : lang === "es" ? "Análisis de billeteras, historial de transacciones y puntuación de riesgo" : lang === "de" ? "Wallet-Analyse, Transaktionshistorie & Risikobewertung" : "Wallet analysis, transaction history & risk scoring",
+      apis: ["Etherscan", "Blockchair"],
+      color: "linear-gradient(135deg, #f97316, #ea580c)"
     },
     {
       icon: <Mail className="w-5 h-5" />,
       title: t("dashboard.checkTypes.email"),
       description: lang === "uk" ? "Перевірка витоків, пов'язані акаунти та breach data" : lang === "ru" ? "Проверка утечек, связанные аккаунты и breach data" : lang === "es" ? "Verificación de filtraciones, cuentas vinculadas y datos de brechas" : lang === "de" ? "Leak-Prüfung, verknüpfte Konten & Breach-Daten" : "Breach check, linked accounts & leak data",
-      apis: ["HIBP", "LeakCheck"]
+      apis: ["HIBP", "LeakCheck"],
+      color: "linear-gradient(135deg, #a78bfa, #7c3aed)"
     },
     {
       icon: <Phone className="w-5 h-5" />,
       title: t("dashboard.checkTypes.phone"),
       description: lang === "uk" ? "Оператор, країна, лінія та перевірка spam" : lang === "ru" ? "Оператор, страна, линия и проверка spam" : lang === "es" ? "Operador, país, tipo de línea y verificación de spam" : lang === "de" ? "Anbieter, Land, Leitungstyp & Spam-Check" : "Carrier, country, line type & spam check",
-      apis: ["NumVerify", "Twilio"]
+      apis: ["NumVerify", "Twilio"],
+      color: "linear-gradient(135deg, #14b8a6, #0d9488)"
     },
     {
-      icon: <Bug className="w-5 h-5" />,
-      title: t("dashboard.checkTypes.hash"),
-      description: lang === "uk" ? "Аналіз файлів, хешів та URL на шкідливість" : lang === "ru" ? "Анализ файлов, хешей и URL на вредоносность" : lang === "es" ? "Análisis de archivos, hashes y URL maliciosos" : lang === "de" ? "Datei-, Hash- & URL-Malware-Analyse" : "File, hash & URL malware analysis",
-      apis: ["VirusTotal", "MalwareBazaar"]
-    },
-    {
-      icon: <Shield className="w-5 h-5" />,
-      title: t("dashboard.checkTypes.cve"),
-      description: lang === "uk" ? "Пошук вразливостей та exploits по CVE" : lang === "ru" ? "Поиск уязвимостей и exploits по CVE" : lang === "es" ? "Búsqueda de vulnerabilidades y exploits por CVE" : lang === "de" ? "Schwachstellen- & Exploit-Suche nach CVE" : "Vulnerability & exploit search by CVE",
-      apis: ["NVD NIST", "Exploit-DB"]
+      icon: <Search className="w-5 h-5" />,
+      title: t("dashboard.checkTypes.domain"),
+      description: lang === "uk" ? "WHOIS, DNS записи, SSL сертифікати та історія" : lang === "ru" ? "WHOIS, DNS записи, SSL сертификаты и история" : lang === "es" ? "WHOIS, registros DNS, certificados SSL e historial" : lang === "de" ? "WHOIS, DNS-Einträge, SSL-Zertifikate & Verlauf" : "WHOIS, DNS records, SSL certificates & history",
+      apis: ["urlscan.io", "SecurityTrails"],
+      color: "linear-gradient(135deg, #64748b, #475569)"
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
       title: t("dashboard.checkTypes.url"),
       description: lang === "uk" ? "Перевірка URL на фішинг та шкідливість" : lang === "ru" ? "Проверка URL на фишинг и вредоносность" : lang === "es" ? "Detección de phishing y malware en URL" : lang === "de" ? "URL-Phishing- & Malware-Erkennung" : "URL phishing & malware detection",
-      apis: ["urlscan.io", "Google Safe"]
+      apis: ["urlscan.io", "Google Safe"],
+      color: "linear-gradient(135deg, #fb7185, #e11d48)"
     },
     {
       icon: <Bot className="w-5 h-5" />,
       title: t("dashboard.checkTypes.bot"),
       description: lang === "uk" ? "Перевірка Telegram Bot API токенів на валідність" : lang === "ru" ? "Проверка Telegram Bot API токенов на валидность" : lang === "es" ? "Validar tokens de API de Telegram Bot" : lang === "de" ? "Telegram Bot API Token validieren" : "Validate Telegram Bot API tokens",
-      apis: ["Telegram API"]
+      apis: ["Telegram API"],
+      color: "linear-gradient(135deg, #67e8f9, #06b6d4)"
+    },
+    {
+      icon: <Shield className="w-5 h-5" />,
+      title: t("dashboard.checkTypes.cve"),
+      description: lang === "uk" ? "Пошук вразливостей та exploits по CVE" : lang === "ru" ? "Поиск уязвимостей и exploits по CVE" : lang === "es" ? "Búsqueda de vulnerabilidades y exploits por CVE" : lang === "de" ? "Schwachstellen- & Exploit-Suche nach CVE" : "Vulnerability & exploit search by CVE",
+      apis: ["NVD NIST", "Exploit-DB"],
+      color: "linear-gradient(135deg, #f472b6, #db2777)"
+    },
+    {
+      icon: <Bug className="w-5 h-5" />,
+      title: t("dashboard.checkTypes.hash"),
+      description: lang === "uk" ? "Аналіз файлів, хешів та URL на шкідливість" : lang === "ru" ? "Анализ файлов, хешей и URL на вредоносность" : lang === "es" ? "Análisis de archivos, hashes y URL maliciosos" : lang === "de" ? "Datei-, Hash- & URL-Malware-Analyse" : "File, hash & URL malware analysis",
+      apis: ["VirusTotal", "MalwareBazaar"],
+      color: "linear-gradient(135deg, #c4b5fd, #8b5cf6)"
     },
     {
       icon: <Search className="w-5 h-5" />,
       title: t("dashboard.checkTypes.username"),
       description: lang === "uk" ? "Пошук профілів по username на різних платформах" : lang === "ru" ? "Поиск профилей по username на разных платформах" : lang === "es" ? "Buscar perfiles por nombre de usuario en plataformas" : lang === "de" ? "Profile nach Benutzername suchen" : "Search profiles by username across platforms",
-      apis: ["GitHub", "Social"]
+      apis: ["GitHub", "Social"],
+      color: "linear-gradient(135deg, #fca5a5, #f97316)"
+    },
+    {
+      icon: <CreditCard className="w-5 h-5" />,
+      title: lang === "uk" ? "BIN Card" : lang === "ru" ? "BIN Card" : lang === "es" ? "BIN Card" : lang === "de" ? "BIN Card" : "BIN Card",
+      description: lang === "uk" ? "Перевірка BIN коду банківської картки" : lang === "ru" ? "Проверка BIN кода банковской карты" : lang === "es" ? "Verificación del código BIN de tarjeta" : lang === "de" ? "BIN-Code-Prüfung der Bankkarte" : "Bank card BIN code verification",
+      apis: ["BINList"],
+      color: "linear-gradient(135deg, #34d399, #10b981)"
     }
   ];
 
@@ -789,11 +792,62 @@ export default function Home() {
               {modules.map((module, idx) => (
                 <ModuleCard 
                   key={idx}
-                  {...module}
+                  icon={module.icon}
+                  title={module.title}
+                  color={module.color}
                   delay={0.05 * idx}
+                  onClick={() => setSelectedModule(idx)}
                 />
               ))}
             </div>
+
+            <Dialog open={selectedModule !== null} onOpenChange={(open) => { if (!open) setSelectedModule(null); }}>
+              <DialogContent className="sm:max-w-md" data-testid="dialog-module-detail">
+                {selectedModule !== null && (
+                  <>
+                    <DialogHeader>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div
+                          className="w-12 h-12 rounded-xl flex items-center justify-center text-white"
+                          style={{ background: modules[selectedModule].color }}
+                        >
+                          <div className="w-6 h-6 flex items-center justify-center">
+                            {modules[selectedModule].icon}
+                          </div>
+                        </div>
+                        <DialogTitle className="text-lg font-bold">
+                          {modules[selectedModule].title}
+                        </DialogTitle>
+                      </div>
+                      <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+                        {modules[selectedModule].description}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-3 pt-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        {whatIsAnalyzed}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {modules[selectedModule].apis.map((api, i) => (
+                          <span
+                            key={i}
+                            className="text-xs px-2.5 py-1 rounded-md bg-primary/10 text-primary font-mono"
+                          >
+                            {api}
+                          </span>
+                        ))}
+                      </div>
+                      <Link href="/login">
+                        <Button className="w-full mt-3" data-testid="button-go-to-check">
+                          <ChevronRight className="w-4 h-4 mr-2" />
+                          {goToCheck}
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         </section>
 
