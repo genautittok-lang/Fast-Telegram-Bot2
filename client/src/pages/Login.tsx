@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe, AlertTriangle, TrendingUp } from "lucide-react";
+import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe, AlertTriangle, TrendingUp, KeyRound } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -45,11 +46,13 @@ declare global {
 
 export default function Login() {
   const telegramRef = useRef<HTMLDivElement>(null);
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, requiresTwoFactor, verifyTwoFactor } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useTranslation();
   const { data: platformStats } = useStats();
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [twoFactorLoading, setTwoFactorLoading] = useState(false);
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -58,15 +61,32 @@ export default function Login() {
     }
   }, [isAuthenticated, setLocation]);
 
+  const handleTwoFactorSubmit = async () => {
+    if (twoFactorCode.length !== 6) return;
+    setTwoFactorLoading(true);
+    try {
+      await verifyTwoFactor(twoFactorCode);
+      toast({ title: t("auth.loginSuccess") });
+      setLocation("/dashboard");
+    } catch {
+      toast({
+        title: t("account.twoFactorInvalidCode"),
+        variant: "destructive",
+      });
+      setTwoFactorCode("");
+    } finally {
+      setTwoFactorLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (requiresTwoFactor) return;
+  }, [requiresTwoFactor]);
+
   useEffect(() => {
     window.onTelegramAuth = async (telegramUser: any) => {
       try {
         await login(telegramUser);
-        toast({
-          title: t("auth.loginSuccess"),
-          description: `${t("landing.hero.welcome")}, ${telegramUser.first_name || telegramUser.username}!`,
-        });
-        setLocation("/dashboard");
       } catch (err) {
         toast({
           title: t("auth.loginError"),
@@ -217,21 +237,54 @@ export default function Login() {
                 <div className="mx-auto mb-4 w-24 h-24 rounded-3xl overflow-hidden border-2 border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.2)]">
                   <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
                 </div>
-                <h2 className="text-2xl font-display font-bold">{t("auth.loginTitle")}</h2>
+                <h2 className="text-2xl font-display font-bold">
+                  {requiresTwoFactor ? t("account.twoFactorRequired") : t("auth.loginTitle")}
+                </h2>
                 <p className="text-muted-foreground text-sm mt-2">
-                  {t("auth.loginSubtitle")}
+                  {requiresTwoFactor ? t("account.twoFactorLoginDesc") : t("auth.loginSubtitle")}
                 </p>
               </CardHeader>
               <CardContent className="space-y-6 pb-8">
-                <div className="flex flex-col items-center gap-4">
-                  <div 
-                    ref={telegramRef} 
-                    className="telegram-login-container"
-                    data-testid="telegram-login-widget"
-                  />
-                </div>
-                
-                              </CardContent>
+                {requiresTwoFactor ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
+                      <KeyRound className="w-8 h-8 text-primary" />
+                    </div>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={(e) => e.key === "Enter" && handleTwoFactorSubmit()}
+                      className="text-center text-2xl font-mono tracking-[0.5em] max-w-[200px] bg-zinc-900/50 border-white/10"
+                      data-testid="input-2fa-login-code"
+                    />
+                    <Button
+                      onClick={handleTwoFactorSubmit}
+                      disabled={twoFactorCode.length !== 6 || twoFactorLoading}
+                      className="w-full max-w-[200px]"
+                      data-testid="button-2fa-login-verify"
+                    >
+                      {twoFactorLoading ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        t("account.twoFactorVerify")
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <div 
+                      ref={telegramRef} 
+                      className="telegram-login-container"
+                      data-testid="telegram-login-widget"
+                    />
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </motion.div>
         </div>

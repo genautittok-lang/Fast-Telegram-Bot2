@@ -461,6 +461,23 @@ export interface TranslationSchema {
     deleteAllSessions: string;
     allSessionsDeleted: string;
     allSessionsDeleteError: string;
+    twoFactorAuth: string;
+    twoFactorDesc: string;
+    twoFactorEnabled: string;
+    twoFactorDisabled: string;
+    twoFactorSetup: string;
+    twoFactorScanQR: string;
+    twoFactorManualKey: string;
+    twoFactorEnterCode: string;
+    twoFactorVerify: string;
+    twoFactorDisable: string;
+    twoFactorEnable: string;
+    twoFactorSuccess: string;
+    twoFactorDisableSuccess: string;
+    twoFactorError: string;
+    twoFactorInvalidCode: string;
+    twoFactorRequired: string;
+    twoFactorLoginDesc: string;
   };
   landing: {
     hero: {
@@ -1171,6 +1188,23 @@ export const translations: Record<Language, TranslationSchema> = {
       deleteAllSessions: "Delete all other sessions",
       allSessionsDeleted: "All other sessions deleted",
       allSessionsDeleteError: "Error deleting sessions",
+      twoFactorAuth: "Two-Factor Authentication",
+      twoFactorDesc: "Add extra security to your account with TOTP",
+      twoFactorEnabled: "2FA Enabled",
+      twoFactorDisabled: "2FA Disabled",
+      twoFactorSetup: "Set Up 2FA",
+      twoFactorScanQR: "Scan the QR code with your authenticator app",
+      twoFactorManualKey: "Or enter this key manually",
+      twoFactorEnterCode: "Enter verification code",
+      twoFactorVerify: "Verify & Enable",
+      twoFactorDisable: "Disable 2FA",
+      twoFactorEnable: "Enable 2FA",
+      twoFactorSuccess: "Two-factor authentication enabled",
+      twoFactorDisableSuccess: "Two-factor authentication disabled",
+      twoFactorError: "Failed to set up 2FA",
+      twoFactorInvalidCode: "Invalid verification code",
+      twoFactorRequired: "Two-factor authentication required",
+      twoFactorLoginDesc: "Enter the code from your authenticator app",
     },
     landing: {
       hero: {
@@ -1879,6 +1913,23 @@ export const translations: Record<Language, TranslationSchema> = {
       deleteAllSessions: "Видалити всі інші сесії",
       allSessionsDeleted: "Всі інші сесії видалено",
       allSessionsDeleteError: "Помилка видалення сесій",
+      twoFactorAuth: "Двофакторна автентифікація",
+      twoFactorDesc: "Додайте додатковий захист акаунту за допомогою TOTP",
+      twoFactorEnabled: "2FA увімкнено",
+      twoFactorDisabled: "2FA вимкнено",
+      twoFactorSetup: "Налаштувати 2FA",
+      twoFactorScanQR: "Відскануйте QR-код у додатку автентифікації",
+      twoFactorManualKey: "Або введіть цей ключ вручну",
+      twoFactorEnterCode: "Введіть код підтвердження",
+      twoFactorVerify: "Підтвердити та увімкнути",
+      twoFactorDisable: "Вимкнути 2FA",
+      twoFactorEnable: "Увімкнути 2FA",
+      twoFactorSuccess: "Двофакторну автентифікацію увімкнено",
+      twoFactorDisableSuccess: "Двофакторну автентифікацію вимкнено",
+      twoFactorError: "Не вдалося налаштувати 2FA",
+      twoFactorInvalidCode: "Невірний код підтвердження",
+      twoFactorRequired: "Потрібна двофакторна автентифікація",
+      twoFactorLoginDesc: "Введіть код з додатку автентифікації",
     },
     landing: {
       hero: {
@@ -2587,6 +2638,23 @@ export const translations: Record<Language, TranslationSchema> = {
       deleteAllSessions: "Удалить все другие сессии",
       allSessionsDeleted: "Все другие сессии удалены",
       allSessionsDeleteError: "Ошибка удаления сессий",
+      twoFactorAuth: "Двухфакторная аутентификация",
+      twoFactorDesc: "Добавьте дополнительную защиту аккаунта с помощью TOTP",
+      twoFactorEnabled: "2FA включена",
+      twoFactorDisabled: "2FA отключена",
+      twoFactorSetup: "Настроить 2FA",
+      twoFactorScanQR: "Отсканируйте QR-код в приложении аутентификации",
+      twoFactorManualKey: "Или введите этот ключ вручную",
+      twoFactorEnterCode: "Введите код подтверждения",
+      twoFactorVerify: "Подтвердить и включить",
+      twoFactorDisable: "Отключить 2FA",
+      twoFactorEnable: "Включить 2FA",
+      twoFactorSuccess: "Двухфакторная аутентификация включена",
+      twoFactorDisableSuccess: "Двухфакторная аутентификация отключена",
+      twoFactorError: "Не удалось настроить 2FA",
+      twoFactorInvalidCode: "Неверный код подтверждения",
+      twoFactorRequired: "Требуется двухфакторная аутентификация",
+      twoFactorLoginDesc: "Введите код из приложения аутентификации",
     },
     landing: {
       hero: {
@@ -3295,6 +3363,23 @@ export const translations: Record<Language, TranslationSchema> = {
       deleteAllSessions: "Eliminar todas las demás sesiones",
       allSessionsDeleted: "Todas las demás sesiones eliminadas",
       allSessionsDeleteError: "Error al eliminar sesiones",
+      twoFactorAuth: "Autenticación de dos factores",
+      twoFactorDesc: "Agrega seguridad adicional a tu cuenta con TOTP",
+      twoFactorEnabled: "2FA activado",
+      twoFactorDisabled: "2FA desactivado",
+      twoFactorSetup: "Configurar 2FA",
+      twoFactorScanQR: "Escanea el código QR con tu aplicación de autenticación",
+      twoFactorManualKey: "O introduce esta clave manualmente",
+      twoFactorEnterCode: "Introduce el código de verificación",
+      twoFactorVerify: "Verificar y activar",
+      twoFactorDisable: "Desactivar 2FA",
+      twoFactorEnable: "Activar 2FA",
+      twoFactorSuccess: "Autenticación de dos factores activada",
+      twoFactorDisableSuccess: "Autenticación de dos factores desactivada",
+      twoFactorError: "Error al configurar 2FA",
+      twoFactorInvalidCode: "Código de verificación inválido",
+      twoFactorRequired: "Se requiere autenticación de dos factores",
+      twoFactorLoginDesc: "Introduce el código de tu aplicación de autenticación",
     },
     landing: {
       hero: {
@@ -4003,6 +4088,23 @@ export const translations: Record<Language, TranslationSchema> = {
       deleteAllSessions: "Alle anderen Sitzungen löschen",
       allSessionsDeleted: "Alle anderen Sitzungen gelöscht",
       allSessionsDeleteError: "Fehler beim Löschen der Sitzungen",
+      twoFactorAuth: "Zwei-Faktor-Authentifizierung",
+      twoFactorDesc: "Fügen Sie Ihrem Konto zusätzliche Sicherheit mit TOTP hinzu",
+      twoFactorEnabled: "2FA aktiviert",
+      twoFactorDisabled: "2FA deaktiviert",
+      twoFactorSetup: "2FA einrichten",
+      twoFactorScanQR: "Scannen Sie den QR-Code mit Ihrer Authenticator-App",
+      twoFactorManualKey: "Oder geben Sie diesen Schlüssel manuell ein",
+      twoFactorEnterCode: "Bestätigungscode eingeben",
+      twoFactorVerify: "Bestätigen und aktivieren",
+      twoFactorDisable: "2FA deaktivieren",
+      twoFactorEnable: "2FA aktivieren",
+      twoFactorSuccess: "Zwei-Faktor-Authentifizierung aktiviert",
+      twoFactorDisableSuccess: "Zwei-Faktor-Authentifizierung deaktiviert",
+      twoFactorError: "2FA-Einrichtung fehlgeschlagen",
+      twoFactorInvalidCode: "Ungültiger Bestätigungscode",
+      twoFactorRequired: "Zwei-Faktor-Authentifizierung erforderlich",
+      twoFactorLoginDesc: "Geben Sie den Code aus Ihrer Authenticator-App ein",
     },
     landing: {
       hero: {

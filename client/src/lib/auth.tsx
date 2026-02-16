@@ -18,13 +18,16 @@ interface User {
   notifsOn?: boolean;
   digestsOn?: boolean;
   lang?: string;
+  totpEnabled?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  requiresTwoFactor: boolean;
   login: (telegramData: any) => Promise<void>;
+  verifyTwoFactor: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -34,6 +37,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
 
   const checkAuth = async () => {
     try {
@@ -54,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             notifsOn: data.notifsOn,
             digestsOn: data.digestsOn,
             lang: data.lang,
+            totpEnabled: data.totpEnabled,
           });
+          setRequiresTwoFactor(false);
         } else {
           setUser(null);
         }
@@ -72,9 +78,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await apiRequest("POST", "/api/auth/telegram", telegramData);
     if (res.ok) {
       const userData = await res.json();
+      if (userData.requiresTwoFactor) {
+        setRequiresTwoFactor(true);
+        return;
+      }
       setUser(userData);
+      setRequiresTwoFactor(false);
     } else {
       throw new Error("Login failed");
+    }
+  };
+
+  const verifyTwoFactor = async (token: string) => {
+    const res = await apiRequest("POST", "/api/2fa/login-verify", { token });
+    if (res.ok) {
+      const userData = await res.json();
+      setUser(userData);
+      setRequiresTwoFactor(false);
+    } else {
+      throw new Error("Invalid 2FA code");
     }
   };
 
@@ -83,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/auth/logout");
     } finally {
       setUser(null);
+      setRequiresTwoFactor(false);
     }
   };
 
@@ -96,7 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        requiresTwoFactor,
         login,
+        verifyTwoFactor,
         logout,
         checkAuth,
       }}

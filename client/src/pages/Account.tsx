@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Shield, 
@@ -29,8 +29,13 @@ import {
   Users,
   Activity,
   Trash2,
-  LogOut
+  LogOut,
+  KeyRound,
+  ShieldCheck,
+  QrCode,
+  X
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { FireStreak } from "@/components/FireStreak";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -137,6 +142,13 @@ export default function Account() {
     threats: user?.notifsOn ?? true,
     updates: user?.digestsOn ?? false,
   });
+  const [twoFASetupData, setTwoFASetupData] = useState<{ uri: string; secret: string } | null>(null);
+  const [twoFACode, setTwoFACode] = useState("");
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [twoFADisableCode, setTwoFADisableCode] = useState("");
+  const [showTwoFASetup, setShowTwoFASetup] = useState(false);
+  const [showTwoFADisable, setShowTwoFADisable] = useState(false);
+  const [qrImageUrl, setQrImageUrl] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -183,6 +195,59 @@ export default function Account() {
       saveSettings({ digestsOn: value });
     }
   }, [saveSettings]);
+
+  const startTwoFASetup = useCallback(async () => {
+    setTwoFALoading(true);
+    try {
+      const res = await apiRequest("POST", "/api/2fa/setup");
+      const data = await res.json();
+      setTwoFASetupData(data);
+      setShowTwoFASetup(true);
+      const QRCode = (await import("qrcode")).default;
+      const url = await QRCode.toDataURL(data.uri, { width: 200, margin: 2 });
+      setQrImageUrl(url);
+    } catch {
+      toast({ title: t('account.twoFactorError'), variant: "destructive" });
+    } finally {
+      setTwoFALoading(false);
+    }
+  }, [toast, t]);
+
+  const verifyTwoFA = useCallback(async () => {
+    if (twoFACode.length !== 6) return;
+    setTwoFALoading(true);
+    try {
+      await apiRequest("POST", "/api/2fa/verify", { token: twoFACode });
+      toast({ title: t('account.twoFactorSuccess') });
+      setShowTwoFASetup(false);
+      setTwoFASetupData(null);
+      setTwoFACode("");
+      setQrImageUrl("");
+      await checkAuth();
+    } catch {
+      toast({ title: t('account.twoFactorInvalidCode'), variant: "destructive" });
+      setTwoFACode("");
+    } finally {
+      setTwoFALoading(false);
+    }
+  }, [twoFACode, toast, t, checkAuth]);
+
+  const disableTwoFA = useCallback(async () => {
+    if (twoFADisableCode.length !== 6) return;
+    setTwoFALoading(true);
+    try {
+      await apiRequest("POST", "/api/2fa/disable", { token: twoFADisableCode });
+      toast({ title: t('account.twoFactorDisableSuccess') });
+      setShowTwoFADisable(false);
+      setTwoFADisableCode("");
+      await checkAuth();
+    } catch {
+      toast({ title: t('account.twoFactorInvalidCode'), variant: "destructive" });
+      setTwoFADisableCode("");
+    } finally {
+      setTwoFALoading(false);
+    }
+  }, [twoFADisableCode, toast, t, checkAuth]);
 
   const { data: reports = [], isLoading: reportsLoading } = useQuery<Report[]>({
     queryKey: ['/api/reports'],
@@ -758,6 +823,183 @@ export default function Account() {
                     <p className="text-xs lg:text-sm text-muted-foreground truncate" data-testid="text-last-login">{user?.lastLogin ? new Date(user.lastLogin).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US") : new Date().toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US")}</p>
                   </div>
                 </div>
+              </div>
+
+              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-zinc-900/50 to-transparent border border-emerald-500/20">
+                <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-white text-sm lg:text-base">{t('account.twoFactorAuth')}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{t('account.twoFactorDesc')}</p>
+                    </div>
+                  </div>
+                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-zinc-700/50 text-zinc-400 border-zinc-600/50'}`}>
+                    {user?.totpEnabled ? t('account.twoFactorEnabled') : t('account.twoFactorDisabled')}
+                  </Badge>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  {!user?.totpEnabled && !showTwoFASetup && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <Button
+                        variant="ghost"
+                        className="w-full mt-2 text-emerald-400"
+                        onClick={startTwoFASetup}
+                        disabled={twoFALoading}
+                        data-testid="button-2fa-enable"
+                      >
+                        <KeyRound className="w-3.5 h-3.5 mr-1.5" />
+                        {twoFALoading ? (
+                          <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+                        ) : t('account.twoFactorEnable')}
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {showTwoFASetup && twoFASetupData && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-3 mt-3"
+                    >
+                      <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-zinc-900/80 border border-white/5">
+                        <p className="text-xs text-muted-foreground text-center">{t('account.twoFactorScanQR')}</p>
+                        {qrImageUrl && (
+                          <div className="p-2 rounded-lg bg-white">
+                            <img src={qrImageUrl} alt="QR Code" className="w-40 h-40" data-testid="img-2fa-qr" />
+                          </div>
+                        )}
+                        <div className="w-full">
+                          <p className="text-xs text-muted-foreground mb-1">{t('account.twoFactorManualKey')}</p>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-xs font-mono text-emerald-400 bg-zinc-800 px-2 py-1.5 rounded border border-zinc-700 break-all" data-testid="text-2fa-secret">
+                              {twoFASetupData.secret}
+                            </code>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => {
+                                navigator.clipboard.writeText(twoFASetupData.secret);
+                                toast({ title: t('account.keyCopied') });
+                              }}
+                              data-testid="button-copy-2fa-secret"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="w-full space-y-2">
+                          <p className="text-xs text-muted-foreground">{t('account.twoFactorEnterCode')}</p>
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            placeholder="000000"
+                            value={twoFACode}
+                            onChange={(e) => setTwoFACode(e.target.value.replace(/\D/g, ""))}
+                            onKeyDown={(e) => e.key === "Enter" && verifyTwoFA()}
+                            className="text-center text-lg font-mono tracking-[0.4em] bg-zinc-800 border-zinc-700"
+                            data-testid="input-2fa-setup-code"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={verifyTwoFA}
+                              disabled={twoFACode.length !== 6 || twoFALoading}
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-500"
+                              data-testid="button-2fa-verify"
+                            >
+                              {twoFALoading ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <Check className="w-3.5 h-3.5 mr-1.5" />
+                                  {t('account.twoFactorVerify')}
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => {
+                                setShowTwoFASetup(false);
+                                setTwoFASetupData(null);
+                                setTwoFACode("");
+                                setQrImageUrl("");
+                              }}
+                              data-testid="button-2fa-cancel"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {user?.totpEnabled && !showTwoFADisable && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <Button
+                        variant="ghost"
+                        className="w-full mt-2 text-red-400"
+                        onClick={() => setShowTwoFADisable(true)}
+                        data-testid="button-2fa-disable-start"
+                      >
+                        <X className="w-3.5 h-3.5 mr-1.5" />
+                        {t('account.twoFactorDisable')}
+                      </Button>
+                    </motion.div>
+                  )}
+
+                  {showTwoFADisable && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-2 mt-3"
+                    >
+                      <p className="text-xs text-muted-foreground">{t('account.twoFactorEnterCode')}</p>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={twoFADisableCode}
+                        onChange={(e) => setTwoFADisableCode(e.target.value.replace(/\D/g, ""))}
+                        onKeyDown={(e) => e.key === "Enter" && disableTwoFA()}
+                        className="text-center text-lg font-mono tracking-[0.4em] bg-zinc-800 border-zinc-700"
+                        data-testid="input-2fa-disable-code"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={disableTwoFA}
+                          disabled={twoFADisableCode.length !== 6 || twoFALoading}
+                          variant="destructive"
+                          className="flex-1"
+                          data-testid="button-2fa-disable-confirm"
+                        >
+                          {twoFALoading ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          ) : t('account.twoFactorDisable')}
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setShowTwoFADisable(false);
+                            setTwoFADisableCode("");
+                          }}
+                          data-testid="button-2fa-disable-cancel"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               
               <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">

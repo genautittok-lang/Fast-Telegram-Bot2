@@ -646,6 +646,8 @@ export class MemStorage implements IStorage {
       subscriptionExpiresAt: null,
       cardToken: null,
       autoRenew: false,
+      totpSecret: null,
+      totpEnabled: false,
     };
     this.users.set(id, user);
     return user;

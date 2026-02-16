@@ -14,6 +14,7 @@ import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./goo
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { TOTP, Secret } from "otpauth";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -411,6 +412,21 @@ export async function registerRoutes(
     const previousUserId = req.session?.userId;
     
     const finishLogin = () => {
+      if (finalUser.totpEnabled) {
+        req.session.pendingTwoFactorUserId = finalUser.id;
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error:", err);
+            if (!res.headersSent) {
+              return res.status(500).json({ error: "Session save error" });
+            }
+            return;
+          }
+          res.json({ requiresTwoFactor: true });
+        });
+        return;
+      }
+
       req.session.userId = finalUser.id;
       req.session.tgId = tgId;
       (req.session as any).userAgent = req.headers["user-agent"] || "Unknown";
@@ -473,6 +489,7 @@ export async function registerRoutes(
       notifsOn: authReq.user.notifsOn,
       digestsOn: authReq.user.digestsOn,
       lastLogin: authReq.user.lastLogin,
+      totpEnabled: authReq.user.totpEnabled || false,
     });
   });
 
@@ -604,6 +621,136 @@ export async function registerRoutes(
       res.clearCookie("connect.sid", { path: "/" });
       res.redirect("/");
     });
+  });
+
+  app.post("/api/2fa/setup", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const secret = new Secret();
+      const totp = new TOTP({
+        issuer: "DARKSHARE",
+        label: user.username || "user",
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+        secret,
+      });
+      await storage.updateUser(user.id, { totpSecret: secret.base32 } as any);
+      res.json({ uri: totp.toString(), secret: secret.base32 });
+    } catch (error) {
+      console.error("2FA setup error:", error);
+      res.status(500).json({ error: "Failed to setup 2FA" });
+    }
+  });
+
+  app.post("/api/2fa/verify", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const { token } = req.body;
+      if (!user.totpSecret) {
+        return res.status(400).json({ error: "2FA not set up" });
+      }
+      const totp = new TOTP({
+        issuer: "DARKSHARE",
+        label: user.username || "user",
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+        secret: Secret.fromBase32(user.totpSecret),
+      });
+      const result = totp.validate({ token, window: 1 });
+      if (result === null) {
+        return res.status(400).json({ error: "Invalid token" });
+      }
+      await storage.updateUser(user.id, { totpEnabled: true } as any);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("2FA verify error:", error);
+      res.status(500).json({ error: "Failed to verify 2FA" });
+    }
+  });
+
+  app.post("/api/2fa/disable", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const user = authReq.user!;
+      const { token } = req.body;
+      if (!user.totpSecret) {
+        return res.status(400).json({ error: "2FA not set up" });
+      }
+      const totp = new TOTP({
+        issuer: "DARKSHARE",
+        label: user.username || "user",
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+        secret: Secret.fromBase32(user.totpSecret),
+      });
+      const result = totp.validate({ token, window: 1 });
+      if (result === null) {
+        return res.status(400).json({ error: "Invalid token" });
+      }
+      await storage.updateUser(user.id, { totpEnabled: false, totpSecret: null } as any);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("2FA disable error:", error);
+      res.status(500).json({ error: "Failed to disable 2FA" });
+    }
+  });
+
+  app.post("/api/2fa/login-verify", async (req, res) => {
+    try {
+      const { token } = req.body;
+      const pendingUserId = req.session?.pendingTwoFactorUserId;
+      if (!pendingUserId) {
+        return res.status(400).json({ error: "No pending 2FA login" });
+      }
+      const user = await storage.getUserById(pendingUserId);
+      if (!user || !user.totpSecret) {
+        return res.status(400).json({ error: "User not found or 2FA not configured" });
+      }
+      const totp = new TOTP({
+        issuer: "DARKSHARE",
+        label: user.username || "user",
+        algorithm: "SHA1",
+        digits: 6,
+        period: 30,
+        secret: Secret.fromBase32(user.totpSecret),
+      });
+      const result = totp.validate({ token, window: 1 });
+      if (result === null) {
+        return res.status(400).json({ error: "Invalid token" });
+      }
+      req.session.userId = user.id;
+      req.session.tgId = user.tgId;
+      delete req.session.pendingTwoFactorUserId;
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ error: "Session save error" });
+        }
+        res.json({
+          id: user.id,
+          tgId: user.tgId,
+          username: user.username,
+          tier: user.tier,
+          requestsLeft: user.requestsLeft,
+          streakDays: user.streakDays,
+          refCode: user.refCode,
+        });
+      });
+    } catch (error) {
+      console.error("2FA login-verify error:", error);
+      res.status(500).json({ error: "Failed to verify 2FA login" });
+    }
+  });
+
+  app.get("/api/2fa/status", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user!;
+    res.json({ enabled: user.totpEnabled || false });
   });
 
   // Referrals endpoint (requires auth)
