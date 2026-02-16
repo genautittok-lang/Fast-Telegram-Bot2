@@ -1847,17 +1847,18 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const lang = await getLang(tgId);
     
     const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
-    const methodName = "Monobank";
+    const methodName = "💳 Google Pay / Apple Pay";
     
     try {
-      const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
-      const response = await fetch(`${webUrl}/api/payments/monopay/create`, {
+      const response = await fetch(`http://localhost:5000/api/payments/monopay/bot-create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Bot-Token": process.env.TELEGRAM_BOT_TOKEN || "",
+        },
         body: JSON.stringify({
           tier,
           period: "monthly",
-          paymentMethod: "monobank",
           tgId
         }),
       });

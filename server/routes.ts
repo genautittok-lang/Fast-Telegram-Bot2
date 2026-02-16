@@ -1310,6 +1310,108 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/payments/monopay/bot-create", async (req, res) => {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const authHeader = req.headers["x-bot-token"];
+    if (!botToken || authHeader !== botToken) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const { tier, period, tgId } = req.body;
+
+    if (!tgId) {
+      return res.status(400).json({ error: "Missing tgId" });
+    }
+    if (!tier || !["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) {
+      return res.status(400).json({ error: "Invalid tier" });
+    }
+
+    const paymentPeriod = period || "monthly";
+    if (!["monthly", "yearly"].includes(paymentPeriod)) {
+      return res.status(400).json({ error: "Invalid period" });
+    }
+
+    const monoToken = process.env.MONOBANK_TOKEN;
+    if (!monoToken) {
+      return res.status(503).json({ error: "MonoPay is not configured yet. Please use another payment method." });
+    }
+
+    const user = await storage.getUserByTgId(tgId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const normalizedTier = tier.toUpperCase();
+    let amountUAH = MONOPAY_PRICES_UAH[normalizedTier]?.[paymentPeriod] || 0;
+    if (!amountUAH) {
+      return res.status(400).json({ error: "Could not calculate price" });
+    }
+
+    const amountUSD = (amountUAH / UAH_PER_USD).toFixed(2);
+
+    try {
+      const payment = await storage.createPayment({
+        userId: user.id,
+        tier: normalizedTier,
+        amountUsdt: amountUSD,
+        txHash: null,
+        status: "pending",
+      });
+
+      const appUrl = process.env.APP_URL || 'https://darkshare.store';
+      const reference = `DS-${payment.id}`;
+
+      const monoResponse = await fetch("https://api.monobank.ua/api/merchant/invoice/create", {
+        method: "POST",
+        headers: {
+          "X-Token": monoToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: amountUAH * 100,
+          ccy: 980,
+          merchantPaymInfo: {
+            reference,
+            destination: `DARKSHARE ${normalizedTier} ${paymentPeriod}`,
+            comment: "DARKSHARE subscription",
+          },
+          redirectUrl: `${appUrl}/pricing?payment=success`,
+          webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
+        }),
+      });
+
+      if (!monoResponse.ok) {
+        const errorText = await monoResponse.text();
+        console.error("MonoPay bot API error:", monoResponse.status, errorText);
+        return res.status(502).json({ error: "Failed to create MonoPay invoice" });
+      }
+
+      const monoData = await monoResponse.json();
+
+      if (botInstance) {
+        const msgText = `\u{1F4B3} MonoPay \u0437\u0430\u044F\u0432\u043A\u0430 #${payment.id}\n\n` +
+          `\u{1F464} @${user.username || "\u2014"} (TG: ${user.tgId})\n` +
+          `\u{1F4E6} ${normalizedTier} (${paymentPeriod === "yearly" ? "\u0440\u0456\u043A" : "\u043C\u0456\u0441\u044F\u0446\u044C"})\n` +
+          `\u{1F4B0} ${amountUAH} UAH (~$${amountUSD})\n` +
+          `\u{1F517} Invoice: ${monoData.invoiceId || "\u2014"}\n` +
+          `\u{1F4F1} Source: Bot`;
+
+        for (const adminId of ADMIN_IDS) {
+          try {
+            await botInstance.telegram.sendMessage(adminId, msgText);
+          } catch (e) {
+            console.log(`Failed to notify admin ${adminId}:`, e);
+          }
+        }
+      }
+
+      res.json({ invoiceId: monoData.invoiceId, pageUrl: monoData.pageUrl });
+    } catch (err: any) {
+      console.error("MonoPay bot create error:", err);
+      res.status(500).json({ error: "Failed to create MonoPay payment" });
+    }
+  });
+
   app.post("/api/payments/monopay/webhook", async (req, res) => {
     const { invoiceId, status, amount, ccy, reference } = req.body;
     console.log("MonoPay webhook received:", JSON.stringify({ invoiceId, status, amount, ccy, reference }));
