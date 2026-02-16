@@ -771,27 +771,27 @@ Sources: ${result.sources.join(', ')}`;
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative p-3 sm:p-3.5 lg:p-5 rounded-xl lg:rounded-2xl transition-all duration-300 touch-manipulation min-h-[72px] sm:min-h-[80px] lg:min-h-[100px] btn-3d ${type.btn3d} ${
-                        isSelected ? 'btn-3d-selected ring-2 ring-white/30' : 'opacity-80'
+                      className={`relative flex flex-col items-center justify-center gap-2 sm:gap-2.5 lg:gap-3 p-3 sm:p-4 lg:p-5 rounded-xl transition-all duration-300 touch-manipulation min-h-[80px] sm:min-h-[90px] lg:min-h-[110px] bg-[#141418] border ${
+                        isSelected ? 'border-primary/50 ring-1 ring-primary/30' : 'border-white/10 hover:border-white/20'
                       }`}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: idx * 0.04, duration: 0.3, type: "spring", stiffness: 300 }}
                       data-testid={`button-check-type-${type.id}`}
                     >
-                      <div className="relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 lg:gap-3 h-full">
-                        <div className="btn-3d-icon">
-                          <div className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/20 transition-all duration-300`}>
-                            <type.icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-6 lg:h-6 text-white transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
-                          </div>
-                        </div>
-                        <span className={`text-[10px] sm:text-[11px] lg:text-xs font-bold text-center leading-tight line-clamp-2 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] transition-colors duration-300`}>
-                          {type.label}
-                        </span>
+                      <div className={`w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 transition-all duration-300 ${
+                        isSelected ? 'border-primary/30 text-primary' : 'text-muted-foreground'
+                      }`}>
+                        <type.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
                       </div>
+                      <span className={`text-[10px] sm:text-[11px] lg:text-xs font-medium text-center leading-tight line-clamp-2 transition-colors duration-300 ${
+                        isSelected ? 'text-primary' : 'text-muted-foreground'
+                      }`}>
+                        {type.label}
+                      </span>
                       {isSelected && (
                         <motion.div
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 lg:h-1 bg-gradient-to-r from-transparent via-white/80 to-transparent rounded-t-full"
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 bg-primary/60 rounded-t-full"
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />
