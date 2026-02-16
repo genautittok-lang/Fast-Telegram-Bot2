@@ -319,11 +319,7 @@ ${tierEmoji} ${t(lang, "common.tier")}: *${tierName}*
 ${t(lang, "dashboard.stats", { requestsLeft: String(requestsLeft), requestsLimit: String(requestsLimit) })}
 ${progressBar}
 🔥 ${t(lang, "common.streak")}: *${user?.streakDays || 0}*
-🕐 ${lastActivity}${requestsWarning}
-
-━━━━━━━━━━━━━━━━━━━━
-
-${t(lang, "dashboard.selectModule")}`;
+🕐 ${lastActivity}${requestsWarning}`;
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
@@ -1933,20 +1929,26 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
   bot.action(["buy_pro", "buy_enterprise"], async (ctx) => {
     const tier = ctx.match.input === "buy_pro" ? "PRO" : "ENTERPRISE";
-    const amount = tier === "PRO" ? "10" : "35"; // Синхронізовано з сайтом: PRO=$10, ENTERPRISE=$35
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-
-    userStates.set(tgId, { module: "payment", step: "awaiting_proof", data: { tier, amount } });
-
-    const text = `${t(lang, "payment.title", { tier })}\n\n${t(lang, "payment.amount", { amount })}\n\n${t(lang, "payment.address")}\n\n${t(lang, "payment.instructions")}`;
-
-    await ctx.reply(text, 
-      Markup.inlineKeyboard([
-        [Markup.button.callback("📋 " + t(lang, "buttons.copyAddress"), "copy_address")],
-        [Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]
-      ])
-    );
+    
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    const usdPrices: Record<string, number> = { PRO: 10, ENTERPRISE: 35, GROUPS: 55 };
+    
+    const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
+    
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`)],
+      [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
+      [Markup.button.callback("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`)],
+      [Markup.button.callback(t(lang, "buttons.back"), "bot_payment")]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
