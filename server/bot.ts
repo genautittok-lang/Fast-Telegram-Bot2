@@ -3936,7 +3936,10 @@ ${allTypesText}
     });
   });
 
-  bot.catch((err, ctx) => {
+  bot.catch((err: any, ctx) => {
+    if (err?.message?.includes("message is not modified")) {
+      return;
+    }
     console.error(`Bot error for ${ctx.updateType}:`, err);
   });
 
