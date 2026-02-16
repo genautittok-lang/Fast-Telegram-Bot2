@@ -78,28 +78,21 @@ export async function setupBot(storage: IStorage) {
 
   function getAdminKeyboard(lang: Language, exitAction: string = "back_to_dashboard") {
     return Markup.inlineKeyboard([
-      [
-        Markup.button.callback(t(lang, "admin.statsBtn"), "admin_stats"),
-        Markup.button.callback(t(lang, "admin.usersBtn"), "admin_users"),
-        Markup.button.callback(t(lang, "admin.searchBtn"), "admin_search_user")
-      ],
-      [
-        Markup.button.callback(t(lang, "admin.paymentsBtn"), "admin_payments"),
-        Markup.button.callback(t(lang, "admin.ticketsBtn"), "admin_tickets"),
-        Markup.button.callback(t(lang, "admin.couponsBtn"), "admin_coupons")
-      ],
-      [
-        Markup.button.callback(t(lang, "admin.revenueBtn"), "admin_revenue"),
-        Markup.button.callback(t(lang, "admin.reportsBtn"), "admin_reports"),
-        Markup.button.callback(t(lang, "admin.broadcastBtn"), "admin_broadcast")
-      ],
-      [
-        Markup.button.callback(t(lang, "admin.blockingBtn"), "admin_block_user"),
-        Markup.button.callback(t(lang, "admin.tiersBtn"), "admin_change_tier"),
-        Markup.button.callback(t(lang, "admin.addReqBtn"), "admin_add_requests")
-      ],
-      [Markup.button.callback(t(lang, "admin.settingsBtn"), "admin_settings")],
-      [Markup.button.callback(t(lang, "admin.exitBtn"), exitAction)]
+      [Markup.button.callback("📊 " + (t(lang, "admin.statsBtn") || "Stats"), "admin_stats"),
+       Markup.button.callback("👥 " + (t(lang, "admin.usersBtn") || "Users"), "admin_users")],
+      [Markup.button.callback("🔍 " + (t(lang, "admin.searchBtn") || "Search"), "admin_search_user"),
+       Markup.button.callback("💰 " + (t(lang, "admin.paymentsBtn") || "Payments"), "admin_payments")],
+      [Markup.button.callback("🎫 " + (t(lang, "admin.ticketsBtn") || "Tickets"), "admin_tickets"),
+       Markup.button.callback("🎁 " + (t(lang, "admin.couponsBtn") || "Coupons"), "admin_coupons")],
+      [Markup.button.callback("💵 " + (t(lang, "admin.revenueBtn") || "Revenue"), "admin_revenue"),
+       Markup.button.callback("📋 " + (t(lang, "admin.reportsBtn") || "Reports"), "admin_reports")],
+      [Markup.button.callback("📢 " + (t(lang, "admin.broadcastBtn") || "Broadcast"), "admin_broadcast"),
+       Markup.button.callback("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user")],
+      [Markup.button.callback("⭐ " + (t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier"),
+       Markup.button.callback("➕ " + (t(lang, "admin.addReqBtn") || "Add Req"), "admin_add_requests")],
+      [Markup.button.callback("⚙️ " + (t(lang, "admin.settingsBtn") || "Settings"), "admin_settings"),
+       Markup.button.callback("📈 " + (lang === "uk" ? "Онлайн" : lang === "ru" ? "Онлайн" : "Online"), "admin_online")],
+      [Markup.button.callback("🔙 " + (t(lang, "admin.exitBtn") || "Exit"), exitAction)]
     ]);
   }
 
@@ -333,12 +326,9 @@ ${progressBar}
 ${t(lang, "dashboard.selectModule")}`;
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
-    const checkMenuUrl = process.env.REPLIT_DEV_DOMAIN
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}/bot-check-menu`
-      : `${webUrl}/bot-check-menu`;
 
     const keyboardRows: any[][] = [
-      [Markup.button.webApp("🔍 " + t(lang, "buttons.check"), checkMenuUrl)],
+      [Markup.button.callback("🔍 " + t(lang, "buttons.check"), "check_all")],
       [
         Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl),
         Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")
@@ -696,25 +686,6 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     }
   });
 
-  bot.on("web_app_data", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
-    try {
-      const data = JSON.parse(ctx.message.web_app_data.data);
-      if (data.module) {
-        const validModules = ["ip", "wallet", "email", "phone", "domain", "url", "bot", "cve", "hash", "username", "card"];
-        if (validModules.includes(data.module)) {
-          userStates.set(tgId, { module: data.module, step: "input" });
-          const text = t(lang, `modulePrompts.${data.module}`);
-          const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]]);
-          await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
-        }
-      }
-    } catch (err) {
-      console.error("Web app data error:", err);
-    }
-  });
-
   bot.on("text", async (ctx) => {
     const text = ctx.message.text;
     const tgId = ctx.from!.id.toString();
@@ -746,8 +717,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
           await ctx.reply(promoText, {
             parse_mode: "Markdown",
             ...Markup.inlineKeyboard([
-              [Markup.button.callback("📱 Google Pay", `bot_pay_method_${tier}_googlepay`)],
-              [Markup.button.callback("🍎 Apple Pay", `bot_pay_method_${tier}_applepay`)],
+              [Markup.button.callback("🏦 Monobank (Google Pay / Apple Pay)", `bot_pay_method_${tier}_monobank`)],
               [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
               [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
             ])
@@ -1859,8 +1829,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback("📱 Google Pay", `bot_pay_method_${tier}_googlepay`)],
-      [Markup.button.callback("🍎 Apple Pay", `bot_pay_method_${tier}_applepay`)],
+      [Markup.button.callback("🏦 Monobank (Google Pay / Apple Pay)", `bot_pay_method_${tier}_monobank`)],
       [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
       [Markup.button.callback("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`)],
       [Markup.button.callback(t(lang, "buttons.back"), "bot_payment")]
@@ -1873,14 +1842,13 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     }
   });
 
-  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_(googlepay|applepay)$/, async (ctx) => {
+  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_monobank$/, async (ctx) => {
     const tier = ctx.match[1];
-    const method = ctx.match[2];
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
     
     const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
-    const methodName = method === "googlepay" ? "Google Pay" : "Apple Pay";
+    const methodName = "Monobank";
     
     try {
       const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
@@ -1890,7 +1858,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
         body: JSON.stringify({
           tier,
           period: "monthly",
-          paymentMethod: method,
+          paymentMethod: "monobank",
           tgId
         }),
       });
@@ -2496,14 +2464,29 @@ ${allTypesText}
     }
     
     const stats = await storage.getStats();
+    const allUsers = await storage.getAllUsers();
+    const proCount = allUsers.filter(u => u.tier === "PRO").length;
+    const entCount = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const groupsCount = allUsers.filter(u => u.tier === "GROUPS").length;
+    const blockedCount = allUsers.filter(u => u.blocked).length;
+    const todayUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt);
+      const now = new Date();
+      return d.toDateString() === now.toDateString();
+    }).length;
 
-    const text = `${t(lang, "admin.panelTitle")}\n\n` +
-      `${t(lang, "admin.statistics")}\n` +
-      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
-      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
-      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
-      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
-      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+    const text = `🛡️ *DARKSHARE Admin Panel*\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}*\n` +
+      `├ 👥 ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${stats.totalUsers}*\n` +
+      `├ 🆕 ${lang === "uk" ? "Сьогодні" : lang === "ru" ? "Сегодня" : "Today"}: *${todayUsers}*\n` +
+      `├ ⭐ PRO: *${proCount}* | 👑 ENT: *${entCount}* | 👥 GRP: *${groupsCount}*\n` +
+      `├ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: *${blockedCount}*\n` +
+      `├ 📋 ${lang === "uk" ? "Звіти" : lang === "ru" ? "Отчёты" : "Reports"}: *${stats.totalReports || 0}*\n` +
+      `├ 🔍 ${lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : "Checks today"}: *${stats.checksToday || 0}*\n` +
+      `├ 👁️ ${lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : "Monitors"}: *${stats.activeWatches}*\n` +
+      `└ 💰 ${lang === "uk" ? "Очікують оплати" : lang === "ru" ? "Ожидают оплаты" : "Pending"}: *${stats.pendingPayments || 0}*\n\n` +
       `${t(lang, "admin.selectAction")}`;
 
     await ctx.reply(text, {
@@ -2521,14 +2504,29 @@ ${allTypesText}
     }
     
     const stats = await storage.getStats();
+    const allUsers = await storage.getAllUsers();
+    const proCount = allUsers.filter(u => u.tier === "PRO").length;
+    const entCount = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const groupsCount = allUsers.filter(u => u.tier === "GROUPS").length;
+    const blockedCount = allUsers.filter(u => u.blocked).length;
+    const todayUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt);
+      const now = new Date();
+      return d.toDateString() === now.toDateString();
+    }).length;
 
-    const text = `${t(lang, "admin.panelTitle")}\n\n` +
-      `${t(lang, "admin.statistics")}\n` +
-      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
-      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
-      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
-      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
-      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+    const text = `🛡️ *DARKSHARE Admin Panel*\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}*\n` +
+      `├ 👥 ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${stats.totalUsers}*\n` +
+      `├ 🆕 ${lang === "uk" ? "Сьогодні" : lang === "ru" ? "Сегодня" : "Today"}: *${todayUsers}*\n` +
+      `├ ⭐ PRO: *${proCount}* | 👑 ENT: *${entCount}* | 👥 GRP: *${groupsCount}*\n` +
+      `├ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: *${blockedCount}*\n` +
+      `├ 📋 ${lang === "uk" ? "Звіти" : lang === "ru" ? "Отчёты" : "Reports"}: *${stats.totalReports || 0}*\n` +
+      `├ 🔍 ${lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : "Checks today"}: *${stats.checksToday || 0}*\n` +
+      `├ 👁️ ${lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : "Monitors"}: *${stats.activeWatches}*\n` +
+      `└ 💰 ${lang === "uk" ? "Очікують оплати" : lang === "ru" ? "Ожидают оплаты" : "Pending"}: *${stats.pendingPayments || 0}*\n\n` +
       `${t(lang, "admin.selectAction")}`;
 
     await ctx.editMessageText(text, {
@@ -2548,30 +2546,68 @@ ${allTypesText}
     const stats = await storage.getStats();
     const allUsers = await storage.getAllUsers();
     
-    const freeUsers = allUsers.filter(u => u.tier === "FREE").length;
+    const freeUsers = allUsers.filter(u => !u.tier || u.tier === "FREE").length;
     const proUsers = allUsers.filter(u => u.tier === "PRO").length;
     const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const groupsUsers = allUsers.filter(u => u.tier === "GROUPS").length;
     const blockedUsers = allUsers.filter(u => u.blocked).length;
     
-    const text = `${t(lang, "admin.detailedStats")}\n\n` +
-      `${t(lang, "admin.usersBtn")}:\n` +
-      `├ ${t(lang, "admin.total")} ${stats.totalUsers}\n` +
-      `├ FREE: ${freeUsers}\n` +
-      `├ PRO: ${proUsers}\n` +
-      `├ ENTERPRISE: ${enterpriseUsers}\n` +
-      `└ ${t(lang, "admin.blockedCount")} ${blockedUsers}\n\n` +
-      `${t(lang, "admin.reportsCount")}\n` +
-      `├ ${t(lang, "admin.total")} ${stats.totalReports || 0}\n` +
-      `└ ${t(lang, "admin.today")} ${stats.checksToday || 0}\n\n` +
-      `${t(lang, "buttons.monitoring")}:\n` +
-      `└ ${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n\n` +
-      `${t(lang, "admin.paymentsBtn")}:\n` +
-      `└ ${t(lang, "admin.pending")} ${stats.pendingPayments || 0}`;
+    const totalPaid = proUsers + enterpriseUsers + groupsUsers;
+    const conversionRate = allUsers.length > 0 ? ((totalPaid / allUsers.length) * 100).toFixed(1) : "0";
+    
+    const todayUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt);
+      const now = new Date();
+      return d.toDateString() === now.toDateString();
+    }).length;
+    
+    const weekUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt).getTime();
+      return (Date.now() - d) < 7 * 24 * 60 * 60 * 1000;
+    }).length;
+    
+    const allPayments = await storage.getAllPayments();
+    const completedPayments = allPayments.filter(p => p.status === "completed" || p.status === "paid");
+    let totalRevenue = 0;
+    completedPayments.forEach(p => {
+      totalRevenue += parseFloat(p.amountUsdt?.toString() || "0");
+    });
+    
+    const makeBar = (value: number, total: number, length: number = 10): string => {
+      if (total === 0) return "░".repeat(length);
+      const filled = Math.round((value / total) * length);
+      return "█".repeat(Math.min(filled, length)) + "░".repeat(Math.max(length - filled, 0));
+    };
+    
+    const text = `📊 *${lang === "uk" ? "Детальна статистика" : lang === "ru" ? "Подробная статистика" : "Detailed Statistics"}*\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `👥 *${lang === "uk" ? "Користувачі" : lang === "ru" ? "Пользователи" : "Users"}*\n` +
+      `├ ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${allUsers.length}*\n` +
+      `├ ${lang === "uk" ? "Сьогодні" : lang === "ru" ? "Сегодня" : "Today"}: +${todayUsers}\n` +
+      `├ ${lang === "uk" ? "За тиждень" : lang === "ru" ? "За неделю" : "This week"}: +${weekUsers}\n` +
+      `└ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: ${blockedUsers}\n\n` +
+      `⭐ *${lang === "uk" ? "Тарифи" : lang === "ru" ? "Тарифы" : "Tiers"}*\n` +
+      `├ 🆓 FREE: ${freeUsers} [${makeBar(freeUsers, allUsers.length)}]\n` +
+      `├ ⭐ PRO: ${proUsers} [${makeBar(proUsers, allUsers.length)}]\n` +
+      `├ 👑 ENT: ${enterpriseUsers} [${makeBar(enterpriseUsers, allUsers.length)}]\n` +
+      `├ 👥 GRP: ${groupsUsers} [${makeBar(groupsUsers, allUsers.length)}]\n` +
+      `└ 📈 ${lang === "uk" ? "Конверсія" : lang === "ru" ? "Конверсия" : "Conversion"}: ${conversionRate}%\n\n` +
+      `💰 *${lang === "uk" ? "Фінанси" : lang === "ru" ? "Финансы" : "Finances"}*\n` +
+      `├ ${lang === "uk" ? "Дохід" : lang === "ru" ? "Доход" : "Revenue"}: $${totalRevenue.toFixed(2)}\n` +
+      `├ ${lang === "uk" ? "Оплат" : lang === "ru" ? "Оплат" : "Payments"}: ${completedPayments.length}\n` +
+      `└ ${lang === "uk" ? "Очікують" : lang === "ru" ? "Ожидают" : "Pending"}: ${stats.pendingPayments || 0}\n\n` +
+      `📋 *${lang === "uk" ? "Активність" : lang === "ru" ? "Активность" : "Activity"}*\n` +
+      `├ ${lang === "uk" ? "Звітів" : lang === "ru" ? "Отчётов" : "Reports"}: ${stats.totalReports || 0}\n` +
+      `├ ${lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : "Today"}: ${stats.checksToday || 0}\n` +
+      `└ ${lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : "Monitors"}: ${stats.activeWatches}`;
 
     try {
       await ctx.editMessageText(text, {
+        parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [Markup.button.callback(t(lang, "admin.refresh"), "admin_stats")],
+          [Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_stats")],
           [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
         ])
       });
@@ -2709,14 +2745,29 @@ ${allTypesText}
     userStates.delete(tgId);
     
     const stats = await storage.getStats();
+    const allUsers = await storage.getAllUsers();
+    const proCount = allUsers.filter(u => u.tier === "PRO").length;
+    const entCount = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const groupsCount = allUsers.filter(u => u.tier === "GROUPS").length;
+    const blockedCount = allUsers.filter(u => u.blocked).length;
+    const todayUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt);
+      const now = new Date();
+      return d.toDateString() === now.toDateString();
+    }).length;
 
-    const text = `${t(lang, "admin.panelTitle")}\n\n` +
-      `${t(lang, "admin.statistics")}\n` +
-      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
-      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
-      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
-      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
-      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+    const text = `🛡️ *DARKSHARE Admin Panel*\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}*\n` +
+      `├ 👥 ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${stats.totalUsers}*\n` +
+      `├ 🆕 ${lang === "uk" ? "Сьогодні" : lang === "ru" ? "Сегодня" : "Today"}: *${todayUsers}*\n` +
+      `├ ⭐ PRO: *${proCount}* | 👑 ENT: *${entCount}* | 👥 GRP: *${groupsCount}*\n` +
+      `├ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: *${blockedCount}*\n` +
+      `├ 📋 ${lang === "uk" ? "Звіти" : lang === "ru" ? "Отчёты" : "Reports"}: *${stats.totalReports || 0}*\n` +
+      `├ 🔍 ${lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : "Checks today"}: *${stats.checksToday || 0}*\n` +
+      `├ 👁️ ${lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : "Monitors"}: *${stats.activeWatches}*\n` +
+      `└ 💰 ${lang === "uk" ? "Очікують оплати" : lang === "ru" ? "Ожидают оплаты" : "Pending"}: *${stats.pendingPayments || 0}*\n\n` +
       `${t(lang, "admin.selectAction")}`;
 
     await ctx.editMessageText(text, {
@@ -2778,14 +2829,29 @@ ${allTypesText}
     await ctx.answerCbQuery(t(lang, "admin.broadcastCancelled"));
     
     const stats = await storage.getStats();
+    const allUsers = await storage.getAllUsers();
+    const proCount = allUsers.filter(u => u.tier === "PRO").length;
+    const entCount = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const groupsCount = allUsers.filter(u => u.tier === "GROUPS").length;
+    const blockedCount = allUsers.filter(u => u.blocked).length;
+    const todayUsers = allUsers.filter(u => {
+      if (!u.createdAt) return false;
+      const d = new Date(u.createdAt);
+      const now = new Date();
+      return d.toDateString() === now.toDateString();
+    }).length;
 
-    const text = `${t(lang, "admin.panelTitle")}\n\n` +
-      `${t(lang, "admin.statistics")}\n` +
-      `${t(lang, "admin.usersCount")} ${stats.totalUsers}\n` +
-      `${t(lang, "admin.reportsCount")} ${stats.totalReports || 0}\n` +
-      `${t(lang, "admin.checksToday")} ${stats.checksToday || 0}\n` +
-      `${t(lang, "admin.activeMonitors")} ${stats.activeWatches}\n` +
-      `${t(lang, "admin.pendingPayments")} ${stats.pendingPayments || 0}\n\n` +
+    const text = `🛡️ *DARKSHARE Admin Panel*\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}*\n` +
+      `├ 👥 ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${stats.totalUsers}*\n` +
+      `├ 🆕 ${lang === "uk" ? "Сьогодні" : lang === "ru" ? "Сегодня" : "Today"}: *${todayUsers}*\n` +
+      `├ ⭐ PRO: *${proCount}* | 👑 ENT: *${entCount}* | 👥 GRP: *${groupsCount}*\n` +
+      `├ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: *${blockedCount}*\n` +
+      `├ 📋 ${lang === "uk" ? "Звіти" : lang === "ru" ? "Отчёты" : "Reports"}: *${stats.totalReports || 0}*\n` +
+      `├ 🔍 ${lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : "Checks today"}: *${stats.checksToday || 0}*\n` +
+      `├ 👁️ ${lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : "Monitors"}: *${stats.activeWatches}*\n` +
+      `└ 💰 ${lang === "uk" ? "Очікують оплати" : lang === "ru" ? "Ожидають оплаты" : "Pending"}: *${stats.pendingPayments || 0}*\n\n` +
       `${t(lang, "admin.selectAction")}`;
 
     await ctx.editMessageText(text, {
@@ -2933,27 +2999,100 @@ ${allTypesText}
     const allUsers = await storage.getAllUsers();
     const proUsers = allUsers.filter(u => u.tier === "PRO").length;
     const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
+    const groupsUsers = allUsers.filter(u => u.tier === "GROUPS").length;
     const blockedUsers = allUsers.filter(u => u.blocked).length;
     
-    const text = `${t(lang, "admin.settingsTitle")}\n\n` +
-      `${t(lang, "admin.limitsTitle")}\n` +
-      `├ FREE: 5 ${t(lang, "admin.requestsDay")}\n` +
-      `├ PRO: ${t(lang, "admin.unlimited")}\n` +
-      `└ ENTERPRISE: ${t(lang, "admin.unlimitedApi")}\n\n` +
-      `${t(lang, "admin.pricesTitle")}\n` +
-      `├ PRO: $10 USDT\n` +
-      `└ ENTERPRISE: $50 USDT\n\n` +
-      `${t(lang, "admin.tierStatsTitle")}\n` +
-      `├ FREE: ${stats.totalUsers - proUsers - enterpriseUsers}\n` +
+    const uptimeMs = process.uptime() * 1000;
+    const uptimeHrs = Math.floor(uptimeMs / 3600000);
+    const uptimeMins = Math.floor((uptimeMs % 3600000) / 60000);
+    
+    const text = `⚙️ *${lang === "uk" ? "Налаштування системи" : lang === "ru" ? "Настройки системы" : "System Settings"}*\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `🖥️ *${lang === "uk" ? "Система" : lang === "ru" ? "Система" : "System"}*\n` +
+      `├ Uptime: ${uptimeHrs}h ${uptimeMins}m\n` +
+      `├ Node: ${process.version}\n` +
+      `├ Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB\n` +
+      `└ ${lang === "uk" ? "Адмінів" : lang === "ru" ? "Админов" : "Admins"}: ${ADMIN_IDS.length}\n\n` +
+      `📊 *${lang === "uk" ? "Ліміти запитів" : lang === "ru" ? "Лимиты запросов" : "Request Limits"}*\n` +
+      `├ 🆓 FREE: 5/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
+      `├ ⭐ PRO: 100/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
+      `├ 👑 ENTERPRISE: ${lang === "uk" ? "безлім" : lang === "ru" ? "безлим" : "unlimited"}\n` +
+      `└ 👥 GROUPS: ${lang === "uk" ? "безлім" : lang === "ru" ? "безлим" : "unlimited"}\n\n` +
+      `💳 *${lang === "uk" ? "Ціни" : lang === "ru" ? "Цены" : "Prices"}*\n` +
+      `├ PRO: $10/m (410 UAH)\n` +
+      `├ ENTERPRISE: $35/m (1435 UAH)\n` +
+      `└ GROUPS: $55/m (2255 UAH)\n\n` +
+      `👥 *${lang === "uk" ? "Розподіл тарифів" : lang === "ru" ? "Распределение тарифов" : "Tier Distribution"}*\n` +
+      `├ FREE: ${stats.totalUsers - proUsers - enterpriseUsers - groupsUsers}\n` +
       `├ PRO: ${proUsers}\n` +
       `├ ENTERPRISE: ${enterpriseUsers}\n` +
-      `└ ${t(lang, "admin.blockedCount")} ${blockedUsers}\n\n` +
-      `${t(lang, "admin.adminsCount")} ${ADMIN_IDS.length}`;
+      `├ GROUPS: ${groupsUsers}\n` +
+      `└ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: ${blockedUsers}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [Markup.button.callback(t(lang, "admin.refresh"), "admin_settings")],
+        [Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_settings")],
+        [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
+      ])
+    });
+  });
+
+  bot.action("admin_online", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    if (!isAdmin(tgId)) {
+      return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    }
+    
+    const allUsers = await storage.getAllUsers();
+    const now = Date.now();
+    const onlineThreshold = 15 * 60 * 1000;
+    const dayThreshold = 24 * 60 * 60 * 1000;
+    
+    const recentUsers = allUsers.filter(u => {
+      if (!u.lastLogin) return false;
+      const lastActive = new Date(u.lastLogin).getTime();
+      return (now - lastActive) < dayThreshold;
+    }).sort((a, b) => {
+      const aTime = a.lastLogin ? new Date(a.lastLogin).getTime() : 0;
+      const bTime = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
+      return bTime - aTime;
+    });
+    
+    const onlineNow = recentUsers.filter(u => {
+      const lastActive = new Date(u.lastLogin!).getTime();
+      return (now - lastActive) < onlineThreshold;
+    });
+    
+    let text = `📈 *${lang === "uk" ? "Активність користувачів" : lang === "ru" ? "Активность пользователей" : "User Activity"}*\n\n`;
+    text += `🟢 ${lang === "uk" ? "Онлайн (15 хв)" : lang === "ru" ? "Онлайн (15 мин)" : "Online (15 min)"}: *${onlineNow.length}*\n`;
+    text += `📊 ${lang === "uk" ? "За 24 години" : lang === "ru" ? "За 24 часа" : "Last 24h"}: *${recentUsers.length}*\n\n`;
+    
+    if (onlineNow.length > 0) {
+      text += `🟢 *${lang === "uk" ? "Зараз онлайн:" : lang === "ru" ? "Сейчас онлайн:" : "Currently online:"}*\n`;
+      onlineNow.slice(0, 15).forEach((u, i) => {
+        const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : u.tgId;
+        const tierEmoji = u.tier === "ENTERPRISE" ? "👑" : u.tier === "PRO" ? "⭐" : "🆓";
+        text += `${i + 1}. ${tierEmoji} @${escapedUsername}\n`;
+      });
+    }
+    
+    if (recentUsers.length > onlineNow.length) {
+      text += `\n📋 *${lang === "uk" ? "Нещодавно активні:" : lang === "ru" ? "Недавно активные:" : "Recently active:"}*\n`;
+      recentUsers.filter(u => !onlineNow.includes(u)).slice(0, 10).forEach((u, i) => {
+        const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : u.tgId;
+        const tierEmoji = u.tier === "ENTERPRISE" ? "👑" : u.tier === "PRO" ? "⭐" : "🆓";
+        const lastTime = u.lastLogin ? new Date(u.lastLogin).toLocaleTimeString() : "?";
+        text += `${i + 1}. ${tierEmoji} @${escapedUsername} (${lastTime})\n`;
+      });
+    }
+    
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_online")],
         [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
       ])
     });
@@ -3249,34 +3388,64 @@ ${allTypesText}
     
     const allPayments = await storage.getAllPayments();
     const completed = allPayments.filter(p => p.status === "completed" || p.status === "paid");
+    const pending = allPayments.filter(p => p.status === "pending");
     
     let totalRevenue = 0;
-    const tierCounts: Record<string, number> = {};
+    const tierRevenue: Record<string, number> = {};
+    const monthlyRevenue: Record<string, number> = {};
     
     completed.forEach(p => {
-      totalRevenue += parseFloat(p.amountUsdt?.toString() || "0");
+      const amount = parseFloat(p.amountUsdt?.toString() || "0");
+      totalRevenue += amount;
       const tier = p.tier || "UNKNOWN";
-      tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+      tierRevenue[tier] = (tierRevenue[tier] || 0) + amount;
+      if (p.createdAt) {
+        const d = new Date(p.createdAt);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + amount;
+      }
     });
     
-    let text = t(lang, "admin.revenueTitle") + "\n\n";
-    text += `${t(lang, "admin.totalRevenue")} $${totalRevenue.toFixed(2)} USDT\n`;
-    text += `${t(lang, "admin.completedPayments")} ${completed.length}\n\n`;
-    text += `${t(lang, "admin.paymentsByTier")}\n`;
-    
-    Object.entries(tierCounts).forEach(([tier, count]) => {
-      text += `  ${tier}: ${count}\n`;
+    let pendingAmount = 0;
+    pending.forEach(p => {
+      pendingAmount += parseFloat(p.amountUsdt?.toString() || "0");
     });
     
-    text += `\n${t(lang, "admin.recentPayments")}\n`;
+    let text = `💵 *${lang === "uk" ? "Фінансовий звіт" : lang === "ru" ? "Финансовый отчёт" : "Revenue Report"}*\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    text += `💰 ${lang === "uk" ? "Загальний дохід" : lang === "ru" ? "Общий доход" : "Total revenue"}: *$${totalRevenue.toFixed(2)}*\n`;
+    text += `📊 ${lang === "uk" ? "Оплачено" : lang === "ru" ? "Оплачено" : "Completed"}: *${completed.length}*\n`;
+    text += `⏳ ${lang === "uk" ? "Очікують" : lang === "ru" ? "Ожидают" : "Pending"}: ${pending.length} (~$${pendingAmount.toFixed(2)})\n\n`;
+    
+    if (Object.keys(tierRevenue).length > 0) {
+      text += `⭐ *${lang === "uk" ? "По тарифах" : lang === "ru" ? "По тарифам" : "By tier"}:*\n`;
+      Object.entries(tierRevenue).sort((a, b) => b[1] - a[1]).forEach(([tier, amount]) => {
+        text += `├ ${tier}: $${amount.toFixed(2)}\n`;
+      });
+      text += `\n`;
+    }
+    
+    const sortedMonths = Object.entries(monthlyRevenue).sort((a, b) => b[0].localeCompare(a[0]));
+    if (sortedMonths.length > 0) {
+      text += `📅 *${lang === "uk" ? "По місяцях" : lang === "ru" ? "По месяцам" : "Monthly"}:*\n`;
+      sortedMonths.slice(0, 6).forEach(([month, amount]) => {
+        text += `├ ${month}: $${amount.toFixed(2)}\n`;
+      });
+      text += `\n`;
+    }
+    
+    text += `📋 *${lang === "uk" ? "Останні оплати" : lang === "ru" ? "Последние оплаты" : "Recent payments"}:*\n`;
     completed.slice(0, 5).forEach(p => {
       const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "?";
-      text += `  $${p.amountUsdt} - ${p.tier || "?"} - ${date}\n`;
+      text += `├ $${p.amountUsdt} | ${p.tier || "?"} | ${date}\n`;
     });
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[Markup.button.callback(t(lang, "admin.back"), "admin_back")]])
+      ...Markup.inlineKeyboard([
+        [Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_revenue")],
+        [Markup.button.callback(t(lang, "admin.back"), "admin_back")]
+      ])
     });
   });
 
