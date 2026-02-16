@@ -24,7 +24,9 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Added getReportsByUserId storage method, removed duplicate /api/teams/join route
 - Multi-step payment flow: tier selection → payment method (Crypto/Stripe/MonoPay) → payment details with timer
 - MonoPay (Monobank) payment integration: invoice creation API + webhook for auto-confirmation (UAH pricing)
-- FREE tier daily limits enforced: 5 checks/day FREE, 100 PRO, unlimited ENTERPRISE/GROUPS (web + bot + bulk)
+- FREE tier daily limits enforced: 5 checks/day FREE, 50 PRO, unlimited ENTERPRISE/GROUPS (web + bot + bulk)
+- MonoPay webhook auto-confirms payments and upgrades user tier automatically on success
+- Bot-accessible MonoPay endpoint `/api/payments/monopay/bot-create` with X-Bot-Token auth
 - Home page modules compacted for mobile: 2-column grid, hidden descriptions/tags, smaller icons
 - Reversh Partnership redesigned as collapsible banner at top of Referral page
 - Reorganized Telegram bot dashboard into categories: Network & Web, Crypto & Finance, OSINT, Security
