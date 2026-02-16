@@ -46,6 +46,9 @@ export async function setupBot(storage: IStorage) {
     { command: "support", description: "Contact support" },
   ]).catch(err => console.error("Failed to set commands:", err.message));
 
+  bot.telegram.setChatMenuButton({ menuButton: { type: "commands" } })
+    .catch(err => console.error("Failed to reset menu button:", err.message));
+
   const userStates: Map<string, { module?: string; step?: string; data?: any }> = new Map();
 
   bot.use(async (ctx, next) => {
