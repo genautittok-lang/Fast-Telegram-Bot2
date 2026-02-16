@@ -422,7 +422,7 @@ function PricingContent() {
                   onClick={() => handlePayment("PRO")}
                   data-testid="button-pro-plan"
                 >
-                  <Star className="h-4 w-4" />
+                  <span className="btn-3d-icon"><Star className="h-4 w-4" /></span>
                   {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")} USDT
                 </button>
               </CardFooter>
@@ -468,7 +468,7 @@ function PricingContent() {
                   onClick={() => handlePayment("ENTERPRISE")}
                   data-testid="button-enterprise-plan"
                 >
-                  <Crown className="h-4 w-4" />
+                  <span className="btn-3d-icon"><Crown className="h-4 w-4" /></span>
                   {t('pricing.subscribe') || "Subscribe"} — ${getPrice("ENTERPRISE")} USDT
                 </button>
               </CardFooter>
@@ -518,7 +518,7 @@ function PricingContent() {
                   onClick={() => handlePayment("GROUPS")}
                   data-testid="button-groups-plan"
                 >
-                  <Users className="h-4 w-4" />
+                  <span className="btn-3d-icon"><Users className="h-4 w-4" /></span>
                   {t('pricing.subscribe') || "Subscribe"} — ${getPrice("GROUPS")} USDT
                 </button>
               </CardFooter>

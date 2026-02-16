@@ -780,13 +780,11 @@ Sources: ${result.sources.join(', ')}`;
                       data-testid={`button-check-type-${type.id}`}
                     >
                       <div className="relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 lg:gap-3 h-full">
-                        <motion.div 
-                          className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/20 transition-all duration-300`}
-                          animate={isSelected ? { scale: [1, 1.05, 1] } : {}}
-                          transition={{ duration: 0.4 }}
-                        >
-                          <type.icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-6 lg:h-6 text-white transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
-                        </motion.div>
+                        <div className="btn-3d-icon">
+                          <div className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/20 transition-all duration-300`}>
+                            <type.icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-6 lg:h-6 text-white transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
+                          </div>
+                        </div>
                         <span className={`text-[10px] sm:text-[11px] lg:text-xs font-bold text-center leading-tight line-clamp-2 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] transition-colors duration-300`}>
                           {type.label}
                         </span>
