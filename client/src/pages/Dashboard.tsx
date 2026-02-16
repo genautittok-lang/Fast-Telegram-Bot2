@@ -771,29 +771,49 @@ Sources: ${result.sources.join(', ')}`;
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative flex flex-col items-center justify-center gap-2 sm:gap-2.5 lg:gap-3 p-3 sm:p-4 lg:p-5 rounded-xl transition-all duration-300 touch-manipulation min-h-[80px] sm:min-h-[90px] lg:min-h-[110px] bg-[#141418] border ${
-                        isSelected ? 'border-primary/50 ring-1 ring-primary/30' : 'border-white/10 hover:border-white/20'
+                      className={`relative flex flex-col items-center justify-center gap-2 sm:gap-2.5 lg:gap-3 p-3 sm:p-4 lg:p-5 rounded-xl touch-manipulation min-h-[80px] sm:min-h-[90px] lg:min-h-[110px] border transition-all duration-300 group ${
+                        isSelected
+                          ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor}`
+                          : 'bg-[#17171c] border-white/[0.06] hover:bg-[#1c1c22] hover:border-white/15'
                       }`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.04, duration: 0.3, type: "spring", stiffness: 300 }}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ delay: idx * 0.04, duration: 0.35, type: "spring", stiffness: 260, damping: 20 }}
                       data-testid={`button-check-type-${type.id}`}
                     >
-                      <div className={`w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 transition-all duration-300 ${
-                        isSelected ? 'border-primary/30 text-primary' : 'text-muted-foreground'
-                      }`}>
+                      <motion.div
+                        className={`w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                          isSelected
+                            ? `${type.iconColor} bg-white/10 border border-white/15`
+                            : 'text-muted-foreground bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.07] group-hover:border-white/10'
+                        }`}
+                        animate={isSelected ? { scale: [1, 1.08, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                      >
                         <type.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
-                      </div>
+                      </motion.div>
                       <span className={`text-[10px] sm:text-[11px] lg:text-xs font-medium text-center leading-tight line-clamp-2 transition-colors duration-300 ${
-                        isSelected ? 'text-primary' : 'text-muted-foreground'
+                        isSelected ? `${type.iconColor}` : 'text-muted-foreground group-hover:text-foreground/70'
                       }`}>
                         {type.label}
                       </span>
                       {isSelected && (
                         <motion.div
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 bg-primary/60 rounded-full"
+                          className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 rounded-full`}
+                          style={{ background: `var(--color-primary)` }}
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        />
+                      )}
+                      {isSelected && (
+                        <motion.div
+                          className="absolute inset-0 rounded-xl pointer-events-none"
+                          style={{ background: 'radial-gradient(ellipse at center bottom, rgba(255,255,255,0.03) 0%, transparent 70%)' }}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
                         />
                       )}
                     </motion.button>
