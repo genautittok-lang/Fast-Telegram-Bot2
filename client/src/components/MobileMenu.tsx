@@ -101,17 +101,51 @@ export function MobileMenu({
 
   const tierInfo = getTierBadge(tier);
 
+  const [showHint, setShowHint] = useState(false);
+
+  useEffect(() => {
+    const seen = localStorage.getItem('ds_menu_hint_seen');
+    if (!seen) {
+      setShowHint(true);
+    }
+  }, []);
+
+  const handleOpenMenu = () => {
+    setIsOpen(true);
+    if (showHint) {
+      setShowHint(false);
+      localStorage.setItem('ds_menu_hint_seen', '1');
+    }
+  };
+
   return (
     <>
-      <Button 
-        variant="ghost" 
-        size="icon"
-        onClick={() => setIsOpen(true)}
-        className="md:hidden"
-        data-testid="button-mobile-menu-open"
-      >
-        <Menu className="w-5 h-5" />
-      </Button>
+      <div className="relative md:hidden">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={handleOpenMenu}
+          data-testid="button-mobile-menu-open"
+        >
+          <Menu className="w-5 h-5" />
+        </Button>
+        <AnimatePresence>
+          {showHint && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.3 }}
+              className="absolute top-full right-0 mt-2 flex flex-col items-end z-50 pointer-events-none"
+            >
+              <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-primary mr-3" />
+              <div className="bg-primary text-black text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-[0_0_15px_rgba(34,197,94,0.4)]">
+                Menu
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <AnimatePresence>
         {isOpen && (

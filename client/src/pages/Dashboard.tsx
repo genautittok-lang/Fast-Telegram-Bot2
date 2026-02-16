@@ -791,7 +791,7 @@ Sources: ${result.sources.join(', ')}`;
                       </span>
                       {isSelected && (
                         <motion.div
-                          className="absolute -bottom-[8px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-primary/60 z-10"
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 bg-primary/60 rounded-full"
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />
