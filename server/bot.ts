@@ -333,9 +333,12 @@ ${progressBar}
 ${t(lang, "dashboard.selectModule")}`;
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+    const checkMenuUrl = process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}/bot-check-menu`
+      : `${webUrl}/bot-check-menu`;
 
-    const keyboardRows = [
-      [Markup.button.callback("🔍 " + t(lang, "buttons.check"), "check_all")],
+    const keyboardRows: any[][] = [
+      [Markup.button.webApp("🔍 " + t(lang, "buttons.check"), checkMenuUrl)],
       [
         Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl),
         Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")
@@ -381,53 +384,33 @@ ${t(lang, "dashboard.selectModule")}`;
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
 
-    const checkMenuUrl = process.env.REPLIT_DEV_DOMAIN
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}/bot-check-menu`
-      : `${process.env.WEB_DOMAIN || "https://www.darkshare.store"}/bot-check-menu`;
-
+    const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
+        Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
+        Markup.button.callback(t(lang, "modules.email"), "mod_email")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.phone"), "mod_phone"),
+        Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
+        Markup.button.callback(t(lang, "modules.url"), "mod_url")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
+        Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
+        Markup.button.callback(t(lang, "modules.username"), "mod_username")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.card"), "mod_card"),
+        Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
+      ],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
     try {
-      await ctx.reply(
-        `🔍 *${t(lang, "dashboard.selectModule")}*`,
-        {
-          parse_mode: "Markdown",
-          ...Markup.keyboard([
-            [Markup.button.webApp("🔍 " + t(lang, "dashboard.selectModule"), checkMenuUrl)]
-          ]).oneTime().resize()
-        }
-      );
-      await ctx.reply(
-        lang === "uk" ? "Або поверніться назад:" : lang === "ru" ? "Или вернитесь назад:" : "Or go back:",
-        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
-      );
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
-      const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
-      const keyboard = Markup.inlineKeyboard([
-        [
-          Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
-          Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
-          Markup.button.callback(t(lang, "modules.email"), "mod_email")
-        ],
-        [
-          Markup.button.callback(t(lang, "modules.phone"), "mod_phone"),
-          Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
-          Markup.button.callback(t(lang, "modules.url"), "mod_url")
-        ],
-        [
-          Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
-          Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
-          Markup.button.callback(t(lang, "modules.username"), "mod_username")
-        ],
-        [
-          Markup.button.callback(t(lang, "modules.card"), "mod_card"),
-          Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
-        ],
-        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
-      ]);
-      try {
-        await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
-      } catch {
-        await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
-      }
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
     }
   });
 
