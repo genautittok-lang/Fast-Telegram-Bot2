@@ -67,6 +67,7 @@
     "node-cron": "^4.2.1",
     "openai": "^6.17.0",
     "openid-client": "^6.8.1",
+    "otpauth": "^9.5.0",
     "p-limit": "^7.2.0",
     "p-retry": "^7.1.1",
     "passport": "^0.7.0",

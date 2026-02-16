@@ -22,6 +22,8 @@ export const users = pgTable("ds_users", {
   subscriptionExpiresAt: timestamp("subscription_expires_at"),
   cardToken: text("card_token"),
   autoRenew: boolean("auto_renew").default(false),
+  totpSecret: text("totp_secret"),
+  totpEnabled: boolean("totp_enabled").default(false),
 });
 
 export const reports = pgTable("ds_reports", {
