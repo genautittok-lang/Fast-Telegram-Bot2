@@ -342,7 +342,6 @@ ${t(lang, "dashboard.selectModule")}`;
         Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring")
       ],
       [
-        Markup.button.callback("💳 " + t(lang, "buttons.payment"), "bot_payment"),
         Markup.button.callback(t(lang, "buttons.settings"), "settings")
       ],
       [
@@ -717,7 +716,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
           await ctx.reply(promoText, {
             parse_mode: "Markdown",
             ...Markup.inlineKeyboard([
-              [Markup.button.callback("🏦 Monobank (Google Pay / Apple Pay)", `bot_pay_method_${tier}_monobank`)],
+              [Markup.button.callback("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`)],
               [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
               [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
             ])
@@ -1829,7 +1828,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback("🏦 Monobank (Google Pay / Apple Pay)", `bot_pay_method_${tier}_monobank`)],
+      [Markup.button.callback("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`)],
       [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
       [Markup.button.callback("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`)],
       [Markup.button.callback(t(lang, "buttons.back"), "bot_payment")]
