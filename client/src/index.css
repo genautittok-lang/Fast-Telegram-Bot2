@@ -263,6 +263,7 @@
 }
 
 .btn-3d .btn-3d-icon {
+  display: inline-block;
   animation: btn-3d-float 2.5s ease-in-out infinite;
 }
 
