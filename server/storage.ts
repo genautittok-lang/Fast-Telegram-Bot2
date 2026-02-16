@@ -1,6 +1,6 @@
 import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, desc } from "drizzle-orm";
+import { eq, sql, desc, and } from "drizzle-orm";
 
 export interface ReferralStats {
   count: number;
@@ -68,6 +68,7 @@ export interface IStorage {
   createCoupon(coupon: InsertCoupon): Promise<Coupon>;
   deleteCoupon(id: number): Promise<void>;
   useCoupon(couponId: number, userId: number): Promise<void>;
+  hasUserUsedCoupon(couponId: number, userId: number): Promise<boolean>;
   
   // Admin settings
   getAdminSetting(key: string): Promise<string | undefined>;
@@ -371,6 +372,13 @@ export class DatabaseStorage implements IStorage {
     await db.update(coupons).set({ usedCount: sql`${coupons.usedCount} + 1` }).where(eq(coupons.id, couponId));
   }
 
+  async hasUserUsedCoupon(couponId: number, userId: number): Promise<boolean> {
+    if (!db) throw new Error("Database not available");
+    const [usage] = await db.select().from(couponUsages)
+      .where(and(eq(couponUsages.couponId, couponId), eq(couponUsages.userId, userId)));
+    return !!usage;
+  }
+
   // Admin settings
   async getAdminSetting(key: string): Promise<string | undefined> {
     if (!db) throw new Error("Database not available");
@@ -635,6 +643,9 @@ export class MemStorage implements IStorage {
       digestsOn: insertUser.digestsOn ?? true,
       lastLogin: new Date(),
       createdAt: new Date(),
+      subscriptionExpiresAt: null,
+      cardToken: null,
+      autoRenew: false,
     };
     this.users.set(id, user);
     return user;
@@ -733,6 +744,7 @@ export class MemStorage implements IStorage {
       txHash: insertPayment.txHash || null,
       screenshotUrl: insertPayment.screenshotUrl || null,
       status: insertPayment.status || "pending",
+      period: insertPayment.period || null,
       createdAt: new Date(),
     };
     this.payments.set(id, payment);
@@ -812,6 +824,7 @@ export class MemStorage implements IStorage {
   async createCoupon(coupon: InsertCoupon): Promise<Coupon> { throw new Error("Not available"); }
   async deleteCoupon(id: number): Promise<void> {}
   async useCoupon(couponId: number, userId: number): Promise<void> {}
+  async hasUserUsedCoupon(couponId: number, userId: number): Promise<boolean> { return false; }
   
   // Admin settings - no-op for memory storage
   async getAdminSetting(key: string): Promise<string | undefined> { return undefined; }

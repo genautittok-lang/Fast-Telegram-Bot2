@@ -693,36 +693,67 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       const tier = state.data.tier;
       
       try {
-        const response = await fetch(`${process.env.WEB_DOMAIN || "https://www.darkshare.store"}/api/promo/validate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, tier }),
-        });
-        const data = await response.json();
+        const coupon = await storage.getCouponByCode(code);
         
-        if (response.ok && data.valid) {
-          const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
-          const basePrice = uahPrices[tier] || 0;
-          const discountedPrice = Math.round(basePrice * (1 - data.discount / 100));
-          
-          userStates.delete(tgId);
-          
-          const promoText = `✅ *${lang === "uk" ? "Промокод активовано!" : lang === "ru" ? "Промокод активирован!" : "Promo code activated!"}*\n\n🎁 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : "Discount"}: -${data.discount}%\n💰 ${lang === "uk" ? "Нова ціна" : lang === "ru" ? "Новая цена" : "New price"}: ~~${basePrice}~~ ${discountedPrice} UAH\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}`;
-          
-          await ctx.reply(promoText, {
-            parse_mode: "Markdown",
-            ...Markup.inlineKeyboard([
-              [Markup.button.callback("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`)],
-              [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
-              [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
-            ])
-          });
-        } else {
-          const errorText = `❌ ${lang === "uk" ? "Недійсний промокод. Спробуйте ще раз:" : lang === "ru" ? "Недействительный промокод. Попробуйте ещё раз:" : "Invalid promo code. Try again:"}`;
+        if (!coupon || !coupon.isActive) {
+          const errorText = `❌ ${lang === "uk" ? "Недійсний промокод. Спробуйте ще раз:" : lang === "ru" ? "Недействительный промокод. Попробуйте ещё раз:" : lang === "es" ? "Código promocional inválido. Intente de nuevo:" : lang === "de" ? "Ungültiger Promo-Code. Versuchen Sie es erneut:" : "Invalid promo code. Try again:"}`;
           await ctx.reply(errorText);
+          return;
         }
-      } catch {
-        const errorText = `❌ ${lang === "uk" ? "Помилка перевірки промокоду." : lang === "ru" ? "Ошибка проверки промокода." : "Promo code validation error."}`;
+        
+        if ((coupon.usedCount ?? 0) >= (coupon.maxUses ?? 0)) {
+          const errorText = `❌ ${lang === "uk" ? "Промокод вичерпано." : lang === "ru" ? "Промокод исчерпан." : lang === "es" ? "Código promocional agotado." : lang === "de" ? "Promo-Code aufgebraucht." : "Promo code exhausted."}`;
+          await ctx.reply(errorText);
+          userStates.delete(tgId);
+          return;
+        }
+        
+        if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+          const errorText = `❌ ${lang === "uk" ? "Промокод прострочений." : lang === "ru" ? "Промокод просрочен." : lang === "es" ? "Código promocional expirado." : lang === "de" ? "Promo-Code abgelaufen." : "Promo code expired."}`;
+          await ctx.reply(errorText);
+          userStates.delete(tgId);
+          return;
+        }
+        
+        if (coupon.tier && coupon.tier !== tier.toUpperCase()) {
+          const errorText = `❌ ${lang === "uk" ? "Промокод не діє для цього тарифу." : lang === "ru" ? "Промокод не действует для этого тарифа." : lang === "es" ? "Código no válido para este plan." : lang === "de" ? "Promo-Code gilt nicht für diesen Tarif." : "Promo code not valid for this plan."}`;
+          await ctx.reply(errorText);
+          return;
+        }
+        
+        if (user) {
+          const alreadyUsed = await storage.hasUserUsedCoupon(coupon.id, user.id);
+          if (alreadyUsed) {
+            const errorText = `❌ ${lang === "uk" ? "Ви вже використовували цей промокод." : lang === "ru" ? "Вы уже использовали этот промокод." : lang === "es" ? "Ya ha utilizado este código promocional." : lang === "de" ? "Sie haben diesen Promo-Code bereits verwendet." : "You have already used this promo code."}`;
+            await ctx.reply(errorText);
+            userStates.delete(tgId);
+            return;
+          }
+        }
+        
+        const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+        const basePrice = uahPrices[tier] || 0;
+        const discountedPrice = Math.round(basePrice * (1 - (coupon.value || 0) / 100));
+        
+        userStates.delete(tgId);
+        
+        const promoText = `✅ *${lang === "uk" ? "Промокод активовано!" : lang === "ru" ? "Промокод активирован!" : lang === "es" ? "¡Código promocional activado!" : lang === "de" ? "Promo-Code aktiviert!" : "Promo code activated!"}*\n\n🎁 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : lang === "es" ? "Descuento" : lang === "de" ? "Rabatt" : "Discount"}: -${coupon.value}%\n💰 ${lang === "uk" ? "Нова ціна" : lang === "ru" ? "Новая цена" : lang === "es" ? "Nuevo precio" : lang === "de" ? "Neuer Preis" : "New price"}: ~~${basePrice}~~ ${discountedPrice} UAH\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : lang === "es" ? "Seleccione método de pago:" : lang === "de" ? "Zahlungsmethode wählen:" : "Select payment method:"}`;
+        
+        await ctx.reply(promoText, {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`)],
+            [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
+            [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
+          ])
+        });
+        
+        if (user) {
+          await storage.useCoupon(coupon.id, user.id);
+        }
+      } catch (err) {
+        console.error("Bot promo validation error:", err);
+        const errorText = `❌ ${lang === "uk" ? "Помилка перевірки промокоду." : lang === "ru" ? "Ошибка проверки промокода." : lang === "es" ? "Error de validación del código." : lang === "de" ? "Fehler bei der Promo-Code-Überprüfung." : "Promo code validation error."}`;
         await ctx.reply(errorText);
         userStates.delete(tgId);
       }
@@ -2028,15 +2059,26 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
         "basic": 30
       };
       const newLimit = tierLimits[newTier.toLowerCase()] || 50;
-      await storage.updateUser(user.id, { tier: newTier, requestsLeft: newLimit });
+      const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await storage.updateUser(user.id, { tier: newTier, requestsLeft: newLimit, subscriptionExpiresAt: expiryDate });
       
       const userLang = getUserLang(user.lang);
-      const expiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString();
+      const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+      const requestsDisplay = newTier.toUpperCase() === "ENTERPRISE" || newTier.toUpperCase() === "GROUPS" ? "∞" : "50";
+      const receiptTexts: Record<string, string> = {
+        uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату підтверджено!\n\n📦 Тариф: *${newTier}*\n💰 Сума: $${payment.amountUsdt} USDT\n🔢 Запитів: ${requestsDisplay}/день\n📅 Діє до: ${expiryStr}\n🆔 Платіж: #${paymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
+        ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата подтверждена!\n\n📦 Тариф: *${newTier}*\n💰 Сумма: $${payment.amountUsdt} USDT\n🔢 Запросов: ${requestsDisplay}/день\n📅 Действует до: ${expiryStr}\n🆔 Платёж: #${paymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
+        en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Payment confirmed!\n\n📦 Plan: *${newTier}*\n💰 Amount: $${payment.amountUsdt} USDT\n🔢 Requests: ${requestsDisplay}/day\n📅 Valid until: ${expiryStr}\n🆔 Payment: #${paymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
+        es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago confirmado!\n\n📦 Plan: *${newTier}*\n💰 Monto: $${payment.amountUsdt} USDT\n🔢 Solicitudes: ${requestsDisplay}/día\n📅 Válido hasta: ${expiryStr}\n🆔 Pago: #${paymentId}\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
+        de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Zahlung bestätigt!\n\n📦 Tarif: *${newTier}*\n💰 Betrag: $${payment.amountUsdt} USDT\n🔢 Anfragen: ${requestsDisplay}/Tag\n📅 Gültig bis: ${expiryStr}\n🆔 Zahlung: #${paymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
+      };
+      const receiptText = receiptTexts[userLang] || receiptTexts["en"];
       
       try {
-        await ctx.telegram.sendMessage(user.tgId, t(userLang, "payment.approved", { id: paymentId.toString(), tier: newTier, expiry }), 
-          Markup.inlineKeyboard([[Markup.button.callback(t(userLang, "buttons.back"), "back_to_dashboard")]])
-        );
+        await ctx.telegram.sendMessage(user.tgId, receiptText, {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([[Markup.button.callback(t(userLang, "buttons.back"), "back_to_dashboard")]])
+        });
       } catch (e) {
         console.log(`Failed to notify user:`, e);
       }

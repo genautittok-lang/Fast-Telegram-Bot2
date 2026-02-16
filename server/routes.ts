@@ -1067,6 +1067,10 @@ export async function registerRoutes(
       if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return res.status(400).json({ error: "Promo code expired", valid: false });
       if (coupon.tier && coupon.tier !== tier?.toUpperCase()) return res.status(400).json({ error: "Promo code not valid for this plan", valid: false });
       
+      const authReq = req as AuthenticatedRequest;
+      const alreadyUsed = await storage.hasUserUsedCoupon(coupon.id, authReq.user!.id);
+      if (alreadyUsed) return res.status(400).json({ error: "You have already used this promo code", valid: false });
+
       res.json({ valid: true, discount: coupon.value, code: coupon.code });
     } catch (error) {
       console.error("Promo validation error:", error);
@@ -1252,6 +1256,7 @@ export async function registerRoutes(
         tier: normalizedTier,
         amountUsdt: amountUSD,
         txHash: null,
+        period,
         status: "pending",
       });
 
@@ -1274,6 +1279,10 @@ export async function registerRoutes(
           },
           redirectUrl: `${appUrl}/pricing?payment=success`,
           webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
+          saveCardData: {
+            saveCard: true,
+            walletId: `darkshare_${authReq.user!.id}`,
+          },
         }),
       });
 
@@ -1355,6 +1364,7 @@ export async function registerRoutes(
         tier: normalizedTier,
         amountUsdt: amountUSD,
         txHash: null,
+        period: paymentPeriod,
         status: "pending",
       });
 
@@ -1377,6 +1387,10 @@ export async function registerRoutes(
           },
           redirectUrl: `${appUrl}/pricing?payment=success`,
           webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
+          saveCardData: {
+            saveCard: true,
+            walletId: `darkshare_${user.id}`,
+          },
         }),
       });
 
@@ -1429,14 +1443,32 @@ export async function registerRoutes(
             if (payment.userId) {
               const tier = payment.tier?.toUpperCase() || "PRO";
               const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
-              await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
+              const periodDays = (payment as any).period === "yearly" ? 365 : 30;
+              const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
+              const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
+
+              if (req.body.cardToken) {
+                updateData.cardToken = req.body.cardToken;
+              }
+
+              await storage.updateUser(payment.userId, updateData);
 
               const user = await storage.getUserById(payment.userId);
               if (user && botInstance) {
                 try {
-                  await botInstance.telegram.sendMessage(user.tgId,
-                    `\u2705 MonoPay оплату підтверджено!\n\nТариф: ${tier}\nЗапитів: ${requests}`
-                  );
+                  const lang = user.lang || "uk";
+                  const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                  const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+                  const amountUAH_display = amount ? (amount / 100).toFixed(2) : "?";
+                  const receiptTexts: Record<string, string> = {
+                    uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату підтверджено!\n\n📦 Тариф: *${tier}*\n💰 Сума: ${amountUAH_display} UAH\n🔢 Запитів: ${requests}/день\n📅 Діє до: ${expiryStr}\n🔄 Автоподовження: увімкнено\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
+                    ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата подтверждена!\n\n📦 Тариф: *${tier}*\n💰 Сумма: ${amountUAH_display} UAH\n🔢 Запросов: ${requests}/день\n📅 Действует до: ${expiryStr}\n🔄 Автопродление: включено\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
+                    en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Payment confirmed!\n\n📦 Plan: *${tier}*\n💰 Amount: ${amountUAH_display} UAH\n🔢 Requests: ${requests}/day\n📅 Valid until: ${expiryStr}\n🔄 Auto-renewal: enabled\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
+                    es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago confirmado!\n\n📦 Plan: *${tier}*\n💰 Monto: ${amountUAH_display} UAH\n🔢 Solicitudes: ${requests}/día\n📅 Válido hasta: ${expiryStr}\n🔄 Renovación automática: activada\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
+                    de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Zahlung bestätigt!\n\n📦 Tarif: *${tier}*\n💰 Betrag: ${amountUAH_display} UAH\n🔢 Anfragen: ${requests}/Tag\n📅 Gültig bis: ${expiryStr}\n🔄 Automatische Verlängerung: aktiviert\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
+                  };
+                  const receiptText = receiptTexts[lang] || receiptTexts["en"];
+                  await botInstance.telegram.sendMessage(user.tgId, receiptText, { parse_mode: "Markdown" });
                 } catch (e) { /* ignore */ }
               }
             }
@@ -1465,6 +1497,93 @@ export async function registerRoutes(
       res.status(500).json({ error: "Webhook processing failed" });
     }
   });
+
+  async function processAutoRenewals() {
+    try {
+      const monoToken = process.env.MONOBANK_TOKEN;
+      if (!monoToken) return;
+
+      if (!pool) return;
+      
+      const result = await pool.query(
+        `SELECT u.* FROM ds_users u WHERE u.auto_renew = true AND u.card_token IS NOT NULL AND u.subscription_expires_at IS NOT NULL AND u.subscription_expires_at <= NOW() + INTERVAL '1 day' AND u.tier != 'FREE' AND NOT EXISTS (SELECT 1 FROM ds_payments p WHERE p.user_id = u.id AND p.status = 'pending' AND p.created_at > NOW() - INTERVAL '2 days')`
+      );
+      
+      const usersToRenew = result.rows;
+      
+      for (const user of usersToRenew) {
+        try {
+          const tier = user.tier || "PRO";
+          const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+          const amountUAH = uahPrices[tier] || 410;
+          const amountUSD = (amountUAH / 41).toFixed(2);
+          
+          const payment = await storage.createPayment({
+            userId: user.id,
+            tier,
+            amountUsdt: amountUSD,
+            txHash: null,
+            status: "pending",
+          });
+          
+          const appUrl = process.env.APP_URL || 'https://darkshare.store';
+          const reference = `DS-${payment.id}`;
+          
+          const monoResponse = await fetch("https://api.monobank.ua/api/merchant/wallet/payment", {
+            method: "POST",
+            headers: {
+              "X-Token": monoToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              cardToken: user.card_token,
+              amount: amountUAH * 100,
+              ccy: 980,
+              initiationKind: "merchant",
+              webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
+              merchantPaymInfo: {
+                reference,
+                destination: `DARKSHARE ${tier} auto-renewal`,
+                comment: "DARKSHARE subscription auto-renewal",
+              },
+            }),
+          });
+          
+          if (!monoResponse.ok) {
+            const errorText = await monoResponse.text();
+            console.error(`Auto-renewal failed for user ${user.id}:`, errorText);
+            
+            if (botInstance) {
+              const lang = user.lang || "uk";
+              const failTexts: Record<string, string> = {
+                uk: `⚠️ *Автоподовження не вдалося*\n\nВаша підписка ${tier} не була автоматично подовжена. Будь ласка, оновіть спосіб оплати.`,
+                ru: `⚠️ *Автопродление не удалось*\n\nВаша подписка ${tier} не была автоматически продлена. Пожалуйста, обновите способ оплаты.`,
+                en: `⚠️ *Auto-renewal failed*\n\nYour ${tier} subscription could not be automatically renewed. Please update your payment method.`,
+                es: `⚠️ *Renovación automática fallida*\n\nSu suscripción ${tier} no pudo renovarse automáticamente. Actualice su método de pago.`,
+                de: `⚠️ *Automatische Verlängerung fehlgeschlagen*\n\nIhr ${tier}-Abonnement konnte nicht automatisch verlängert werden. Bitte aktualisieren Sie Ihre Zahlungsmethode.`,
+              };
+              const failText = failTexts[lang] || failTexts["en"];
+              try {
+                await botInstance.telegram.sendMessage(user.tg_id, failText, { parse_mode: "Markdown" });
+              } catch (e) { /* ignore */ }
+            }
+            
+            await storage.updateUser(user.id, { autoRenew: false });
+            continue;
+          }
+          
+          console.log(`Auto-renewal initiated for user ${user.id}, tier ${tier}, payment #${payment.id}`);
+          
+        } catch (err) {
+          console.error(`Auto-renewal error for user ${user.id}:`, err);
+        }
+      }
+    } catch (err) {
+      console.error("Auto-renewal scheduler error:", err);
+    }
+  }
+
+  setInterval(processAutoRenewals, 60 * 60 * 1000);
 
   // ==================== ADMIN API ROUTES ====================
   

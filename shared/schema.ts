@@ -19,6 +19,9 @@ export const users = pgTable("ds_users", {
   digestsOn: boolean("digests_on").default(true),
   lastLogin: timestamp("last_login").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
+  subscriptionExpiresAt: timestamp("subscription_expires_at"),
+  cardToken: text("card_token"),
+  autoRenew: boolean("auto_renew").default(false),
 });
 
 export const reports = pgTable("ds_reports", {
@@ -49,6 +52,7 @@ export const payments = pgTable("ds_payments", {
   amountUsdt: decimal("amount_usdt").notNull(),
   txHash: text("tx_hash"),
   screenshotUrl: text("screenshot_url"),
+  period: text("period"),
   status: text("status").default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
 });
