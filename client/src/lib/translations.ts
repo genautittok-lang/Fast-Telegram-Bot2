@@ -131,6 +131,13 @@ export interface TranslationSchema {
     timerExpiredDesc: string;
     enterTxOrScreenshot: string;
     expired: string;
+    selectPaymentMethod: string;
+    cardPaymentDesc: string;
+    bankConversionNote: string;
+    payWithGooglePay: string;
+    payWithApplePay: string;
+    continue: string;
+    totalAmount: string;
   };
   dashboard: {
     title: string;
@@ -834,6 +841,13 @@ export const translations: Record<Language, TranslationSchema> = {
       timerExpiredDesc: "Please reopen the payment window",
       enterTxOrScreenshot: "Enter TX Hash or upload a screenshot",
       expired: "Expired",
+      selectPaymentMethod: "Select payment method",
+      cardPaymentDesc: "Pay with any Visa/Mastercard. Amount in UAH, your bank converts automatically.",
+      bankConversionNote: "Amount is in Ukrainian hryvnia (UAH). Your bank will automatically convert from your currency at the current exchange rate.",
+      payWithGooglePay: "Pay with Google Pay",
+      payWithApplePay: "Pay with Apple Pay",
+      continue: "Continue",
+      totalAmount: "Total",
     },
     dashboard: {
       title: "Dashboard",
@@ -1535,6 +1549,13 @@ export const translations: Record<Language, TranslationSchema> = {
       timerExpiredDesc: "Будь ласка, відкрийте вікно оплати знову",
       enterTxOrScreenshot: "Введіть TX Hash або завантажте скріншот",
       expired: "Закінчився",
+      selectPaymentMethod: "Оберіть спосіб оплати",
+      cardPaymentDesc: "Оплата будь-якою картою Visa/Mastercard. Сума в гривнях, ваш банк конвертує автоматично.",
+      bankConversionNote: "Сума вказана в українських гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти за поточним курсом.",
+      payWithGooglePay: "Оплатити через Google Pay",
+      payWithApplePay: "Оплатити через Apple Pay",
+      continue: "Продовжити",
+      totalAmount: "Разом",
     },
     dashboard: {
       title: "Дашборд",
@@ -2236,6 +2257,13 @@ export const translations: Record<Language, TranslationSchema> = {
       timerExpiredDesc: "Пожалуйста, откройте окно оплаты снова",
       enterTxOrScreenshot: "Введите TX Hash или загрузите скриншот",
       expired: "Истёк",
+      selectPaymentMethod: "Выберите способ оплаты",
+      cardPaymentDesc: "Оплата любой картой Visa/Mastercard. Сумма в гривнах, ваш банк конвертирует автоматически.",
+      bankConversionNote: "Сумма указана в украинских гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты по текущему курсу.",
+      payWithGooglePay: "Оплатить через Google Pay",
+      payWithApplePay: "Оплатить через Apple Pay",
+      continue: "Продолжить",
+      totalAmount: "Итого",
     },
     dashboard: {
       title: "Дашборд",
@@ -2937,6 +2965,13 @@ export const translations: Record<Language, TranslationSchema> = {
       timerExpiredDesc: "Por favor, vuelva a abrir la ventana de pago",
       enterTxOrScreenshot: "Ingrese TX Hash o suba una captura de pantalla",
       expired: "Expirado",
+      selectPaymentMethod: "Seleccione método de pago",
+      cardPaymentDesc: "Pague con cualquier tarjeta Visa/Mastercard. Importe en UAH, su banco convierte automáticamente.",
+      bankConversionNote: "El importe está en grivnas ucranianas (UAH). Su banco convertirá automáticamente desde su moneda al tipo de cambio actual.",
+      payWithGooglePay: "Pagar con Google Pay",
+      payWithApplePay: "Pagar con Apple Pay",
+      continue: "Continuar",
+      totalAmount: "Total",
     },
     dashboard: {
       title: "Panel",
@@ -3638,6 +3673,13 @@ export const translations: Record<Language, TranslationSchema> = {
       timerExpiredDesc: "Bitte öffnen Sie das Zahlungsfenster erneut",
       enterTxOrScreenshot: "TX Hash eingeben oder Screenshot hochladen",
       expired: "Abgelaufen",
+      selectPaymentMethod: "Zahlungsmethode wählen",
+      cardPaymentDesc: "Zahlen Sie mit jeder Visa/Mastercard. Betrag in UAH, Ihre Bank konvertiert automatisch.",
+      bankConversionNote: "Der Betrag ist in ukrainischen Hrywnja (UAH). Ihre Bank konvertiert automatisch von Ihrer Währung zum aktuellen Wechselkurs.",
+      payWithGooglePay: "Mit Google Pay bezahlen",
+      payWithApplePay: "Mit Apple Pay bezahlen",
+      continue: "Weiter",
+      totalAmount: "Gesamt",
     },
     dashboard: {
       title: "Dashboard",

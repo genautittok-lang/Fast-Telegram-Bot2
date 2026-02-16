@@ -178,6 +178,80 @@
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
+.btn-3d {
+  position: relative;
+  border-radius: 1rem;
+  border: none;
+  transition: all 0.15s ease;
+  transform: translateY(0);
+  box-shadow: 
+    0 4px 0 0 var(--btn-3d-shadow, rgba(0,0,0,0.3)),
+    0 6px 12px -2px rgba(0,0,0,0.25);
+}
+
+.btn-3d:active {
+  transform: translateY(3px);
+  box-shadow: 
+    0 1px 0 0 var(--btn-3d-shadow, rgba(0,0,0,0.3)),
+    0 2px 4px -1px rgba(0,0,0,0.15);
+}
+
+.btn-3d-blue {
+  --btn-3d-shadow: rgb(37, 99, 235);
+  background: linear-gradient(180deg, rgb(96, 165, 250) 0%, rgb(59, 130, 246) 100%);
+}
+.btn-3d-orange {
+  --btn-3d-shadow: rgb(194, 65, 12);
+  background: linear-gradient(180deg, rgb(251, 146, 60) 0%, rgb(249, 115, 22) 100%);
+}
+.btn-3d-purple {
+  --btn-3d-shadow: rgb(126, 34, 206);
+  background: linear-gradient(180deg, rgb(192, 132, 252) 0%, rgb(168, 85, 247) 100%);
+}
+.btn-3d-green {
+  --btn-3d-shadow: rgb(21, 128, 61);
+  background: linear-gradient(180deg, rgb(74, 222, 128) 0%, rgb(34, 197, 94) 100%);
+}
+.btn-3d-red {
+  --btn-3d-shadow: rgb(185, 28, 28);
+  background: linear-gradient(180deg, rgb(248, 113, 113) 0%, rgb(239, 68, 68) 100%);
+}
+.btn-3d-indigo {
+  --btn-3d-shadow: rgb(67, 56, 202);
+  background: linear-gradient(180deg, rgb(129, 140, 248) 0%, rgb(99, 102, 241) 100%);
+}
+.btn-3d-cyan {
+  --btn-3d-shadow: rgb(14, 116, 144);
+  background: linear-gradient(180deg, rgb(103, 232, 249) 0%, rgb(34, 211, 238) 100%);
+}
+.btn-3d-rose {
+  --btn-3d-shadow: rgb(159, 18, 57);
+  background: linear-gradient(180deg, rgb(251, 113, 133) 0%, rgb(244, 63, 94) 100%);
+}
+.btn-3d-slate {
+  --btn-3d-shadow: rgb(71, 85, 105);
+  background: linear-gradient(180deg, rgb(148, 163, 184) 0%, rgb(100, 116, 139) 100%);
+}
+.btn-3d-amber {
+  --btn-3d-shadow: rgb(180, 83, 9);
+  background: linear-gradient(180deg, rgb(252, 211, 77) 0%, rgb(245, 158, 11) 100%);
+}
+.btn-3d-emerald {
+  --btn-3d-shadow: rgb(4, 120, 87);
+  background: linear-gradient(180deg, rgb(52, 211, 153) 0%, rgb(16, 185, 129) 100%);
+}
+.btn-3d-violet {
+  --btn-3d-shadow: rgb(109, 40, 217);
+  background: linear-gradient(180deg, rgb(167, 139, 250) 0%, rgb(139, 92, 246) 100%);
+}
+
+.btn-3d-selected {
+  transform: translateY(2px);
+  box-shadow: 
+    0 2px 0 0 var(--btn-3d-shadow, rgba(0,0,0,0.3)),
+    0 3px 6px -1px rgba(0,0,0,0.2);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

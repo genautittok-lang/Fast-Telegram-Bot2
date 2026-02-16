@@ -63,6 +63,8 @@ export const translations = {
       exit: "⬅️ Вийти",
       copyAddress: "Скопіювати адресу",
       profile: "Профіль",
+      check: "Перевірити",
+      payment: "Оплата",
     },
     
     profile: {
@@ -577,6 +579,8 @@ Select a module for analysis:`,
       exit: "⬅️ Exit",
       copyAddress: "Copy Address",
       profile: "Profile",
+      check: "Check",
+      payment: "Payment",
     },
     
     profile: {
@@ -1091,6 +1095,8 @@ Select a module for analysis:`,
       exit: "⬅️ Выход",
       copyAddress: "Скопировать адрес",
       profile: "Профиль",
+      check: "Проверить",
+      payment: "Оплата",
     },
     
     profile: {
@@ -1605,6 +1611,8 @@ Selecciona un módulo para análisis:`,
       exit: "⬅️ Salir",
       copyAddress: "Copiar Dirección",
       profile: "Perfil",
+      check: "Verificar",
+      payment: "Pago",
     },
     
     profile: {
@@ -2119,6 +2127,8 @@ Wähle ein Modul zur Analyse:`,
       exit: "⬅️ Beenden",
       copyAddress: "Adresse kopieren",
       profile: "Profil",
+      check: "Prüfen",
+      payment: "Zahlung",
     },
     
     profile: {

@@ -112,17 +112,17 @@ interface CheckResult {
 }
 
 const checkTypeStyles = [
-  { id: "ip", icon: Globe, gradient: "from-blue-500/20 via-cyan-500/10 to-transparent", iconColor: "text-blue-400", borderColor: "border-blue-500/30 hover:border-blue-400/50", glowColor: "shadow-blue-500/20", serviceIcons: [MapPin, Server, ShieldAlert, Ban] },
-  { id: "wallet", icon: Wallet, gradient: "from-orange-500/20 via-yellow-500/10 to-transparent", iconColor: "text-orange-400", borderColor: "border-orange-500/30 hover:border-orange-400/50", glowColor: "shadow-orange-500/20", serviceIcons: [Fingerprint, Shuffle, Coins, Hash] },
-  { id: "email", icon: Mail, gradient: "from-purple-500/20 via-pink-500/10 to-transparent", iconColor: "text-purple-400", borderColor: "border-purple-500/30 hover:border-purple-400/50", glowColor: "shadow-purple-500/20", serviceIcons: [AtSign, Trash2, Lock, Search] },
-  { id: "phone", icon: Phone, gradient: "from-green-500/20 via-emerald-500/10 to-transparent", iconColor: "text-green-400", borderColor: "border-green-500/30 hover:border-green-400/50", glowColor: "shadow-green-500/20", serviceIcons: [Globe2, Signal, FileCheck, Phone] },
-  { id: "domain", icon: Building, gradient: "from-indigo-500/20 via-violet-500/10 to-transparent", iconColor: "text-indigo-400", borderColor: "border-indigo-500/30 hover:border-indigo-400/50", glowColor: "shadow-indigo-500/20", serviceIcons: [Globe, Type, AlertTriangle, ShieldCheck] },
-  { id: "url", icon: Link2, gradient: "from-red-500/20 via-rose-500/10 to-transparent", iconColor: "text-red-400", borderColor: "border-red-500/30 hover:border-red-400/50", glowColor: "shadow-red-500/20", serviceIcons: [LinkIcon, ExternalLink, Bug, ChevronRight] },
-  { id: "bot", icon: Bot, gradient: "from-cyan-500/20 via-teal-500/10 to-transparent", iconColor: "text-cyan-400", borderColor: "border-cyan-500/30 hover:border-cyan-400/50", glowColor: "shadow-cyan-500/20", serviceIcons: [Key, Bot, Users, Sparkles] },
-  { id: "cve", icon: Bug, gradient: "from-rose-500/20 via-red-500/10 to-transparent", iconColor: "text-rose-400", borderColor: "border-rose-500/30 hover:border-rose-400/50", glowColor: "shadow-rose-500/20", serviceIcons: [Database, AlertCircle, ShieldAlert, FileText] },
-  { id: "hash", icon: Hash, gradient: "from-slate-500/20 via-zinc-500/10 to-transparent", iconColor: "text-slate-400", borderColor: "border-slate-500/30 hover:border-slate-400/50", glowColor: "shadow-slate-500/20", serviceIcons: [Bug, Link2, Shield, FileCheck] },
-  { id: "username", icon: User, gradient: "from-amber-500/20 via-yellow-500/10 to-transparent", iconColor: "text-amber-400", borderColor: "border-amber-500/30 hover:border-amber-400/50", glowColor: "shadow-amber-500/20", serviceIcons: [Users, Globe, MessageSquare, Lock] },
-  { id: "card", icon: CreditCard, gradient: "from-emerald-500/20 via-teal-500/10 to-transparent", iconColor: "text-emerald-400", borderColor: "border-emerald-500/30 hover:border-emerald-400/50", glowColor: "shadow-emerald-500/20", serviceIcons: [CreditCard, Building, Wallet, Globe] },
+  { id: "ip", icon: Globe, gradient: "from-blue-500/20 via-cyan-500/10 to-transparent", iconColor: "text-blue-400", borderColor: "border-blue-500/30 hover:border-blue-400/50", glowColor: "shadow-blue-500/20", btn3d: "btn-3d-blue", serviceIcons: [MapPin, Server, ShieldAlert, Ban] },
+  { id: "wallet", icon: Wallet, gradient: "from-orange-500/20 via-yellow-500/10 to-transparent", iconColor: "text-orange-400", borderColor: "border-orange-500/30 hover:border-orange-400/50", glowColor: "shadow-orange-500/20", btn3d: "btn-3d-orange", serviceIcons: [Fingerprint, Shuffle, Coins, Hash] },
+  { id: "email", icon: Mail, gradient: "from-purple-500/20 via-pink-500/10 to-transparent", iconColor: "text-purple-400", borderColor: "border-purple-500/30 hover:border-purple-400/50", glowColor: "shadow-purple-500/20", btn3d: "btn-3d-purple", serviceIcons: [AtSign, Trash2, Lock, Search] },
+  { id: "phone", icon: Phone, gradient: "from-green-500/20 via-emerald-500/10 to-transparent", iconColor: "text-green-400", borderColor: "border-green-500/30 hover:border-green-400/50", glowColor: "shadow-green-500/20", btn3d: "btn-3d-green", serviceIcons: [Globe2, Signal, FileCheck, Phone] },
+  { id: "domain", icon: Building, gradient: "from-indigo-500/20 via-violet-500/10 to-transparent", iconColor: "text-indigo-400", borderColor: "border-indigo-500/30 hover:border-indigo-400/50", glowColor: "shadow-indigo-500/20", btn3d: "btn-3d-indigo", serviceIcons: [Globe, Type, AlertTriangle, ShieldCheck] },
+  { id: "url", icon: Link2, gradient: "from-red-500/20 via-rose-500/10 to-transparent", iconColor: "text-red-400", borderColor: "border-red-500/30 hover:border-red-400/50", glowColor: "shadow-red-500/20", btn3d: "btn-3d-red", serviceIcons: [LinkIcon, ExternalLink, Bug, ChevronRight] },
+  { id: "bot", icon: Bot, gradient: "from-cyan-500/20 via-teal-500/10 to-transparent", iconColor: "text-cyan-400", borderColor: "border-cyan-500/30 hover:border-cyan-400/50", glowColor: "shadow-cyan-500/20", btn3d: "btn-3d-cyan", serviceIcons: [Key, Bot, Users, Sparkles] },
+  { id: "cve", icon: Bug, gradient: "from-rose-500/20 via-red-500/10 to-transparent", iconColor: "text-rose-400", borderColor: "border-rose-500/30 hover:border-rose-400/50", glowColor: "shadow-rose-500/20", btn3d: "btn-3d-rose", serviceIcons: [Database, AlertCircle, ShieldAlert, FileText] },
+  { id: "hash", icon: Hash, gradient: "from-slate-500/20 via-zinc-500/10 to-transparent", iconColor: "text-slate-400", borderColor: "border-slate-500/30 hover:border-slate-400/50", glowColor: "shadow-slate-500/20", btn3d: "btn-3d-slate", serviceIcons: [Bug, Link2, Shield, FileCheck] },
+  { id: "username", icon: User, gradient: "from-amber-500/20 via-yellow-500/10 to-transparent", iconColor: "text-amber-400", borderColor: "border-amber-500/30 hover:border-amber-400/50", glowColor: "shadow-amber-500/20", btn3d: "btn-3d-amber", serviceIcons: [Users, Globe, MessageSquare, Lock] },
+  { id: "card", icon: CreditCard, gradient: "from-emerald-500/20 via-teal-500/10 to-transparent", iconColor: "text-emerald-400", borderColor: "border-emerald-500/30 hover:border-emerald-400/50", glowColor: "shadow-emerald-500/20", btn3d: "btn-3d-emerald", serviceIcons: [CreditCard, Building, Wallet, Globe] },
 ];
 
 const serviceKeyMap: Record<string, string[][]> = {
@@ -771,42 +771,29 @@ Sources: ${result.sources.join(', ')}`;
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative p-3 sm:p-3.5 lg:p-5 rounded-xl lg:rounded-2xl border transition-all duration-500 overflow-hidden group touch-manipulation min-h-[72px] sm:min-h-[80px] lg:min-h-[100px] ${
-                        isSelected
-                          ? `${type.borderColor.replace('hover:', '')} bg-gradient-to-br ${type.gradient} backdrop-blur-xl shadow-lg ${type.glowColor}`
-                          : `border-white/10 active:border-white/30 bg-black/40 backdrop-blur-sm active:bg-black/60`
+                      className={`relative p-3 sm:p-3.5 lg:p-5 rounded-xl lg:rounded-2xl transition-all duration-300 touch-manipulation min-h-[72px] sm:min-h-[80px] lg:min-h-[100px] btn-3d ${type.btn3d} ${
+                        isSelected ? 'btn-3d-selected ring-2 ring-white/30' : 'opacity-80'
                       }`}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: idx * 0.04, duration: 0.3, type: "spring", stiffness: 300 }}
-                      whileTap={{ scale: 0.97 }}
                       data-testid={`button-check-type-${type.id}`}
                     >
-                      {isSelected && (
-                        <motion.div
-                          className={`absolute inset-0 bg-gradient-to-br ${type.gradient}`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        />
-                      )}
                       <div className="relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 lg:gap-3 h-full">
                         <motion.div 
-                          className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center ${
-                            isSelected ? 'bg-white/15 shadow-inner' : 'bg-white/5'
-                          } transition-all duration-300`}
+                          className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/20 transition-all duration-300`}
                           animate={isSelected ? { scale: [1, 1.05, 1] } : {}}
                           transition={{ duration: 0.4 }}
                         >
-                          <type.icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-6 lg:h-6 ${isSelected ? type.iconColor : 'text-muted-foreground'} transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
+                          <type.icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-6 lg:h-6 text-white transition-colors duration-300 ${isSelected ? 'drop-shadow-[0_0_8px_currentColor]' : ''}`} />
                         </motion.div>
-                        <span className={`text-[10px] sm:text-[11px] lg:text-xs font-medium text-center leading-tight line-clamp-2 ${isSelected ? 'text-white' : 'text-muted-foreground'} transition-colors duration-300`}>
+                        <span className={`text-[10px] sm:text-[11px] lg:text-xs font-bold text-center leading-tight line-clamp-2 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)] transition-colors duration-300`}>
                           {type.label}
                         </span>
                       </div>
                       {isSelected && (
                         <motion.div
-                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 lg:h-1 bg-gradient-to-r from-transparent via-white/60 to-transparent rounded-t-full"
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 lg:h-1 bg-gradient-to-r from-transparent via-white/80 to-transparent rounded-t-full"
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         />

@@ -37,6 +37,15 @@ export async function setupBot(storage: IStorage) {
     .then((botInfo) => console.log("Bot info:", botInfo.username))
     .catch((err) => console.error("Failed to get bot info:", err.message));
 
+  bot.telegram.setMyCommands([
+    { command: "start", description: "Start / Restart bot" },
+    { command: "menu", description: "Main dashboard" },
+    { command: "check", description: "Quick check" },
+    { command: "stats", description: "Your statistics" },
+    { command: "help", description: "Help & commands" },
+    { command: "support", description: "Contact support" },
+  ]).catch(err => console.error("Failed to set commands:", err.message));
+
   const userStates: Map<string, { module?: string; step?: string; data?: any }> = new Map();
 
   bot.use(async (ctx, next) => {
@@ -326,32 +335,26 @@ ${t(lang, "dashboard.selectModule")}`;
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
     const keyboardRows = [
+      [Markup.button.callback("🔍 " + t(lang, "buttons.check"), "check_all")],
       [
-        Markup.button.callback("🌐 " + (lang === "uk" ? "Мережа" : lang === "ru" ? "Сеть" : "Network"), "cat_network"),
-        Markup.button.callback("💰 " + (lang === "uk" ? "Фінанси" : lang === "ru" ? "Финансы" : "Finance"), "cat_finance")
-      ],
-      [
-        Markup.button.callback("🔍 OSINT", "cat_osint"),
-        Markup.button.callback("🛡 " + (lang === "uk" ? "Безпека" : lang === "ru" ? "Безопасность" : "Security"), "cat_security")
-      ],
-      [
-        Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring"),
-        Markup.button.callback("📄 " + t(lang, "common.reports"), "reports"),
-        Markup.button.callback(t(lang, "buttons.history"), "history")
-      ],
-      [
-        Markup.button.callback(t(lang, "buttons.settings"), "settings"),
-        Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade"),
-        Markup.button.callback(t(lang, "buttons.referrals"), "referrals")
+        Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl),
+        Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")
       ],
       [
         Markup.button.callback(t(lang, "buttons.profile"), "profile"),
-        Markup.button.callback(t(lang, "buttons.achievements"), "achievements"),
-        Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard")
+        Markup.button.callback(t(lang, "buttons.referrals"), "referrals")
+      ],
+      [
+        Markup.button.callback(t(lang, "buttons.history"), "history"),
+        Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring")
+      ],
+      [
+        Markup.button.callback("💳 " + t(lang, "buttons.payment"), "bot_payment"),
+        Markup.button.callback(t(lang, "buttons.settings"), "settings")
       ],
       [
         Markup.button.callback(t(lang, "support.command"), "open_support"),
-        Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl)
+        Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard")
       ]
     ];
     
@@ -373,6 +376,39 @@ ${t(lang, "dashboard.selectModule")}`;
       await ctx.reply(safeText, { parse_mode: "Markdown", ...keyboard });
     }
   }
+
+  bot.action("check_all", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
+        Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
+        Markup.button.callback(t(lang, "modules.email"), "mod_email")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.phone"), "mod_phone"),
+        Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
+        Markup.button.callback(t(lang, "modules.url"), "mod_url")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
+        Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
+        Markup.button.callback(t(lang, "modules.username"), "mod_username")
+      ],
+      [
+        Markup.button.callback(t(lang, "modules.card"), "mod_card"),
+        Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
+      ],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
 
   bot.action("cat_network", async (ctx) => {
     const tgId = ctx.from!.id.toString();
@@ -662,6 +698,48 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     const state = userStates.get(tgId);
+
+    if (state?.module === "promo_payment" && state?.step === "input") {
+      const code = text.trim().toUpperCase();
+      const tier = state.data.tier;
+      
+      try {
+        const response = await fetch(`${process.env.WEB_DOMAIN || "https://www.darkshare.store"}/api/promo/validate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, tier }),
+        });
+        const data = await response.json();
+        
+        if (response.ok && data.valid) {
+          const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+          const basePrice = uahPrices[tier] || 0;
+          const discountedPrice = Math.round(basePrice * (1 - data.discount / 100));
+          
+          userStates.delete(tgId);
+          
+          const promoText = `✅ *${lang === "uk" ? "Промокод активовано!" : lang === "ru" ? "Промокод активирован!" : "Promo code activated!"}*\n\n🎁 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : "Discount"}: -${data.discount}%\n💰 ${lang === "uk" ? "Нова ціна" : lang === "ru" ? "Новая цена" : "New price"}: ~~${basePrice}~~ ${discountedPrice} UAH\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}`;
+          
+          await ctx.reply(promoText, {
+            parse_mode: "Markdown",
+            ...Markup.inlineKeyboard([
+              [Markup.button.callback("📱 Google Pay", `bot_pay_method_${tier}_googlepay`)],
+              [Markup.button.callback("🍎 Apple Pay", `bot_pay_method_${tier}_applepay`)],
+              [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
+              [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
+            ])
+          });
+        } else {
+          const errorText = `❌ ${lang === "uk" ? "Недійсний промокод. Спробуйте ще раз:" : lang === "ru" ? "Недействительный промокод. Попробуйте ещё раз:" : "Invalid promo code. Try again:"}`;
+          await ctx.reply(errorText);
+        }
+      } catch {
+        const errorText = `❌ ${lang === "uk" ? "Помилка перевірки промокоду." : lang === "ru" ? "Ошибка проверки промокода." : "Promo code validation error."}`;
+        await ctx.reply(errorText);
+        userStates.delete(tgId);
+      }
+      return;
+    }
 
     if (state?.module === "admin_broadcast" && state?.step === "awaiting_message") {
       if (!isAdmin(tgId)) {
@@ -1724,6 +1802,142 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
         [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
       ])
     );
+  });
+
+  bot.action("bot_payment", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    
+    const text = `💳 *${lang === "uk" ? "Оплата підписки" : lang === "ru" ? "Оплата подписки" : "Subscription Payment"}*\n\n${lang === "uk" ? "Оберіть тариф:" : lang === "ru" ? "Выберите тариф:" : "Select plan:"}`;
+    
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback("⭐ PRO — $10/mo (410 UAH)", "bot_pay_tier_PRO")],
+      [Markup.button.callback("👑 ENTERPRISE — $35/mo (1435 UAH)", "bot_pay_tier_ENTERPRISE")],
+      [Markup.button.callback("👥 GROUPS — $55/mo (2255 UAH)", "bot_pay_tier_GROUPS")],
+      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action(/^bot_pay_tier_(PRO|ENTERPRISE|GROUPS)$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    const usdPrices: Record<string, number> = { PRO: 10, ENTERPRISE: 35, GROUPS: 55 };
+    
+    const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
+    
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback("📱 Google Pay", `bot_pay_method_${tier}_googlepay`)],
+      [Markup.button.callback("🍎 Apple Pay", `bot_pay_method_${tier}_applepay`)],
+      [Markup.button.callback("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`)],
+      [Markup.button.callback("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`)],
+      [Markup.button.callback(t(lang, "buttons.back"), "bot_payment")]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_(googlepay|applepay)$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const method = ctx.match[2];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    const methodName = method === "googlepay" ? "Google Pay" : "Apple Pay";
+    
+    try {
+      const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+      const response = await fetch(`${webUrl}/api/payments/monopay/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tier,
+          period: "monthly",
+          paymentMethod: method,
+          tgId
+        }),
+      });
+      
+      const data = await response.json();
+      if (response.ok && data.pageUrl) {
+        const text = `${methodName}\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH\n\n${lang === "uk" ? "Натисніть кнопку нижче для оплати:" : lang === "ru" ? "Нажмите кнопку ниже для оплаты:" : "Click the button below to pay:"}`;
+        
+        const keyboard = Markup.inlineKeyboard([
+          [Markup.button.url(`💳 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} ${uahPrices[tier]} UAH`, data.pageUrl)],
+          [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
+        ]);
+        
+        try {
+          await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+        } catch {
+          await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+        }
+      } else {
+        const errorText = lang === "uk" ? "❌ Помилка створення платежу. Спробуйте інший спосіб оплати." : lang === "ru" ? "❌ Ошибка создания платежа. Попробуйте другой способ оплаты." : "❌ Payment creation failed. Try another payment method.";
+        await ctx.answerCbQuery(errorText, { show_alert: true });
+      }
+    } catch {
+      const errorText = lang === "uk" ? "❌ Помилка з'єднання з платіжною системою." : lang === "ru" ? "❌ Ошибка соединения с платёжной системой." : "❌ Payment system connection error.";
+      await ctx.answerCbQuery(errorText, { show_alert: true });
+    }
+  });
+
+  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_crypto$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    const usdPrices: Record<string, string> = { PRO: "10", ENTERPRISE: "35", GROUPS: "55" };
+    const amount = usdPrices[tier];
+    
+    userStates.set(tgId, { module: "payment", step: "awaiting_proof", data: { tier, amount } });
+    
+    const text = `${t(lang, "payment.title", { tier })}\n\n${t(lang, "payment.amount", { amount })}\n\n${t(lang, "payment.address")}\n\n${t(lang, "payment.instructions")}`;
+    
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback("📋 " + t(lang, "buttons.copyAddress"), "copy_address")],
+      [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action(/^bot_pay_promo_(PRO|ENTERPRISE|GROUPS)$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    userStates.set(tgId, { module: "promo_payment", step: "input", data: { tier } });
+    
+    const text = `🎁 *${lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo Code"}*\n\n${lang === "uk" ? "Введіть ваш промокод:" : lang === "ru" ? "Введите ваш промокод:" : "Enter your promo code:"}`;
+    
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback(t(lang, "buttons.back"), `bot_pay_tier_${tier}`)]
+    ]);
+    
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
   });
 
   bot.action(["buy_pro", "buy_enterprise"], async (ctx) => {
