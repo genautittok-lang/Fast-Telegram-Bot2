@@ -329,7 +329,7 @@ ${progressBar}
     const keyboardRows: any[][] = [
       [Markup.button.callback("🔍 " + t(lang, "buttons.check"), "check_all")],
       [
-        Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl),
+        Markup.button.callback(t(lang, "buttons.settings"), "settings"),
         Markup.button.callback(t(lang, "buttons.upgrade"), "upgrade")
       ],
       [
@@ -341,11 +341,11 @@ ${progressBar}
         Markup.button.callback(t(lang, "buttons.monitoring"), "monitoring")
       ],
       [
-        Markup.button.callback(t(lang, "buttons.settings"), "settings")
-      ],
-      [
         Markup.button.callback(t(lang, "support.command"), "open_support"),
         Markup.button.callback("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard")
+      ],
+      [
+        Markup.button.url("🖥️ " + t(lang, "common.webPanel"), webUrl)
       ]
     ];
     
