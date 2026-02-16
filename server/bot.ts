@@ -380,33 +380,54 @@ ${t(lang, "dashboard.selectModule")}`;
   bot.action("check_all", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
-    const keyboard = Markup.inlineKeyboard([
-      [
-        Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
-        Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
-        Markup.button.callback(t(lang, "modules.email"), "mod_email")
-      ],
-      [
-        Markup.button.callback(t(lang, "modules.phone"), "mod_phone"),
-        Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
-        Markup.button.callback(t(lang, "modules.url"), "mod_url")
-      ],
-      [
-        Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
-        Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
-        Markup.button.callback(t(lang, "modules.username"), "mod_username")
-      ],
-      [
-        Markup.button.callback(t(lang, "modules.card"), "mod_card"),
-        Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
-      ],
-      [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
-    ]);
+
+    const checkMenuUrl = process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}/bot-check-menu`
+      : `${process.env.WEB_DOMAIN || "https://www.darkshare.store"}/bot-check-menu`;
+
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(
+        `🔍 *${t(lang, "dashboard.selectModule")}*`,
+        {
+          parse_mode: "Markdown",
+          ...Markup.keyboard([
+            [Markup.button.webApp("🔍 " + t(lang, "dashboard.selectModule"), checkMenuUrl)]
+          ]).oneTime().resize()
+        }
+      );
+      await ctx.reply(
+        lang === "uk" ? "Або поверніться назад:" : lang === "ru" ? "Или вернитесь назад:" : "Or go back:",
+        Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]])
+      );
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
+      const keyboard = Markup.inlineKeyboard([
+        [
+          Markup.button.callback(t(lang, "modules.ip"), "mod_ip"),
+          Markup.button.callback(t(lang, "modules.wallet"), "mod_wallet"),
+          Markup.button.callback(t(lang, "modules.email"), "mod_email")
+        ],
+        [
+          Markup.button.callback(t(lang, "modules.phone"), "mod_phone"),
+          Markup.button.callback(t(lang, "modules.domain"), "mod_business"),
+          Markup.button.callback(t(lang, "modules.url"), "mod_url")
+        ],
+        [
+          Markup.button.callback(t(lang, "modules.cve"), "mod_cve"),
+          Markup.button.callback(t(lang, "modules.hash"), "mod_hash"),
+          Markup.button.callback(t(lang, "modules.username"), "mod_username")
+        ],
+        [
+          Markup.button.callback(t(lang, "modules.card"), "mod_card"),
+          Markup.button.callback(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot")
+        ],
+        [Markup.button.callback(t(lang, "buttons.back"), "back_to_dashboard")]
+      ]);
+      try {
+        await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      } catch {
+        await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      }
     }
   });
 
@@ -689,6 +710,25 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
       await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.on("web_app_data", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    try {
+      const data = JSON.parse(ctx.message.web_app_data.data);
+      if (data.module) {
+        const validModules = ["ip", "wallet", "email", "phone", "domain", "url", "bot", "cve", "hash", "username", "card"];
+        if (validModules.includes(data.module)) {
+          userStates.set(tgId, { module: data.module, step: "input" });
+          const text = t(lang, `modulePrompts.${data.module}`);
+          const keyboard = Markup.inlineKeyboard([[Markup.button.callback(t(lang, "buttons.cancel"), "back_to_dashboard")]]);
+          await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+        }
+      }
+    } catch (err) {
+      console.error("Web app data error:", err);
     }
   });
 

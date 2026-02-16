@@ -86,6 +86,105 @@ export async function registerRoutes(
   // Setup Google OAuth - MUST be before other routes
   await setupGoogleAuth(app);
   
+  app.get("/bot-check-menu", (_req, res) => {
+    res.setHeader("Content-Type", "text/html");
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DARKSHARE - Check</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#fff;font-family:'JetBrains Mono',monospace;min-height:100vh;padding:16px;-webkit-tap-highlight-color:transparent}
+.title{text-align:center;font-size:20px;font-weight:700;padding:12px 0 20px;letter-spacing:1px;background:linear-gradient(135deg,#22c55e,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:480px;margin:0 auto}
+@media(min-width:400px){.grid{grid-template-columns:repeat(3,1fr)}}
+.btn{position:relative;border:none;border-radius:16px;padding:18px 8px;cursor:pointer;color:#fff;font-family:inherit;font-size:13px;font-weight:600;text-align:center;transition:all .15s ease;transform:translateY(0);display:flex;flex-direction:column;align-items:center;gap:6px;-webkit-user-select:none;user-select:none}
+.btn:active{transform:translateY(3px)}
+.icon{font-size:28px;display:inline-block}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes floatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.btn:nth-child(1) .icon{animation:float 2.5s ease-in-out infinite}
+.btn:nth-child(2) .icon{animation:floatSlow 2.8s ease-in-out infinite .2s}
+.btn:nth-child(3) .icon{animation:float 3s ease-in-out infinite .4s}
+.btn:nth-child(4) .icon{animation:floatSlow 2.6s ease-in-out infinite .1s}
+.btn:nth-child(5) .icon{animation:float 3.2s ease-in-out infinite .5s}
+.btn:nth-child(6) .icon{animation:floatSlow 2.4s ease-in-out infinite .3s}
+.btn:nth-child(7) .icon{animation:float 2.7s ease-in-out infinite .6s}
+.btn:nth-child(8) .icon{animation:floatSlow 3.1s ease-in-out infinite .15s}
+.btn:nth-child(9) .icon{animation:float 2.9s ease-in-out infinite .45s}
+.btn:nth-child(10) .icon{animation:floatSlow 2.3s ease-in-out infinite .35s}
+.btn:nth-child(11) .icon{animation:float 2.6s ease-in-out infinite .55s}
+.b-blue{background:linear-gradient(180deg,#60a5fa,#3b82f6);box-shadow:0 4px 0 #2563eb,0 6px 12px rgba(0,0,0,.25)}
+.b-blue:active{box-shadow:0 1px 0 #2563eb,0 2px 4px rgba(0,0,0,.15)}
+.b-orange{background:linear-gradient(180deg,#fb923c,#f97316);box-shadow:0 4px 0 #c2410c,0 6px 12px rgba(0,0,0,.25)}
+.b-orange:active{box-shadow:0 1px 0 #c2410c,0 2px 4px rgba(0,0,0,.15)}
+.b-purple{background:linear-gradient(180deg,#c084fc,#a855f7);box-shadow:0 4px 0 #7e22ce,0 6px 12px rgba(0,0,0,.25)}
+.b-purple:active{box-shadow:0 1px 0 #7e22ce,0 2px 4px rgba(0,0,0,.15)}
+.b-green{background:linear-gradient(180deg,#4ade80,#22c55e);box-shadow:0 4px 0 #15803d,0 6px 12px rgba(0,0,0,.25)}
+.b-green:active{box-shadow:0 1px 0 #15803d,0 2px 4px rgba(0,0,0,.15)}
+.b-indigo{background:linear-gradient(180deg,#818cf8,#6366f1);box-shadow:0 4px 0 #4338ca,0 6px 12px rgba(0,0,0,.25)}
+.b-indigo:active{box-shadow:0 1px 0 #4338ca,0 2px 4px rgba(0,0,0,.15)}
+.b-red{background:linear-gradient(180deg,#f87171,#ef4444);box-shadow:0 4px 0 #b91c1c,0 6px 12px rgba(0,0,0,.25)}
+.b-red:active{box-shadow:0 1px 0 #b91c1c,0 2px 4px rgba(0,0,0,.15)}
+.b-cyan{background:linear-gradient(180deg,#67e8f9,#22d3ee);box-shadow:0 4px 0 #0e7490,0 6px 12px rgba(0,0,0,.25)}
+.b-cyan:active{box-shadow:0 1px 0 #0e7490,0 2px 4px rgba(0,0,0,.15)}
+.b-rose{background:linear-gradient(180deg,#fb7185,#f43f5e);box-shadow:0 4px 0 #9f1239,0 6px 12px rgba(0,0,0,.25)}
+.b-rose:active{box-shadow:0 1px 0 #9f1239,0 2px 4px rgba(0,0,0,.15)}
+.b-slate{background:linear-gradient(180deg,#94a3b8,#64748b);box-shadow:0 4px 0 #475569,0 6px 12px rgba(0,0,0,.25)}
+.b-slate:active{box-shadow:0 1px 0 #475569,0 2px 4px rgba(0,0,0,.15)}
+.b-amber{background:linear-gradient(180deg,#fcd34d,#f59e0b);box-shadow:0 4px 0 #b45309,0 6px 12px rgba(0,0,0,.25)}
+.b-amber:active{box-shadow:0 1px 0 #b45309,0 2px 4px rgba(0,0,0,.15)}
+.b-emerald{background:linear-gradient(180deg,#34d399,#10b981);box-shadow:0 4px 0 #047857,0 6px 12px rgba(0,0,0,.25)}
+.b-emerald:active{box-shadow:0 1px 0 #047857,0 2px 4px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<div class="title">DARKSHARE - Check</div>
+<div class="grid" id="grid"></div>
+<script>
+var tg=window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+tg.BackButton.show();
+tg.BackButton.onClick(function(){tg.close()});
+var lang=(tg.initDataUnsafe&&tg.initDataUnsafe.user&&tg.initDataUnsafe.user.language_code)||"en";
+var labels={
+en:{ip:"IP Address",wallet:"Wallet",email:"Email",phone:"Phone",domain:"Domain",url:"URL",bot:"Bot Token",cve:"CVE",hash:"Hash",username:"Username",card:"Card BIN"},
+uk:{ip:"IP Адреса",wallet:"Гаманець",email:"Email",phone:"Телефон",domain:"Домен",url:"URL",bot:"Bot Token",cve:"CVE",hash:"Хеш",username:"Username",card:"Картка BIN"},
+ru:{ip:"IP Адрес",wallet:"Кошелёк",email:"Email",phone:"Телефон",domain:"Домен",url:"URL",bot:"Bot Token",cve:"CVE",hash:"Хеш",username:"Username",card:"Карта BIN"},
+es:{ip:"IP",wallet:"Cartera",email:"Email",phone:"Tel\\u00e9fono",domain:"Dominio",url:"URL",bot:"Bot Token",cve:"CVE",hash:"Hash",username:"Usuario",card:"Tarjeta BIN"},
+de:{ip:"IP-Adresse",wallet:"Wallet",email:"E-Mail",phone:"Telefon",domain:"Domain",url:"URL",bot:"Bot Token",cve:"CVE",hash:"Hash",username:"Benutzer",card:"Karte BIN"}
+};
+var l=labels[lang]||labels.en;
+var buttons=[
+{m:"ip",e:"\\ud83c\\udf10",c:"b-blue",l:l.ip},
+{m:"wallet",e:"\\ud83d\\udcb0",c:"b-orange",l:l.wallet},
+{m:"email",e:"\\ud83d\\udce7",c:"b-purple",l:l.email},
+{m:"phone",e:"\\ud83d\\udcf1",c:"b-green",l:l.phone},
+{m:"domain",e:"\\ud83c\\udfe2",c:"b-indigo",l:l.domain},
+{m:"url",e:"\\ud83d\\udd17",c:"b-red",l:l.url},
+{m:"bot",e:"\\ud83e\\udd16",c:"b-cyan",l:l.bot},
+{m:"cve",e:"\\ud83d\\udc1b",c:"b-rose",l:l.cve},
+{m:"hash",e:"#\\ufe0f\\u20e3",c:"b-slate",l:l.hash},
+{m:"username",e:"\\ud83d\\udc64",c:"b-amber",l:l.username},
+{m:"card",e:"\\ud83d\\udcb3",c:"b-emerald",l:l.card}
+];
+var grid=document.getElementById("grid");
+buttons.forEach(function(b){
+var el=document.createElement("button");
+el.className="btn "+b.c;
+el.innerHTML='<span class="icon">'+b.e+'</span><span>'+b.l+'</span>';
+el.onclick=function(){tg.sendData(JSON.stringify({module:b.m}))};
+grid.appendChild(el);
+});
+</script>
+</body>
+</html>`);
+  });
+
   app.get("/", (req, res, next) => {
     // If it's an API call or accepts HTML, let it through to frontend
     if (req.accepts("html")) {
