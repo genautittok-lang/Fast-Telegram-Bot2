@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
+import { CookieBanner } from "@/components/CookieBanner";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
@@ -56,6 +57,7 @@ function App() {
         <LanguageProvider>
           <AuthProvider>
             <Toaster />
+            <CookieBanner />
             <Router />
           </AuthProvider>
         </LanguageProvider>
