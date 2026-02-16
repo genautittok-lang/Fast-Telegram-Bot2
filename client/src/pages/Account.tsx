@@ -908,7 +908,7 @@ export default function Account() {
                             <Button
                               onClick={verifyTwoFA}
                               disabled={twoFACode.length !== 6 || twoFALoading}
-                              className="flex-1 bg-emerald-600 hover:bg-emerald-500"
+                              className="flex-1 bg-emerald-600"
                               data-testid="button-2fa-verify"
                             >
                               {twoFALoading ? (

@@ -80,10 +80,6 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (requiresTwoFactor) return;
-  }, [requiresTwoFactor]);
-
-  useEffect(() => {
     window.onTelegramAuth = async (telegramUser: any) => {
       try {
         await login(telegramUser);

@@ -211,6 +211,9 @@ async function ensureTablesExist() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+
+    await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
+    await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false`);
     
     console.log("Database tables ready!");
   } catch (error: any) {
