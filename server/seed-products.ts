@@ -13,10 +13,10 @@ async function createProducts() {
 
   const proPlan = await stripe.products.create({
     name: 'DARKSHARE PRO',
-    description: 'Professional OSINT security plan with 100 checks/day, priority support, and PDF reports',
+    description: 'Professional OSINT security plan with 50 checks/day, priority support, and PDF reports',
     metadata: {
       tier: 'PRO',
-      checksPerDay: '100',
+      checksPerDay: '50',
       features: 'priority_support,pdf_reports,monitoring'
     }
   });

@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 
 const TIER_REQUESTS: Record<string, number> = {
   'FREE': 15,
-  'PRO': 100,
+  'PRO': 50,
   'ENTERPRISE': 9999,
 };
 

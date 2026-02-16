@@ -654,7 +654,7 @@ export async function registerRoutes(
     
     const DAILY_LIMITS: Record<string, number> = {
       FREE: 5,
-      PRO: 100,
+      PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
     };
@@ -729,7 +729,7 @@ export async function registerRoutes(
     
     const DAILY_LIMITS: Record<string, number> = {
       FREE: 5,
-      PRO: 100,
+      PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
     };
@@ -1428,7 +1428,7 @@ export async function registerRoutes(
 
             if (payment.userId) {
               const tier = payment.tier?.toUpperCase() || "PRO";
-              const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 100;
+              const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
               await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
 
               const user = await storage.getUserById(payment.userId);
@@ -1592,7 +1592,7 @@ export async function registerRoutes(
     
     if (payment.userId) {
       const tier = payment.tier?.toUpperCase() || "PRO";
-      const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 100;
+      const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
       await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
       
       // Notify user via bot

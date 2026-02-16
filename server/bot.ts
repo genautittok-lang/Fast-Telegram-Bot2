@@ -1182,7 +1182,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       const DAILY_LIMITS: Record<string, number> = {
         FREE: 5,
-        PRO: 100,
+        PRO: 50,
         ENTERPRISE: Infinity,
         GROUPS: Infinity,
       };
@@ -3015,7 +3015,7 @@ ${allTypesText}
       `└ ${lang === "uk" ? "Адмінів" : lang === "ru" ? "Админов" : "Admins"}: ${ADMIN_IDS.length}\n\n` +
       `📊 *${lang === "uk" ? "Ліміти запитів" : lang === "ru" ? "Лимиты запросов" : "Request Limits"}*\n` +
       `├ 🆓 FREE: 5/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
-      `├ ⭐ PRO: 100/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
+      `├ ⭐ PRO: 50/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
       `├ 👑 ENTERPRISE: ${lang === "uk" ? "безлім" : lang === "ru" ? "безлим" : "unlimited"}\n` +
       `└ 👥 GROUPS: ${lang === "uk" ? "безлім" : lang === "ru" ? "безлим" : "unlimited"}\n\n` +
       `💳 *${lang === "uk" ? "Ціни" : lang === "ru" ? "Цены" : "Prices"}*\n` +
