@@ -5,6 +5,7 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Colored inline keyboard buttons: all 236 bot buttons now use Telegram Bot API `style` field (primary/blue for actions, success/green for payments & confirms, danger/red for cancel & back). Helper functions `cb()` and `urlS()` wrap `Markup.button.callback/url` with style support.
 - MonoPay payment verification fallback: invoiceId stored in payments table, manual "I paid" button in bot triggers MonoPay API status check, auto-check every 2 min for pending payments, auth-protected check-status endpoint (bot token or session), fixes webhook delivery gap
 - Fixed expiryDate bug in MonoPay webhook handler: was always 30 days, now correctly uses periodDays for monthly/yearly
 - Optional 2FA (TOTP): users can enable/disable in Account > Security, QR code setup with authenticator apps, login 2FA verification step, 5-language i18n support
