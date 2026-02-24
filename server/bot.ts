@@ -7,16 +7,54 @@ import { t, Language, languageNames } from "./i18n";
 interface BotContext extends Context {}
 
 type BtnStyle = "primary" | "success" | "danger";
-function cb(text: string, data: string, style?: BtnStyle) {
+function cb(text: string, data: string, style?: BtnStyle, emoji?: string) {
   const btn = Markup.button.callback(text, data) as any;
   if (style) btn.style = style;
+  if (emoji) btn.icon_custom_emoji_id = emoji;
   return btn;
 }
-function urlS(text: string, url: string, style?: BtnStyle) {
+function urlS(text: string, url: string, style?: BtnStyle, emoji?: string) {
   const btn = Markup.button.url(text, url) as any;
   if (style) btn.style = style;
+  if (emoji) btn.icon_custom_emoji_id = emoji;
   return btn;
 }
+
+const E = {
+  search: "5375082550078779968",
+  shield: "5373141891321699086",
+  star: "5368324170671202286",
+  gear: "5377437404078546699",
+  chart: "5404870433939922908",
+  lock: "5373026167722876498",
+  fire: "5364196736498534923",
+  check: "5372926953498134790",
+  cross: "5368226083932584322",
+  bell: "5373060637498456874",
+  money: "5372827333134973026",
+  user: "5373239598582498930",
+  doc: "5373378423498412156",
+  link: "5368356993498534940",
+  globe: "5373095237498456890",
+  bolt: "5372978053498412180",
+  gift: "5368252533932584350",
+  crown: "5373198123498412170",
+  warn: "5373017053498412135",
+  back: "5372904013498412100",
+  home: "5373326153498412145",
+  msg: "5373420813498412190",
+  rocket: "5373459913498412210",
+  diamond: "5373506613498412230",
+  key: "5373548013498412250",
+  clock: "5373589413498412270",
+  eye: "5373630813498412290",
+  trash: "5373672213498412310",
+  card: "5373713613498412330",
+  phone: "5373755013498412350",
+  mail: "5373796413498412370",
+  flag: "5373837813498412390",
+  pin: "5373879213498412410",
+};
 
 export const ADMIN_IDS = (process.env.ADMIN_IDS || "7820995179").split(",").map(id => id.trim());
 
@@ -93,21 +131,21 @@ export async function setupBot(storage: IStorage) {
 
   function getAdminKeyboard(lang: Language, exitAction: string = "back_to_dashboard") {
     return Markup.inlineKeyboard([
-      [cb("📊 " + (t(lang, "admin.statsBtn") || "Stats"), "admin_stats", "primary"),
-       cb("👥 " + (t(lang, "admin.usersBtn") || "Users"), "admin_users", "primary")],
-      [cb("🔍 " + (t(lang, "admin.searchBtn") || "Search"), "admin_search_user"),
-       cb("💰 " + (t(lang, "admin.paymentsBtn") || "Payments"), "admin_payments", "success")],
-      [cb("🎫 " + (t(lang, "admin.ticketsBtn") || "Tickets"), "admin_tickets"),
-       cb("🎁 " + (t(lang, "admin.couponsBtn") || "Coupons"), "admin_coupons")],
-      [cb("💵 " + (t(lang, "admin.revenueBtn") || "Revenue"), "admin_revenue", "success"),
-       cb("📋 " + (t(lang, "admin.reportsBtn") || "Reports"), "admin_reports")],
-      [cb("📢 " + (t(lang, "admin.broadcastBtn") || "Broadcast"), "admin_broadcast"),
-       cb("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user", "danger")],
-      [cb("⭐ " + (t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier"),
-       cb("➕ " + (t(lang, "admin.addReqBtn") || "Add Req"), "admin_add_requests", "success")],
-      [cb("⚙️ " + (t(lang, "admin.settingsBtn") || "Settings"), "admin_settings"),
-       cb("📈 " + (lang === "uk" ? "Онлайн" : lang === "ru" ? "Онлайн" : "Online"), "admin_online", "primary")],
-      [cb("🔙 " + (t(lang, "admin.exitBtn") || "Exit"), exitAction, "danger")]
+      [cb("📊 " + (t(lang, "admin.statsBtn") || "Stats"), "admin_stats", "primary", E.chart),
+       cb("👥 " + (t(lang, "admin.usersBtn") || "Users"), "admin_users", "primary", E.user)],
+      [cb("🔍 " + (t(lang, "admin.searchBtn") || "Search"), "admin_search_user", "primary", E.search),
+       cb("💰 " + (t(lang, "admin.paymentsBtn") || "Payments"), "admin_payments", "success", E.money)],
+      [cb("🎫 " + (t(lang, "admin.ticketsBtn") || "Tickets"), "admin_tickets", "primary", E.msg),
+       cb("🎁 " + (t(lang, "admin.couponsBtn") || "Coupons"), "admin_coupons", "success", E.gift)],
+      [cb("💵 " + (t(lang, "admin.revenueBtn") || "Revenue"), "admin_revenue", "success", E.chart),
+       cb("📋 " + (t(lang, "admin.reportsBtn") || "Reports"), "admin_reports", "primary", E.doc)],
+      [cb("📢 " + (t(lang, "admin.broadcastBtn") || "Broadcast"), "admin_broadcast", "primary", E.bell),
+       cb("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user", "danger", E.cross)],
+      [cb("⭐ " + (t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier", "primary", E.star),
+       cb("➕ " + (t(lang, "admin.addReqBtn") || "Add Req"), "admin_add_requests", "success", E.check)],
+      [cb("⚙️ " + (t(lang, "admin.settingsBtn") || "Settings"), "admin_settings", "primary", E.gear),
+       cb("📈 " + (lang === "uk" ? "Онлайн" : lang === "ru" ? "Онлайн" : "Online"), "admin_online", "primary", E.globe)],
+      [cb("🔙 " + (t(lang, "admin.exitBtn") || "Exit"), exitAction, "danger", E.back)]
     ]);
   }
 
@@ -191,13 +229,13 @@ ${t(lang, "startWelcome.selectLanguage")}`;
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            cb("🇺🇦 Українська", "lang_uk", "primary"),
-            cb("🇬🇧 English", "lang_en", "primary"),
-            cb("🇷🇺 Русский", "lang_ru", "primary")
+            cb("🇺🇦 Українська", "lang_uk", "primary", E.globe),
+            cb("🇬🇧 English", "lang_en", "primary", E.globe),
+            cb("🇷🇺 Русский", "lang_ru", "primary", E.globe)
           ],
           [
-            cb("🇪🇸 Español", "lang_es"),
-            cb("🇩🇪 Deutsch", "lang_de")
+            cb("🇪🇸 Español", "lang_es", "primary", E.globe),
+            cb("🇩🇪 Deutsch", "lang_de", "primary", E.globe)
           ]
         ])
       });
@@ -234,13 +272,13 @@ ${t(lang, "startWelcome.selectLang")}`;
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            cb("🇺🇦 Українська", "lang_uk", "primary"),
-            cb("🇬🇧 English", "lang_en", "primary"),
-            cb("🇷🇺 Русский", "lang_ru", "primary")
+            cb("🇺🇦 Українська", "lang_uk", "primary", E.globe),
+            cb("🇬🇧 English", "lang_en", "primary", E.globe),
+            cb("🇷🇺 Русский", "lang_ru", "primary", E.globe)
           ],
           [
-            cb("🇪🇸 Español", "lang_es"),
-            cb("🇩🇪 Deutsch", "lang_de")
+            cb("🇪🇸 Español", "lang_es", "primary", E.globe),
+            cb("🇩🇪 Deutsch", "lang_de", "primary", E.globe)
           ]
         ])
       });
@@ -261,7 +299,7 @@ ${t(lang, "startWelcome.selectLang")}`;
     const startText = t(langCode, "common.languageSet");
     
     await ctx.editMessageText(startText, 
-      Markup.inlineKeyboard([[cb("🚀 " + t(langCode, "buttons.back").replace("⬅️ ", ""), "dashboard", "primary")]])
+      Markup.inlineKeyboard([[cb("🚀 " + t(langCode, "buttons.back").replace("⬅️ ", ""), "dashboard", "primary", E.home)]])
     );
   });
 
@@ -339,30 +377,30 @@ ${progressBar}
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
     const keyboardRows: any[][] = [
-      [cb("🔍 " + t(lang, "buttons.check"), "check_all", "primary")],
+      [cb("🔍 " + t(lang, "buttons.check"), "check_all", "primary", E.search)],
       [
-        cb(t(lang, "buttons.settings"), "settings"),
-        cb(t(lang, "buttons.upgrade"), "upgrade", "success")
+        cb(t(lang, "buttons.settings"), "settings", "primary", E.gear),
+        cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)
       ],
       [
-        cb(t(lang, "buttons.profile"), "profile"),
-        cb(t(lang, "buttons.referrals"), "referrals")
+        cb(t(lang, "buttons.profile"), "profile", "primary", E.user),
+        cb(t(lang, "buttons.referrals"), "referrals", "success", E.link)
       ],
       [
-        cb(t(lang, "buttons.history"), "history"),
-        cb(t(lang, "buttons.monitoring"), "monitoring")
+        cb(t(lang, "buttons.history"), "history", "primary", E.clock),
+        cb(t(lang, "buttons.monitoring"), "monitoring", "primary", E.eye)
       ],
       [
-        cb(t(lang, "support.command"), "open_support"),
-        cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard")
+        cb(t(lang, "support.command"), "open_support", "primary", E.msg),
+        cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard", "danger", E.bolt)
       ],
       [
-        urlS("🖥️ " + t(lang, "common.webPanel"), webUrl, "primary")
+        urlS("🖥️ " + t(lang, "common.webPanel"), webUrl, "primary", E.globe)
       ]
     ];
     
     if (isAdmin(tgId)) {
-      keyboardRows.push([cb("🛡️ ADMIN PANEL", "open_admin_panel", "danger")]);
+      keyboardRows.push([cb("🛡️ ADMIN PANEL", "open_admin_panel", "danger", E.crown)]);
     }
     
     const keyboard = Markup.inlineKeyboard(keyboardRows);
@@ -387,25 +425,25 @@ ${progressBar}
     const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
     const keyboard = Markup.inlineKeyboard([
       [
-        cb(t(lang, "modules.ip"), "mod_ip", "primary"),
-        cb(t(lang, "modules.wallet"), "mod_wallet", "primary"),
-        cb(t(lang, "modules.email"), "mod_email", "primary")
+        cb(t(lang, "modules.ip"), "mod_ip", "primary", E.globe),
+        cb(t(lang, "modules.wallet"), "mod_wallet", "primary", E.money),
+        cb(t(lang, "modules.email"), "mod_email", "primary", E.mail)
       ],
       [
-        cb(t(lang, "modules.phone"), "mod_phone", "primary"),
-        cb(t(lang, "modules.domain"), "mod_business", "primary"),
-        cb(t(lang, "modules.url"), "mod_url", "primary")
+        cb(t(lang, "modules.phone"), "mod_phone", "primary", E.phone),
+        cb(t(lang, "modules.domain"), "mod_business", "primary", E.globe),
+        cb(t(lang, "modules.url"), "mod_url", "primary", E.globe)
       ],
       [
-        cb(t(lang, "modules.cve"), "mod_cve", "primary"),
-        cb(t(lang, "modules.hash"), "mod_hash", "primary"),
-        cb(t(lang, "modules.username"), "mod_username", "primary")
+        cb(t(lang, "modules.cve"), "mod_cve", "primary", E.warn),
+        cb(t(lang, "modules.hash"), "mod_hash", "primary", E.key),
+        cb(t(lang, "modules.username"), "mod_username", "primary", E.user)
       ],
       [
-        cb(t(lang, "modules.card"), "mod_card", "primary"),
-        cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary")
+        cb(t(lang, "modules.card"), "mod_card", "primary", E.card),
+        cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary", E.shield)
       ],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
@@ -420,11 +458,11 @@ ${progressBar}
     const text = `🌐 *${lang === "uk" ? "Мережа & Web" : lang === "ru" ? "Сеть & Web" : "Network & Web"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
     const keyboard = Markup.inlineKeyboard([
       [
-        cb(t(lang, "modules.ip"), "mod_ip", "primary"),
-        cb(t(lang, "modules.domain"), "mod_business", "primary"),
-        cb(t(lang, "modules.url"), "mod_url", "primary")
+        cb(t(lang, "modules.ip"), "mod_ip", "primary", E.globe),
+        cb(t(lang, "modules.domain"), "mod_business", "primary", E.globe),
+        cb(t(lang, "modules.url"), "mod_url", "primary", E.globe)
       ],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
@@ -439,10 +477,10 @@ ${progressBar}
     const text = `💰 *${lang === "uk" ? "Крипто & Фінанси" : lang === "ru" ? "Крипто & Финансы" : "Crypto & Finance"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
     const keyboard = Markup.inlineKeyboard([
       [
-        cb(t(lang, "modules.wallet"), "mod_wallet", "primary"),
-        cb(t(lang, "modules.card"), "mod_card", "primary")
+        cb(t(lang, "modules.wallet"), "mod_wallet", "primary", E.money),
+        cb(t(lang, "modules.card"), "mod_card", "primary", E.card)
       ],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
@@ -457,14 +495,14 @@ ${progressBar}
     const text = `🔍 *OSINT*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
     const keyboard = Markup.inlineKeyboard([
       [
-        cb(t(lang, "modules.email"), "mod_email", "primary"),
-        cb(t(lang, "modules.phone"), "mod_phone", "primary")
+        cb(t(lang, "modules.email"), "mod_email", "primary", E.mail),
+        cb(t(lang, "modules.phone"), "mod_phone", "primary", E.phone)
       ],
       [
-        cb(t(lang, "modules.username"), "mod_username", "primary"),
-        cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary")
+        cb(t(lang, "modules.username"), "mod_username", "primary", E.user),
+        cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary", E.shield)
       ],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
@@ -479,14 +517,14 @@ ${progressBar}
     const text = `🛡 *${lang === "uk" ? "Безпека" : lang === "ru" ? "Безопасность" : "Security"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
     const keyboard = Markup.inlineKeyboard([
       [
-        cb(t(lang, "modules.cve"), "mod_cve", "primary"),
-        cb(t(lang, "modules.hash"), "mod_hash", "primary")
+        cb(t(lang, "modules.cve"), "mod_cve", "primary", E.warn),
+        cb(t(lang, "modules.hash"), "mod_hash", "primary", E.key)
       ],
       [
-        cb(t(lang, "modules.iot"), "mod_iot"),
-        cb(t(lang, "modules.cloud"), "mod_cloud")
+        cb(t(lang, "modules.iot"), "mod_iot", "primary", E.bolt),
+        cb(t(lang, "modules.cloud"), "mod_cloud", "primary", E.globe)
       ],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
@@ -566,9 +604,9 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     await ctx.reply(statsText, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb(t(lang, "buttons.newCheck"), "dashboard", "primary")],
-        [cb(t(lang, "buttons.referrals"), "referrals")],
-        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+        [cb(t(lang, "buttons.newCheck"), "dashboard", "primary", E.search)],
+        [cb(t(lang, "buttons.referrals"), "referrals", "success", E.link)],
+        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
       ])
     });
   });
@@ -618,9 +656,9 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     await ctx.reply(helpText, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb(t(lang, "buttons.newCheck"), "dashboard", "primary")],
-        [cb(t(lang, "buttons.upgrade"), "upgrade", "success")],
-        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+        [cb(t(lang, "buttons.newCheck"), "dashboard", "primary", E.search)],
+        [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)],
+        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
       ])
     });
   });
@@ -641,8 +679,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     await ctx.reply(`📤 *${t(lang, "share.title")}:*\n\n${t(lang, "share.clickBelow")}`, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [urlS(t(lang, "buttons.share"), shareUrl, "success")],
-        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+        [urlS(t(lang, "buttons.share"), shareUrl, "success", E.link)],
+        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
       ])
     });
   });
@@ -669,7 +707,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       const module = moduleMap[action];
       userStates.set(tgId, { module, step: "input" });
       const text = t(lang, `modulePrompts.${module}`);
-      const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger")]]);
+      const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger", E.back)]]);
       try {
         await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
       } catch {
@@ -685,8 +723,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     
     const text = t(lang, "common.proOnly");
     const keyboard = Markup.inlineKeyboard([
-      [cb(t(lang, "upgrade.buyPro"), "upgrade", "success")],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "upgrade.buyPro"), "upgrade", "success", E.star)],
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     
     try {
@@ -757,9 +795,9 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         await ctx.reply(promoText, {
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
-            [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary")],
-            [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success")],
-            [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger")]
+            [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
+            [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+            [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
           ])
         });
         
@@ -790,8 +828,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            cb(t(lang, "admin.send"), "admin_broadcast_confirm", "success"),
-            cb(t(lang, "admin.cancel"), "admin_broadcast_cancel", "danger")
+            cb(t(lang, "admin.send"), "admin_broadcast_confirm", "success", E.check),
+            cb(t(lang, "admin.cancel"), "admin_broadcast_cancel", "danger", E.back)
           ]
         ])
       });
@@ -812,7 +850,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       if (!targetUser) {
         return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+          ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
         });
       }
       
@@ -828,9 +866,9 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       await ctx.reply(resultText, {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [cb(targetUser.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${targetUser.id}`, "danger")],
-          [cb(t(lang, "admin.moreInfo"), `admin_user_info_${targetUser.id}`, "primary")],
-          [cb(t(lang, "admin.back"), "admin_back", "danger")]
+          [cb(targetUser.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${targetUser.id}`, "danger", E.cross)],
+          [cb(t(lang, "admin.moreInfo"), `admin_user_info_${targetUser.id}`, "primary", E.user)],
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
         ])
       });
       return;
@@ -850,7 +888,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       if (!targetUser) {
         return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+          ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
         });
       }
       
@@ -866,11 +904,11 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            cb("🆓 FREE", `admin_set_tier_${targetUser.id}_FREE`),
-            cb("⭐ PRO", `admin_set_tier_${targetUser.id}_PRO`, "success"),
-            cb("👑 ENTERPRISE", `admin_set_tier_${targetUser.id}_ENTERPRISE`, "primary")
+            cb("🆓 FREE", `admin_set_tier_${targetUser.id}_FREE`, "danger", E.star),
+            cb("⭐ PRO", `admin_set_tier_${targetUser.id}_PRO`, "success", E.star),
+            cb("👑 ENTERPRISE", `admin_set_tier_${targetUser.id}_ENTERPRISE`, "primary", E.crown)
           ],
-          [cb(t(lang, "admin.back"), "admin_back", "danger")]
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
         ])
       });
       return;
@@ -893,8 +931,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         return ctx.reply(`${t(lang, "admin.searchResults")}\n\n${t(lang, "admin.nothingFound", { query })}`, {
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
-            [cb(t(lang, "admin.newSearch"), "admin_search_user", "primary")],
-            [cb(t(lang, "admin.back"), "admin_back", "danger")]
+            [cb(t(lang, "admin.newSearch"), "admin_search_user", "primary", E.search)],
+            [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
           ])
         });
       }
@@ -914,10 +952,10 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       const buttons: any[][] = [];
       foundUsers.slice(0, 5).forEach(u => {
-        buttons.push([cb(`👤 ${u.username || u.tgId}`, `admin_user_info_${u.id}`)]);
+        buttons.push([cb(`👤 ${u.username || u.tgId}`, `admin_user_info_${u.id}`, "primary", E.user)]);
       });
-      buttons.push([cb(t(lang, "admin.newSearch"), "admin_search_user", "primary")]);
-      buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+      buttons.push([cb(t(lang, "admin.newSearch"), "admin_search_user", "primary", E.search)]);
+      buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
       
       await ctx.reply(resultText, {
         parse_mode: "Markdown",
@@ -952,7 +990,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       await ctx.reply(t(lang, "admin.ticketReplySent"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_tickets", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_tickets", "danger", E.msg)]])
       });
       return;
     }
@@ -968,7 +1006,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       await ctx.reply(t(lang, "admin.enterCouponDiscount"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger", E.back)]])
       });
       return;
     }
@@ -988,7 +1026,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       await ctx.reply(t(lang, "admin.enterCouponMaxUses"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger", E.back)]])
       });
       return;
     }
@@ -1008,7 +1046,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       await ctx.reply(t(lang, "admin.enterCouponExpiry"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger", E.back)]])
       });
       return;
     }
@@ -1040,7 +1078,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       await ctx.reply(t(lang, "admin.couponCreated"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_coupons", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_coupons", "danger", E.gift)]])
       });
       return;
     }
@@ -1057,7 +1095,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       if (!targetUser) {
         return ctx.reply(t(lang, "admin.userNotFound", { id: targetTgId }), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+          ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
         });
       }
       
@@ -1065,7 +1103,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       await ctx.reply(t(lang, "admin.enterRequestsAmount"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
       });
       return;
     }
@@ -1092,7 +1130,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         total: (updatedUser.requestsLeft || 0).toString()
       }), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
       });
       return;
     }
@@ -1113,7 +1151,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       userStates.delete(tgId);
 
       await ctx.reply(t(lang, "payment.created", { id: payment.id.toString() }) + `\n\n${t(lang, "common.tier")}: ${state.data.tier}\n${t(lang, "common.amount")}: $${state.data.amount} USDT\n${t("uk", "admin.txHash")}: ${txHash}\n\n${t(lang, "payment.pending")}`, 
-        Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]])
+        Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]])
       );
 
       for (const adminId of ADMIN_IDS) {
@@ -1122,8 +1160,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
             {
               reply_markup: Markup.inlineKeyboard([
                 [
-                  cb(t("uk", "admin.approve"), `approve_pay_${payment.id}`, "success"),
-                  cb(t("uk", "admin.reject"), `reject_pay_${payment.id}`, "danger")
+                  cb(t("uk", "admin.approve"), `approve_pay_${payment.id}`, "success", E.check),
+                  cb(t("uk", "admin.reject"), `reject_pay_${payment.id}`, "danger", E.cross)
                 ]
               ]).reply_markup
             }
@@ -1142,7 +1180,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         userStates.set(tgId, { module: "support", step: "contact", data: { name: text.trim() } });
         return ctx.reply(t(lang, "support.askContact"), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger")]])
+          ...Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger", E.back)]])
         });
       }
 
@@ -1150,7 +1188,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         userStates.set(tgId, { module: "support", step: "message", data: { ...state.data, contact: text.trim() } });
         return ctx.reply(t(lang, "support.askMessage"), {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger")]])
+          ...Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger", E.back)]])
         });
       }
 
@@ -1172,7 +1210,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
 
           await ctx.reply(t(lang, "support.sent"), {
             parse_mode: "Markdown",
-            ...Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]])
+            ...Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]])
           });
 
           for (const adminId of ADMIN_IDS) {
@@ -1182,8 +1220,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
                 {
                   reply_markup: Markup.inlineKeyboard([
                     [
-                      cb("💬 Відповісти", `reply_ticket_${ticket.id}`, "primary"),
-                      cb("✅ Закрити", `close_ticket_${ticket.id}`, "success")
+                      cb("💬 Відповісти", `reply_ticket_${ticket.id}`, "primary", E.msg),
+                      cb("✅ Закрити", `close_ticket_${ticket.id}`, "success", E.check)
                     ]
                   ]).reply_markup
                 }
@@ -1197,7 +1235,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
           userStates.delete(tgId);
           await ctx.reply(t(lang, "support.error"), {
             parse_mode: "Markdown",
-            ...Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]])
+            ...Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]])
           });
         }
         return;
@@ -1208,8 +1246,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       return ctx.reply(t(lang, "checkResult.limitExceeded"), {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [cb(t(lang, "buttons.upgrade"), "upgrade", "success")],
-          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+          [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)],
+          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
         ])
       });
     }
@@ -1247,8 +1285,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
           return ctx.reply(errorMsg, {
             parse_mode: "Markdown",
             ...Markup.inlineKeyboard([
-              [cb(t(lang, "buttons.upgrade"), "upgrade", "success")],
-              [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+              [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)],
+              [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
             ])
           });
         }
@@ -1557,15 +1595,15 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         [
-          cb(t(lang, "buttons.pdf"), `gen_pdf_${state.module}_${inputValue}`),
-          cb(t(lang, "buttons.newCheck"), `mod_${state.module === "domain" ? "business" : state.module}`, "primary")
+          cb(t(lang, "buttons.pdf"), `gen_pdf_${state.module}_${inputValue}`, "primary", E.doc),
+          cb(t(lang, "buttons.newCheck"), `mod_${state.module === "domain" ? "business" : state.module}`, "primary", E.search)
         ],
         [
-          cb(t(lang, "buttons.monitoring"), `add_monitor_${state.module}_${inputValue}`),
-          cb(t(lang, "buttons.share"), `share_result_${state.module}_${inputValue}`)
+          cb(t(lang, "buttons.monitoring"), `add_monitor_${state.module}_${inputValue}`, "primary", E.eye),
+          cb(t(lang, "buttons.share"), `share_result_${state.module}_${inputValue}`, "success", E.link)
         ],
         [
-          cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")
+          cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)
         ]
       ])
     });
@@ -1633,8 +1671,8 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
       await ctx.answerCbQuery(t(lang, "monitoring.limitReached"));
       return ctx.reply(t(lang, "monitoring.upgradeHint"), 
         Markup.inlineKeyboard([
-          [cb(t(lang, "upgrade.buyPro"), "upgrade", "success")],
-          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+          [cb(t(lang, "upgrade.buyPro"), "upgrade", "success", E.star)],
+          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
         ])
       );
     }
@@ -1649,7 +1687,7 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
 
     await ctx.answerCbQuery(t(lang, "monitoring.added"));
     await ctx.reply(t(lang, "monitoring.added") + "\n\n" + t(lang, "monitoring.description"), 
-      Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]])
+      Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]])
     );
   });
 
@@ -1674,7 +1712,7 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
       });
     }
 
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]]);
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
@@ -1703,7 +1741,7 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
       });
     }
 
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]]);
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
@@ -1720,11 +1758,11 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
 
     const keyboard = Markup.inlineKeyboard([
       [
-        cb("🇺🇦 Українська", "set_lang_uk", "primary"),
-        cb("🇬🇧 English", "set_lang_en", "primary"),
-        cb("🇷🇺 Русский", "set_lang_ru", "primary")
+        cb("🇺🇦 Українська", "set_lang_uk", "primary", E.globe),
+        cb("🇬🇧 English", "set_lang_en", "primary", E.globe),
+        cb("🇷🇺 Русский", "set_lang_ru", "primary", E.globe)
       ],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
@@ -1806,9 +1844,9 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("📋 Копіювати посилання", "copy_ref_link", "primary")],
-        [urlS("📤 Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("Приєднуйся до DARKSHARE - найкращої OSINT платформи! 🔍")}`)],
-        [cb("⬅️ Панель", "back_to_dashboard", "danger")]
+        [cb("📋 Копіювати посилання", "copy_ref_link", "primary", E.link)],
+        [urlS("📤 Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("Приєднуйся до DARKSHARE - найкращої OSINT платформи! 🔍")}`, "success", E.link)],
+        [cb("⬅️ Панель", "back_to_dashboard", "danger", E.back)]
       ])
     });
   });
@@ -1831,9 +1869,9 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
     await ctx.editMessageText(text, 
       Markup.inlineKeyboard([
-        [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success")],
-        [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success")],
-        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+        [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
+        [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
+        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
       ])
     );
   });
@@ -1846,10 +1884,10 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `💳 *${lang === "uk" ? "Оплата підписки" : lang === "ru" ? "Оплата подписки" : "Subscription Payment"}*\n\n${lang === "uk" ? "Оберіть тариф:" : lang === "ru" ? "Выберите тариф:" : "Select plan:"}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [cb("⭐ PRO — $10/mo (410 UAH)", "bot_pay_tier_PRO", "success")],
-      [cb("👑 ENTERPRISE — $35/mo (1435 UAH)", "bot_pay_tier_ENTERPRISE", "success")],
-      [cb("👥 GROUPS — $55/mo (2255 UAH)", "bot_pay_tier_GROUPS", "success")],
-      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]
+      [cb("⭐ PRO — $10/mo (410 UAH)", "bot_pay_tier_PRO", "success", E.money)],
+      [cb("👑 ENTERPRISE — $35/mo (1435 UAH)", "bot_pay_tier_ENTERPRISE", "success", E.money)],
+      [cb("👥 GROUPS — $55/mo (2255 UAH)", "bot_pay_tier_GROUPS", "success", E.money)],
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     
     try {
@@ -1870,10 +1908,10 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary")],
-      [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success")],
-      [cb("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`)],
-      [cb(t(lang, "buttons.back"), "bot_payment", "danger")]
+      [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
+      [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+      [cb("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
+      [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
     ]);
     
     try {
@@ -1910,9 +1948,9 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
         const text = `${methodName}\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH\n\n${lang === "uk" ? "Натисніть кнопку нижче для оплати:" : lang === "ru" ? "Нажмите кнопку ниже для оплаты:" : "Click the button below to pay:"}`;
         
         const keyboard = Markup.inlineKeyboard([
-          [urlS(`💳 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} ${uahPrices[tier]} UAH`, data.pageUrl, "success")],
-          [cb(`✅ ${lang === "uk" ? "Я оплатив" : lang === "ru" ? "Я оплатил" : "I paid"}`, `check_mono_payment`, "success")],
-          [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger")]
+          [urlS(`💳 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} ${uahPrices[tier]} UAH`, data.pageUrl, "success", E.money)],
+          [cb(`✅ ${lang === "uk" ? "Я оплатив" : lang === "ru" ? "Я оплатил" : "I paid"}`, `check_mono_payment`, "success", E.check)],
+          [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
         ]);
         
         try {
@@ -1956,7 +1994,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
                          lang === "ru" ? "\u2705 *\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!*\n\n\u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438." :
                          "\u2705 *Payment confirmed!*\n\nYour plan has been upgraded automatically.";
         const keyboard = Markup.inlineKeyboard([
-          [cb("\u{1F3E0} " + (lang === "uk" ? "\u041C\u0435\u043D\u044E" : lang === "ru" ? "\u041C\u0435\u043D\u044E" : "Menu"), "dashboard", "primary")]
+          [cb("\u{1F3E0} " + (lang === "uk" ? "\u041C\u0435\u043D\u044E" : lang === "ru" ? "\u041C\u0435\u043D\u044E" : "Menu"), "dashboard", "primary", E.home)]
         ]);
         try {
           await ctx.editMessageText(doneText, { parse_mode: "Markdown", ...keyboard });
@@ -2004,8 +2042,8 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `${t(lang, "payment.title", { tier })}\n\n${t(lang, "payment.amount", { amount })}\n\n${t(lang, "payment.address")}\n\n${t(lang, "payment.instructions")}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [cb("📋 " + t(lang, "buttons.copyAddress"), "copy_address", "primary")],
-      [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger")]
+      [cb("📋 " + t(lang, "buttons.copyAddress"), "copy_address", "primary", E.money)],
+      [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
     ]);
     
     try {
@@ -2025,7 +2063,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `🎁 *${lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo Code"}*\n\n${lang === "uk" ? "Введіть ваш промокод:" : lang === "ru" ? "Введите ваш промокод:" : "Enter your promo code:"}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger")]
+      [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
     ]);
     
     try {
@@ -2046,10 +2084,10 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
     
     const keyboard = Markup.inlineKeyboard([
-      [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary")],
-      [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success")],
-      [cb("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`)],
-      [cb(t(lang, "buttons.back"), "bot_payment", "danger")]
+      [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
+      [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+      [cb("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
+      [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
     ]);
     
     try {
@@ -2091,7 +2129,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
       userStates.delete(tgId);
 
       await ctx.reply(`${t(lang, "payment.created", { id: payment.id.toString() })}\n\n${t(lang, "common.tier")}: ${state.data.tier}\n${t(lang, "common.amount")}: $${state.data.amount} USDT\n\n${t(lang, "payment.pending")}`, 
-        Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]])
+        Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]])
       );
 
       for (const adminId of ADMIN_IDS) {
@@ -2100,8 +2138,8 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
             caption: `${t("uk", "admin.newPayment", { id: payment.id.toString() })}\n\n${t("uk", "admin.user", { username: user.username || t("uk", "common.na"), tgId: user.tgId })}\n${t("uk", "admin.tier", { tier: state.data.tier })}\n${t("uk", "admin.paymentAmount", { amount: state.data.amount })}\n${t("uk", "admin.type", { type: t(lang, "common.screenshot") })}`,
             reply_markup: Markup.inlineKeyboard([
               [
-                cb(t("uk", "admin.approve"), `approve_pay_${payment.id}`, "success"),
-                cb(t("uk", "admin.reject"), `reject_pay_${payment.id}`, "danger")
+                cb(t("uk", "admin.approve"), `approve_pay_${payment.id}`, "success", E.check),
+                cb(t("uk", "admin.reject"), `reject_pay_${payment.id}`, "danger", E.cross)
               ]
             ]).reply_markup
           });
@@ -2154,7 +2192,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
       try {
         await ctx.telegram.sendMessage(user.tgId, receiptText, {
           parse_mode: "Markdown",
-          ...Markup.inlineKeyboard([[cb(t(userLang, "buttons.back"), "back_to_dashboard", "danger")]])
+          ...Markup.inlineKeyboard([[cb(t(userLang, "buttons.back"), "back_to_dashboard", "danger", E.back)]])
         });
       } catch (e) {
         console.log(`Failed to notify user:`, e);
@@ -2184,7 +2222,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
       const userLang = getUserLang(user.lang);
       try {
         await ctx.telegram.sendMessage(user.tgId, t(userLang, "payment.rejected", { id: paymentId.toString() }), 
-          Markup.inlineKeyboard([[cb(t(userLang, "payment.tryAgain"), "upgrade", "success")]])
+          Markup.inlineKeyboard([[cb(t(userLang, "payment.tryAgain"), "upgrade", "success", E.star)]])
         );
       } catch (e) {
         console.log(`Failed to notify user:`, e);
@@ -2201,7 +2239,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     userStates.set(tgId, { module: "support", step: "name" });
     await ctx.reply(t(lang, "support.askName"), {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger", E.back)]])
     });
   });
 
@@ -2210,7 +2248,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const lang = await getLang(tgId);
     userStates.set(tgId, { module: "support", step: "name" });
     const text = t(lang, "support.askName");
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger")]]);
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger", E.back)]]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
@@ -2248,7 +2286,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const lang = await getLang(tgId);
     userStates.set(tgId, { module: "coupon", step: "input" });
     const text = t(lang, "coupon.enter");
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]]);
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
@@ -2380,12 +2418,12 @@ ${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
 
     const keyboard = Markup.inlineKeyboard([
       [
-        cb("📊 " + (lang === "uk" ? "Детальна статистика" : lang === "ru" ? "Подробная статистика" : "Detailed stats"), "profile_detailed_stats", "primary"),
-        cb("🎁 " + (lang === "uk" ? "Реф. посилання" : lang === "ru" ? "Реф. ссылка" : "Ref. link"), "profile_ref_link")
+        cb("📊 " + (lang === "uk" ? "Детальна статистика" : lang === "ru" ? "Подробная статистика" : "Detailed stats"), "profile_detailed_stats", "primary", E.chart),
+        cb("🎁 " + (lang === "uk" ? "Реф. посилання" : lang === "ru" ? "Реф. ссылка" : "Ref. link"), "profile_ref_link", "success", E.link)
       ],
       [
-        cb("⚙️ " + (lang === "uk" ? "Налаштування" : lang === "ru" ? "Настройки" : "Settings"), "settings"),
-        cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary")
+        cb("⚙️ " + (lang === "uk" ? "Налаштування" : lang === "ru" ? "Настройки" : "Settings"), "settings", "primary", E.gear),
+        cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)
       ]
     ]);
     
@@ -2476,8 +2514,8 @@ ${allTypesText}
     ${streakBar}`;
 
     const keyboard = Markup.inlineKeyboard([
-      [cb("⬅️ " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile", "danger")],
-      [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary")]
+      [cb("⬅️ " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile", "danger", E.back)],
+      [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
     ]);
     
     try {
@@ -2536,9 +2574,9 @@ ${allTypesText}
 💡 ${lang === "uk" ? "Поділись посиланням з друзями!" : lang === "ru" ? "Поделись ссылкой с друзьями!" : "Share the link with friends!"}`;
 
     const keyboard = Markup.inlineKeyboard([
-      [urlS("📤 " + (lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : "Share"), `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🌑 DARKSHARE - OSINT Security Bot")}`)],
-      [cb("⬅️ " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile", "danger")],
-      [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary")]
+      [urlS("📤 " + (lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : "Share"), `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🌑 DARKSHARE - OSINT Security Bot")}`, "success", E.link)],
+      [cb("⬅️ " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile", "danger", E.back)],
+      [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
     ]);
     
     try {
@@ -2554,7 +2592,7 @@ ${allTypesText}
     
     const text = `${t(lang, "achievements.title")}\n\n${t(lang, "achievements.riskHunter", { count: "0" })}\n${t(lang, "achievements.scamSlayer", { count: "0" })}\n${t(lang, "achievements.streakMaster", { count: "0" })}\n${t(lang, "achievements.referralKing", { count: "0" })}\n\n${t(lang, "achievements.unlock")}`;
 
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]]);
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
@@ -2568,7 +2606,7 @@ ${allTypesText}
 
     const text = `${t(lang, "history.title")}\n\n${t(lang, "history.description")}\n\n${t(lang, "history.empty")}\n\n${t(lang, "history.addMonitor")}`;
 
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger")]]);
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
@@ -2728,8 +2766,8 @@ ${allTypesText}
       await ctx.editMessageText(text, {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_stats")],
-          [cb(t(lang, "admin.back"), "admin_back", "danger")]
+          [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_stats", "danger", E.bolt)],
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
         ])
       });
     } catch (err: any) {
@@ -2770,8 +2808,8 @@ ${allTypesText}
     try {
       await ctx.editMessageText(text, {
         ...Markup.inlineKeyboard([
-          [cb(t(lang, "admin.refresh"), "admin_users")],
-          [cb(t(lang, "admin.back"), "admin_back", "danger")]
+          [cb(t(lang, "admin.refresh"), "admin_users", "danger", E.bolt)],
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
         ])
       });
     } catch (err: any) {
@@ -2811,13 +2849,13 @@ ${allTypesText}
     
     pendingPayments.slice(0, 5).forEach(p => {
       buttons.push([
-        cb(`✅ #${p.id}`, `approve_pay_${p.id}`, "success"),
-        cb(`❌ #${p.id}`, `reject_pay_${p.id}`, "danger")
+        cb(`✅ #${p.id}`, `approve_pay_${p.id}`, "success", E.check),
+        cb(`❌ #${p.id}`, `reject_pay_${p.id}`, "danger", E.cross)
       ]);
     });
     
-    buttons.push([cb(t(lang, "admin.refresh"), "admin_payments")]);
-    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+    buttons.push([cb(t(lang, "admin.refresh"), "admin_payments", "danger", E.bolt)]);
+    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
 
     try {
       await ctx.editMessageText(text, {
@@ -2850,7 +2888,7 @@ ${allTypesText}
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb(t(lang, "admin.cancel"), "admin_back", "danger")]
+        [cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]
       ])
     });
   });
@@ -2934,7 +2972,7 @@ ${allTypesText}
     
     await ctx.reply(`${t(lang, "admin.broadcastComplete")}\n\n${t(lang, "admin.sent")} ${successCount}\n${t(lang, "admin.errors")} ${failCount}`, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3028,7 +3066,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3046,7 +3084,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3086,7 +3124,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3104,7 +3142,7 @@ ${allTypesText}
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3153,8 +3191,8 @@ ${allTypesText}
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_settings")],
-        [cb(t(lang, "admin.back"), "admin_back", "danger")]
+        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_settings", "danger", E.bolt)],
+        [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
       ])
     });
   });
@@ -3213,8 +3251,8 @@ ${allTypesText}
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_online")],
-        [cb(t(lang, "admin.back"), "admin_back", "danger")]
+        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_online", "danger", E.bolt)],
+        [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
       ])
     });
   });
@@ -3262,16 +3300,16 @@ ${allTypesText}
     const buttons: any[][] = [];
     
     buttons.push([
-      cb(user.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${user.id}`, "danger"),
+      cb(user.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${user.id}`, "danger", E.cross),
     ]);
     
     buttons.push([
-      cb("🆓 FREE", `admin_set_tier_${user.id}_FREE`),
-      cb("⭐ PRO", `admin_set_tier_${user.id}_PRO`, "success"),
-      cb("👑 ENT", `admin_set_tier_${user.id}_ENTERPRISE`, "primary"),
+      cb("🆓 FREE", `admin_set_tier_${user.id}_FREE`, "danger", E.star),
+      cb("⭐ PRO", `admin_set_tier_${user.id}_PRO`, "success", E.star),
+      cb("👑 ENT", `admin_set_tier_${user.id}_ENTERPRISE`, "primary", E.crown),
     ]);
     
-    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -3340,14 +3378,14 @@ ${allTypesText}
 
       const buttons: any[][] = [];
       buttons.push([
-        cb(updatedUser.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${updatedUser.id}`, "danger"),
+        cb(updatedUser.blocked ? t(lang, "admin.unblock") : t(lang, "admin.block"), `admin_toggle_block_${updatedUser.id}`, "danger", E.cross),
       ]);
       buttons.push([
-        cb("🆓 FREE", `admin_set_tier_${updatedUser.id}_FREE`),
-        cb("⭐ PRO", `admin_set_tier_${updatedUser.id}_PRO`, "success"),
-        cb("👑 ENT", `admin_set_tier_${updatedUser.id}_ENTERPRISE`, "primary"),
+        cb("🆓 FREE", `admin_set_tier_${updatedUser.id}_FREE`, "danger", E.star),
+        cb("⭐ PRO", `admin_set_tier_${updatedUser.id}_PRO`, "success", E.star),
+        cb("👑 ENT", `admin_set_tier_${updatedUser.id}_ENTERPRISE`, "primary", E.crown),
       ]);
-      buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+      buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
 
       await ctx.editMessageText(text, {
         parse_mode: "Markdown",
@@ -3370,7 +3408,7 @@ ${allTypesText}
     if (openTickets.length === 0) {
       return ctx.editMessageText(t(lang, "admin.ticketsTitle") + "\n\n" + t(lang, "admin.noTickets"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
       });
     }
     
@@ -3382,11 +3420,11 @@ ${allTypesText}
       text += `   ${t(lang, "admin.ticketStatus")} ${tk.status}\n`;
       text += `   ${t(lang, "admin.ticketDate")} ${tk.createdAt ? new Date(tk.createdAt).toLocaleDateString() : "?"}\n\n`;
       buttons.push([
-        cb(`#${tk.id} - ${(tk.message || "").slice(0, 20)}...`, `admin_ticket_view_${tk.id}`)
+        cb(`#${tk.id} - ${(tk.message || "").slice(0, 20)}...`, `admin_ticket_view_${tk.id}`, "primary", E.msg)
       ]);
     });
     
-    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -3420,10 +3458,10 @@ ${allTypesText}
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
         [
-          cb(t(lang, "admin.ticketReply"), `admin_ticket_reply_${ticketId}`, "primary"),
-          cb(t(lang, "admin.ticketClose"), `admin_ticket_close_${ticketId}`, "danger")
+          cb(t(lang, "admin.ticketReply"), `admin_ticket_reply_${ticketId}`, "primary", E.msg),
+          cb(t(lang, "admin.ticketClose"), `admin_ticket_close_${ticketId}`, "danger", E.check)
         ],
-        [cb(t(lang, "admin.back"), "admin_tickets", "danger")]
+        [cb(t(lang, "admin.back"), "admin_tickets", "danger", E.msg)]
       ])
     });
   });
@@ -3441,7 +3479,7 @@ ${allTypesText}
     
     await ctx.editMessageText(t(lang, "admin.enterTicketReply"), {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_tickets", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_tickets", "danger", E.back)]])
     });
   });
 
@@ -3476,7 +3514,7 @@ ${allTypesText}
     if (openTickets.length === 0) {
       return ctx.editMessageText(t(lang, "admin.ticketsTitle") + "\n\n" + t(lang, "admin.noTickets"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
       });
     }
     
@@ -3487,11 +3525,11 @@ ${allTypesText}
       text += `${i + 1}. ${t(lang, "admin.ticketFrom")} ${tk.name || tk.contact || "?"}\n`;
       text += `   ${t(lang, "admin.ticketStatus")} ${tk.status}\n\n`;
       buttons.push([
-        cb(`#${tk.id} - ${(tk.message || "").slice(0, 20)}...`, `admin_ticket_view_${tk.id}`)
+        cb(`#${tk.id} - ${(tk.message || "").slice(0, 20)}...`, `admin_ticket_view_${tk.id}`, "primary", E.msg)
       ]);
     });
     
-    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -3564,8 +3602,8 @@ ${allTypesText}
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_revenue")],
-        [cb(t(lang, "admin.back"), "admin_back", "danger")]
+        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_revenue", "danger", E.bolt)],
+        [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
       ])
     });
   });
@@ -3583,7 +3621,7 @@ ${allTypesText}
     if (!latestReports || latestReports.length === 0) {
       return ctx.editMessageText(t(lang, "admin.reportsTitle") + "\n\n" + t(lang, "admin.noReports"), {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
       });
     }
     
@@ -3616,7 +3654,7 @@ ${allTypesText}
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3634,8 +3672,8 @@ ${allTypesText}
       return ctx.editMessageText(t(lang, "admin.couponsTitle") + "\n\n" + t(lang, "admin.noCoupons"), {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success")],
-          [cb(t(lang, "admin.back"), "admin_back", "danger")]
+          [cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success", E.gift)],
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
         ])
       });
     }
@@ -3648,11 +3686,11 @@ ${allTypesText}
       text += `   ${t(lang, "admin.couponDiscount")} ${c.value}%\n`;
       text += `   ${t(lang, "admin.couponUses")} ${c.usedCount || 0}/${c.maxUses || "inf"}\n`;
       text += `   ${t(lang, "admin.couponExpiry")} ${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : "never"}\n\n`;
-      buttons.push([cb(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`, "danger")]);
+      buttons.push([cb(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`, "danger", E.trash)]);
     });
     
-    buttons.push([cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success")]);
-    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+    buttons.push([cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success", E.gift)]);
+    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -3672,7 +3710,7 @@ ${allTypesText}
     
     await ctx.editMessageText(t(lang, "admin.enterCouponCode"), {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger", E.back)]])
     });
   });
 
@@ -3694,8 +3732,8 @@ ${allTypesText}
       return ctx.editMessageText(t(lang, "admin.couponsTitle") + "\n\n" + t(lang, "admin.noCoupons"), {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
-          [cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success")],
-          [cb(t(lang, "admin.back"), "admin_back", "danger")]
+          [cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success", E.gift)],
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
         ])
       });
     }
@@ -3707,11 +3745,11 @@ ${allTypesText}
       text += `${i + 1}. ${t(lang, "admin.couponCode")} \`${c.code}\`\n`;
       text += `   ${t(lang, "admin.couponDiscount")} ${c.value}%\n`;
       text += `   ${t(lang, "admin.couponUses")} ${c.usedCount || 0}/${c.maxUses || "inf"}\n\n`;
-      buttons.push([cb(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`, "danger")]);
+      buttons.push([cb(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`, "danger", E.trash)]);
     });
     
-    buttons.push([cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success")]);
-    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger")]);
+    buttons.push([cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success", E.gift)]);
+    buttons.push([cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]);
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -3731,7 +3769,7 @@ ${allTypesText}
     
     await ctx.editMessageText(t(lang, "admin.addRequestsTitle") + "\n\n" + t(lang, "admin.enterTgIdForRequests"), {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger")]])
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
     });
   });
 
@@ -3839,7 +3877,7 @@ ${allTypesText}
     if (!user || user.requestsLeft! <= 0) {
       return ctx.reply(t(lang, "validation.limitReached", { limit: "5" }), 
         Markup.inlineKeyboard([
-          [cb(t(lang, "buttons.upgrade"), "upgrade", "success")]
+          [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)]
         ])
       );
     }
@@ -3872,8 +3910,8 @@ ${allTypesText}
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            cb(t(lang, "buttons.pdf"), `gen_pdf_${checkType}_${target}`),
-            cb(t(lang, "buttons.monitoring"), `add_monitor_${checkType}_${target}`)
+            cb(t(lang, "buttons.pdf"), `gen_pdf_${checkType}_${target}`, "primary", E.doc),
+            cb(t(lang, "buttons.monitoring"), `add_monitor_${checkType}_${target}`, "primary", E.eye)
           ]
         ])
       });
@@ -3940,7 +3978,7 @@ ${allTypesText}
     await ctx.reply(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("🏠 Меню", "dashboard", "primary")]
+        [cb("🏠 Меню", "dashboard", "primary", E.home)]
       ])
     });
   });
@@ -3968,8 +4006,8 @@ ${allTypesText}
     await ctx.reply(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [urlS("📤 Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🛡️ Перевір безпеку своїх даних з DARKSHARE!")}`)],
-        [cb("🏠 Меню", "dashboard", "primary")]
+        [urlS("📤 Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🛡️ Перевір безпеку своїх даних з DARKSHARE!")}`, "success", E.link)],
+        [cb("🏠 Меню", "dashboard", "primary", E.home)]
       ])
     });
   });
@@ -4005,7 +4043,7 @@ ${allTypesText}
     await ctx.reply(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("🏠 Меню", "dashboard", "primary")]
+        [cb("🏠 Меню", "dashboard", "primary", E.home)]
       ])
     });
   });
