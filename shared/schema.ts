@@ -148,6 +148,9 @@ export const chatMessages = pgTable("ds_chat_messages", {
   userId: integer("user_id").references(() => users.id).notNull(),
   username: text("username"),
   message: text("message").notNull(),
+  messageType: text("message_type").default("text"),
+  fileUrl: text("file_url"),
+  teamId: integer("team_id"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

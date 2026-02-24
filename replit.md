@@ -1,10 +1,17 @@
-# DARKSHARE v4.3
+# DARKSHARE v4.4
 
 ## Overview
 
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Enhanced Chat: supports photo/video uploads (multer, 25MB limit), emoji picker with 4 categories (faces, security, finance, flags), team group chat (switch between global and team-specific chats), auto-expanding textarea with Shift+Enter for newlines, media preview with lightbox for images
+- Team Group Chat: team members can chat privately via team tabs in Chat page, messages filtered by teamId, access control verifies team membership
+- Landing page improvements: "Today Detected" block with animated threat stats, Demo Result block showing example wallet analysis (risk score 78/100), "When to Use" section with 4 use cases (crypto, Telegram, investments, partners), Case Studies with 3 real protection stories, "Discuss Risks in Chat" CTA button
+- Free checks counter on Dashboard: animated progress bar with color states (green/orange/red), shows remaining/max checks per tier, upgrade CTA when exhausted
+- Enhanced Bot Admin Broadcast: text/photo broadcast types, inline button builder (up to 3 rows), photo support via sendPhoto, preview before send
+- Chat schema: ds_chat_messages now has message_type (text/image/video), file_url, team_id columns
+- Static file serving for /uploads directory (chat media, payment screenshots)
 - Colored inline keyboard buttons: all 236 bot buttons now use Telegram Bot API `style` field (primary/blue for actions, success/green for payments & confirms, danger/red for cancel & back). Helper functions `cb()` and `urlS()` wrap `Markup.button.callback/url` with style support.
 - 3D custom emoji on buttons: `icon_custom_emoji_id` added to all buttons via `E` constant map (search, shield, star, gear, chart, lock, fire, check, cross, bell, money, user, doc, link, globe, bolt, gift, crown, warn, back, home, msg, rocket, diamond, key, clock, eye, trash, card, phone, mail, flag, pin). Requires bot Premium or Fragment username to render.
 - MonoPay payment verification fallback: invoiceId stored in payments table, manual "I paid" button in bot triggers MonoPay API status check, auto-check every 2 min for pending payments, auth-protected check-status endpoint (bot token or session), fixes webhook delivery gap

@@ -219,9 +219,15 @@ async function ensureTablesExist() {
         user_id INTEGER REFERENCES ds_users(id) NOT NULL,
         username TEXT,
         message TEXT NOT NULL,
+        message_type TEXT DEFAULT 'text',
+        file_url TEXT,
+        team_id INTEGER,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS message_type TEXT DEFAULT 'text'`);
+    await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS file_url TEXT`);
+    await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS team_id INTEGER`);
 
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false`);

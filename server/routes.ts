@@ -1,3 +1,4 @@
+import express from "express";
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -40,6 +41,7 @@ setInterval(() => {
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+const CHAT_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"];
 const upload = multer({ storage: multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
@@ -48,6 +50,17 @@ const upload = multer({ storage: multer.diskStorage({
     cb(null, true);
   } else {
     cb(new Error("Invalid file type. Only images and PDF allowed."));
+  }
+} });
+
+const chatUpload = multer({ storage: multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => cb(null, `chat-${Date.now()}-${file.originalname}`),
+}), limits: { fileSize: 25 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
+  if (CHAT_FILE_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type. Only images and videos allowed."));
   }
 } });
 
@@ -84,6 +97,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
+  app.use("/uploads", express.static(uploadsDir));
+
   // Setup Google OAuth - MUST be before other routes
   await setupGoogleAuth(app);
   
@@ -2599,20 +2614,41 @@ export async function registerRoutes(
   app.get("/api/chat/messages", async (req, res) => {
     if (!req.session?.userId) return res.status(401).json({ error: "Not authenticated" });
     try {
-      const messages = await storage.getChatMessages(100);
+      const teamId = req.query.teamId ? parseInt(req.query.teamId as string) : null;
+      if (teamId) {
+        const userTeams = await storage.getTeamsByUser(req.session.userId);
+        if (!userTeams.some(t => t.id === teamId)) {
+          return res.status(403).json({ error: "Not a team member" });
+        }
+      }
+      const messages = await storage.getChatMessages(100, teamId);
       res.json(messages.reverse());
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch messages" });
     }
   });
 
-  app.post("/api/chat/messages", async (req, res) => {
+  app.post("/api/chat/messages", chatUpload.single("file"), async (req, res) => {
     if (!req.session?.userId) return res.status(401).json({ error: "Not authenticated" });
     const userId = req.session.userId;
-    const { message } = req.body;
-    if (!message || typeof message !== "string" || message.trim().length === 0 || message.length > 500) {
-      return res.status(400).json({ error: "Invalid message" });
+    const message = (req.body.message || "").trim();
+    const teamId = req.body.teamId ? parseInt(req.body.teamId) : null;
+    const file = req.file;
+
+    if (!message && !file) {
+      return res.status(400).json({ error: "Message or file required" });
     }
+    if (message && message.length > 500) {
+      return res.status(400).json({ error: "Message too long" });
+    }
+
+    if (teamId) {
+      const userTeams = await storage.getTeamsByUser(userId);
+      if (!userTeams.some(t => t.id === teamId)) {
+        return res.status(403).json({ error: "Not a team member" });
+      }
+    }
+
     const now = Date.now();
     const userRates = chatRateLimit.get(userId) || [];
     const recent = userRates.filter(t => now - t < 60000);
@@ -2621,10 +2657,19 @@ export async function registerRoutes(
     chatRateLimit.set(userId, recent);
     try {
       const user = await storage.getUser(userId);
+      let messageType = "text";
+      let fileUrl: string | null = null;
+      if (file) {
+        messageType = file.mimetype.startsWith("video/") ? "video" : "image";
+        fileUrl = `/uploads/${file.filename}`;
+      }
       const created = await storage.createChatMessage({
         userId,
         username: user?.username || "Anonymous",
-        message: message.trim(),
+        message: message || (messageType === "image" ? "📷 Photo" : "🎥 Video"),
+        messageType,
+        fileUrl,
+        teamId,
       });
       res.json(created);
     } catch (err) {

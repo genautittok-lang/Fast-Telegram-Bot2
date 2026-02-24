@@ -1,6 +1,6 @@
 import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql, desc, and } from "drizzle-orm";
+import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
 export interface ReferralStats {
   count: number;
@@ -110,7 +110,7 @@ export interface IStorage {
   deleteFavorite(id: number): Promise<void>;
 
   // Chat
-  getChatMessages(limit: number): Promise<ChatMessage[]>;
+  getChatMessages(limit: number, teamId?: number | null): Promise<ChatMessage[]>;
   createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
 }
 
@@ -596,9 +596,12 @@ export class DatabaseStorage implements IStorage {
     await db.delete(favorites).where(eq(favorites.id, id));
   }
 
-  async getChatMessages(limit: number): Promise<ChatMessage[]> {
+  async getChatMessages(limit: number, teamId?: number | null): Promise<ChatMessage[]> {
     if (!db) throw new Error("Database not available");
-    return db.select().from(chatMessages).orderBy(desc(chatMessages.id)).limit(limit);
+    if (teamId) {
+      return db.select().from(chatMessages).where(eq(chatMessages.teamId, teamId)).orderBy(desc(chatMessages.id)).limit(limit);
+    }
+    return db.select().from(chatMessages).where(isNull(chatMessages.teamId)).orderBy(desc(chatMessages.id)).limit(limit);
   }
 
   async createChatMessage(msg: InsertChatMessage): Promise<ChatMessage> {
@@ -1021,12 +1024,15 @@ export class MemStorage implements IStorage {
   private memChatMessages: ChatMessage[] = [];
   private nextChatId = 1;
 
-  async getChatMessages(limit: number): Promise<ChatMessage[]> {
-    return this.memChatMessages.slice(-limit).reverse();
+  async getChatMessages(limit: number, teamId?: number | null): Promise<ChatMessage[]> {
+    const filtered = teamId
+      ? this.memChatMessages.filter(m => m.teamId === teamId)
+      : this.memChatMessages.filter(m => !m.teamId);
+    return filtered.slice(-limit).reverse();
   }
 
   async createChatMessage(msg: InsertChatMessage): Promise<ChatMessage> {
-    const created: ChatMessage = { id: this.nextChatId++, userId: msg.userId, username: msg.username ?? null, message: msg.message, createdAt: new Date() };
+    const created: ChatMessage = { id: this.nextChatId++, userId: msg.userId, username: msg.username ?? null, message: msg.message, messageType: msg.messageType ?? "text", fileUrl: msg.fileUrl ?? null, teamId: msg.teamId ?? null, createdAt: new Date() };
     this.memChatMessages.push(created);
     return created;
   }
