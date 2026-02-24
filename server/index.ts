@@ -213,6 +213,16 @@ async function ensureTablesExist() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_chat_messages (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES ds_users(id) NOT NULL,
+        username TEXT,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false`);
     

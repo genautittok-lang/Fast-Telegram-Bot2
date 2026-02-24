@@ -2595,6 +2595,43 @@ export async function registerRoutes(
     }
   });
 
+  const chatRateLimit = new Map<number, number[]>();
+  app.get("/api/chat/messages", async (req, res) => {
+    if (!req.session?.userId) return res.status(401).json({ error: "Not authenticated" });
+    try {
+      const messages = await storage.getChatMessages(100);
+      res.json(messages.reverse());
+    } catch (err) {
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/chat/messages", async (req, res) => {
+    if (!req.session?.userId) return res.status(401).json({ error: "Not authenticated" });
+    const userId = req.session.userId;
+    const { message } = req.body;
+    if (!message || typeof message !== "string" || message.trim().length === 0 || message.length > 500) {
+      return res.status(400).json({ error: "Invalid message" });
+    }
+    const now = Date.now();
+    const userRates = chatRateLimit.get(userId) || [];
+    const recent = userRates.filter(t => now - t < 60000);
+    if (recent.length >= 20) return res.status(429).json({ error: "Too many messages" });
+    recent.push(now);
+    chatRateLimit.set(userId, recent);
+    try {
+      const user = await storage.getUser(userId);
+      const created = await storage.createChatMessage({
+        userId,
+        username: user?.username || "Anonymous",
+        message: message.trim(),
+      });
+      res.json(created);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
+
   // Start the bot
   try {
       await setupBot(storage);

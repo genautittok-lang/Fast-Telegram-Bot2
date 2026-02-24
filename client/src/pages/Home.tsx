@@ -38,7 +38,14 @@ import {
   Star,
   Gift,
   CreditCard,
-  HelpCircle
+  HelpCircle,
+  Trophy,
+  ArrowRight,
+  ShieldAlert,
+  FileWarning,
+  Handshake,
+  ShoppingBag,
+  MessageCircle
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -443,6 +450,93 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="py-6 sm:py-8 md:py-10 border-t border-white/5 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="relative bg-[#1a1012] border-red-500/20 p-5 sm:p-6 md:p-8 overflow-visible">
+                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-red-500/5 via-orange-500/5 to-red-500/5 pointer-events-none" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-5 sm:mb-6">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 animate-pulse" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-white tracking-wide uppercase">
+                      {t("landing.todayDetected.title")}
+                    </h3>
+                    <span className="ml-auto text-[10px] text-red-400/60 font-mono flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      LIVE
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
+                    <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                        <Wallet className="w-5 h-5 text-red-400" />
+                      </div>
+                      <div>
+                        <div className="text-xl sm:text-2xl font-bold text-red-400">
+                          <AnimatedNumber value={4} duration={1500} />
+                        </div>
+                        <div className="text-[11px] sm:text-xs text-muted-foreground leading-tight">
+                          {t("landing.todayDetected.walletsHighRisk")}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+                        <Globe className="w-5 h-5 text-orange-400" />
+                      </div>
+                      <div>
+                        <div className="text-xl sm:text-2xl font-bold text-orange-400">
+                          <AnimatedNumber value={2} duration={1500} />
+                        </div>
+                        <div className="text-[11px] sm:text-xs text-muted-foreground leading-tight">
+                          {t("landing.todayDetected.domainsComplaints")}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-white/5 border border-white/5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-5 h-5 text-yellow-400" />
+                      </div>
+                      <div>
+                        <div className="text-xl sm:text-2xl font-bold text-yellow-400">
+                          <AnimatedNumber value={1} duration={1500} />
+                        </div>
+                        <div className="text-[11px] sm:text-xs text-muted-foreground leading-tight">
+                          {t("landing.todayDetected.phonesMatches")}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <Link href="/login">
+                      <Button
+                        size="sm"
+                        className="bg-red-500/90 hover:bg-red-500 border-red-400/30 text-white no-default-hover-elevate"
+                        data-testid="button-today-detected-cta"
+                      >
+                        <ShieldCheck className="w-4 h-4 mr-1.5" />
+                        {t("landing.todayDetected.cta")}
+                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
+
         <section className="py-6 sm:py-8 md:py-10 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden">
             <motion.div
@@ -527,6 +621,152 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5" data-testid="section-demo-result">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-medium text-orange-400">
+                <FileText className="w-3 h-3" />
+                {lang === "uk" ? "Приклад звіту" : lang === "ru" ? "Пример отчёта" : lang === "es" ? "Informe de ejemplo" : lang === "de" ? "Beispielbericht" : "Example Report"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Як виглядає результат аналізу" : lang === "ru" ? "Как выглядит результат анализа" : lang === "es" ? "Cómo se ve un resultado de análisis" : lang === "de" ? "So sieht ein Analyseergebnis aus" : "What an Analysis Result Looks Like"}
+              </h2>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+                {lang === "uk"
+                  ? "Реальний приклад перевірки криптогаманця з оцінкою ризику та детальними знахідками"
+                  : lang === "ru"
+                  ? "Реальный пример проверки криптокошелька с оценкой риска и детальными находками"
+                  : lang === "es"
+                  ? "Ejemplo real de verificación de billetera cripto con puntuación de riesgo y hallazgos detallados"
+                  : lang === "de"
+                  ? "Reales Beispiel einer Krypto-Wallet-Prüfung mit Risikobewertung und detaillierten Ergebnissen"
+                  : "Real example of a crypto wallet check with risk scoring and detailed findings"}
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="max-w-2xl mx-auto"
+            >
+              <Card className="bg-card/60 backdrop-blur-sm border-white/10 overflow-visible">
+                <div className="p-4 sm:p-6 space-y-5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 flex-shrink-0">
+                        <Wallet className="w-5 h-5 text-orange-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">
+                          {lang === "uk" ? "Криптогаманець" : lang === "ru" ? "Криптокошелёк" : lang === "es" ? "Billetera cripto" : lang === "de" ? "Krypto-Wallet" : "Crypto Wallet"}
+                        </div>
+                        <div className="font-mono text-sm text-white truncate">0x742d...a4F8</div>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/15 border border-orange-500/25 text-xs font-bold text-orange-400 flex-shrink-0">
+                      <AlertTriangle className="w-3 h-3" />
+                      HIGH RISK
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{lang === "uk" ? "Оцінка ризику" : lang === "ru" ? "Оценка риска" : lang === "es" ? "Puntuación de riesgo" : lang === "de" ? "Risikobewertung" : "Risk Score"}</span>
+                      <span className="font-bold text-orange-400">78 / 100</span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-white/5 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: "78%" }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+                        className="h-full rounded-full bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>{lang === "uk" ? "Безпечно" : lang === "ru" ? "Безопасно" : lang === "es" ? "Seguro" : lang === "de" ? "Sicher" : "Safe"}</span>
+                      <span>{lang === "uk" ? "Критичний" : lang === "ru" ? "Критический" : lang === "es" ? "Crítico" : lang === "de" ? "Kritisch" : "Critical"}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {lang === "uk" ? "Знахідки" : lang === "ru" ? "Находки" : lang === "es" ? "Hallazgos" : lang === "de" ? "Ergebnisse" : "Findings"}
+                    </h4>
+                    <div className="space-y-1.5">
+                      {[
+                        {
+                          icon: <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />,
+                          text: lang === "uk" ? "Адреса пов'язана з відомим міксером Tornado Cash" : lang === "ru" ? "Адрес связан с известным миксером Tornado Cash" : lang === "es" ? "Dirección vinculada al mixer conocido Tornado Cash" : lang === "de" ? "Adresse mit bekanntem Mixer Tornado Cash verknüpft" : "Address linked to known mixer Tornado Cash",
+                          color: "text-red-400"
+                        },
+                        {
+                          icon: <AlertTriangle className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />,
+                          text: lang === "uk" ? "Виявлено 3 транзакції з підсанкційними гаманцями" : lang === "ru" ? "Обнаружено 3 транзакции с подсанкционными кошельками" : lang === "es" ? "Se detectaron 3 transacciones con billeteras sancionadas" : lang === "de" ? "3 Transaktionen mit sanktionierten Wallets erkannt" : "3 transactions with sanctioned wallets detected",
+                          color: "text-orange-400"
+                        },
+                        {
+                          icon: <AlertTriangle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />,
+                          text: lang === "uk" ? "Підозрілий патерн: висока частота малих переказів" : lang === "ru" ? "Подозрительный паттерн: высокая частота малых переводов" : lang === "es" ? "Patrón sospechoso: alta frecuencia de transferencias pequeñas" : lang === "de" ? "Verdächtiges Muster: hohe Frequenz kleiner Überweisungen" : "Suspicious pattern: high frequency of small transfers",
+                          color: "text-yellow-400"
+                        },
+                        {
+                          icon: <CheckCircle className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />,
+                          text: lang === "uk" ? "Валідний формат адреси Ethereum (ERC-20)" : lang === "ru" ? "Валидный формат адреса Ethereum (ERC-20)" : lang === "es" ? "Formato de dirección Ethereum válido (ERC-20)" : lang === "de" ? "Gültiges Ethereum-Adressformat (ERC-20)" : "Valid Ethereum address format (ERC-20)",
+                          color: "text-green-400"
+                        }
+                      ].map((finding, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.4 + idx * 0.1 }}
+                          className="flex items-start gap-2 p-2.5 rounded-lg bg-white/5 border border-white/5"
+                        >
+                          {finding.icon}
+                          <span className={`text-xs leading-relaxed ${finding.color}`}>{finding.text}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-2.5 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-lg font-bold text-white">47</div>
+                      <div className="text-[10px] text-muted-foreground">{lang === "uk" ? "Транзакцій" : lang === "ru" ? "Транзакций" : lang === "es" ? "Transacciones" : lang === "de" ? "Transaktionen" : "Transactions"}</div>
+                    </div>
+                    <div className="text-center p-2.5 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-lg font-bold text-white">5</div>
+                      <div className="text-[10px] text-muted-foreground">{lang === "uk" ? "API джерел" : lang === "ru" ? "API источников" : lang === "es" ? "Fuentes API" : lang === "de" ? "API-Quellen" : "API Sources"}</div>
+                    </div>
+                    <div className="text-center p-2.5 rounded-lg bg-white/5 border border-white/5">
+                      <div className="text-lg font-bold text-white">2.4s</div>
+                      <div className="text-[10px] text-muted-foreground">{lang === "uk" ? "Час аналізу" : lang === "ru" ? "Время анализа" : lang === "es" ? "Tiempo de análisis" : lang === "de" ? "Analysezeit" : "Analysis Time"}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <Link href="/login" className="flex-1">
+                      <Button className="w-full" data-testid="button-demo-try-now">
+                        <ShieldCheck className="w-4 h-4 mr-2" />
+                        {lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : lang === "es" ? "Verificar ahora" : lang === "de" ? "Jetzt prüfen" : "Check Now"}
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
+
         <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
@@ -583,6 +823,86 @@ export default function Home() {
                   </div>
                   <h3 className="text-sm sm:text-base font-bold mb-1.5">{step.title}</h3>
                   <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-medium text-orange-400">
+                <ShieldAlert className="w-3 h-3" />
+                {t("landing.whenToUse.badge")}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {t("landing.whenToUse.title")}
+              </h2>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+                {t("landing.whenToUse.subtitle")}
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6" data-testid="when-to-use-section">
+              {[
+                {
+                  icon: <Wallet className="w-5 h-5" />,
+                  title: t("landing.whenToUse.cryptoTitle"),
+                  desc: t("landing.whenToUse.cryptoDesc"),
+                  accent: "text-orange-400",
+                  bg: "bg-orange-500/10",
+                  border: "border-orange-500/20"
+                },
+                {
+                  icon: <ShoppingBag className="w-5 h-5" />,
+                  title: t("landing.whenToUse.telegramTitle"),
+                  desc: t("landing.whenToUse.telegramDesc"),
+                  accent: "text-blue-400",
+                  bg: "bg-blue-500/10",
+                  border: "border-blue-500/20"
+                },
+                {
+                  icon: <TrendingUp className="w-5 h-5" />,
+                  title: t("landing.whenToUse.investTitle"),
+                  desc: t("landing.whenToUse.investDesc"),
+                  accent: "text-yellow-400",
+                  bg: "bg-yellow-500/10",
+                  border: "border-yellow-500/20"
+                },
+                {
+                  icon: <Handshake className="w-5 h-5" />,
+                  title: t("landing.whenToUse.partnerTitle"),
+                  desc: t("landing.whenToUse.partnerDesc"),
+                  accent: "text-green-400",
+                  bg: "bg-green-500/10",
+                  border: "border-green-500/20"
+                }
+              ].map((card, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.5 }}
+                  data-testid={`card-when-to-use-${idx}`}
+                >
+                  <Card className="p-4 sm:p-5 md:p-6 bg-card/50 border-white/5 hover:border-primary/30 transition-all duration-300 h-full">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center ${card.accent} border ${card.border} flex-shrink-0`}>
+                        {card.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-bold mb-1.5">{card.title}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                      </div>
+                    </div>
+                  </Card>
                 </motion.div>
               ))}
             </div>
@@ -919,6 +1239,149 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <Trophy className="w-3 h-3" />
+                {lang === "uk" ? "Кейси" : lang === "ru" ? "Кейсы" : lang === "es" ? "Casos de Éxito" : lang === "de" ? "Fallstudien" : "Case Studies"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Реальні Історії Захисту" : lang === "ru" ? "Реальные Истории Защиты" : lang === "es" ? "Historias Reales de Protección" : lang === "de" ? "Echte Schutzgeschichten" : "Real Protection Stories"}
+              </h2>
+              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-2">
+                {lang === "uk"
+                  ? "Як DARKSHARE допоміг користувачам уникнути фінансових втрат та кіберзагроз"
+                  : lang === "ru"
+                  ? "Как DARKSHARE помог пользователям избежать финансовых потерь и киберугроз"
+                  : lang === "es"
+                  ? "Cómo DARKSHARE ayudó a los usuarios a evitar pérdidas financieras y ciberamenazas"
+                  : lang === "de"
+                  ? "Wie DARKSHARE Nutzern half, finanzielle Verluste und Cyberbedrohungen zu vermeiden"
+                  : "How DARKSHARE helped users avoid financial losses and cyber threats"}
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {[
+                {
+                  icon: <Wallet className="w-5 h-5" />,
+                  iconBg: "bg-red-500/10 border-red-500/20 text-red-400",
+                  title: lang === "uk" ? "Запобігли крадіжці $50K" : lang === "ru" ? "Предотвратили кражу $50K" : lang === "es" ? "Evitaron robo de $50K" : lang === "de" ? "$50K Diebstahl verhindert" : "Prevented $50K Scam",
+                  description: lang === "uk"
+                    ? "Користувач перевірив криптогаманець перед переказом. DARKSHARE виявив зв'язки з відомим скам-проектом та взаємодію з Tornado Cash."
+                    : lang === "ru"
+                    ? "Пользователь проверил криптокошелек перед переводом. DARKSHARE обнаружил связи с известным скам-проектом и взаимодействие с Tornado Cash."
+                    : lang === "es"
+                    ? "El usuario verificó la billetera antes de la transferencia. DARKSHARE detectó vínculos con un proyecto de estafa conocido e interacción con Tornado Cash."
+                    : lang === "de"
+                    ? "Der Nutzer überprüfte die Wallet vor der Überweisung. DARKSHARE erkannte Verbindungen zu einem bekannten Betrug und Tornado Cash-Interaktionen."
+                    : "A user checked a crypto wallet before transferring funds. DARKSHARE detected links to a known scam project and Tornado Cash mixer interactions.",
+                  riskBefore: 0,
+                  riskAfter: 87,
+                  outcome: lang === "uk" ? "Переказ скасовано, кошти збережено" : lang === "ru" ? "Перевод отменен, средства сохранены" : lang === "es" ? "Transferencia cancelada, fondos salvados" : lang === "de" ? "Überweisung abgebrochen, Gelder gesichert" : "Transfer cancelled, funds saved",
+                  type: lang === "uk" ? "Перевірка гаманця" : lang === "ru" ? "Проверка кошелька" : lang === "es" ? "Verificación de billetera" : lang === "de" ? "Wallet-Prüfung" : "Wallet Check"
+                },
+                {
+                  icon: <Search className="w-5 h-5" />,
+                  iconBg: "bg-orange-500/10 border-orange-500/20 text-orange-400",
+                  title: lang === "uk" ? "Виявили фішинговий домен" : lang === "ru" ? "Обнаружили фишинговый домен" : lang === "es" ? "Detectaron dominio phishing" : lang === "de" ? "Phishing-Domain erkannt" : "Detected Phishing Domain",
+                  description: lang === "uk"
+                    ? "Компанія перевірила підозрілий домен, що імітував їхній бренд. Аналіз показав реєстрацію 2 дні тому та фішинговий контент для крадіжки даних."
+                    : lang === "ru"
+                    ? "Компания проверила подозрительный домен, имитирующий их бренд. Анализ показал регистрацию 2 дня назад и фишинговый контент для кражи данных."
+                    : lang === "es"
+                    ? "Una empresa verificó un dominio sospechoso que imitaba su marca. El análisis reveló registro hace 2 días y contenido phishing para robo de datos."
+                    : lang === "de"
+                    ? "Ein Unternehmen überprüfte eine verdächtige Domain, die ihre Marke imitierte. Die Analyse zeigte eine 2 Tage alte Registrierung und Phishing-Inhalte."
+                    : "A company checked a suspicious domain mimicking their brand. Analysis revealed registration 2 days prior and phishing content designed to steal credentials.",
+                  riskBefore: 0,
+                  riskAfter: 92,
+                  outcome: lang === "uk" ? "Домен заблоковано, витік запобіжено" : lang === "ru" ? "Домен заблокирован, утечка предотвращена" : lang === "es" ? "Dominio bloqueado, filtración evitada" : lang === "de" ? "Domain gesperrt, Datenleck verhindert" : "Domain blocked, data leak prevented",
+                  type: lang === "uk" ? "Аналіз домену" : lang === "ru" ? "Анализ домена" : lang === "es" ? "Análisis de dominio" : lang === "de" ? "Domain-Analyse" : "Domain Analysis"
+                },
+                {
+                  icon: <Mail className="w-5 h-5" />,
+                  iconBg: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
+                  title: lang === "uk" ? "Виявили скомпрометований email" : lang === "ru" ? "Обнаружили скомпрометированный email" : lang === "es" ? "Detectaron email comprometido" : lang === "de" ? "Kompromittierte E-Mail erkannt" : "Identified Compromised Email",
+                  description: lang === "uk"
+                    ? "Перевірка email партнера виявила присутність у 5 великих витоках даних та пов'язані підозрілі акаунти. Акаунт використовувався для шахрайства."
+                    : lang === "ru"
+                    ? "Проверка email партнера выявила присутствие в 5 крупных утечках данных и связанные подозрительные аккаунты. Аккаунт использовался для мошенничества."
+                    : lang === "es"
+                    ? "La verificación del email del socio reveló presencia en 5 grandes filtraciones y cuentas sospechosas vinculadas. La cuenta se usaba para fraude."
+                    : lang === "de"
+                    ? "Die E-Mail-Prüfung des Partners ergab eine Präsenz in 5 großen Datenlecks und verknüpfte verdächtige Konten. Das Konto wurde für Betrug genutzt."
+                    : "Checking a business partner's email revealed presence in 5 major data breaches and linked suspicious accounts. The account was being used for fraud.",
+                  riskBefore: 0,
+                  riskAfter: 78,
+                  outcome: lang === "uk" ? "Партнерство припинено, дані захищено" : lang === "ru" ? "Партнерство прекращено, данные защищены" : lang === "es" ? "Asociación terminada, datos protegidos" : lang === "de" ? "Partnerschaft beendet, Daten geschützt" : "Partnership terminated, data protected",
+                  type: lang === "uk" ? "Перевірка email" : lang === "ru" ? "Проверка email" : lang === "es" ? "Verificación de email" : lang === "de" ? "E-Mail-Prüfung" : "Email Check"
+                }
+              ].map((study, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.15, duration: 0.5 }}
+                  data-testid={`card-case-study-${idx}`}
+                >
+                  <Card className="bg-card/50 backdrop-blur-sm border-white/10 p-5 sm:p-6 h-full flex flex-col">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${study.iconBg}`}>
+                        {study.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">{study.type}</span>
+                        <h3 className="text-sm sm:text-base font-bold text-white leading-tight">{study.title}</h3>
+                      </div>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-grow">
+                      {study.description}
+                    </p>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+                              {lang === "uk" ? "Оцінка ризику" : lang === "ru" ? "Оценка риска" : lang === "es" ? "Puntuación" : lang === "de" ? "Risikobewertung" : "Risk Score"}
+                            </span>
+                            <span className={`text-sm font-bold ${study.riskAfter >= 80 ? "text-red-400" : study.riskAfter >= 60 ? "text-orange-400" : "text-yellow-400"}`}>
+                              {study.riskAfter}/100
+                            </span>
+                          </div>
+                          <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${study.riskAfter}%` }}
+                              viewport={{ once: true }}
+                              transition={{ delay: 0.3 + idx * 0.15, duration: 1, ease: "easeOut" }}
+                              className={`h-full rounded-full ${study.riskAfter >= 80 ? "bg-gradient-to-r from-red-500 to-red-400" : study.riskAfter >= 60 ? "bg-gradient-to-r from-orange-500 to-orange-400" : "bg-gradient-to-r from-yellow-500 to-yellow-400"}`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-green-500/5 border border-green-500/10">
+                        <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                        <span className="text-[11px] sm:text-xs text-green-400 font-medium">{study.outcome}</span>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
@@ -1038,6 +1501,12 @@ export default function Home() {
                   <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="button-pricing-cta">
                     <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {t("nav.pricing")}
+                  </Button>
+                </Link>
+                <Link href="/chat">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base border-blue-500/30 text-blue-400 hover:bg-blue-500/10" data-testid="button-chat-cta">
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    {lang === "uk" ? "Обговорити ризики в чаті" : lang === "ru" ? "Обсудить риски в чате" : lang === "es" ? "Discutir riesgos en chat" : lang === "de" ? "Risiken im Chat besprechen" : "Discuss Risks in Chat"}
                   </Button>
                 </Link>
                 <a 

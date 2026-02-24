@@ -13,6 +13,7 @@ import {
   Lock,
   Mail,
   MessageSquare,
+  MessageCircle,
   Code2,
   Blocks,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const navItems = [
   { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
   { id: "account", labelKey: "nav.account", icon: User, href: "/account" },
   { id: "teams", labelKey: "nav.teams", icon: Users, href: "/teams" },
+  { id: "chat", labelKey: "nav.chat", icon: MessageCircle, href: "/chat" },
   { id: "support", labelKey: "nav.support", icon: MessageSquare, href: "/support" },
   { id: "api-docs", labelKey: "nav.apiDocs", icon: Code2, href: "/api-docs" },
   { id: "widget", labelKey: "nav.widget", icon: Blocks, href: "/widget" },

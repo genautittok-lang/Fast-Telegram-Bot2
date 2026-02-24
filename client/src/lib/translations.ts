@@ -12,6 +12,7 @@ export interface TranslationSchema {
     apiDocs: string;
     teams: string;
     widget: string;
+    chat: string;
   };
   common: {
     loading: string;
@@ -341,6 +342,7 @@ export interface TranslationSchema {
     recentChecksLabel: string;
     systemLoading: string;
     systemActive: string;
+    checksRemaining: string;
     whatIsAnalyzed: string;
     checkProgress: string;
     scanInProgress: string;
@@ -511,6 +513,26 @@ export interface TranslationSchema {
     topHunters: string;
     realtime: string;
     trusted: string;
+    todayDetected: {
+      title: string;
+      walletsHighRisk: string;
+      domainsComplaints: string;
+      phonesMatches: string;
+      cta: string;
+    };
+    whenToUse: {
+      badge: string;
+      title: string;
+      subtitle: string;
+      cryptoTitle: string;
+      cryptoDesc: string;
+      telegramTitle: string;
+      telegramDesc: string;
+      investTitle: string;
+      investDesc: string;
+      partnerTitle: string;
+      partnerDesc: string;
+    };
   };
   monitoring: {
     title: string;
@@ -724,6 +746,12 @@ export interface TranslationSchema {
     sent: string;
     sentDesc: string;
   };
+  chat: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    placeholder: string;
+  };
 }
 
 export const translations: Record<Language, TranslationSchema> = {
@@ -739,6 +767,7 @@ export const translations: Record<Language, TranslationSchema> = {
       apiDocs: "API Docs",
       teams: "Teams",
       widget: "Widget",
+      chat: "Chat",
     },
     common: {
       loading: "Loading...",
@@ -1068,6 +1097,7 @@ export const translations: Record<Language, TranslationSchema> = {
       recentChecksLabel: "Recent checks",
       systemLoading: "Loading system...",
       systemActive: "System active",
+      checksRemaining: "Checks remaining",
       whatIsAnalyzed: "What is analyzed",
       checkProgress: "Check progress...",
       scanInProgress: "Scanning in progress...",
@@ -1238,6 +1268,26 @@ export const translations: Record<Language, TranslationSchema> = {
       topHunters: "Top Hunters",
       realtime: "Realtime",
       trusted: "Trusted by professionals",
+      todayDetected: {
+        title: "Detected Today",
+        walletsHighRisk: "wallets with high risk",
+        domainsComplaints: "domains with complaints",
+        phonesMatches: "phones with repeated matches",
+        cta: "Check before transfer",
+      },
+      whenToUse: {
+        badge: "When to Use",
+        title: "Check Before You Act",
+        subtitle: "Use DARKSHARE in key moments to protect yourself from fraud and financial losses",
+        cryptoTitle: "Before Crypto Transfer",
+        cryptoDesc: "Check the recipient's wallet for links to mixers, sanctions lists, and suspicious activity before sending crypto",
+        telegramTitle: "Before Telegram Purchase",
+        telegramDesc: "Verify the seller's account, phone, and domain before paying for goods or services via Telegram",
+        investTitle: "Before Investments",
+        investDesc: "Analyze the project's domain, team wallets, and emails to detect potential scam or pyramid scheme",
+        partnerTitle: "Before New Partnership",
+        partnerDesc: "Run a comprehensive check on a new partner's company domain, email, and digital footprint before signing a deal",
+      },
     },
     monitoring: {
       title: "Monitoring",
@@ -1451,6 +1501,12 @@ export const translations: Record<Language, TranslationSchema> = {
       sent: "Request Sent",
       sentDesc: "Our team will review your request and get back to you shortly.",
     },
+    chat: {
+      title: "Community Chat",
+      subtitle: "Discuss security risks with other users",
+      empty: "No messages yet. Start the conversation!",
+      placeholder: "Type a message...",
+    },
   },
   uk: {
     nav: {
@@ -1464,6 +1520,7 @@ export const translations: Record<Language, TranslationSchema> = {
       apiDocs: "API Документація",
       teams: "Команди",
       widget: "Віджет",
+      chat: "Чат",
     },
     common: {
       loading: "Завантаження...",
@@ -1793,6 +1850,7 @@ export const translations: Record<Language, TranslationSchema> = {
       recentChecksLabel: "Останні перевірки",
       systemLoading: "Завантаження системи...",
       systemActive: "Система активна",
+      checksRemaining: "Залишилось перевірок",
       whatIsAnalyzed: "Що аналізується",
       checkProgress: "Прогрес перевірки...",
       scanInProgress: "Сканування в процесі...",
@@ -1963,6 +2021,26 @@ export const translations: Record<Language, TranslationSchema> = {
       topHunters: "Топ хантери",
       realtime: "Реальний час",
       trusted: "Довіра професіоналів",
+      todayDetected: {
+        title: "Виявлено сьогодні",
+        walletsHighRisk: "гаманців з високим ризиком",
+        domainsComplaints: "доменів зі скаргами",
+        phonesMatches: "телефонів з повторними збігами",
+        cta: "Перевір перед переказом",
+      },
+      whenToUse: {
+        badge: "Коли використовувати",
+        title: "Перевіряй перед дією",
+        subtitle: "Використовуйте DARKSHARE у ключові моменти, щоб захиститися від шахрайства та фінансових втрат",
+        cryptoTitle: "Перед крипто-переказом",
+        cryptoDesc: "Перевірте гаманець отримувача на зв'язки з міксерами, санкційними списками та підозрілою активністю",
+        telegramTitle: "Перед покупкою в Telegram",
+        telegramDesc: "Перевірте акаунт продавця, телефон та домен перед оплатою товарів або послуг через Telegram",
+        investTitle: "Перед інвестиціями",
+        investDesc: "Проаналізуйте домен проєкту, гаманці команди та email для виявлення потенційного скаму або піраміди",
+        partnerTitle: "Перед новим партнерством",
+        partnerDesc: "Проведіть комплексну перевірку домену, email та цифрового сліду нового партнера перед підписанням угоди",
+      },
     },
     monitoring: {
       title: "Моніторинг",
@@ -2176,6 +2254,12 @@ export const translations: Record<Language, TranslationSchema> = {
       sent: "Звернення надіслано",
       sentDesc: "Наша команда розгляне ваше звернення та зв'яжеться з вами.",
     },
+    chat: {
+      title: "Чат спільноти",
+      subtitle: "Обговорюйте ризики безпеки з іншими користувачами",
+      empty: "Поки немає повідомлень. Розпочніть розмову!",
+      placeholder: "Введіть повідомлення...",
+    },
   },
   ru: {
     nav: {
@@ -2189,6 +2273,7 @@ export const translations: Record<Language, TranslationSchema> = {
       apiDocs: "API Документация",
       teams: "Команды",
       widget: "Виджет",
+      chat: "Чат",
     },
     common: {
       loading: "Загрузка...",
@@ -2518,6 +2603,7 @@ export const translations: Record<Language, TranslationSchema> = {
       recentChecksLabel: "Последние проверки",
       systemLoading: "Загрузка системы...",
       systemActive: "Система активна",
+      checksRemaining: "Осталось проверок",
       whatIsAnalyzed: "Что анализируется",
       checkProgress: "Прогресс проверки...",
       scanInProgress: "Сканирование в процессе...",
@@ -2688,6 +2774,26 @@ export const translations: Record<Language, TranslationSchema> = {
       topHunters: "Топ хантеры",
       realtime: "Реальное время",
       trusted: "Доверие профессионалов",
+      todayDetected: {
+        title: "Обнаружено сегодня",
+        walletsHighRisk: "кошельков с высоким риском",
+        domainsComplaints: "доменов с жалобами",
+        phonesMatches: "телефонов с повторными совпадениями",
+        cta: "Проверь перед переводом",
+      },
+      whenToUse: {
+        badge: "Когда использовать",
+        title: "Проверяй перед действием",
+        subtitle: "Используйте DARKSHARE в ключевые моменты, чтобы защититься от мошенничества и финансовых потерь",
+        cryptoTitle: "Перед крипто-переводом",
+        cryptoDesc: "Проверьте кошелёк получателя на связи с миксерами, санкционными списками и подозрительной активностью",
+        telegramTitle: "Перед покупкой в Telegram",
+        telegramDesc: "Проверьте аккаунт продавца, телефон и домен перед оплатой товаров или услуг через Telegram",
+        investTitle: "Перед инвестициями",
+        investDesc: "Проанализируйте домен проекта, кошельки команды и email для выявления потенциального скама или пирамиды",
+        partnerTitle: "Перед новым партнёрством",
+        partnerDesc: "Проведите комплексную проверку домена, email и цифрового следа нового партнёра перед подписанием сделки",
+      },
     },
     monitoring: {
       title: "Мониторинг",
@@ -2901,6 +3007,12 @@ export const translations: Record<Language, TranslationSchema> = {
       sent: "Обращение отправлено",
       sentDesc: "Наша команда рассмотрит ваше обращение и свяжется с вами.",
     },
+    chat: {
+      title: "Чат сообщества",
+      subtitle: "Обсуждайте риски безопасности с другими пользователями",
+      empty: "Пока нет сообщений. Начните разговор!",
+      placeholder: "Введите сообщение...",
+    },
   },
   es: {
     nav: {
@@ -2914,6 +3026,7 @@ export const translations: Record<Language, TranslationSchema> = {
       apiDocs: "API Docs",
       teams: "Equipos",
       widget: "Widget",
+      chat: "Chat",
     },
     common: {
       loading: "Cargando...",
@@ -3243,6 +3356,7 @@ export const translations: Record<Language, TranslationSchema> = {
       recentChecksLabel: "Verificaciones recientes",
       systemLoading: "Cargando sistema...",
       systemActive: "Sistema activo",
+      checksRemaining: "Verificaciones restantes",
       whatIsAnalyzed: "Qué se analiza",
       checkProgress: "Progreso de verificación...",
       scanInProgress: "Escaneo en progreso...",
@@ -3413,6 +3527,26 @@ export const translations: Record<Language, TranslationSchema> = {
       topHunters: "Top cazadores",
       realtime: "Tiempo real",
       trusted: "Confianza de profesionales",
+      todayDetected: {
+        title: "Detectado hoy",
+        walletsHighRisk: "billeteras con alto riesgo",
+        domainsComplaints: "dominios con quejas",
+        phonesMatches: "teléfonos con coincidencias repetidas",
+        cta: "Verifica antes de transferir",
+      },
+      whenToUse: {
+        badge: "Cuándo usar",
+        title: "Verifica antes de actuar",
+        subtitle: "Usa DARKSHARE en momentos clave para protegerte del fraude y las pérdidas financieras",
+        cryptoTitle: "Antes de transferir cripto",
+        cryptoDesc: "Verifica la billetera del destinatario en busca de vínculos con mixers, listas de sanciones y actividad sospechosa",
+        telegramTitle: "Antes de comprar en Telegram",
+        telegramDesc: "Verifica la cuenta del vendedor, teléfono y dominio antes de pagar por bienes o servicios vía Telegram",
+        investTitle: "Antes de invertir",
+        investDesc: "Analiza el dominio del proyecto, billeteras del equipo y emails para detectar posibles estafas o esquemas piramidales",
+        partnerTitle: "Antes de nueva asociación",
+        partnerDesc: "Realiza una verificación completa del dominio, email y huella digital del nuevo socio antes de firmar un acuerdo",
+      },
     },
     monitoring: {
       title: "Monitoreo",
@@ -3626,6 +3760,12 @@ export const translations: Record<Language, TranslationSchema> = {
       sent: "Solicitud Enviada",
       sentDesc: "Nuestro equipo revisara su solicitud y le contactara pronto.",
     },
+    chat: {
+      title: "Chat comunitario",
+      subtitle: "Discute riesgos de seguridad con otros usuarios",
+      empty: "No hay mensajes todavia. Inicia la conversacion!",
+      placeholder: "Escribe un mensaje...",
+    },
   },
   de: {
     nav: {
@@ -3639,6 +3779,7 @@ export const translations: Record<Language, TranslationSchema> = {
       apiDocs: "API Doku",
       teams: "Teams",
       widget: "Widget",
+      chat: "Chat",
     },
     common: {
       loading: "Laden...",
@@ -3968,6 +4109,7 @@ export const translations: Record<Language, TranslationSchema> = {
       recentChecksLabel: "Letzte Prüfungen",
       systemLoading: "System wird geladen...",
       systemActive: "System aktiv",
+      checksRemaining: "Verbleibende Prüfungen",
       whatIsAnalyzed: "Was wird analysiert",
       checkProgress: "Prüfungsfortschritt...",
       scanInProgress: "Scan läuft...",
@@ -4138,6 +4280,26 @@ export const translations: Record<Language, TranslationSchema> = {
       topHunters: "Top-Jäger",
       realtime: "Echtzeit",
       trusted: "Vertrauen von Profis",
+      todayDetected: {
+        title: "Heute erkannt",
+        walletsHighRisk: "Wallets mit hohem Risiko",
+        domainsComplaints: "Domains mit Beschwerden",
+        phonesMatches: "Telefone mit wiederholten Treffern",
+        cta: "Vor der Überweisung prüfen",
+      },
+      whenToUse: {
+        badge: "Wann verwenden",
+        title: "Prüfen Sie vor dem Handeln",
+        subtitle: "Nutzen Sie DARKSHARE in entscheidenden Momenten, um sich vor Betrug und finanziellen Verlusten zu schützen",
+        cryptoTitle: "Vor Krypto-Überweisungen",
+        cryptoDesc: "Prüfen Sie die Wallet des Empfängers auf Verbindungen zu Mixern, Sanktionslisten und verdächtigen Aktivitäten",
+        telegramTitle: "Vor Telegram-Käufen",
+        telegramDesc: "Überprüfen Sie das Konto des Verkäufers, Telefon und Domain, bevor Sie für Waren oder Dienstleistungen über Telegram bezahlen",
+        investTitle: "Vor Investitionen",
+        investDesc: "Analysieren Sie die Domain des Projekts, Team-Wallets und E-Mails, um potenzielle Betrügereien oder Pyramidensysteme zu erkennen",
+        partnerTitle: "Vor neuer Partnerschaft",
+        partnerDesc: "Führen Sie eine umfassende Prüfung der Domain, E-Mail und des digitalen Fußabdrucks des neuen Partners vor Vertragsabschluss durch",
+      },
     },
     monitoring: {
       title: "Überwachung",
@@ -4350,6 +4512,12 @@ export const translations: Record<Language, TranslationSchema> = {
       messagePlaceholder: "Beschreiben Sie Ihr Problem oder Ihre Frage...",
       sent: "Anfrage gesendet",
       sentDesc: "Unser Team wird Ihre Anfrage prufen und sich bei Ihnen melden.",
+    },
+    chat: {
+      title: "Community-Chat",
+      subtitle: "Diskutieren Sie Sicherheitsrisiken mit anderen Benutzern",
+      empty: "Noch keine Nachrichten. Starten Sie das Gesprach!",
+      placeholder: "Nachricht eingeben...",
     },
   },
 };

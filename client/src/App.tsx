@@ -24,6 +24,7 @@ import JoinTeam from "@/pages/JoinTeam";
 import Widget from "@/pages/Widget";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
+import Chat from "@/pages/Chat";
 
 function Router() {
   return (
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/widget" component={Widget} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/chat" component={Chat} />
       <Route component={NotFound} />
     </Switch>
   );

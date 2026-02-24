@@ -660,6 +660,49 @@ Sources: ${result.sources.join(', ')}`;
               </motion.div>
             </div>
 
+            {user && (() => {
+              const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+              const maxLimit = limits[(user.tier || "FREE").toUpperCase()] || 5;
+              const left = user.requestsLeft ?? 0;
+              const pct = maxLimit >= 9999 ? 100 : Math.round((left / maxLimit) * 100);
+              const isLow = pct <= 20 && maxLimit < 9999;
+              const isZero = left <= 0 && maxLimit < 9999;
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className={`p-3 lg:p-4 rounded-xl border backdrop-blur-xl flex items-center gap-3 ${isZero ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-orange-500/10 border-orange-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}
+                  data-testid="checks-counter"
+                >
+                  <div className={`p-2 rounded-lg ${isZero ? 'bg-red-500/20' : isLow ? 'bg-orange-500/20' : 'bg-emerald-500/20'}`}>
+                    <Zap className={`w-4 h-4 ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-emerald-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-muted-foreground">{t('dashboard.checksRemaining')}</span>
+                      <span className={`text-sm font-mono font-bold ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-emerald-400'}`}>
+                        {maxLimit >= 9999 ? '∞' : `${left}/${maxLimit}`}
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                      <motion.div
+                        className={`h-full rounded-full ${isZero ? 'bg-red-500' : isLow ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
+                  {isZero && (
+                    <Button size="sm" variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs shrink-0" onClick={() => setShowSubscription(true)} data-testid="button-upgrade-checks">
+                      <Crown className="w-3 h-3 mr-1" />{t('pricing.upgrade')}
+                    </Button>
+                  )}
+                </motion.div>
+              );
+            })()}
+
             {/* Quick Actions Widget - hidden on mobile */}
             {recentReports.length > 0 && (
               <motion.div

@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and } from "drizzle-orm";
 
@@ -108,6 +108,10 @@ export interface IStorage {
   getFavorites(userId: number): Promise<Favorite[]>;
   addFavorite(data: InsertFavorite): Promise<Favorite>;
   deleteFavorite(id: number): Promise<void>;
+
+  // Chat
+  getChatMessages(limit: number): Promise<ChatMessage[]>;
+  createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -591,6 +595,17 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     await db.delete(favorites).where(eq(favorites.id, id));
   }
+
+  async getChatMessages(limit: number): Promise<ChatMessage[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(chatMessages).orderBy(desc(chatMessages.id)).limit(limit);
+  }
+
+  async createChatMessage(msg: InsertChatMessage): Promise<ChatMessage> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(chatMessages).values(msg).returning();
+    return created;
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -1001,6 +1016,19 @@ export class MemStorage implements IStorage {
 
   async deleteFavorite(id: number): Promise<void> {
     this.memFavorites.delete(id);
+  }
+
+  private memChatMessages: ChatMessage[] = [];
+  private nextChatId = 1;
+
+  async getChatMessages(limit: number): Promise<ChatMessage[]> {
+    return this.memChatMessages.slice(-limit).reverse();
+  }
+
+  async createChatMessage(msg: InsertChatMessage): Promise<ChatMessage> {
+    const created: ChatMessage = { id: this.nextChatId++, userId: msg.userId, username: msg.username ?? null, message: msg.message, createdAt: new Date() };
+    this.memChatMessages.push(created);
+    return created;
   }
 }
 

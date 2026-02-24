@@ -822,17 +822,58 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       
       const lang = await getLang(tgId);
       const broadcastText = text.trim();
-      userStates.set(tgId, { module: "admin_broadcast", step: "confirm", data: { message: broadcastText } });
+      const existingData = state.data || {};
+      userStates.set(tgId, { module: "admin_broadcast", step: "confirm", data: { ...existingData, type: existingData.type || "text", message: broadcastText, buttons: existingData.buttons || [] } });
       
-      await ctx.reply(`${t(lang, "admin.confirmBroadcast")}\n\n${t(lang, "admin.message")}\n${broadcastText}\n\n${t(lang, "admin.confirmPrompt")}`, {
+      await showBroadcastPreview(ctx, tgId, lang, { ...existingData, type: existingData.type || "text", message: broadcastText, buttons: existingData.buttons || [] });
+      return;
+    }
+
+    if (state?.module === "admin_broadcast" && state?.step === "awaiting_btn_text") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const lang = await getLang(tgId);
+      const btnText = text.trim();
+      const existingData = state.data || {};
+      userStates.set(tgId, { module: "admin_broadcast", step: "awaiting_btn_url", data: { ...existingData, pendingBtnText: btnText } });
+      
+      const urlPrompt = `🔗 *${lang === "uk" ? "Введіть URL для кнопки" : lang === "ru" ? "Введите URL для кнопки" : "Enter button URL"}:*\n\n` +
+        `${lang === "uk" ? "Кнопка" : lang === "ru" ? "Кнопка" : "Button"}: "${btnText}"\n\n` +
+        `${lang === "uk" ? "Надішліть посилання (https://...):" : lang === "ru" ? "Отправьте ссылку (https://...):" : "Send the link (https://...):"}`;
+      
+      await ctx.reply(urlPrompt, {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([
-          [
-            cb(t(lang, "admin.send"), "admin_broadcast_confirm", "success", E.check),
-            cb(t(lang, "admin.cancel"), "admin_broadcast_cancel", "danger", E.back)
-          ]
-        ])
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_broadcast_skip_btns", "danger", E.back)]])
       });
+      return;
+    }
+
+    if (state?.module === "admin_broadcast" && state?.step === "awaiting_btn_url") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      
+      const lang = await getLang(tgId);
+      let url = text.trim();
+      
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+      }
+      
+      const existingData = state.data || {};
+      const buttons = existingData.buttons || [];
+      buttons.push({ text: existingData.pendingBtnText, url });
+      delete existingData.pendingBtnText;
+      
+      userStates.set(tgId, { module: "admin_broadcast", step: "confirm", data: { ...existingData, buttons } });
+      
+      await showBroadcastPreview(ctx, tgId, lang, { ...existingData, buttons });
       return;
     }
 
@@ -2109,6 +2150,25 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
   bot.on("photo", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const state = userStates.get(tgId);
+
+    if (state?.module === "admin_broadcast" && state?.step === "awaiting_photo") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        const lang = await getLang(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+
+      const lang = await getLang(tgId);
+      const photo = ctx.message.photo[ctx.message.photo.length - 1];
+      const photoId = photo.file_id;
+      const caption = ctx.message.caption || "";
+      const existingData = state.data || {};
+
+      userStates.set(tgId, { module: "admin_broadcast", step: "confirm", data: { ...existingData, type: "photo", photoId, message: caption, buttons: existingData.buttons || [] } });
+
+      await showBroadcastPreview(ctx, tgId, lang, { ...existingData, type: "photo", photoId, message: caption, buttons: existingData.buttons || [] });
+      return;
+    }
     
     if (state?.module === "payment" && state?.step === "awaiting_proof") {
       const user = await storage.getUserByTgId(tgId);
@@ -2876,22 +2936,151 @@ ${allTypesText}
       return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
     }
     
-    userStates.set(tgId, { module: "admin_broadcast", step: "awaiting_message" });
-    
     const stats = await storage.getStats();
     
-    const text = `${t(lang, "admin.broadcastTitle")}\n\n` +
-      `${t(lang, "admin.broadcastInfo", { count: stats.totalUsers })}\n\n` +
-      `${t(lang, "admin.broadcastPrompt")}\n` +
-      `${t(lang, "admin.markdownSupported")}`;
+    const text = `📢 *${lang === "uk" ? "Розсилка" : lang === "ru" ? "Рассылка" : "Broadcast"}*\n\n` +
+      `👥 ${lang === "uk" ? "Користувачів" : lang === "ru" ? "Пользователей" : "Users"}: *${stats.totalUsers}*\n\n` +
+      `${lang === "uk" ? "Оберіть тип розсилки:" : lang === "ru" ? "Выберите тип рассылки:" : "Select broadcast type:"}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
+        [
+          cb("📝 " + (lang === "uk" ? "Текст" : lang === "ru" ? "Текст" : "Text"), "admin_broadcast_type_text", "primary", E.doc),
+          cb("📷 " + (lang === "uk" ? "Фото" : lang === "ru" ? "Фото" : "Photo"), "admin_broadcast_type_photo", "primary", E.eye)
+        ],
         [cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]
       ])
     });
   });
+
+  bot.action("admin_broadcast_type_text", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    userStates.set(tgId, { module: "admin_broadcast", step: "awaiting_message", data: { type: "text", buttons: [] } });
+
+    const text = `📝 *${lang === "uk" ? "Текстова розсилка" : lang === "ru" ? "Текстовая рассылка" : "Text Broadcast"}*\n\n` +
+      `${lang === "uk" ? "Надішліть текст повідомлення:" : lang === "ru" ? "Отправьте текст сообщения:" : "Send the message text:"}\n` +
+      `${t(lang, "admin.markdownSupported")}`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
+    });
+  });
+
+  bot.action("admin_broadcast_type_photo", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    userStates.set(tgId, { module: "admin_broadcast", step: "awaiting_photo", data: { type: "photo", buttons: [] } });
+
+    const text = `📷 *${lang === "uk" ? "Фото розсилка" : lang === "ru" ? "Фото рассылка" : "Photo Broadcast"}*\n\n` +
+      `${lang === "uk" ? "Надішліть фото з підписом (або без):" : lang === "ru" ? "Отправьте фото с подписью (или без):" : "Send a photo with caption (or without):"}`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_back", "danger", E.back)]])
+    });
+  });
+
+  bot.action("admin_broadcast_add_btn", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    const state = userStates.get(tgId);
+    if (!state?.data) return;
+
+    userStates.set(tgId, { ...state, step: "awaiting_btn_text" });
+
+    const btnCount = state.data.buttons?.length || 0;
+    const text = `🔘 *${lang === "uk" ? "Додати кнопку" : lang === "ru" ? "Добавить кнопку" : "Add Button"}* (${btnCount + 1}/6)\n\n` +
+      `${lang === "uk" ? "Надішліть текст кнопки:" : lang === "ru" ? "Отправьте текст кнопки:" : "Send button text:"}`;
+
+    try {
+      await ctx.editMessageText(text, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_broadcast_skip_btns", "danger", E.back)]])
+      });
+    } catch {
+      await ctx.reply(text, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_broadcast_skip_btns", "danger", E.back)]])
+      });
+    }
+  });
+
+  bot.action("admin_broadcast_skip_btns", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    const state = userStates.get(tgId);
+    if (!state?.data) return;
+
+    userStates.set(tgId, { ...state, step: "confirm" });
+    await showBroadcastPreview(ctx, tgId, lang, state.data);
+  });
+
+  bot.action("admin_broadcast_remove_btn", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    const state = userStates.get(tgId);
+    if (!state?.data?.buttons?.length) return;
+
+    state.data.buttons.pop();
+    userStates.set(tgId, { ...state, step: "confirm" });
+    await showBroadcastPreview(ctx, tgId, lang, state.data);
+  });
+
+  async function showBroadcastPreview(ctx: any, tgId: string, lang: Language, data: any) {
+    const btnsText = data.buttons?.length
+      ? "\n\n🔘 " + (lang === "uk" ? "Кнопки" : lang === "ru" ? "Кнопки" : "Buttons") + ":\n" +
+        data.buttons.map((b: any, i: number) => `  ${i + 1}. [${b.text}](${b.url})`).join("\n")
+      : "";
+
+    const typeLabel = data.type === "photo"
+      ? (lang === "uk" ? "📷 Фото + підпис" : lang === "ru" ? "📷 Фото + подпись" : "📷 Photo + caption")
+      : (lang === "uk" ? "📝 Текст" : lang === "ru" ? "📝 Текст" : "📝 Text");
+
+    const previewText = `👁 *${lang === "uk" ? "Попередній перегляд" : lang === "ru" ? "Предпросмотр" : "Preview"}*\n\n` +
+      `${lang === "uk" ? "Тип" : lang === "ru" ? "Тип" : "Type"}: ${typeLabel}\n\n` +
+      `${lang === "uk" ? "Повідомлення" : lang === "ru" ? "Сообщение" : "Message"}:\n${data.message || (lang === "uk" ? "(без тексту)" : lang === "ru" ? "(без текста)" : "(no text)")}` +
+      btnsText + "\n\n" +
+      `${lang === "uk" ? "Підтвердити відправку?" : lang === "ru" ? "Подтвердить отправку?" : "Confirm sending?"}`;
+
+    const keyboardRows: any[][] = [];
+    if ((data.buttons?.length || 0) < 6) {
+      keyboardRows.push([cb("➕ " + (lang === "uk" ? "Додати кнопку" : lang === "ru" ? "Добавить кнопку" : "Add Button"), "admin_broadcast_add_btn", "primary", E.link)]);
+    }
+    if (data.buttons?.length > 0) {
+      keyboardRows.push([cb("🗑 " + (lang === "uk" ? "Видалити останню" : lang === "ru" ? "Удалить последнюю" : "Remove Last"), "admin_broadcast_remove_btn", "danger", E.trash)]);
+    }
+    keyboardRows.push([
+      cb(t(lang, "admin.send"), "admin_broadcast_confirm", "success", E.check),
+      cb(t(lang, "admin.cancel"), "admin_broadcast_cancel", "danger", E.back)
+    ]);
+
+    try {
+      await ctx.editMessageText(previewText, {
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+        ...Markup.inlineKeyboard(keyboardRows)
+      });
+    } catch {
+      await ctx.reply(previewText, {
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+        ...Markup.inlineKeyboard(keyboardRows)
+      });
+    }
+  }
 
   bot.action("admin_back", async (ctx) => {
     const tgId = ctx.from!.id.toString();
@@ -2944,11 +3133,11 @@ ${allTypesText}
     }
     
     const state = userStates.get(tgId);
-    if (!state?.data?.message) {
+    if (!state?.data) {
       return ctx.answerCbQuery(t(lang, "admin.messageNotFound"));
     }
     
-    const broadcastMessage = state.data.message;
+    const data = state.data;
     userStates.delete(tgId);
     
     const allUsers = await storage.getAllUsers();
@@ -2956,12 +3145,28 @@ ${allTypesText}
     let failCount = 0;
     
     await ctx.editMessageText(t(lang, "admin.broadcastStarted"));
+
+    const inlineButtons = data.buttons?.length
+      ? data.buttons.map((b: any) => [Markup.button.url(b.text, b.url)])
+      : undefined;
+    const replyMarkup = inlineButtons ? Markup.inlineKeyboard(inlineButtons).reply_markup : undefined;
     
     for (const u of allUsers) {
       if (u.blocked) continue;
       
       try {
-        await ctx.telegram.sendMessage(u.tgId, broadcastMessage, { parse_mode: "Markdown" });
+        if (data.type === "photo" && data.photoId) {
+          await ctx.telegram.sendPhoto(u.tgId, data.photoId, {
+            caption: data.message || undefined,
+            parse_mode: "Markdown",
+            reply_markup: replyMarkup
+          });
+        } else {
+          await ctx.telegram.sendMessage(u.tgId, data.message || "", {
+            parse_mode: "Markdown",
+            reply_markup: replyMarkup
+          });
+        }
         successCount++;
       } catch (e) {
         failCount++;
