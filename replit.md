@@ -6,6 +6,7 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 
 ## Recent Changes (Feb 2026)
 - Colored inline keyboard buttons: all 236 bot buttons now use Telegram Bot API `style` field (primary/blue for actions, success/green for payments & confirms, danger/red for cancel & back). Helper functions `cb()` and `urlS()` wrap `Markup.button.callback/url` with style support.
+- 3D custom emoji on buttons: `icon_custom_emoji_id` added to all buttons via `E` constant map (search, shield, star, gear, chart, lock, fire, check, cross, bell, money, user, doc, link, globe, bolt, gift, crown, warn, back, home, msg, rocket, diamond, key, clock, eye, trash, card, phone, mail, flag, pin). Requires bot Premium or Fragment username to render.
 - MonoPay payment verification fallback: invoiceId stored in payments table, manual "I paid" button in bot triggers MonoPay API status check, auto-check every 2 min for pending payments, auth-protected check-status endpoint (bot token or session), fixes webhook delivery gap
 - Fixed expiryDate bug in MonoPay webhook handler: was always 30 days, now correctly uses periodDays for monthly/yearly
 - Optional 2FA (TOTP): users can enable/disable in Account > Security, QR code setup with authenticator apps, login 2FA verification step, 5-language i18n support
