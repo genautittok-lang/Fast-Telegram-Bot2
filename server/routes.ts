@@ -1754,6 +1754,188 @@ export async function registerRoutes(
 
   setInterval(processAutoRenewals, 60 * 60 * 1000);
 
+  // --- Stripe checkout (Google Pay / Apple Pay) ---
+  app.post("/api/payments/stripe/create-checkout", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { tier, period } = req.body;
+    if (!tier || !["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) {
+      return res.status(400).json({ error: "Invalid tier" });
+    }
+    if (!period || !["monthly", "yearly"].includes(period)) {
+      return res.status(400).json({ error: "Invalid period" });
+    }
+    try {
+      const { getUncachableStripeClient } = await import("./stripeClient");
+      const stripe = await getUncachableStripeClient();
+      const normalizedTier = tier.toUpperCase();
+      const usdPrices: Record<string, Record<string, number>> = {
+        PRO: { monthly: 1000, yearly: 9600 },
+        ENTERPRISE: { monthly: 3500, yearly: 33600 },
+        GROUPS: { monthly: 5500, yearly: 52800 },
+      };
+      const amount = usdPrices[normalizedTier]?.[period] || 1000;
+      const requests = normalizedTier === "ENTERPRISE" || normalizedTier === "GROUPS" ? 500 : 50;
+      const periodDays = period === "yearly" ? 365 : 30;
+
+      const payment = await storage.createPayment({
+        userId: authReq.user!.id,
+        tier: normalizedTier,
+        amountUsdt: (amount / 100).toFixed(2),
+        txHash: null,
+        status: "pending",
+      });
+
+      const appUrl = process.env.APP_URL || `https://${process.env.REPLIT_DEV_DOMAIN || "darkshare.store"}`;
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "payment",
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: { name: `DARKSHARE ${normalizedTier} (${period})` },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        }],
+        metadata: {
+          paymentId: String(payment.id),
+          userId: String(authReq.user!.id),
+          tier: normalizedTier,
+          period,
+          requests: String(requests),
+          periodDays: String(periodDays),
+        },
+        success_url: `${appUrl}/dashboard?payment=success`,
+        cancel_url: `${appUrl}/pricing?payment=cancelled`,
+      });
+      res.json({ url: session.url, paymentId: payment.id });
+    } catch (err: any) {
+      console.error("Stripe checkout error:", err);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  });
+
+  // --- Stripe webhook ---
+  app.post("/api/payments/stripe/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+      const { getUncachableStripeClient, getStripeSecretKey } = await import("./stripeClient");
+      const stripe = await getUncachableStripeClient();
+      const event = req.body;
+
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object;
+        const meta = session.metadata || {};
+        const paymentId = parseInt(meta.paymentId);
+        const userId = parseInt(meta.userId);
+        const tier = meta.tier || "PRO";
+        const requests = parseInt(meta.requests) || 50;
+        const periodDays = parseInt(meta.periodDays) || 30;
+
+        if (paymentId && userId) {
+          await storage.updatePaymentStatus(paymentId, "approved");
+          const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
+          await storage.updateUser(userId, {
+            tier,
+            requestsLeft: requests,
+            subscriptionExpiresAt: expiryDate,
+            autoRenew: false,
+          } as any);
+
+          const user = await storage.getUserById(userId);
+          if (user && botInstance) {
+            try {
+              const lang = user.lang || "uk";
+              const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+              const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "∞" : "50";
+              const amountDisplay = `$${meta.requests ? (parseInt(meta.requests)).toString() : session.amount_total ? (session.amount_total / 100).toFixed(2) : "?"} USD`;
+              const receiptTexts: Record<string, string> = {
+                uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату підтверджено! (Stripe)\n\n📦 Тариф: *${tier}*\n💰 Сума: ${amountDisplay}\n🔢 Запитів: ${requestsDisplay}/день\n📅 Діє до: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
+                ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата подтверждена! (Stripe)\n\n📦 Тариф: *${tier}*\n💰 Сумма: ${amountDisplay}\n🔢 Запросов: ${requestsDisplay}/день\n📅 Действует до: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
+                en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Payment confirmed! (Stripe)\n\n📦 Plan: *${tier}*\n💰 Amount: ${amountDisplay}\n🔢 Requests: ${requestsDisplay}/day\n📅 Valid until: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
+                es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago confirmado! (Stripe)\n\n📦 Plan: *${tier}*\n💰 Monto: ${amountDisplay}\n🔢 Solicitudes: ${requestsDisplay}/día\n📅 Válido hasta: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
+                de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Zahlung bestätigt! (Stripe)\n\n📦 Tarif: *${tier}*\n💰 Betrag: ${amountDisplay}\n🔢 Anfragen: ${requestsDisplay}/Tag\n📅 Gültig bis: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
+              };
+              await botInstance.telegram.sendMessage(user.tgId, receiptTexts[lang] || receiptTexts["en"], { parse_mode: "Markdown" });
+            } catch (e) { /* ignore */ }
+          }
+
+          for (const adminId of ADMIN_IDS) {
+            try {
+              await botInstance?.telegram.sendMessage(adminId, `✅ Stripe оплата #${paymentId} підтверджена\n\n📦 ${tier}\n💰 $${(session.amount_total / 100).toFixed(2)} USD\n👤 User #${userId}`);
+            } catch (e) {}
+          }
+        }
+      }
+      res.json({ received: true });
+    } catch (err: any) {
+      console.error("Stripe webhook error:", err);
+      res.status(400).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // --- Subscription expiry checker + 5-day reminder ---
+  async function checkSubscriptionExpiry() {
+    if (!pool) return;
+    try {
+      const expiredResult = await pool.query(
+        `SELECT * FROM ds_users WHERE tier != 'FREE' AND subscription_expires_at IS NOT NULL AND subscription_expires_at < NOW() AND auto_renew = false`
+      );
+      for (const user of expiredResult.rows) {
+        try {
+          await storage.updateUser(user.id, { tier: "FREE", requestsLeft: 5, autoRenew: false } as any);
+          console.log(`Subscription expired for user ${user.id}, downgraded to FREE`);
+
+          if (botInstance && user.tg_id) {
+            const lang = user.lang || "uk";
+            const expiredTexts: Record<string, string> = {
+              uk: `⚠️ *Підписка закінчилась*\n\nВаш тариф *${user.tier}* закінчився. Ви переведені на безкоштовний план (5 перевірок/день).\n\n💡 Поновіть підписку, щоб продовжити користуватися всіма функціями.`,
+              ru: `⚠️ *Подписка истекла*\n\nВаш тариф *${user.tier}* истёк. Вы переведены на бесплатный план (5 проверок/день).\n\n💡 Обновите подписку, чтобы продолжить использование всех функций.`,
+              en: `⚠️ *Subscription expired*\n\nYour *${user.tier}* plan has expired. You've been downgraded to the free plan (5 checks/day).\n\n💡 Renew your subscription to keep using all features.`,
+              es: `⚠️ *Suscripción expirada*\n\nSu plan *${user.tier}* ha expirado. Ha sido degradado al plan gratuito (5 verificaciones/día).\n\n💡 Renueve su suscripción para seguir usando todas las funciones.`,
+              de: `⚠️ *Abonnement abgelaufen*\n\nIhr *${user.tier}*-Plan ist abgelaufen. Sie wurden auf den kostenlosen Plan herabgestuft (5 Prüfungen/Tag).\n\n💡 Verlängern Sie Ihr Abonnement, um alle Funktionen weiterhin nutzen zu können.`,
+            };
+            try {
+              await botInstance.telegram.sendMessage(user.tg_id, expiredTexts[lang] || expiredTexts["en"], { parse_mode: "Markdown" });
+            } catch (e) { /* ignore */ }
+          }
+        } catch (err) {
+          console.error(`Failed to downgrade user ${user.id}:`, err);
+        }
+      }
+
+      const reminderResult = await pool.query(
+        `SELECT * FROM ds_users WHERE tier != 'FREE' AND subscription_expires_at IS NOT NULL AND subscription_expires_at > NOW() AND subscription_expires_at <= NOW() + INTERVAL '5 days' AND (last_reminder_sent IS NULL OR last_reminder_sent < NOW() - INTERVAL '24 hours')`
+      );
+      for (const user of reminderResult.rows) {
+        try {
+          if (botInstance && user.tg_id) {
+            const lang = user.lang || "uk";
+            const daysLeft = Math.ceil((new Date(user.subscription_expires_at).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+            const expiryStr = new Date(user.subscription_expires_at).toLocaleDateString("uk-UA");
+            const reminderTexts: Record<string, string> = {
+              uk: `🔔 *Нагадування про підписку*\n\nВаш тариф *${user.tier}* закінчується через *${daysLeft}* ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дні" : "днів"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 Автоподовження увімкнено — оплата буде списана автоматично." : "💡 Поновіть підписку, щоб не втратити доступ до функцій.\n\n/buy — оновити тариф"}`,
+              ru: `🔔 *Напоминание о подписке*\n\nВаш тариф *${user.tier}* заканчивается через *${daysLeft}* ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дня" : "дней"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 Автопродление включено — оплата будет списана автоматически." : "💡 Обновите подписку, чтобы не потерять доступ к функциям.\n\n/buy — обновить тариф"}`,
+              en: `🔔 *Subscription reminder*\n\nYour *${user.tier}* plan expires in *${daysLeft}* day${daysLeft === 1 ? "" : "s"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 Auto-renewal is enabled — you'll be charged automatically." : "💡 Renew your subscription to keep access to all features.\n\n/buy — upgrade plan"}`,
+              es: `🔔 *Recordatorio de suscripción*\n\nSu plan *${user.tier}* vence en *${daysLeft}* día${daysLeft === 1 ? "" : "s"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 La renovación automática está activada." : "💡 Renueve su suscripción para mantener el acceso.\n\n/buy — actualizar plan"}`,
+              de: `🔔 *Abonnement-Erinnerung*\n\nIhr *${user.tier}*-Plan läuft in *${daysLeft}* Tag${daysLeft === 1 ? "" : "en"} ab (${expiryStr}).\n\n${user.auto_renew ? "🔄 Automatische Verlängerung ist aktiviert." : "💡 Verlängern Sie Ihr Abonnement, um den Zugang zu behalten.\n\n/buy — Plan erneuern"}`,
+            };
+            try {
+              await botInstance.telegram.sendMessage(user.tg_id, reminderTexts[lang] || reminderTexts["en"], { parse_mode: "Markdown" });
+              await pool.query(`UPDATE ds_users SET last_reminder_sent = NOW() WHERE id = $1`, [user.id]);
+            } catch (e) { /* ignore */ }
+          }
+        } catch (err) {
+          console.error(`Failed to send reminder to user ${user.id}:`, err);
+        }
+      }
+    } catch (err) {
+      console.error("Subscription expiry checker error:", err);
+    }
+  }
+
+  setInterval(checkSubscriptionExpiry, 60 * 60 * 1000);
+  setTimeout(checkSubscriptionExpiry, 30000);
+
   app.post("/api/payments/monopay/check-status", async (req, res) => {
     const botToken = req.headers["x-bot-token"];
     const isBot = botToken === process.env.TELEGRAM_BOT_TOKEN;

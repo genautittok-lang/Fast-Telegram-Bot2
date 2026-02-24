@@ -41,6 +41,9 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Added 3 new backend endpoints: GET /api/teams/:id/stats, GET /api/reports/export/csv, POST /api/breach-check
 - Added getReportsByUserId storage method, removed duplicate /api/teams/join route
 - Multi-step payment flow: tier selection → payment method (Crypto/Stripe/MonoPay) → payment details with timer
+- Stripe checkout for Google Pay / Apple Pay: POST /api/payments/stripe/create-checkout creates session, webhook auto-activates tier
+- Subscription expiry enforcement: hourly scheduler downgrades expired users to FREE, sends bot notification
+- 5-day expiry reminder: bot sends multilingual notification 5 days before plan expires (once per 24h, tracks last_reminder_sent)
 - MonoPay (Monobank) payment integration: invoice creation API + webhook for auto-confirmation (UAH pricing)
 - FREE tier daily limits enforced: 5 checks/day FREE, 50 PRO, unlimited ENTERPRISE/GROUPS (web + bot + bulk)
 - MonoPay webhook auto-confirms payments and upgrades user tier automatically on success
