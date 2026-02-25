@@ -403,6 +403,7 @@ export async function registerRoutes(
         user = await storage.createUser({
           tgId,
           username,
+          photoUrl: photoUrl || null,
           lang: "UA",
           tier: "FREE",
           requestsLeft: 5,
@@ -411,9 +412,12 @@ export async function registerRoutes(
         });
       } else {
         await storage.updateUserLogin(user.id);
-        if (user.username !== username && username !== "user") {
-          await storage.updateUser(user.id, { username });
-          user = { ...user, username };
+        const updates: any = {};
+        if (user.username !== username && username !== "user") updates.username = username;
+        if (photoUrl && user.photoUrl !== photoUrl) updates.photoUrl = photoUrl;
+        if (Object.keys(updates).length > 0) {
+          await storage.updateUser(user.id, updates);
+          user = { ...user, ...updates };
         }
       }
     } catch (dbError: any) {
@@ -495,6 +499,7 @@ export async function registerRoutes(
       id: authReq.user.id,
       tgId: authReq.user.tgId,
       username: authReq.user.username,
+      photoUrl: authReq.user.photoUrl || "",
       tier: authReq.user.tier,
       requestsLeft: authReq.user.requestsLeft,
       streakDays: authReq.user.streakDays,
@@ -2866,6 +2871,34 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/chat/share-report", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user!.id;
+    const { reportId, teamId } = req.body;
+    if (!reportId) return res.status(400).json({ error: "reportId required" });
+    try {
+      const reports = await storage.getReportsByUserId(userId);
+      const report = reports.find((r: any) => r.id === reportId);
+      if (!report) return res.status(404).json({ error: "Report not found" });
+      const data = report.dataJson as any;
+      const riskEmoji = data.riskScore >= 80 ? "🔴" : data.riskScore >= 50 ? "🟡" : "🟢";
+      const shareMsg = `${riskEmoji} Check Result: ${data.type?.toUpperCase() || "UNKNOWN"}\n🎯 Target: ${data.target ? data.target.substring(0, 6) + "***" + data.target.substring(data.target.length - 4) : "***"}\n📊 Risk: ${data.riskScore || 0}/100 (${data.riskLevel || "unknown"})\n${data.summary ? "📝 " + data.summary.substring(0, 120) : ""}\n🔗 Verify: /verify/${report.verificationId || "N/A"}`;
+      const user = await storage.getUser(userId);
+      const created = await storage.createChatMessage({
+        userId,
+        username: user?.username || "Anonymous",
+        photoUrl: user?.photoUrl || null,
+        message: shareMsg,
+        messageType: "report",
+        fileUrl: null,
+        teamId: teamId || null,
+      });
+      res.json(created);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to share report" });
+    }
+  });
+
   const chatRateLimit = new Map<number, number[]>();
   app.get("/api/chat/messages", async (req, res) => {
     if (!req.session?.userId) return res.status(401).json({ error: "Not authenticated" });
@@ -2922,6 +2955,7 @@ export async function registerRoutes(
       const created = await storage.createChatMessage({
         userId,
         username: user?.username || "Anonymous",
+        photoUrl: user?.photoUrl || null,
         message: message || (messageType === "image" ? "📷 Photo" : "🎥 Video"),
         messageType,
         fileUrl,

@@ -228,10 +228,12 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS message_type TEXT DEFAULT 'text'`);
     await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS file_url TEXT`);
     await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS team_id INTEGER`);
+    await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS photo_url TEXT`);
 
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS last_reminder_sent TIMESTAMP`);
+    await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS photo_url TEXT`);
     
     console.log("Database tables ready!");
   } catch (error: any) {

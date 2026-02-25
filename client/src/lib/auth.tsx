@@ -49,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: data.id || data.userId,
             tgId: data.tgId,
             username: data.username,
+            photoUrl: data.photoUrl || "",
             tier: data.tier,
             requestsLeft: data.requestsLeft,
             streakDays: data.streakDays,
