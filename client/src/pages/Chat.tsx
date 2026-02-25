@@ -36,10 +36,11 @@ interface UserTeam {
 
 interface ReportItem {
   id: number;
-  objectType: string;
-  dataJson: any;
-  verificationId: string;
-  generatedAt: string;
+  type: string;
+  target: string;
+  riskLevel: string;
+  riskScore: number;
+  createdAt: string;
 }
 
 function fullTime(dateStr: string): string {
@@ -126,6 +127,41 @@ function FloatingParticles() {
         >
           {p.icon}
         </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function ChatWallpaper() {
+  const icons = useMemo(() => {
+    const items = ["🔒", "🛡️", "⚡", "🔑", "💎", "🌐", "📡", "🔮", "⛓️", "🧬", "👁️", "🗡️"];
+    return Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      icon: items[i % items.length],
+      x: 5 + (i % 6) * 16 + (Math.random() * 8 - 4),
+      y: 5 + Math.floor(i / 6) * 18 + (Math.random() * 6 - 3),
+      rotate: Math.random() * 30 - 15,
+      size: 12 + Math.random() * 6,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      {icons.map(ic => (
+        <div
+          key={ic.id}
+          className="absolute select-none"
+          style={{
+            left: `${ic.x}%`,
+            top: `${ic.y}%`,
+            fontSize: `${ic.size}px`,
+            opacity: 0.025,
+            transform: `rotate(${ic.rotate}deg)`,
+            filter: 'grayscale(0.5)',
+          }}
+        >
+          {ic.icon}
+        </div>
       ))}
     </div>
   );
@@ -351,24 +387,41 @@ function ShareReportModal({ onClose, onShare }: { onClose: () => void; onShare: 
             </div>
           )}
           {reports.slice(0, 20).map(report => {
-            const data = report.dataJson as any;
-            const score = data?.riskScore || 0;
+            const score = report.riskScore || 0;
             const riskColor = score >= 80 ? "text-red-400" : score >= 50 ? "text-orange-400" : "text-emerald-400";
+            const riskBgColor = score >= 80 ? "bg-red-500" : score >= 50 ? "bg-orange-500" : "bg-emerald-500";
             const typeEmoji: Record<string, string> = { ip: "🌐", wallet: "💰", email: "📧", domain: "🔗", phone: "📱", url: "🔗", cve: "🐛", hash: "🔐", username: "👤", bot: "🤖", card: "💳" };
+            const maskedTarget = report.target
+              ? report.target.length > 10
+                ? report.target.substring(0, 6) + "***" + report.target.substring(report.target.length - 4)
+                : report.target.substring(0, 3) + "***"
+              : "***";
+            const date = new Date(report.createdAt);
+            const dateStr = date.toLocaleDateString([], { day: '2-digit', month: '2-digit' }) + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             return (
               <button key={report.id} onClick={() => onShare(report.id)}
                 className="w-full p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-primary/30 hover:bg-white/[0.05] transition-all text-left flex items-center gap-3 group"
                 data-testid={`share-report-${report.id}`}
               >
-                <span className="text-xl">{typeEmoji[report.objectType] || "📊"}</span>
+                <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">{typeEmoji[report.type] || "📊"}</span>
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold text-white/80 uppercase">{report.objectType}</span>
-                    <span className={`text-xs font-mono font-bold ${riskColor}`}>{score}/100</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono font-bold text-white/80 uppercase">{report.type}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold ${riskColor} bg-white/5`}>
+                      {score}/100
+                    </span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground truncate font-mono">
-                    {data?.target ? data.target.substring(0, 20) + "..." : "***"}
+                  <p className="text-[11px] text-white/60 truncate font-mono mb-1">
+                    🎯 {maskedTarget}
                   </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1 rounded-full bg-white/5 overflow-hidden">
+                      <div className={`h-full rounded-full ${riskBgColor}`} style={{ width: `${score}%` }} />
+                    </div>
+                    <span className="text-[9px] text-muted-foreground/50 font-mono">{dateStr}</span>
+                  </div>
                 </div>
                 <Share2 className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
               </button>
@@ -430,7 +483,7 @@ function MessageBubble({ m, isOwn, showAvatar, lang, user, onReact }: { m: ChatM
       initial={{ opacity: 0, y: 12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
+      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group relative z-10`}
     >
       {!isOwn && showAvatar && (
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="mr-2 flex-shrink-0 mt-0.5">
@@ -697,7 +750,7 @@ export default function Chat() {
 
   return (
     <PageLayout>
-      <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden relative">
+      <div className="flex-1 flex flex-col h-[100dvh] lg:h-auto lg:min-h-screen max-w-full overflow-hidden relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(142_71%_45%/0.04)_0%,transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(200_80%_50%/0.03)_0%,transparent_50%)]" />
@@ -797,9 +850,21 @@ export default function Chat() {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-1.5 relative" data-testid="chat-messages-list">
+                <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-1.5 relative" data-testid="chat-messages-list"
+                  style={{
+                    backgroundImage: `
+                      radial-gradient(circle at 20% 30%, hsl(142 71% 45% / 0.03) 0%, transparent 40%),
+                      radial-gradient(circle at 80% 70%, hsl(200 80% 50% / 0.025) 0%, transparent 35%),
+                      radial-gradient(circle at 50% 50%, hsl(280 70% 50% / 0.015) 0%, transparent 50%),
+                      linear-gradient(hsl(142 71% 45% / 0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, hsl(142 71% 45% / 0.04) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '100% 100%, 100% 100%, 100% 100%, 28px 28px, 28px 28px',
+                  }}
+                >
+                  <ChatWallpaper />
                   {isLoading && (
-                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground relative z-10">
                       <motion.div className="text-4xl mb-3" animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
                         🔄
                       </motion.div>
@@ -807,7 +872,7 @@ export default function Chat() {
                     </div>
                   )}
 
-                  {!isLoading && messages.length === 0 && <EmptyChat lang={lang} />}
+                  {!isLoading && messages.length === 0 && <div className="relative z-10"><EmptyChat lang={lang} /></div>}
 
                   <AnimatePresence initial={false}>
                     {messages.map((m, idx) => {
