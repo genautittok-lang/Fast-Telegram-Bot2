@@ -2911,9 +2911,39 @@ export async function registerRoutes(
         }
       }
       const messages = await storage.getChatMessages(100, teamId);
-      res.json(messages.reverse());
+      const ordered = messages.reverse();
+      const ids = ordered.map(m => m.id);
+      const reactions = await storage.getReactions(ids);
+      const reactionsMap: Record<number, { emoji: string; userIds: number[] }[]> = {};
+      for (const r of reactions) {
+        if (!reactionsMap[r.messageId]) reactionsMap[r.messageId] = [];
+        const existing = reactionsMap[r.messageId].find(x => x.emoji === r.emoji);
+        if (existing) { existing.userIds.push(r.userId); }
+        else { reactionsMap[r.messageId].push({ emoji: r.emoji, userIds: [r.userId] }); }
+      }
+      const result = ordered.map(m => ({ ...m, reactions: reactionsMap[m.id] || [] }));
+      res.json(result);
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/chat/reactions", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { messageId, emoji } = req.body;
+    if (!messageId || !emoji) return res.status(400).json({ error: "messageId and emoji required" });
+    try {
+      const reactions = await storage.getReactions([messageId]);
+      const existing = reactions.find(r => r.messageId === messageId && r.userId === authReq.user!.id && r.emoji === emoji);
+      if (existing) {
+        await storage.removeReaction(messageId, authReq.user!.id, emoji);
+        res.json({ action: "removed" });
+      } else {
+        await storage.addReaction(messageId, authReq.user!.id, emoji);
+        res.json({ action: "added" });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Failed to toggle reaction" });
     }
   });
 

@@ -6,9 +6,14 @@ import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Send, MessageCircle, Clock, Image, Smile, X, Hash, Globe, ShieldCheck, Crown, Zap, Lock, Eye, Share2, ExternalLink, AlertTriangle, CheckCircle } from "lucide-react";
+import { Send, Image, X, ShieldCheck, Crown, Zap, Lock, Eye, Share2, ExternalLink, AlertTriangle, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+
+interface ReactionData {
+  emoji: string;
+  userIds: number[];
+}
 
 interface ChatMsg {
   id: number;
@@ -20,6 +25,7 @@ interface ChatMsg {
   fileUrl: string | null;
   teamId: number | null;
   createdAt: string;
+  reactions: ReactionData[];
 }
 
 interface UserTeam {
@@ -34,16 +40,6 @@ interface ReportItem {
   dataJson: any;
   verificationId: string;
   generatedAt: string;
-}
-
-function timeAgo(dateStr: string, lang: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return lang === "uk" ? "щойно" : lang === "ru" ? "сейчас" : "now";
-  if (mins < 60) return `${mins}${lang === "uk" || lang === "ru" ? "хв" : "m"}`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}${lang === "uk" || lang === "ru" ? "год" : "h"}`;
-  return `${Math.floor(hrs / 24)}${lang === "uk" || lang === "ru" ? "д" : "d"}`;
 }
 
 function fullTime(dateStr: string): string {
@@ -85,6 +81,65 @@ const EMOJI_CATEGORIES: Record<string, { label: string; emojis: string[] }> = {
 };
 
 const QUICK_REACTIONS = ["👍", "🔥", "🛡️", "💯", "⚠️", "😂"];
+
+const PARTICLE_ICONS = ["🛡️", "🔒", "🔑", "⚡", "💎", "🔥", "🌐", "🗡️", "👁️", "💀", "🔮", "⛓️", "📡", "🧬", "🪐", "🐉"];
+
+function FloatingParticles() {
+  const particles = useMemo(() => {
+    return Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      icon: PARTICLE_ICONS[i % PARTICLE_ICONS.length],
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 10 + Math.random() * 16,
+      duration: 15 + Math.random() * 25,
+      delay: Math.random() * 10,
+      opacity: 0.03 + Math.random() * 0.05,
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {particles.map(p => (
+        <motion.div
+          key={p.id}
+          className="absolute select-none"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            fontSize: `${p.size}px`,
+            opacity: p.opacity,
+            filter: 'blur(0.5px)',
+          }}
+          animate={{
+            y: [0, -30, 10, -20, 0],
+            x: [0, 15, -10, 20, 0],
+            rotate: [0, 10, -10, 5, 0],
+            scale: [1, 1.1, 0.95, 1.05, 1],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            delay: p.delay,
+            ease: "easeInOut",
+          }}
+        >
+          {p.icon}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function ScanLine() {
+  return (
+    <motion.div
+      className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent pointer-events-none z-0"
+      animate={{ top: ["0%", "100%", "0%"] }}
+      transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+    />
+  );
+}
 
 function EmojiPicker({ onSelect, onClose }: { onSelect: (emoji: string) => void; onClose: () => void }) {
   const [cat, setCat] = useState("faces");
@@ -207,7 +262,6 @@ function VerificationBadge({ username }: { username: string | null }) {
   }, [username]);
 
   if (!tier) return null;
-
   if (tier === "elite") return <Crown className="w-3 h-3 text-yellow-400 ml-0.5" />;
   if (tier === "pro") return <Zap className="w-3 h-3 text-purple-400 ml-0.5" />;
   return <ShieldCheck className="w-3 h-3 text-emerald-400 ml-0.5" />;
@@ -238,7 +292,6 @@ function ReportCard({ message }: { message: string }) {
         </div>
         <span className={`text-xs font-mono font-bold ${riskColor}`}>{score}/100</span>
       </div>
-
       <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
@@ -247,19 +300,12 @@ function ReportCard({ message }: { message: string }) {
           className={`h-full rounded-full bg-gradient-to-r ${riskBg} to-transparent`}
         />
       </div>
-
       <div className="flex items-center gap-2 text-[11px]">
         <span className="text-muted-foreground">🎯</span>
         <span className="font-mono text-white/70">{target}</span>
       </div>
-
       {verifyUrl && verifyUrl !== "/verify/N/A" && (
-        <a
-          href={verifyUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1.5 text-[10px] text-primary/70 hover:text-primary transition-colors"
-        >
+        <a href={verifyUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] text-primary/70 hover:text-primary transition-colors">
           <ExternalLink className="w-3 h-3" />
           <span className="font-mono">{verifyUrl}</span>
         </a>
@@ -268,24 +314,15 @@ function ReportCard({ message }: { message: string }) {
   );
 }
 
-function ShareReportModal({ onClose, onShare, teamId }: { onClose: () => void; onShare: (reportId: number) => void; teamId: number | null }) {
+function ShareReportModal({ onClose, onShare }: { onClose: () => void; onShare: (reportId: number) => void }) {
   const { t, lang } = useTranslation();
-  const { data: reports = [], isLoading } = useQuery<ReportItem[]>({
-    queryKey: ["/api/reports"],
-  });
+  const { data: reports = [], isLoading } = useQuery<ReportItem[]>({ queryKey: ["/api/reports"] });
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={onClose}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}
     >
-      <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
+      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
         className="bg-[#0d0d14] border border-white/10 rounded-2xl w-full max-w-md max-h-[70vh] overflow-hidden shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
@@ -300,7 +337,6 @@ function ShareReportModal({ onClose, onShare, teamId }: { onClose: () => void; o
             <X className="w-4 h-4" />
           </button>
         </div>
-
         <div className="overflow-y-auto max-h-[55vh] p-3 space-y-2">
           {isLoading && (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -308,24 +344,19 @@ function ShareReportModal({ onClose, onShare, teamId }: { onClose: () => void; o
               <span className="text-sm">{t("common.loading")}</span>
             </div>
           )}
-
           {!isLoading && reports.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <span className="text-3xl block mb-2">📭</span>
               <p className="text-xs">{lang === "uk" ? "Немає перевірок" : lang === "ru" ? "Нет проверок" : "No checks yet"}</p>
             </div>
           )}
-
           {reports.slice(0, 20).map(report => {
             const data = report.dataJson as any;
             const score = data?.riskScore || 0;
             const riskColor = score >= 80 ? "text-red-400" : score >= 50 ? "text-orange-400" : "text-emerald-400";
             const typeEmoji: Record<string, string> = { ip: "🌐", wallet: "💰", email: "📧", domain: "🔗", phone: "📱", url: "🔗", cve: "🐛", hash: "🔐", username: "👤", bot: "🤖", card: "💳" };
-
             return (
-              <button
-                key={report.id}
-                onClick={() => onShare(report.id)}
+              <button key={report.id} onClick={() => onShare(report.id)}
                 className="w-full p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-primary/30 hover:bg-white/[0.05] transition-all text-left flex items-center gap-3 group"
                 data-testid={`share-report-${report.id}`}
               >
@@ -349,30 +380,25 @@ function ShareReportModal({ onClose, onShare, teamId }: { onClose: () => void; o
   );
 }
 
-function OnlineIndicator({ lang }: { lang: string }) {
+function OnlineIndicator() {
   const count = useMemo(() => Math.floor(Math.random() * 15) + 5, []);
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-        <div className="relative">
-          <div className="w-2 h-2 rounded-full bg-emerald-400" />
-          <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-        </div>
-        <span className="text-[11px] font-mono text-emerald-400">{count} online</span>
+    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+      <div className="relative">
+        <div className="w-2 h-2 rounded-full bg-emerald-400" />
+        <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
       </div>
+      <span className="text-[11px] font-mono text-emerald-400">{count} online</span>
     </div>
   );
 }
 
 function EmptyChat({ lang }: { lang: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col items-center justify-center py-16 text-center"
     >
-      <motion.div
-        className="text-6xl mb-4"
+      <motion.div className="text-6xl mb-4"
         animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -380,13 +406,7 @@ function EmptyChat({ lang }: { lang: string }) {
       </motion.div>
       <div className="flex gap-2 mb-4">
         {["🛡️", "🔒", "⚡", "💎", "🔥"].map((e, i) => (
-          <motion.span
-            key={i}
-            className="text-2xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 0.5, y: 0 }}
-            transition={{ delay: 0.2 + i * 0.1 }}
-          >
+          <motion.span key={i} className="text-2xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 0.5, y: 0 }} transition={{ delay: 0.2 + i * 0.1 }}>
             {e}
           </motion.span>
         ))}
@@ -401,9 +421,8 @@ function EmptyChat({ lang }: { lang: string }) {
   );
 }
 
-function MessageBubble({ m, isOwn, showAvatar, lang, user }: { m: ChatMsg; isOwn: boolean; showAvatar: boolean; lang: string; user: any }) {
+function MessageBubble({ m, isOwn, showAvatar, lang, user, onReact }: { m: ChatMsg; isOwn: boolean; showAvatar: boolean; lang: string; user: any; onReact: (messageId: number, emoji: string) => void }) {
   const [showReactions, setShowReactions] = useState(false);
-  const [reactions, setReactions] = useState<string[]>([]);
   const isReport = m.messageType === "report";
 
   return (
@@ -468,17 +487,32 @@ function MessageBubble({ m, isOwn, showAvatar, lang, user }: { m: ChatMsg; isOwn
           )}
         </div>
 
-        {reactions.length > 0 && (
+        {m.reactions && m.reactions.length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`flex gap-0.5 mt-0.5 ${isOwn ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-1 mt-1 flex-wrap ${isOwn ? 'justify-end' : 'justify-start'}`}
           >
-            <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/5 border border-white/[0.06]">
-              {reactions.map((r, i) => (
-                <span key={i} className="text-xs">{r}</span>
-              ))}
-            </div>
+            {m.reactions.map((r) => {
+              const isMine = user && r.userIds.includes(user.id);
+              return (
+                <motion.button
+                  key={r.emoji}
+                  whileHover={{ scale: 1.15 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => onReact(m.id, r.emoji)}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all duration-200 ${
+                    isMine
+                      ? 'bg-primary/15 border border-primary/30 shadow-sm shadow-primary/10'
+                      : 'bg-white/5 border border-white/[0.08] hover:bg-white/10'
+                  }`}
+                  data-testid={`reaction-${m.id}-${r.emoji}`}
+                >
+                  <span>{r.emoji}</span>
+                  <span className={`text-[10px] font-mono ${isMine ? 'text-primary' : 'text-muted-foreground'}`}>{r.userIds.length}</span>
+                </motion.button>
+              );
+            })}
           </motion.div>
         )}
 
@@ -488,19 +522,21 @@ function MessageBubble({ m, isOwn, showAvatar, lang, user }: { m: ChatMsg; isOwn
               initial={{ opacity: 0, scale: 0.8, y: 5 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 5 }}
-              className={`absolute ${isOwn ? 'right-0' : 'left-0'} -bottom-8 z-30 flex gap-0.5 px-2 py-1 rounded-full bg-[#0d0d14]/95 border border-white/10 shadow-xl`}
+              className={`absolute ${isOwn ? 'right-0' : 'left-0'} -bottom-9 z-30 flex gap-0.5 px-2.5 py-1.5 rounded-full bg-[#0d0d14]/95 backdrop-blur-xl border border-white/10 shadow-xl shadow-black/40`}
             >
               {QUICK_REACTIONS.map(r => (
-                <button
+                <motion.button
                   key={r}
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={() => {
-                    setReactions(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]);
+                    onReact(m.id, r);
                     setShowReactions(false);
                   }}
-                  className="w-7 h-7 flex items-center justify-center text-sm hover:scale-125 transition-transform rounded-full hover:bg-white/10"
+                  className="w-7 h-7 flex items-center justify-center text-sm rounded-full hover:bg-white/10 transition-colors"
                 >
                   {r}
-                </button>
+                </motion.button>
               ))}
             </motion.div>
           )}
@@ -539,7 +575,6 @@ export default function Chat() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const emojiRef = useRef<HTMLDivElement>(null);
 
   const { data: userTeams = [] } = useQuery<UserTeam[]>({
     queryKey: ["/api/teams"],
@@ -603,6 +638,21 @@ export default function Chat() {
     },
   });
 
+  const reactionMutation = useMutation({
+    mutationFn: async ({ messageId, emoji }: { messageId: number; emoji: string }) => {
+      const res = await apiRequest("POST", "/api/chat/reactions", { messageId, emoji });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: chatQueryKey });
+    },
+  });
+
+  const handleReact = useCallback((messageId: number, emoji: string) => {
+    reactionMutation.mutate({ messageId, emoji });
+  }, [reactionMutation]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
@@ -651,7 +701,8 @@ export default function Chat() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(142_71%_45%/0.04)_0%,transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(200_80%_50%/0.03)_0%,transparent_50%)]" />
-          <div className="absolute inset-0 opacity-[0.02]"
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,hsl(280_70%_50%/0.02)_0%,transparent_40%)]" />
+          <div className="absolute inset-0 opacity-[0.015]"
             style={{
               backgroundImage: `linear-gradient(hsl(142 71% 45% / 0.3) 1px, transparent 1px), linear-gradient(90deg, hsl(142 71% 45% / 0.3) 1px, transparent 1px)`,
               backgroundSize: '40px 40px',
@@ -659,14 +710,13 @@ export default function Chat() {
           />
         </div>
 
+        <FloatingParticles />
+        <ScanLine />
+
         <div className="flex-1 p-3 lg:p-6 overflow-hidden flex flex-col relative z-10">
           <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 overflow-hidden">
 
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-3 lg:mb-4"
-            >
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-3 lg:mb-4">
               <div className="flex items-center justify-between p-3 lg:p-4 rounded-2xl bg-[#0d0d14]/80 backdrop-blur-xl border border-white/[0.06] shadow-xl shadow-black/20">
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -687,15 +737,12 @@ export default function Chat() {
                     <p className="text-[11px] lg:text-xs text-muted-foreground">{chatSubtitle}</p>
                   </div>
                 </div>
-                <OnlineIndicator lang={lang} />
+                <OnlineIndicator />
               </div>
             </motion.div>
 
             {userTeams.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                 className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide"
               >
                 <button
@@ -711,9 +758,7 @@ export default function Chat() {
                   {lang === "uk" ? "Загальний" : lang === "ru" ? "Общий" : "General"}
                 </button>
                 {userTeams.map(team => (
-                  <button
-                    key={team.id}
-                    onClick={() => setActiveTeamId(team.id)}
+                  <button key={team.id} onClick={() => setActiveTeamId(team.id)}
                     className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200 ${
                       activeTeamId === team.id
                         ? "bg-gradient-to-r from-blue-500/20 to-purple-500/10 border border-blue-500/30 text-blue-400 shadow-lg shadow-blue-500/10"
@@ -728,10 +773,7 @@ export default function Chat() {
               </motion.div>
             )}
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
               className="flex-1 flex flex-col overflow-hidden"
             >
               <Card className="flex-1 flex flex-col overflow-hidden bg-[#0a0a12]/80 backdrop-blur-xl border-white/[0.06] rounded-2xl shadow-2xl shadow-black/30">
@@ -755,14 +797,10 @@ export default function Chat() {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-1.5" data-testid="chat-messages-list">
+                <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-1.5 relative" data-testid="chat-messages-list">
                   {isLoading && (
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                      <motion.div
-                        className="text-4xl mb-3"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      >
+                      <motion.div className="text-4xl mb-3" animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
                         🔄
                       </motion.div>
                       <span className="text-sm font-mono">{t('common.loading')}</span>
@@ -783,6 +821,7 @@ export default function Chat() {
                           showAvatar={showAvatar}
                           lang={lang}
                           user={user}
+                          onReact={handleReact}
                         />
                       );
                     })}
@@ -791,9 +830,7 @@ export default function Chat() {
                 </div>
 
                 {previewFile && previewUrl && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     className="px-4 pt-3 border-t border-white/[0.06]"
                   >
                     <div className="relative inline-block">
@@ -802,10 +839,7 @@ export default function Chat() {
                       ) : (
                         <video src={previewUrl} className="h-20 rounded-xl object-cover border border-white/10 shadow-lg" />
                       )}
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={removePreview}
+                      <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={removePreview}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-400 transition-colors shadow-lg shadow-red-500/30"
                         data-testid="button-remove-preview"
                       >
@@ -818,34 +852,20 @@ export default function Chat() {
                 <div className="p-3 lg:p-4 border-t border-white/[0.06] bg-[#0a0a12]/60">
                   <div className="flex gap-2 items-end relative">
                     <div className="flex gap-1">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*,video/mp4,video/webm,video/quicktime"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
+                      <input ref={fileInputRef} type="file" accept="image/*,video/mp4,video/webm,video/quicktime" onChange={handleFileSelect} className="hidden" />
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => fileInputRef.current?.click()}
+                        <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()}
                           className="h-10 w-10 p-0 text-muted-foreground hover:text-primary rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-primary/30 hover:bg-primary/5 transition-all"
-                          data-testid="button-attach-file"
-                          title={lang === "uk" ? "Фото/Відео" : "Photo/Video"}
+                          data-testid="button-attach-file" title={lang === "uk" ? "Фото/Відео" : "Photo/Video"}
                         >
                           <Image className="w-4 h-4" />
                         </Button>
                       </motion.div>
-                      <div className="relative" ref={emojiRef}>
+                      <div className="relative">
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowEmoji(!showEmoji)}
+                          <Button variant="ghost" size="sm" onClick={() => setShowEmoji(!showEmoji)}
                             className={`h-10 w-10 p-0 rounded-xl transition-all ${showEmoji ? 'text-primary bg-primary/10 border border-primary/30' : 'text-muted-foreground hover:text-primary bg-white/[0.03] border border-white/[0.06] hover:border-primary/30 hover:bg-primary/5'}`}
-                            data-testid="button-emoji"
-                            title="Emoji"
+                            data-testid="button-emoji" title="Emoji"
                           >
                             <span className="text-base">😊</span>
                           </Button>
@@ -855,10 +875,7 @@ export default function Chat() {
                         </AnimatePresence>
                       </div>
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowShareModal(true)}
+                        <Button variant="ghost" size="sm" onClick={() => setShowShareModal(true)}
                           className="h-10 w-10 p-0 text-muted-foreground hover:text-blue-400 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-blue-500/30 hover:bg-blue-500/5 transition-all"
                           data-testid="button-share-report"
                           title={lang === "uk" ? "Поділитися перевіркою" : lang === "ru" ? "Поделиться проверкой" : "Share check"}
@@ -910,11 +927,9 @@ export default function Chat() {
                   </div>
 
                   <div className="flex items-center justify-between mt-2 px-1">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] text-muted-foreground/40">
-                        ⌨️ Enter → {lang === "uk" ? "відправити" : lang === "ru" ? "отправить" : "send"} · Shift+Enter → {lang === "uk" ? "рядок" : lang === "ru" ? "строка" : "line"}
-                      </span>
-                    </div>
+                    <span className="text-[10px] text-muted-foreground/40">
+                      ⌨️ Enter → {lang === "uk" ? "відправити" : lang === "ru" ? "отправить" : "send"} · Shift+Enter → {lang === "uk" ? "рядок" : lang === "ru" ? "строка" : "line"}
+                    </span>
                     <span className={`text-[10px] font-mono transition-colors ${msg.length > 450 ? 'text-red-400' : msg.length > 350 ? 'text-yellow-400' : 'text-muted-foreground/40'}`}>
                       {msg.length}/500
                     </span>
@@ -930,7 +945,6 @@ export default function Chat() {
             <ShareReportModal
               onClose={() => setShowShareModal(false)}
               onShare={(reportId) => shareReportMutation.mutate(reportId)}
-              teamId={activeTeamId}
             />
           )}
         </AnimatePresence>

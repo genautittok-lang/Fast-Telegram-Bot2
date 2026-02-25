@@ -112,6 +112,11 @@ export interface IStorage {
   // Chat
   getChatMessages(limit: number, teamId?: number | null): Promise<ChatMessage[]>;
   createChatMessage(msg: InsertChatMessage): Promise<ChatMessage>;
+
+  // Reactions
+  getReactions(messageIds: number[]): Promise<{ messageId: number; emoji: string; userId: number }[]>;
+  addReaction(messageId: number, userId: number, emoji: string): Promise<void>;
+  removeReaction(messageId: number, userId: number, emoji: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -609,6 +614,33 @@ export class DatabaseStorage implements IStorage {
     const [created] = await db.insert(chatMessages).values(msg).returning();
     return created;
   }
+
+  async getReactions(messageIds: number[]): Promise<{ messageId: number; emoji: string; userId: number }[]> {
+    if (!messageIds.length) return [];
+    const { pool } = await import("./db");
+    const placeholders = messageIds.map((_, i) => `$${i + 1}`).join(",");
+    const result = await pool.query(
+      `SELECT message_id as "messageId", emoji, user_id as "userId" FROM ds_chat_reactions WHERE message_id IN (${placeholders})`,
+      messageIds
+    );
+    return result.rows;
+  }
+
+  async addReaction(messageId: number, userId: number, emoji: string): Promise<void> {
+    const { pool } = await import("./db");
+    await pool.query(
+      `INSERT INTO ds_chat_reactions (message_id, user_id, emoji) VALUES ($1, $2, $3) ON CONFLICT (message_id, user_id, emoji) DO NOTHING`,
+      [messageId, userId, emoji]
+    );
+  }
+
+  async removeReaction(messageId: number, userId: number, emoji: string): Promise<void> {
+    const { pool } = await import("./db");
+    await pool.query(
+      `DELETE FROM ds_chat_reactions WHERE message_id = $1 AND user_id = $2 AND emoji = $3`,
+      [messageId, userId, emoji]
+    );
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -1035,6 +1067,21 @@ export class MemStorage implements IStorage {
     const created: ChatMessage = { id: this.nextChatId++, userId: msg.userId, username: msg.username ?? null, message: msg.message, messageType: msg.messageType ?? "text", fileUrl: msg.fileUrl ?? null, teamId: msg.teamId ?? null, createdAt: new Date() };
     this.memChatMessages.push(created);
     return created;
+  }
+
+  private memReactions: { messageId: number; emoji: string; userId: number }[] = [];
+
+  async getReactions(messageIds: number[]): Promise<{ messageId: number; emoji: string; userId: number }[]> {
+    return this.memReactions.filter(r => messageIds.includes(r.messageId));
+  }
+
+  async addReaction(messageId: number, userId: number, emoji: string): Promise<void> {
+    const exists = this.memReactions.find(r => r.messageId === messageId && r.userId === userId && r.emoji === emoji);
+    if (!exists) this.memReactions.push({ messageId, userId, emoji });
+  }
+
+  async removeReaction(messageId: number, userId: number, emoji: string): Promise<void> {
+    this.memReactions = this.memReactions.filter(r => !(r.messageId === messageId && r.userId === userId && r.emoji === emoji));
   }
 }
 

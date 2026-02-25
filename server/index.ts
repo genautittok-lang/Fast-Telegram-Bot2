@@ -230,6 +230,17 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS team_id INTEGER`);
     await pool.query(`ALTER TABLE ds_chat_messages ADD COLUMN IF NOT EXISTS photo_url TEXT`);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_chat_reactions (
+        id SERIAL PRIMARY KEY,
+        message_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        emoji TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(message_id, user_id, emoji)
+      )
+    `);
+
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_secret TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS last_reminder_sent TIMESTAMP`);
