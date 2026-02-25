@@ -41,7 +41,8 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Added 3 new backend endpoints: GET /api/teams/:id/stats, GET /api/reports/export/csv, POST /api/breach-check
 - Added getReportsByUserId storage method, removed duplicate /api/teams/join route
 - Multi-step payment flow: tier selection → payment method (Crypto/Stripe/MonoPay) → payment details with timer
-- Stripe checkout for Google Pay / Apple Pay: POST /api/payments/stripe/create-checkout creates session, webhook auto-activates tier
+- Crypto Pay (@CryptoBot) integration: POST /api/payments/cryptopay/create creates fiat-based invoice, webhook with HMAC-SHA-256 verification auto-activates tier + sends bot receipt
+- Removed Stripe integration (not available)
 - Subscription expiry enforcement: hourly scheduler downgrades expired users to FREE, sends bot notification
 - 5-day expiry reminder: bot sends multilingual notification 5 days before plan expires (once per 24h, tracks last_reminder_sent)
 - MonoPay (Monobank) payment integration: invoice creation API + webhook for auto-confirmation (UAH pricing)
@@ -132,8 +133,9 @@ Preferred communication style: Simple, everyday language.
 - Unified accounts for bot and web users.
 
 ### Payment System
-- Supports Card payments (Stripe), Crypto payments (USDT TRC-20), and Ko-fi donations.
-- Manual payment verification process via Telegram bot for crypto and Ko-fi.
+- Supports Crypto Pay (@CryptoBot) for automated crypto payments, MonoPay (Google Pay/Apple Pay), and manual crypto (USDT).
+- Crypto Pay webhook auto-confirms payments and activates tiers automatically.
+- MonoPay webhook auto-confirms card payments.
 
 ### AI-Enhanced Analysis
 - Integrates with OpenAI for AI-generated security summaries, threat level assessments, and actionable recommendations when configured. Fallbacks to rule-based analysis.

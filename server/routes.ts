@@ -1361,6 +1361,199 @@ export async function registerRoutes(
     }
   });
 
+  // ==================== CRYPTO PAY (CRYPTOBOT) ROUTES ====================
+
+  const CRYPTO_PAY_API = "https://pay.crypt.bot/api";
+  const CRYPTO_PAY_TOKEN = process.env.CRYPTO_PAY_API_TOKEN || "";
+
+  const CRYPTO_PAY_USD_PRICES: Record<string, Record<string, number>> = {
+    PRO: { monthly: 10, yearly: 100 },
+    ENTERPRISE: { monthly: 35, yearly: 349 },
+    GROUPS: { monthly: 55, yearly: 549 },
+  };
+
+  app.post("/api/payments/cryptopay/create", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { tier, period, promoCode } = req.body;
+
+    if (!tier || !["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) {
+      return res.status(400).json({ error: "Invalid tier" });
+    }
+    if (!period || !["monthly", "yearly"].includes(period)) {
+      return res.status(400).json({ error: "Invalid period" });
+    }
+    if (!CRYPTO_PAY_TOKEN) {
+      return res.status(503).json({ error: "Crypto Pay is not configured" });
+    }
+
+    const normalizedTier = tier.toUpperCase();
+    let amount = CRYPTO_PAY_USD_PRICES[normalizedTier]?.[period] || 10;
+
+    let promoValid = false;
+    if (promoCode) {
+      try {
+        const coupon = await storage.getCouponByCode(promoCode.toUpperCase());
+        if (coupon && coupon.isActive && (coupon.usedCount ?? 0) < (coupon.maxUses ?? 0) &&
+            (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
+            (!coupon.tier || coupon.tier === normalizedTier)) {
+          const used = await storage.hasUserUsedCoupon(authReq.user!.id, coupon.id);
+          if (!used) {
+            await storage.useCoupon(coupon.id, authReq.user!.id);
+            amount = Math.round(amount * (1 - (coupon.discount || 0) / 100) * 100) / 100;
+            promoValid = true;
+          }
+        }
+      } catch (e) {
+        console.error("Promo code error:", e);
+      }
+    }
+
+    const requests = normalizedTier === "ENTERPRISE" || normalizedTier === "GROUPS" ? 500 : 50;
+    const periodDays = period === "yearly" ? 365 : 30;
+
+    try {
+      const payment = await storage.createPayment({
+        userId: authReq.user!.id,
+        tier: normalizedTier,
+        amountUsdt: String(amount),
+        txHash: null,
+        status: "pending",
+      });
+
+      const invoiceRes = await fetch(`${CRYPTO_PAY_API}/createInvoice`, {
+        method: "POST",
+        headers: {
+          "Crypto-Pay-API-Token": CRYPTO_PAY_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currency_type: "fiat",
+          fiat: "USD",
+          amount: String(amount),
+          description: `DARKSHARE ${normalizedTier} (${period}) - Payment #${payment.id}`,
+          payload: JSON.stringify({
+            paymentId: payment.id,
+            userId: authReq.user!.id,
+            tier: normalizedTier,
+            period,
+            requests,
+            periodDays,
+          }),
+          expires_in: 600,
+        }),
+      });
+
+      const invoiceData = await invoiceRes.json();
+
+      if (!invoiceData.ok || !invoiceData.result) {
+        console.error("Crypto Pay createInvoice error:", invoiceData);
+        return res.status(500).json({ error: "Failed to create crypto invoice" });
+      }
+
+      const invoice = invoiceData.result;
+
+      if (pool) {
+        await pool.query(
+          `UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`,
+          [String(invoice.invoice_id), payment.id]
+        );
+      }
+
+      res.json({
+        payUrl: invoice.bot_invoice_url || invoice.mini_app_invoice_url || invoice.web_app_invoice_url,
+        invoiceId: invoice.invoice_id,
+        paymentId: payment.id,
+      });
+    } catch (err: any) {
+      console.error("Crypto Pay create error:", err);
+      res.status(500).json({ error: "Failed to create payment" });
+    }
+  });
+
+  app.post("/api/payments/cryptopay/webhook", express.json(), async (req, res) => {
+    try {
+      const signature = req.headers["crypto-pay-api-signature"] as string;
+      if (!signature || !CRYPTO_PAY_TOKEN) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const secret = createHmac("sha256", "WebAppData").update(CRYPTO_PAY_TOKEN).digest();
+      const checkString = JSON.stringify(req.body);
+      const hmac = createHmac("sha256", secret).update(checkString).digest("hex");
+
+      if (hmac !== signature) {
+        console.error("Crypto Pay webhook signature mismatch");
+        return res.status(401).json({ error: "Invalid signature" });
+      }
+
+      const update = req.body;
+
+      if (update.update_type === "invoice_paid") {
+        const invoice = update.payload;
+        let meta: any = {};
+        try {
+          meta = JSON.parse(invoice.payload || "{}");
+        } catch (e) {}
+
+        const paymentId = meta.paymentId;
+        const userId = meta.userId;
+        const tier = meta.tier || "PRO";
+        const requests = meta.requests || 50;
+        const periodDays = meta.periodDays || 30;
+
+        if (paymentId && userId) {
+          await storage.updatePaymentStatus(paymentId, "approved");
+
+          if (pool) {
+            await pool.query(
+              `UPDATE ds_payments SET tx_hash = $1 WHERE id = $2`,
+              [invoice.hash || invoice.invoice_id?.toString() || "cryptopay", paymentId]
+            );
+          }
+
+          const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
+          await storage.updateUser(userId, {
+            tier,
+            requestsLeft: requests,
+            subscriptionExpiresAt: expiryDate,
+            autoRenew: false,
+          } as any);
+
+          const user = await storage.getUserById(userId);
+          if (user && botInstance) {
+            try {
+              const lang = user.lang || "uk";
+              const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+              const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "∞" : "50";
+              const paidAmount = invoice.paid_amount ? `${invoice.paid_amount} ${invoice.paid_asset || ""}` : `$${invoice.amount || "?"} USD`;
+              const receiptTexts: Record<string, string> = {
+                uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату підтверджено!\n\n📦 Тариф: *${tier}*\n💰 Сума: ${paidAmount}\n💎 Метод: Crypto Pay\n🔢 Запитів: ${requestsDisplay}/день\n📅 Діє до: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
+                ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата подтверждена!\n\n📦 Тариф: *${tier}*\n💰 Сумма: ${paidAmount}\n💎 Метод: Crypto Pay\n🔢 Запросов: ${requestsDisplay}/день\n📅 Действует до: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
+                en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Payment confirmed!\n\n📦 Plan: *${tier}*\n💰 Amount: ${paidAmount}\n💎 Method: Crypto Pay\n🔢 Requests: ${requestsDisplay}/day\n📅 Valid until: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
+                es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago confirmado!\n\n📦 Plan: *${tier}*\n💰 Monto: ${paidAmount}\n💎 Método: Crypto Pay\n🔢 Solicitudes: ${requestsDisplay}/día\n📅 Válido hasta: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
+                de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Zahlung bestätigt!\n\n📦 Tarif: *${tier}*\n💰 Betrag: ${paidAmount}\n💎 Methode: Crypto Pay\n🔢 Anfragen: ${requestsDisplay}/Tag\n📅 Gültig bis: ${expiryStr}\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
+              };
+              await botInstance.telegram.sendMessage(user.tgId, receiptTexts[lang] || receiptTexts["en"], { parse_mode: "Markdown" });
+            } catch (e) { /* ignore */ }
+          }
+
+          for (const adminId of ADMIN_IDS) {
+            try {
+              await botInstance?.telegram.sendMessage(adminId,
+                `✅ Crypto Pay оплата #${paymentId} підтверджена\n\n📦 ${tier}\n💰 ${invoice.paid_amount || invoice.amount} ${invoice.paid_asset || "USD"}\n👤 User #${userId} (@${user?.username || "—"})`
+              );
+            } catch (e) {}
+          }
+        }
+      }
+
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("Crypto Pay webhook error:", err);
+      res.status(400).json({ error: "Webhook processing failed" });
+    }
+  });
+
   // ==================== MONOPAY (MONOBANK) ROUTES ====================
 
   const UAH_PER_USD = 41;

@@ -796,7 +796,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
             [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
-            [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+            [cb("💎 Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
             [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
           ])
         });
@@ -1950,7 +1950,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     
     const keyboard = Markup.inlineKeyboard([
       [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
-      [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+      [cb("💎 Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
       [cb("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
       [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
     ]);
@@ -2075,22 +2075,84 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
     
-    const usdPrices: Record<string, string> = { PRO: "10", ENTERPRISE: "35", GROUPS: "55" };
+    const usdPrices: Record<string, number> = { PRO: 10, ENTERPRISE: 35, GROUPS: 55 };
     const amount = usdPrices[tier];
+    const CRYPTO_PAY_TOKEN = process.env.CRYPTO_PAY_API_TOKEN || "";
     
-    userStates.set(tgId, { module: "payment", step: "awaiting_proof", data: { tier, amount } });
-    
-    const text = `${t(lang, "payment.title", { tier })}\n\n${t(lang, "payment.amount", { amount })}\n\n${t(lang, "payment.address")}\n\n${t(lang, "payment.instructions")}`;
-    
-    const keyboard = Markup.inlineKeyboard([
-      [cb("📋 " + t(lang, "buttons.copyAddress"), "copy_address", "primary", E.money)],
-      [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
-    ]);
-    
+    if (!CRYPTO_PAY_TOKEN) {
+      await ctx.answerCbQuery(lang === "uk" ? "Crypto Pay недоступний" : "Crypto Pay unavailable", { show_alert: true });
+      return;
+    }
+
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
-    } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.answerCbQuery();
+      
+      const user = await storage.getUserByTgId(tgId);
+      if (!user) return;
+
+      const payment = await storage.createPayment({
+        userId: user.id,
+        tier,
+        amountUsdt: String(amount),
+        txHash: null,
+        status: "pending",
+      });
+
+      const invoiceRes = await fetch("https://pay.crypt.bot/api/createInvoice", {
+        method: "POST",
+        headers: {
+          "Crypto-Pay-API-Token": CRYPTO_PAY_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currency_type: "fiat",
+          fiat: "USD",
+          amount: String(amount),
+          description: `DARKSHARE ${tier} (monthly) - Payment #${payment.id}`,
+          payload: JSON.stringify({
+            paymentId: payment.id,
+            userId: user.id,
+            tier,
+            period: "monthly",
+            requests: tier === "ENTERPRISE" || tier === "GROUPS" ? 500 : 50,
+            periodDays: 30,
+          }),
+          expires_in: 600,
+        }),
+      });
+
+      const invoiceData = await invoiceRes.json();
+
+      if (!invoiceData.ok || !invoiceData.result) {
+        const errText = lang === "uk" ? "❌ Помилка створення інвойсу" : lang === "ru" ? "❌ Ошибка создания инвойса" : "❌ Failed to create invoice";
+        await ctx.reply(errText);
+        return;
+      }
+
+      const invoice = invoiceData.result;
+      const payUrl = invoice.bot_invoice_url || invoice.mini_app_invoice_url || invoice.web_app_invoice_url;
+
+      const texts: Record<string, string> = {
+        uk: `💎 *Crypto Pay — ${tier}*\n\n💰 Сума: *$${amount} USD*\n⏱ Час на оплату: 10 хв\n\n✅ Після оплати тариф активується автоматично!\n\nНатисніть кнопку нижче для оплати:`,
+        ru: `💎 *Crypto Pay — ${tier}*\n\n💰 Сумма: *$${amount} USD*\n⏱ Время на оплату: 10 мин\n\n✅ После оплаты тариф активируется автоматически!\n\nНажмите кнопку ниже для оплаты:`,
+        en: `💎 *Crypto Pay — ${tier}*\n\n💰 Amount: *$${amount} USD*\n⏱ Time to pay: 10 min\n\n✅ Your plan will be activated automatically after payment!\n\nClick the button below to pay:`,
+        es: `💎 *Crypto Pay — ${tier}*\n\n💰 Monto: *$${amount} USD*\n⏱ Tiempo: 10 min\n\n✅ ¡Tu plan se activará automáticamente después del pago!\n\nHaz clic en el botón de abajo para pagar:`,
+        de: `💎 *Crypto Pay — ${tier}*\n\n💰 Betrag: *$${amount} USD*\n⏱ Zahlungsfrist: 10 Min\n\n✅ Ihr Tarif wird nach der Zahlung automatisch aktiviert!\n\nKlicken Sie auf den Button unten:`,
+      };
+
+      const keyboard = Markup.inlineKeyboard([
+        [Markup.button.url(`💎 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} $${amount}`, payUrl)],
+        [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
+      ]);
+
+      try {
+        await ctx.editMessageText(texts[lang] || texts["en"], { parse_mode: "Markdown", ...keyboard });
+      } catch {
+        await ctx.reply(texts[lang] || texts["en"], { parse_mode: "Markdown", ...keyboard });
+      }
+    } catch (err) {
+      console.error("Bot Crypto Pay error:", err);
+      await ctx.reply("❌ Error creating payment");
     }
   });
 
@@ -2126,7 +2188,7 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     
     const keyboard = Markup.inlineKeyboard([
       [cb("💳 Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
-      [cb("💰 Crypto (USDT)", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+      [cb("💎 Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
       [cb("🎁 " + (lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
       [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
     ]);
@@ -2136,15 +2198,6 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
     } catch {
       await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
     }
-  });
-
-  const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
-
-  bot.action("copy_address", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
-    await ctx.answerCbQuery(t(lang, "payment.addressCopied"), { show_alert: false });
-    await ctx.reply(`\`${TRC20_ADDRESS}\``, { parse_mode: "Markdown" });
   });
 
   bot.on("photo", async (ctx) => {

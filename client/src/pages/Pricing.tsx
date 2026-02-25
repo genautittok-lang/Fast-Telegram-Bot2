@@ -19,27 +19,14 @@ import {
   Shield, 
   Star,
   ArrowLeft,
-  Copy,
   Lock,
   Users,
   Clock,
-  Upload,
   Loader2,
-  Wallet,
   ChevronRight,
   ArrowLeftIcon
 } from "lucide-react";
 
-const CRYPTO_NETWORKS = [
-  { id: "ton", name: "USDT TON", address: "UQDaWlIDU3JeokvuMrJdLO0jQ7ugVF2ipGnirh91MF8J_1eL", discount: 5 },
-  { id: "erc20", name: "ERC-20 (USDT)", address: "0x7532b40d06a9ead486b467a12735c68573f83d16" },
-  { id: "bep20", name: "BEP-20 (USDT)", address: "0x7532b40d06a9ead486b467a12735c68573f83d16" },
-  { id: "sol", name: "Solana (USDT)", address: "C9CqBPdfyfhkeUN3uLgsvagJiHyLf4ja4RdFTNQXKrbD" },
-  { id: "eth", name: "ETH ERC-20", address: "0x7532b40d06a9ead486b467a12735c68573f83d16" },
-  { id: "xrp", name: "XRP", address: "rJn2zAPdFA193sixJwuFixRkYDUtx3apQh", memo: "500755807" },
-] as const;
-
-type CryptoNetwork = typeof CRYPTO_NETWORKS[number];
 
 const PRICES = {
   PRO: { monthly: 10, yearly: 100 },
@@ -54,16 +41,12 @@ function PricingContent() {
   const { t } = useTranslation();
   const [isYearly, setIsYearly] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState<"PRO" | "ENTERPRISE" | "GROUPS" | null>(null);
-  const [copiedAddress, setCopiedAddress] = useState(false);
-  const [copiedMemo, setCopiedMemo] = useState(false);
-  const [txHash, setTxHash] = useState("");
-  const [selectedNetwork, setSelectedNetwork] = useState<CryptoNetwork>(CRYPTO_NETWORKS[0]);
+  const [cryptoPayLoading, setCryptoPayLoading] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoError, setPromoError] = useState("");
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [timeLeft, setTimeLeft] = useState(600);
   const [timerExpired, setTimerExpired] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
@@ -122,43 +105,6 @@ function PricingContent() {
     }
   };
 
-  const copyAddress = async () => {
-    try {
-      await navigator.clipboard.writeText(selectedNetwork.address);
-      setCopiedAddress(true);
-      toast({
-        title: t('pricing.addressCopied'),
-        description: t('pricing.addressCopiedDesc'),
-      });
-      setTimeout(() => setCopiedAddress(false), 3000);
-    } catch {
-      toast({
-        title: t('pricing.copyError'),
-        description: t('pricing.copyErrorDesc'),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const copyMemo = async () => {
-    if (!("memo" in selectedNetwork)) return;
-    try {
-      await navigator.clipboard.writeText(selectedNetwork.memo);
-      setCopiedMemo(true);
-      toast({
-        title: t('pricing.addressCopied'),
-        description: "Memo copied",
-      });
-      setTimeout(() => setCopiedMemo(false), 3000);
-    } catch {
-      toast({
-        title: t('pricing.copyError'),
-        description: t('pricing.copyErrorDesc'),
-        variant: "destructive",
-      });
-    }
-  };
-
   const handlePayment = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
     if (!user) {
       setLocation("/login");
@@ -177,8 +123,6 @@ function PricingContent() {
     setShowPaymentModal(null);
     setPaymentStep("method");
     setSelectedMethod(null);
-    setTxHash("");
-    setScreenshotFile(null);
     setPromoCode("");
     setPromoDiscount(0);
     setPromoApplied(false);
@@ -191,65 +135,48 @@ function PricingContent() {
 
   const getFinalAmount = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
     let base = getPrice(tier);
-    if ("discount" in selectedNetwork && selectedNetwork.discount) {
-      base = +(base * (1 - selectedNetwork.discount / 100)).toFixed(2);
-    }
     if (promoApplied && promoDiscount > 0) {
       base = +(base * (1 - promoDiscount / 100)).toFixed(2);
     }
     return base;
   };
 
-  const submitPayment = async (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
-    if (timerExpired) {
-      toast({
-        title: t('pricing.timerExpired') || "Session expired",
-        description: t('pricing.timerExpiredDesc') || "Please reopen the payment window",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!txHash.trim() && !screenshotFile) {
-      toast({
-        title: t('common.error'),
-        description: t('pricing.enterTxOrScreenshot') || "Enter TX Hash or upload a screenshot",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleCryptoPay = async (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
+    setCryptoPayLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("tier", tier);
-      formData.append("amount", getFinalAmount(tier).toString());
-      formData.append("period", isYearly ? "yearly" : "monthly");
-      formData.append("network", selectedNetwork.name);
-      if (txHash.trim()) formData.append("txHash", txHash.trim());
-      if (promoCode.trim() && promoApplied) formData.append("promoCode", promoCode.trim());
-      if (screenshotFile) formData.append("screenshot", screenshotFile);
-
-      const response = await fetch("/api/payment-request", {
+      const response = await fetch("/api/payments/cryptopay/create", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tier,
+          period: isYearly ? "yearly" : "monthly",
+          promoCode: promoApplied ? promoCode.trim() : undefined,
+        }),
       });
-
-      if (response.ok) {
+      const data = await response.json();
+      if (response.ok && data.payUrl) {
+        window.open(data.payUrl, "_blank");
         toast({
-          title: t('pricing.applicationSent'),
-          description: t('pricing.applicationSentDesc'),
+          title: t('pricing.cryptoPayOpened') || "Crypto Pay opened",
+          description: t('pricing.cryptoPayDesc') || "Complete the payment in CryptoBot. Your plan will be activated automatically.",
         });
         closePaymentModal();
       } else {
-        throw new Error("Failed to submit");
+        toast({
+          title: t('common.error'),
+          description: data.error || "Failed to create crypto payment",
+          variant: "destructive",
+        });
       }
     } catch {
       toast({
-        title: t('pricing.applicationSent'),
-        description: t('pricing.applicationSentDesc'),
+        title: t('common.error'),
+        description: "Failed to connect to payment service",
+        variant: "destructive",
       });
-      closePaymentModal();
+    } finally {
+      setCryptoPayLoading(false);
     }
   };
 
@@ -423,7 +350,7 @@ function PricingContent() {
                   data-testid="button-pro-plan"
                 >
                   <span className="btn-3d-icon"><Star className="h-4 w-4" /></span>
-                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")} USDT
+                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")} USD
                 </button>
               </CardFooter>
             </Card>
@@ -469,7 +396,7 @@ function PricingContent() {
                   data-testid="button-enterprise-plan"
                 >
                   <span className="btn-3d-icon"><Crown className="h-4 w-4" /></span>
-                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("ENTERPRISE")} USDT
+                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("ENTERPRISE")} USD
                 </button>
               </CardFooter>
             </Card>
@@ -519,7 +446,7 @@ function PricingContent() {
                   data-testid="button-groups-plan"
                 >
                   <span className="btn-3d-icon"><Users className="h-4 w-4" /></span>
-                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("GROUPS")} USDT
+                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("GROUPS")} USD
                 </button>
               </CardFooter>
             </Card>
@@ -593,10 +520,10 @@ function PricingContent() {
                       {isYearly ? t('pricing.yearlySubscription') : t('pricing.monthlySubscription')} — {getFinalAmount(showPaymentModal) < getPrice(showPaymentModal) ? (
                         <>
                           <span className="line-through">${getPrice(showPaymentModal)}</span>{" "}
-                          <span className="text-emerald-400 font-medium">${getFinalAmount(showPaymentModal)} USDT</span>
+                          <span className="text-emerald-400 font-medium">${getFinalAmount(showPaymentModal)} USD</span>
                         </>
                       ) : (
-                        <>${getPrice(showPaymentModal)} USDT</>
+                        <>${getPrice(showPaymentModal)} USD</>
                       )}
                     </p>
                   </div>
@@ -617,15 +544,19 @@ function PricingContent() {
                           }`}
                           data-testid="button-method-crypto"
                         >
-                          <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
-                            <Wallet className="w-5 h-5 text-amber-400" />
+                          <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                              <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#2AABEE"/>
+                              <path d="M2 17l10 5 10-5" stroke="#2AABEE" strokeWidth="2" fill="none"/>
+                              <path d="M2 12l10 5 10-5" stroke="#2AABEE" strokeWidth="2" fill="none"/>
+                            </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium">Crypto (USDT)</div>
-                            <div className="text-xs text-muted-foreground">TON, ERC-20, BEP-20, Solana, XRP</div>
+                            <div className="text-sm font-medium">Crypto Pay</div>
+                            <div className="text-xs text-muted-foreground">BTC, TON, USDT, ETH, LTC, SOL</div>
                           </div>
-                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] shrink-0">
-                            TON -5%
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px] shrink-0">
+                            @CryptoBot
                           </Badge>
                         </button>
 
@@ -676,7 +607,7 @@ function PricingContent() {
                       {promoApplied && <p className="text-xs text-emerald-400 mt-1">-{promoDiscount}% {t('pricing.promoAppliedLabel') || "discount applied"}</p>}
                     </div>
 
-                    {(promoApplied || (selectedMethod === "crypto" && "discount" in selectedNetwork && selectedNetwork.discount)) && showPaymentModal && (
+                    {promoApplied && showPaymentModal && (
                       <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/30">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">{t('pricing.totalAmount') || "Total"}</span>
@@ -716,136 +647,58 @@ function PricingContent() {
                     </div>
 
                     {selectedMethod === "crypto" && (
-                      <>
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-2">{t('pricing.selectNetwork')}</div>
-                          <div className="grid grid-cols-3 gap-1.5">
-                            {CRYPTO_NETWORKS.map((net) => (
-                              <button
-                                key={net.id}
-                                type="button"
-                                onClick={() => setSelectedNetwork(net)}
-                                className={`relative text-left px-2.5 py-2 rounded-lg border text-xs font-medium transition-colors hover-elevate ${
-                                  selectedNetwork.id === net.id
-                                    ? "border-primary bg-primary/10 text-foreground"
-                                    : "border-white/10 bg-black/30 text-muted-foreground"
-                                }`}
-                                data-testid={`button-network-${net.id}`}
-                              >
-                                <span>{net.name}</span>
-                                {"discount" in net && net.discount && (
-                                  <Badge className="absolute -top-1.5 -right-1.5 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[9px] px-1 py-0">
-                                    -{net.discount}%
-                                  </Badge>
-                                )}
-                              </button>
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 text-center">
+                          <div className="flex items-center justify-center gap-3 mb-3">
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/20 flex items-center justify-center">
+                              <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                                <circle cx="24" cy="24" r="22" fill="#2AABEE" opacity="0.15"/>
+                                <path d="M15.5 24.5L21 30L33 18" stroke="#2AABEE" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                                <circle cx="24" cy="24" r="16" stroke="#2AABEE" strokeWidth="2" fill="none"/>
+                              </svg>
+                            </div>
+                          </div>
+                          <p className="text-sm font-semibold mb-1 text-blue-400">Crypto Pay</p>
+                          <p className="text-xs text-muted-foreground mb-2">@CryptoBot · Telegram</p>
+                          <div className="text-2xl font-bold text-blue-400 mb-1">
+                            ${getFinalAmount(showPaymentModal)} USD
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {t('pricing.cryptoPayNote') || "Pay with any cryptocurrency via Telegram CryptoBot"}
+                          </p>
+                          <div className="flex items-center justify-center gap-1.5 mt-2 flex-wrap">
+                            {["BTC", "TON", "USDT", "ETH", "LTC", "SOL"].map(c => (
+                              <span key={c} className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-mono text-blue-300">{c}</span>
                             ))}
                           </div>
                         </div>
 
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
-                          <div className="text-xs text-muted-foreground mb-1.5">{t('dashboard.paymentAddress')} ({selectedNetwork.name})</div>
-                          <div className="flex items-center gap-2">
-                            <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
-                              {selectedNetwork.address}
-                            </code>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={copyAddress}
-                              className="shrink-0"
-                              data-testid="button-copy-address"
-                            >
-                              {copiedAddress ? (
-                                <Check className="h-4 w-4 text-emerald-400" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-
-                        {"memo" in selectedNetwork && selectedNetwork.memo && (
-                          <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30">
-                            <div className="text-xs text-muted-foreground mb-1.5">Memo / Tag</div>
-                            <div className="flex items-center gap-2">
-                              <code className="flex-1 text-xs font-mono text-amber-400 bg-black/50 p-2 rounded-lg break-all select-all">
-                                {selectedNetwork.memo}
-                              </code>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                onClick={copyMemo}
-                                className="shrink-0"
-                                data-testid="button-copy-memo"
-                              >
-                                {copiedMemo ? (
-                                  <Check className="h-4 w-4 text-emerald-400" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-
-                        {"discount" in selectedNetwork && selectedNetwork.discount && (
-                          <div className="flex items-center justify-between text-xs px-1">
-                            <span className="text-muted-foreground">{t('pricing.tonDiscount')} (-{selectedNetwork.discount}%)</span>
-                            <span className="text-emerald-400 font-medium">
-                              <span className="line-through text-muted-foreground mr-2">${getPrice(showPaymentModal)}</span>
-                              ${getFinalAmount(showPaymentModal)}
-                            </span>
-                          </div>
-                        )}
-
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.txHashOptional')}</div>
-                          <Input
-                            value={txHash}
-                            onChange={(e) => setTxHash(e.target.value)}
-                            placeholder={t('pricing.txHashPlaceholder')}
-                            className="bg-black/50 border-white/10"
-                            data-testid="input-tx-hash"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="text-xs text-muted-foreground mb-1.5">{t('pricing.uploadScreenshot') || "Upload payment screenshot"}</div>
-                          <label className="flex items-center gap-2 p-2.5 rounded-xl border border-white/10 bg-black/30 cursor-pointer hover-elevate" data-testid="input-screenshot">
-                            <Upload className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground truncate">
-                              {screenshotFile ? screenshotFile.name : (t('pricing.chooseFile') || "Choose file...")}
-                            </span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
-                            />
-                          </label>
-                        </div>
-
                         <Button
-                          className={`w-full ${showPaymentModal === "PRO" ? "bg-emerald-600" : showPaymentModal === "ENTERPRISE" ? "bg-amber-600" : "bg-violet-600"}`}
-                          onClick={() => submitPayment(showPaymentModal)}
-                          disabled={timerExpired}
-                          data-testid="button-submit-payment"
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-5"
+                          onClick={() => handleCryptoPay(showPaymentModal)}
+                          disabled={timerExpired || cryptoPayLoading}
+                          data-testid="button-cryptopay-checkout"
                         >
-                          {showPaymentModal === "PRO" ? (
-                            <Star className="w-4 h-4 mr-2" />
-                          ) : showPaymentModal === "ENTERPRISE" ? (
-                            <Crown className="w-4 h-4 mr-2" />
+                          {cryptoPayLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
                           ) : (
-                            <Users className="w-4 h-4 mr-2" />
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="mr-2">
+                              <path d="M12 2L2 7l10 5 10-5-10-5z" fill="white"/>
+                              <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2" fill="none"/>
+                              <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2" fill="none"/>
+                            </svg>
                           )}
-                          {t('pricing.submitApplication')} {showPaymentModal} — ${getFinalAmount(showPaymentModal)}
+                          {cryptoPayLoading 
+                            ? (t('pricing.creating') || "Creating invoice...")
+                            : (t('pricing.payWithCryptoPay') || `Pay $${getFinalAmount(showPaymentModal)} with Crypto Pay`)
+                          }
                         </Button>
-                        
-                        <p className="text-xs text-center text-muted-foreground">
-                          {t('dashboard.requestWillBeSent')}
-                        </p>
-                      </>
+
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                          <Lock className="w-3 h-3" />
+                          <span>{t('pricing.cryptoPaySecure') || "Secure payment via Telegram CryptoBot"}</span>
+                        </div>
+                      </div>
                     )}
 
                     {selectedMethod === "monobank" && (
