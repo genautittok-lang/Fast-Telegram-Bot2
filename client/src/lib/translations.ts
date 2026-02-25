@@ -137,6 +137,10 @@ export interface TranslationSchema {
     bankConversionNote: string;
     payWithGooglePay: string;
     payWithApplePay: string;
+    payWithCryptoPay: string;
+    cryptoPayNote: string;
+    cryptoPaySecure: string;
+    payWithCard: string;
     continue: string;
     totalAmount: string;
   };
@@ -892,6 +896,10 @@ export const translations: Record<Language, TranslationSchema> = {
       bankConversionNote: "Amount is in Ukrainian hryvnia (UAH). Your bank will automatically convert from your currency at the current exchange rate.",
       payWithGooglePay: "Pay with Google Pay",
       payWithApplePay: "Pay with Apple Pay",
+      payWithCryptoPay: "Pay with Crypto Pay",
+      cryptoPayNote: "Pay with any cryptocurrency via Telegram @CryptoBot",
+      cryptoPaySecure: "Secure payment via Telegram CryptoBot",
+      payWithCard: "Pay with Google Pay / Apple Pay",
       continue: "Continue",
       totalAmount: "Total",
     },
@@ -1645,6 +1653,10 @@ export const translations: Record<Language, TranslationSchema> = {
       bankConversionNote: "Сума вказана в українських гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти за поточним курсом.",
       payWithGooglePay: "Оплатити через Google Pay",
       payWithApplePay: "Оплатити через Apple Pay",
+      payWithCryptoPay: "Оплатити через Crypto Pay",
+      cryptoPayNote: "Оплата будь-якою криптовалютою через Telegram @CryptoBot",
+      cryptoPaySecure: "Безпечна оплата через Telegram CryptoBot",
+      payWithCard: "Оплатити через Google Pay / Apple Pay",
       continue: "Продовжити",
       totalAmount: "Разом",
     },
@@ -2398,6 +2410,10 @@ export const translations: Record<Language, TranslationSchema> = {
       bankConversionNote: "Сумма указана в украинских гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты по текущему курсу.",
       payWithGooglePay: "Оплатить через Google Pay",
       payWithApplePay: "Оплатить через Apple Pay",
+      payWithCryptoPay: "Оплатить через Crypto Pay",
+      cryptoPayNote: "Оплата любой криптовалютой через Telegram @CryptoBot",
+      cryptoPaySecure: "Безопасная оплата через Telegram CryptoBot",
+      payWithCard: "Оплатить через Google Pay / Apple Pay",
       continue: "Продолжить",
       totalAmount: "Итого",
     },
@@ -3151,6 +3167,10 @@ export const translations: Record<Language, TranslationSchema> = {
       bankConversionNote: "El importe está en grivnas ucranianas (UAH). Su banco convertirá automáticamente desde su moneda al tipo de cambio actual.",
       payWithGooglePay: "Pagar con Google Pay",
       payWithApplePay: "Pagar con Apple Pay",
+      payWithCryptoPay: "Pagar con Crypto Pay",
+      cryptoPayNote: "Pague con cualquier criptomoneda a través de Telegram @CryptoBot",
+      cryptoPaySecure: "Pago seguro a través de Telegram CryptoBot",
+      payWithCard: "Pagar con Google Pay / Apple Pay",
       continue: "Continuar",
       totalAmount: "Total",
     },
@@ -3904,6 +3924,10 @@ export const translations: Record<Language, TranslationSchema> = {
       bankConversionNote: "Der Betrag ist in ukrainischen Hrywnja (UAH). Ihre Bank konvertiert automatisch von Ihrer Währung zum aktuellen Wechselkurs.",
       payWithGooglePay: "Mit Google Pay bezahlen",
       payWithApplePay: "Mit Apple Pay bezahlen",
+      payWithCryptoPay: "Mit Crypto Pay bezahlen",
+      cryptoPayNote: "Zahlen Sie mit jeder Kryptowährung über Telegram @CryptoBot",
+      cryptoPaySecure: "Sichere Zahlung über Telegram CryptoBot",
+      payWithCard: "Mit Google Pay / Apple Pay bezahlen",
       continue: "Weiter",
       totalAmount: "Gesamt",
     },
