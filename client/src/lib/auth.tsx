@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             requestsLeft: data.requestsLeft,
             streakDays: data.streakDays,
             refCode: data.refCode,
-            provider: "telegram",
+            provider: data.provider || "telegram",
             lastLogin: data.lastLogin,
             notifsOn: data.notifsOn,
             digestsOn: data.digestsOn,

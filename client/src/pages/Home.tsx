@@ -621,6 +621,114 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5" data-testid="section-when-to-use">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <ShieldAlert className="w-3 h-3" />
+                {lang === "uk" ? "Навіщо це потрібно" : lang === "ru" ? "Зачем это нужно" : lang === "es" ? "¿Por qué lo necesitas?" : lang === "de" ? "Warum brauchen Sie das?" : "Why You Need This"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Перевіряй перед тим, як довіряти" : lang === "ru" ? "Проверяй, прежде чем доверять" : lang === "es" ? "Verifica antes de confiar" : lang === "de" ? "Prüfe, bevor du vertraust" : "Check Before You Trust"}
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  icon: <Wallet className="w-6 h-6" />,
+                  color: "from-orange-500/20 to-orange-500/5 border-orange-500/20",
+                  iconColor: "text-orange-400",
+                  title: lang === "uk" ? "Переказ крипти" : lang === "ru" ? "Перевод крипты" : lang === "es" ? "Transferir cripto" : lang === "de" ? "Krypto senden" : "Sending Crypto",
+                  desc: lang === "uk"
+                    ? "Перед тим як відправити гроші — перевір адресу гаманця. Чи не пов'язаний він з шахрайством або міксерами?"
+                    : lang === "ru"
+                    ? "Перед отправкой денег — проверь адрес кошелька. Не связан ли он с мошенничеством или миксерами?"
+                    : lang === "es"
+                    ? "Antes de enviar dinero, verifica la dirección. ¿Está vinculada a fraude o mixers?"
+                    : lang === "de"
+                    ? "Vor dem Senden — prüfe die Wallet-Adresse. Ist sie mit Betrug oder Mixern verbunden?"
+                    : "Before sending money — check the wallet address. Is it linked to scams or mixers?",
+                  cta: lang === "uk" ? "Вставь адресу → дізнайся ризик" : lang === "ru" ? "Вставь адрес → узнай риск" : "Paste address → get risk score"
+                },
+                {
+                  icon: <Globe className="w-6 h-6" />,
+                  color: "from-blue-500/20 to-blue-500/5 border-blue-500/20",
+                  iconColor: "text-blue-400",
+                  title: lang === "uk" ? "Підозріле посилання" : lang === "ru" ? "Подозрительная ссылка" : lang === "es" ? "Enlace sospechoso" : lang === "de" ? "Verdächtiger Link" : "Suspicious Link",
+                  desc: lang === "uk"
+                    ? "Отримав посилання в чаті чи по email? Перевір його на фішинг і шкідливий контент за секунди."
+                    : lang === "ru"
+                    ? "Получил ссылку в чате или по email? Проверь её на фишинг и вредоносный контент за секунды."
+                    : lang === "es"
+                    ? "¿Recibiste un enlace en chat o email? Verifica phishing y malware en segundos."
+                    : lang === "de"
+                    ? "Einen Link im Chat oder per E-Mail erhalten? Prüfe ihn in Sekunden auf Phishing und Malware."
+                    : "Got a link via chat or email? Check it for phishing and malware in seconds.",
+                  cta: lang === "uk" ? "Вставь URL → миттєва перевірка" : lang === "ru" ? "Вставь URL → мгновенная проверка" : "Paste URL → instant check"
+                },
+                {
+                  icon: <Handshake className="w-6 h-6" />,
+                  color: "from-green-500/20 to-green-500/5 border-green-500/20",
+                  iconColor: "text-green-400",
+                  title: lang === "uk" ? "Новий партнер" : lang === "ru" ? "Новый партнёр" : lang === "es" ? "Nuevo socio" : lang === "de" ? "Neuer Partner" : "New Partner",
+                  desc: lang === "uk"
+                    ? "Перевір email або телефон нового контрагента. Чи немає витоків даних, шахрайства або підозрілих зв'язків?"
+                    : lang === "ru"
+                    ? "Проверь email или телефон контрагента. Нет ли утечек данных, мошенничества или подозрительных связей?"
+                    : lang === "es"
+                    ? "Verifica el email o teléfono del socio. ¿Hay filtraciones, fraude o conexiones sospechosas?"
+                    : lang === "de"
+                    ? "Prüfe die E-Mail oder Telefonnummer des Partners. Gibt es Datenlecks, Betrug oder verdächtige Verbindungen?"
+                    : "Check a partner's email or phone. Any data breaches, fraud, or suspicious connections?",
+                  cta: lang === "uk" ? "Вставь email → повний звіт" : lang === "ru" ? "Вставь email → полный отчёт" : "Paste email → full report"
+                },
+                {
+                  icon: <ShoppingBag className="w-6 h-6" />,
+                  color: "from-purple-500/20 to-purple-500/5 border-purple-500/20",
+                  iconColor: "text-purple-400",
+                  title: lang === "uk" ? "Інвестиція / покупка" : lang === "ru" ? "Инвестиция / покупка" : lang === "es" ? "Inversión / compra" : lang === "de" ? "Investition / Kauf" : "Investment / Purchase",
+                  desc: lang === "uk"
+                    ? "Перед вкладенням грошей — перевір домен проєкту, IP-адресу сервера або гаманець засновника на ризики."
+                    : lang === "ru"
+                    ? "Перед вложением денег — проверь домен проекта, IP-адрес сервера или кошелёк основателя на риски."
+                    : lang === "es"
+                    ? "Antes de invertir, verifica el dominio del proyecto, la IP del servidor o la billetera del fundador."
+                    : lang === "de"
+                    ? "Vor der Investition — prüfe die Projekt-Domain, Server-IP oder Gründer-Wallet auf Risiken."
+                    : "Before investing — check the project domain, server IP, or founder's wallet for risks.",
+                  cta: lang === "uk" ? "Вставь домен → аналіз загроз" : lang === "ru" ? "Вставь домен → анализ угроз" : "Paste domain → threat analysis"
+                }
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.4 }}
+                  data-testid={`card-use-case-${idx}`}
+                >
+                  <Card className={`h-full bg-gradient-to-b ${item.color} backdrop-blur-sm p-5 sm:p-6 flex flex-col`}>
+                    <div className={`w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 ${item.iconColor}`}>
+                      {item.icon}
+                    </div>
+                    <h3 className="font-bold text-base mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 flex-1">{item.desc}</p>
+                    <div className="text-xs font-mono text-primary/80 bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
+                      → {item.cta}
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5" data-testid="section-demo-result">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div

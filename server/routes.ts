@@ -11,6 +11,7 @@ import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
 import { randomUUID, createHmac } from "crypto";
+import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import multer from "multer";
 import path from "path";
@@ -99,8 +100,47 @@ export async function registerRoutes(
   
   app.use("/uploads", express.static(uploadsDir));
 
-  // Setup Google OAuth - MUST be before other routes
-  await setupGoogleAuth(app);
+  // Setup Replit Auth (Google, GitHub, email) - MUST be before other routes
+  await setupAuth(app);
+  registerAuthRoutes(app);
+  
+  // Bridge: when Replit Auth user accesses the app, link to ds_users
+  app.use(async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      const passportUser = (req as any).user;
+      if (passportUser?.claims?.sub && !req.session?.userId) {
+        const claims = passportUser.claims;
+        const email = claims.email || claims.sub;
+        const username = claims.first_name || claims.email?.split('@')[0] || 'user';
+        const photoUrl = claims.profile_image_url || '';
+        
+        let dsUser = await storage.getUserByTgId(`replit:${claims.sub}`);
+        if (!dsUser) {
+          dsUser = await storage.createUser({
+            tgId: `replit:${claims.sub}`,
+            username,
+            photoUrl: photoUrl || null,
+            lang: "uk",
+            tier: "FREE",
+            requestsLeft: 5,
+            streakDays: 1,
+            refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          });
+        } else {
+          await storage.updateUserLogin(dsUser.id);
+        }
+        
+        req.session.userId = dsUser.id;
+        req.session.tgId = dsUser.tgId;
+        (req.session as any).provider = 'replit';
+        (req.session as any).email = email;
+        req.session.save(() => {});
+      }
+    } catch (e) {
+      // Silently continue if bridge fails
+    }
+    next();
+  });
   
   app.get("/", (req, res, next) => {
     // If it's an API call or accepts HTML, let it through to frontend
@@ -187,9 +227,11 @@ export async function registerRoutes(
 
     if (threatFeedCache.length === 0 || now - threatFeedLastUpdate > CACHE_TTL) {
       try {
-        // Fetch from NVD API (recent CVEs)
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const pubStartDate = oneYearAgo.toISOString().split('.')[0] + '.000';
         const nvdResponse = await fetch(
-          'https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=8',
+          `https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=8&pubStartDate=${pubStartDate}`,
           {
             headers: {
               'Accept': 'application/json',
@@ -494,6 +536,7 @@ export async function registerRoutes(
       return res.status(401).json({ error: "Not authenticated" });
     }
 
+    const isReplitUser = authReq.user.tgId?.startsWith('replit:');
     res.json({
       authenticated: true,
       id: authReq.user.id,
@@ -510,6 +553,8 @@ export async function registerRoutes(
       digestsOn: authReq.user.digestsOn,
       lastLogin: authReq.user.lastLogin,
       totpEnabled: authReq.user.totpEnabled || false,
+      provider: isReplitUser ? "google" : "telegram",
+      email: (req.session as any)?.email || null,
     });
   });
 

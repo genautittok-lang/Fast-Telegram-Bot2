@@ -363,16 +363,24 @@ ${t(lang, "startWelcome.selectLang")}`;
 
     const systemStatus = requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 3 ? "⚡ LOW" : "✅ READY";
     
-    const dashboardText = `🌑 *DARKSHARE v4.2*
-━━━━━━━━━━━━━━━━━━━━
+    const escapeMd = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
+    const greetName = escapeMd(user?.username || (lang === "uk" ? "Користувач" : lang === "ru" ? "Пользователь" : "User"));
+    const tierLabel = tierName === "FREE" ? (lang === "uk" ? "Безкоштовний" : lang === "ru" ? "Бесплатный" : "Free") :
+                      tierName === "PRO" ? "PRO" : tierName === "ENTERPRISE" ? "Enterprise" : tierName;
+    const statusIcon = requestsLeft <= 0 ? "🔴" : requestsLeft <= 3 ? "🟡" : "🟢";
 
-${systemStatus}
+    const dashboardText = `🛡 *DARKSHARE* — Risk Intelligence
 
-${tierEmoji} ${t(lang, "common.tier")}: *${tierName}*
-${t(lang, "dashboard.stats", { requestsLeft: String(requestsLeft), requestsLimit: String(requestsLimit) })}
-${progressBar}
-🔥 ${t(lang, "common.streak")}: *${user?.streakDays || 0}*
-🕐 ${lastActivity}${requestsWarning}`;
+${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${greetName}*! 👋
+
+📊 *${lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status"}*
+├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan"}: *${tierLabel}*
+├ ${statusIcon} ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${requestsLeft}* / ${requestsLimit}
+├ ${progressBar}
+├ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${user?.streakDays || 0}* ${lang === "uk" ? "днів" : lang === "ru" ? "дней" : "days"}
+└ 🕐 ${lastActivity}${requestsWarning}
+
+💡 ${lang === "uk" ? "Натисни «Перевірка» для початку аналізу" : lang === "ru" ? "Нажми «Проверка» для начала анализа" : "Press «Check» to start analysis"}`;
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
@@ -1475,11 +1483,13 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     
     // Create visual risk indicator
     const getRiskVisuals = (score: number): { bar: string; color: string; emoji: string } => {
-      if (score >= 80) return { bar: "🔴🔴🔴🔴🔴", color: "CRITICAL", emoji: "💀" };
-      if (score >= 60) return { bar: "🔴🔴🔴🔴⚪", color: "HIGH", emoji: "🔴" };
-      if (score >= 40) return { bar: "🔴🔴🔴⚪⚪", color: "MEDIUM", emoji: "⚠️" };
-      if (score >= 20) return { bar: "🔴🔴⚪⚪⚪", color: "LOW", emoji: "✅" };
-      return { bar: "🔴⚪⚪⚪⚪", color: "SAFE", emoji: "✅" };
+      const filled = Math.round(score / 10);
+      const empty = 10 - filled;
+      if (score >= 80) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "CRITICAL", emoji: "💀" };
+      if (score >= 60) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "HIGH", emoji: "🔴" };
+      if (score >= 40) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "MEDIUM", emoji: "⚠️" };
+      if (score >= 20) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "LOW", emoji: "🟢" };
+      return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "SAFE", emoji: "✅" };
     };
 
     const riskVisuals = getRiskVisuals(checkResult.riskScore);
@@ -1516,31 +1526,24 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       const typeLabel = t(lang, "checkResult.type");
       const statusLabel = t(lang, "checkResult.status");
 
-      result = `╔═══════════════════════╗
-║ ${moduleEmojis.card} ${moduleNames.card}║
-╚═══════════════════════╝
+      result = `${moduleEmojis.card} *${moduleNames.card}*
 
-🔢 *BIN:* \`${targetDisplay}\`
-⚡ *${statusLabel}:* ${statusIndicator}
+🔢 BIN: \`${targetDisplay}\`
+⚡ ${statusLabel}: ${statusIndicator}
 
-┌─ ${infoLabel} ─┐
-🏦 *${bankLabel}:* ${bankName}
-🌍 *${countryLabel}:* ${countryEmoji} ${countryName}
-💳 *${brandLabel}:* ${cardBrand}
-📋 *${typeLabel}:* ${cardType}
-└──────────────────┘
+📋 *${infoLabel}*
+├ 🏦 ${bankLabel}: *${bankName}*
+├ 🌍 ${countryLabel}: ${countryEmoji} ${countryName}
+├ 💳 ${brandLabel}: *${cardBrand}*
+└ 📋 ${typeLabel}: *${cardType}*
 
-┌─ ${analysisLabel} ─┐
+🔎 *${analysisLabel}*
 ${findingsFormatted}
-└──────────────────┘
 
-${riskVisuals.emoji} *${riskLabel}*
-${riskVisuals.bar}
-${checkResult.riskScore}% | ${riskVisuals.color}
+${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.color}\`
+\`${riskVisuals.bar}\`
 
-🔗 ${checkResult.sources.slice(0, 3).join(", ")}
-
-═════════════════════`;
+🔗 ${checkResult.sources.slice(0, 3).join(" · ")}`;
 
     } else {
       const findingsFormatted = checkResult.findings.slice(0, 6).map((f, i, arr) => 
@@ -1564,10 +1567,10 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         
         if (countryInfo || cityInfo) {
           detailsSection = `
-┌─ ${t(lang, "checkResult.details")} ─┐
-🌍 *${locationLabel}:* ${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}
-🏢 *${ispLabel}:* ${ispInfo}
-└──────────────────┘`;
+
+📋 *${t(lang, "checkResult.details")}*
+├ 🌍 ${locationLabel}: *${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}*
+└ 🏢 ${ispLabel}: *${ispInfo}*`;
         }
       } else if (state.module === "wallet" && checkResult.details) {
         const chain = checkResult.details.chain || "";
@@ -1575,9 +1578,9 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         
         if (chain) {
           detailsSection = `
-┌─ ${t(lang, "checkResult.details")} ─┐
-⛓️ *${chainLabel}:* ${chain}
-└──────────────────┘`;
+
+📋 *${t(lang, "checkResult.details")}*
+└ ⛓️ ${chainLabel}: *${chain}*`;
         }
       } else if (state.module === "email" && checkResult.details) {
         const domain = checkResult.details.domain || "";
@@ -1585,31 +1588,25 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         
         if (domain) {
           detailsSection = `
-┌─ ${t(lang, "checkResult.details")} ─┐
-🌐 *${t(lang, "checkResult.domain")}:* ${domain}
-📧 *MX:* ${mx}
-└──────────────────┘`;
+
+📋 *${t(lang, "checkResult.details")}*
+├ 🌐 ${t(lang, "checkResult.domain")}: *${domain}*
+└ 📧 MX: ${mx}`;
         }
       }
 
-      result = `╔═══════════════════════╗
-║ ${moduleEmojis[state.module] || "🔍"} ${moduleNames[state.module] || state.module.toUpperCase().substring(0, 18)}║
-╚═══════════════════════╝
+      result = `${moduleEmojis[state.module] || "🔍"} *${moduleNames[state.module] || state.module.toUpperCase()}*
 
-🎯 *${targetLabel}:* \`${targetDisplay}\`
-⚡ *${statusLabel}:* ${statusIndicator}${detailsSection}
+🎯 ${targetLabel}: \`${targetDisplay}\`
+⚡ ${statusLabel}: ${statusIndicator}${detailsSection}
 
-┌─ ${analysisLabel} ─┐
+🔎 *${analysisLabel}*
 ${findingsFormatted}
-└──────────────────┘
 
-${riskVisuals.emoji} *${riskLabel}*
-${riskVisuals.bar}
-${checkResult.riskScore}% | ${riskVisuals.color}
+${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.color}\`
+\`${riskVisuals.bar}\`
 
-🔗 ${checkResult.sources.slice(0, 3).join(", ")}
-
-═════════════════════`;
+🔗 ${checkResult.sources.slice(0, 3).join(" · ")}`;
     }
 
     if (user) {
@@ -1853,34 +1850,50 @@ ${checkResult.riskScore}% | ${riskVisuals.color}
         }).join("\n");
     }
 
-    const text = `\`\`\`
-╔═══════════════════════════════╗
-║    📣 РЕФЕРАЛЬНА ПРОГРАМА     ║
-╚═══════════════════════════════╝
-\`\`\`
+    const escapeMd = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
+    const topRef = referralStats.referredUsers.slice(0, 3);
+    const leaderboardText = topRef.length > 0 
+      ? topRef.map((r, i) => {
+          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+          return `${medal} ${r.username ? `@${escapeMd(r.username)}` : "user"} — ${r.tier || "FREE"}`;
+        }).join("\n")
+      : (lang === "uk" ? "Поки немає рефералів" : lang === "ru" ? "Пока нет рефералов" : "No referrals yet");
 
-🎁 *Запрошуй друзів та отримуй бонуси!*
+    const participateTitle = lang === "uk" ? "Як можна поучаствувати?" : lang === "ru" ? "Как можно поучаствовать?" : "How to participate?";
+    const participateSteps = lang === "uk"
+      ? `🎬 Знімай відео в TikTok / Reels / Shorts\n(вказуй бота прямо в відео)\n\n🗣 Діліся своєю реферальною\nпосиланням в чатах і ком'юніті\n\n👥 Відправляй посилання друзям та\nзнайомим\n\n⚠️ Пусті переходи і боти не зараховуються`
+      : lang === "ru"
+      ? `🎬 Снимай видео в TikTok / Reels / Shorts\n(указывай бота прямо в видео)\n\n🗣 Делись своей реферальной\nссылкой в чатах и комьюнити\n\n👥 Отправляй ссылку друзьям и\nзнакомым\n\n⚠️ Пустые переходы и боты не засчитываются`
+      : `🎬 Create TikTok / Reels / Shorts videos\n(mention the bot in your video)\n\n🗣 Share your referral link in chats\nand communities\n\n👥 Send the link to friends and\nacquaintances\n\n⚠️ Empty clicks and bots don't count`;
 
-━━━━━━━━━━━━━━━━━━━━━━
+    const faqTitle = lang === "uk" ? "FAQ | Нарахування бонусів" : lang === "ru" ? "FAQ | Начисление бонусов" : "FAQ | Earning bonuses";
+    const faqText = lang === "uk"
+      ? `❓ Як нараховуються бонуси?\nБонуси нараховуються за кожного нового користувача, який перейшов за вашим посиланням та почав користуватися ботом.`
+      : lang === "ru"
+      ? `❓ Как начисляются бонусы?\nБонусы начисляются за каждого нового пользователя, перешедшего по вашей ссылке и начавшего использовать бота.`
+      : `❓ How are bonuses earned?\nBonuses are earned for each new user who joins via your link and starts using the bot.`;
 
-🔗 *Твоє посилання:*
+    const text = `🏆 *${lang === "uk" ? "Реферальна програма" : lang === "ru" ? "Реферальная программа" : "Referral Program"}*
+🎁 ${lang === "uk" ? "Запрошуй користувачів і заробляй!" : lang === "ru" ? "Приглашай пользователей и зарабатывай!" : "Invite users and earn rewards!"}
+
+📊 *${lang === "uk" ? "Твоя статистика" : lang === "ru" ? "Твоя статистика" : "Your stats"}:*
+├ 👥 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralStats.count}*
+├ 🎁 ${lang === "uk" ? "Бонус запитів" : lang === "ru" ? "Бонус запросов" : "Bonus checks"}: *+${bonusEarned}*
+└ 💰 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : "Discount"}: *${discountPercent}%*
+
+🔗 *${lang === "uk" ? "Реферальне посилання" : lang === "ru" ? "Реферальная ссылка" : "Referral link"}:*
 \`${refLink}\`
+🔄 ${lang === "uk" ? "Поділися з друзями" : lang === "ru" ? "Поделись с друзьями" : "Share with friends"}
 
-📊 *Статистика:*
-├ 👥 Рефералів: *${referralStats.count}*
-├ ⏳ Очікують: ${referralStats.pendingCount}
-├ 🎁 Бонус запитів: *+${bonusEarned}*
-└ 💰 Знижка: *${discountPercent}%* (${discountProgress}/5)
+🏅 *${lang === "uk" ? "Твої реферали" : lang === "ru" ? "Твои рефералы" : "Your referrals"}*
+${leaderboardText}
 
-🎯 *Прогрес до -20%:*
-${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
+🚀 *${participateTitle}*
 
-━━━━━━━━━━━━━━━━━━━━━━
+${participateSteps}
 
-💡 *Бонуси:*
-├ +2 запити за кожного реферала
-├ -4% знижка за кожного (до -20%)
-└ Реферал отримує +5 запитів`;
+❓ *${faqTitle}*
+${faqText}`;
 
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
@@ -2487,46 +2500,32 @@ ${generateProgressBar(discountProgress, 5)} ${discountProgress}/5${referredList}
 
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const text = `👤 ${lang === "uk" ? "МІЙ АКАУНТ" : lang === "ru" ? "МОЙ АККАУНТ" : "MY ACCOUNT"}
-━━━━━━━━━━━━━━━━━━━━
+    const text = `👤 *${lang === "uk" ? "Мій акаунт" : lang === "ru" ? "Мой аккаунт" : "My Account"}*
 
-📋 ${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:
-├ ID: ${tgId}
-├ Username: @${username}
-├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: ${tierName}
-├ 📅 ${lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created"}: ${createdAt}
-├ ⏰ ${lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last activity"}: ${lastActive}
-└ 🎁 ${lang === "uk" ? "Реф. код" : lang === "ru" ? "Реф. код" : "Ref. code"}: ${refCode}
+📋 *${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}*
+├ 🆔 ID: \`${tgId}\`
+├ 👤 @${username}
+├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan"}: *${tierName}*
+├ 📅 ${createdAt}
+└ 🎁 Ref: \`${refCode}\`
 
-━━━━━━━━━━━━━━━━━━━━
+📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}*
+├ 🔍 ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${totalChecks}*
+├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: *${activeMonitors}*
+├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralCount}*
+├ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${streakDays}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
+└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left"}: *${user.requestsLeft ?? 5}*
 
-📊 ${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}:
-├ 🔍 ${lang === "uk" ? "Всього перевірок" : lang === "ru" ? "Всего проверок" : "Total checks"}: ${totalChecks}
-├ 👁 ${lang === "uk" ? "Активних моніторів" : lang === "ru" ? "Активных мониторов" : "Active monitors"}: ${activeMonitors}
-├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: ${referralCount}
-├ 🔥 ${lang === "uk" ? "Серія днів" : lang === "ru" ? "Серия дней" : "Streak"}: ${streakDays} ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Remaining"}: ${user.requestsLeft ?? 5} ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
-
-━━━━━━━━━━━━━━━━━━━━
-
-🎯 ${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}:
+🎯 *${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}*
 ${topTypesText}
 
-━━━━━━━━━━━━━━━━━━━━
+🏅 *${lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements"}*
+${riskHunterDone} 🏆 Risk Hunter — ${riskHunterProgress}/10
+${scamSlayerDone} 🛡 Scam Slayer — ${scamSlayerProgress}/50
+${streakMasterDone} 🔥 Streak Master — ${streakMasterProgress}/7
+${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
 
-🏅 ${lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements"}:
-${riskHunterDone} 🏆 Risk Hunter (${riskHunterProgress}/10)
-    ${riskHunterBar}
-${scamSlayerDone} 🛡️ Scam Slayer (${scamSlayerProgress}/50)
-    ${scamSlayerBar}
-${streakMasterDone} 🔥 Streak Master (${streakMasterProgress}/7)
-    ${streakMasterBar}
-${referralKingDone} 📣 Referral King (${referralKingProgress}/5)
-    ${referralKingBar}
-
-━━━━━━━━━━━━━━━━━━━━
-
-💎 ${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}:
+💎 *${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}*
 └ ${tierBenefits}`;
 
     const keyboard = Markup.inlineKeyboard([
