@@ -25,6 +25,7 @@ export const users = pgTable("ds_users", {
   autoRenew: boolean("auto_renew").default(false),
   totpSecret: text("totp_secret"),
   totpEnabled: boolean("totp_enabled").default(false),
+  lastReminderSent: timestamp("last_reminder_sent"),
 });
 
 export const reports = pgTable("ds_reports", {
@@ -157,7 +158,7 @@ export const chatMessages = pgTable("ds_chat_messages", {
 });
 
 // Zod Schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastReminderSent: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
 export const insertWatchSchema = createInsertSchema(watches).omit({ id: true, lastCheck: true });
 export const insertPaymentSchema = createInsertSchema(payments).omit({ id: true, createdAt: true });
