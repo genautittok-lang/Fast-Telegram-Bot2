@@ -46,7 +46,8 @@ export async function setupAuth(app: Express) {
 
   const replitDomain = process.env.REPLIT_DOMAINS?.split(",")[0];
   const webDomain = process.env.WEB_DOMAIN;
-  const baseUrl = webDomain || (replitDomain ? `https://${replitDomain}` : "http://localhost:5000");
+  const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null;
+  const baseUrl = webDomain || railwayUrl || (replitDomain ? `https://${replitDomain}` : `http://localhost:${process.env.PORT || 5000}`);
   const callbackURL = `${baseUrl}/api/callback`;
   console.log("Google OAuth callback URL:", callbackURL);
 
