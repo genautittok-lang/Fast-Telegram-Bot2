@@ -100,7 +100,11 @@ export async function registerRoutes(
   
   app.use("/uploads", express.static(uploadsDir));
 
-  // Setup Replit Auth (Google, GitHub, email) - MUST be before other routes
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok", service: "DARKSHARE", timestamp: Date.now() });
+  });
+
+  // Setup Google Auth - MUST be before other routes
   await setupAuth(app);
   registerAuthRoutes(app);
   
