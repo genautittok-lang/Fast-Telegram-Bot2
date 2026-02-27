@@ -83,7 +83,7 @@ export async function setupBot(storage: IStorage) {
   const bot = new Telegraf<BotContext>(token);
   botInstance = bot;
 
-  let telegraphUrl = "";
+  const telegraphUrls: Record<string, string> = {};
   async function createTelegraphPage() {
     try {
       const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
@@ -96,26 +96,29 @@ export async function setupBot(storage: IStorage) {
       if (!accData.ok) { console.error("Telegraph account error:", accData); return; }
       const accessToken = accData.result.access_token;
 
-      const content = [
-        { tag: "h3", children: ["🛡 DARKSHARE v4.4 — Professional Security OSINT Platform"] },
-        { tag: "p", children: [{ tag: "b", children: ["Comprehensive security intelligence platform for analyzing blockchain wallets, IP addresses, emails, phone numbers, domains, URLs, CVE vulnerabilities, file hashes, usernames, and bank card BINs. Available as Telegram bot, web dashboard, and REST API."] }] },
+      const tl = (uk: string, ru: string, en: string, pl: string) => pl === "uk" ? uk : pl === "ru" ? ru : en;
 
-        { tag: "h3", children: ["📋 Getting Started"] },
-        { tag: "p", children: ["DARKSHARE is available in three ways:"] },
+      function buildContent(pl: string) {
+        return [
+        { tag: "h3", children: [tl("🛡 DARKSHARE v4.4 — Професійна OSINT платформа безпеки", "🛡 DARKSHARE v4.4 — Профессиональная OSINT платформа безопасности", "🛡 DARKSHARE v4.4 — Professional Security OSINT Platform", pl)] },
+        { tag: "p", children: [{ tag: "b", children: [tl("Комплексна платформа аналізу безпеки для перевірки крипто гаманців, IP адрес, email, телефонів, доменів, URL, CVE вразливостей, хешів файлів, юзернеймів та BIN карток. Доступна як Telegram бот, веб-дашборд та REST API.", "Комплексная платформа анализа безопасности для проверки крипто кошельков, IP адресов, email, телефонов, доменов, URL, CVE уязвимостей, хешей файлов, юзернеймов и BIN карт. Доступна как Telegram бот, веб-дашборд и REST API.", "Comprehensive security intelligence platform for analyzing blockchain wallets, IP addresses, emails, phone numbers, domains, URLs, CVE vulnerabilities, file hashes, usernames, and bank card BINs. Available as Telegram bot, web dashboard, and REST API.", pl)] }] },
+
+        { tag: "h3", children: [tl("📋 Початок роботи", "📋 Начало работы", "📋 Getting Started", pl)] },
+        { tag: "p", children: [tl("DARKSHARE доступний трьома способами:", "DARKSHARE доступен тремя способами:", "DARKSHARE is available in three ways:", pl)] },
         { tag: "ul", children: [
-          { tag: "li", children: [{ tag: "b", children: ["Telegram Bot"] }, " — @DARKSHAREN1_BOT for quick checks and inline mode"] },
-          { tag: "li", children: [{ tag: "b", children: ["Web Dashboard"] }, " — ", { tag: "a", attrs: { href: webUrl }, children: [webUrl] }, " for full analytics, bulk checks, monitoring"] },
-          { tag: "li", children: [{ tag: "b", children: ["REST API"] }, " — for integration with your security tools and SIEM/SOC"] },
+          { tag: "li", children: [{ tag: "b", children: ["Telegram Bot"] }, " — @DARKSHAREN1_BOT ", tl("для швидких перевірок та inline режиму", "для быстрых проверок и inline режима", "for quick checks and inline mode", pl)] },
+          { tag: "li", children: [{ tag: "b", children: [tl("Веб-дашборд", "Веб-дашборд", "Web Dashboard", pl)] }, " — ", { tag: "a", attrs: { href: webUrl }, children: [webUrl] }, tl(" для аналітики, масових перевірок, моніторингу", " для аналитики, массовых проверок, мониторинга", " for full analytics, bulk checks, monitoring", pl)] },
+          { tag: "li", children: [{ tag: "b", children: ["REST API"] }, " — ", tl("для інтеграції з вашими системами безпеки та SIEM/SOC", "для интеграции с вашими системами безопасности и SIEM/SOC", "for integration with your security tools and SIEM/SOC", pl)] },
         ]},
-        { tag: "p", children: [{ tag: "b", children: ["Quick start:"] }] },
+        { tag: "p", children: [{ tag: "b", children: [tl("Швидкий старт:", "Быстрый старт:", "Quick start:", pl)] }] },
         { tag: "ul", children: [
-          { tag: "li", children: ["1. Open @DARKSHAREN1_BOT in Telegram and press /start"] },
-          { tag: "li", children: ["2. Sign in at ", { tag: "a", attrs: { href: webUrl }, children: [webUrl] }, " via Telegram or Google"] },
-          { tag: "li", children: ["3. Choose a check type and enter the target value"] },
-          { tag: "li", children: ["4. Get a detailed report with risk score, findings, and metadata"] },
+          { tag: "li", children: [tl("1. Відкрийте @DARKSHAREN1_BOT у Telegram і натисніть /start", "1. Откройте @DARKSHAREN1_BOT в Telegram и нажмите /start", "1. Open @DARKSHAREN1_BOT in Telegram and press /start", pl)] },
+          { tag: "li", children: [tl("2. Увійдіть на ", "2. Войдите на ", "2. Sign in at ", pl), { tag: "a", attrs: { href: webUrl }, children: [webUrl] }, tl(" через Telegram або Google", " через Telegram или Google", " via Telegram or Google", pl)] },
+          { tag: "li", children: [tl("3. Оберіть тип перевірки та введіть значення", "3. Выберите тип проверки и введите значение", "3. Choose a check type and enter the target value", pl)] },
+          { tag: "li", children: [tl("4. Отримайте детальний звіт з risk score, findings та metadata", "4. Получите детальный отчёт с risk score, findings и metadata", "4. Get a detailed report with risk score, findings, and metadata", pl)] },
         ]},
 
-        { tag: "h3", children: ["🔍 Check Types (11 Modules)"] },
+        { tag: "h3", children: [tl("🔍 Типи перевірок (11 модулів)", "🔍 Типы проверок (11 модулей)", "🔍 Check Types (11 Modules)", pl)] },
 
         { tag: "p", children: [{ tag: "b", children: ["🌐 IP Address Analysis"] }] },
         { tag: "p", children: ["Geolocation, ISP identification, VPN/proxy/Tor detection, blacklist checks across 80+ databases, ASN info, abuse contact data, hosting provider, risk score assessment."] },
@@ -160,15 +163,15 @@ export async function setupBot(storage: IStorage) {
         { tag: "p", children: [{ tag: "b", children: ["🤖 Bot Token Validator"] }] },
         { tag: "p", children: ["Validate Telegram bot tokens, retrieve bot name, username, capabilities (can_join_groups, supports_inline_queries)."] },
 
-        { tag: "h3", children: ["📱 Telegram Bot Commands"] },
+        { tag: "h3", children: [tl("📱 Команди Telegram бота", "📱 Команды Telegram бота", "📱 Telegram Bot Commands", pl)] },
         { tag: "pre", children: ["/start    — Main menu and dashboard\n/menu     — Open control panel\n/check    — Quick check: /check ip 8.8.8.8\n/stats    — Your personal statistics\n/ref      — Referral program\n/help     — Full help & instructions\n/support  — Contact support team"] },
 
-        { tag: "h3", children: ["⚡ Inline Mode (Use in Any Chat!)"] },
+        { tag: "h3", children: [tl("⚡ Inline режим (у будь-якому чаті!)", "⚡ Inline режим (в любом чате!)", "⚡ Inline Mode (Use in Any Chat!)", pl)] },
         { tag: "p", children: ["Type @DARKSHAREN1_BOT followed by check type and value directly in any Telegram chat — personal, group, or channel. Results appear as inline messages."] },
         { tag: "pre", children: ["@DARKSHAREN1_BOT ip 8.8.8.8\n@DARKSHAREN1_BOT email test@mail.com\n@DARKSHAREN1_BOT domain google.com\n@DARKSHAREN1_BOT wallet 0x742d35Cc...\n@DARKSHAREN1_BOT phone +380501234567\n@DARKSHAREN1_BOT cve CVE-2021-44228\n@DARKSHAREN1_BOT hash d41d8cd98f...\n@DARKSHAREN1_BOT username johndoe\n@DARKSHAREN1_BOT card 424242\n@DARKSHAREN1_BOT url https://site.com"] },
         { tag: "p", children: ["All 11 modules work in inline mode. Each result includes risk score, key findings, and a link to the full report."] },
 
-        { tag: "h3", children: ["🖥 Web Dashboard Features"] },
+        { tag: "h3", children: [tl("🖥 Можливості веб-дашборду", "🖥 Возможности веб-дашборда", "🖥 Web Dashboard Features", pl)] },
         { tag: "ul", children: [
           { tag: "li", children: [{ tag: "b", children: ["Quick Check"] }, " — instant analysis from homepage, no registration needed for basic checks (3/day)"] },
           { tag: "li", children: [{ tag: "b", children: ["Dashboard"] }, " — full analytics, check statistics, risk distribution charts, streak tracking, leaderboard"] },
@@ -185,13 +188,13 @@ export async function setupBot(storage: IStorage) {
           { tag: "li", children: [{ tag: "b", children: ["Referral Program"] }, " — earn +3 free checks per friend, unique link and QR code"] },
         ]},
 
-        { tag: "h3", children: ["🔌 REST API Documentation"] },
+        { tag: "h3", children: [tl("🔌 REST API документація", "🔌 REST API документация", "🔌 REST API Documentation", pl)] },
         { tag: "p", children: ["API is available for PRO and ENTERPRISE plans. Authentication via cookie session (login through Telegram or Google first)."] },
         { tag: "p", children: ["Base URL: ", { tag: "code", children: [webUrl] }] },
         { tag: "p", children: [{ tag: "b", children: ["Core Endpoints:"] }] },
         { tag: "pre", children: ["POST /api/check\n  Body: { type: \"ip\"|\"email\"|\"domain\"|..., target: \"8.8.8.8\" }\n  Response: { riskScore, findings[], metadata }\n\nGET /api/reports\n  Response: [{ id, objectType, target, riskScore, generatedAt }]\n\nGET /api/reports/:id\n  Response: { id, objectType, target, riskScore, findings, metadata }\n\nGET /api/reports/:id/pdf\n  Response: PDF file download\n\nPOST /api/bulk-check\n  Body: { type: \"ip\", targets: [\"8.8.8.8\", \"1.1.1.1\"] }\n  Response: { results: [{ target, riskScore, findings }] }\n\nGET /api/watches\n  Response: [{ id, type, target, interval, lastChecked }]\n\nPOST /api/watches\n  Body: { type: \"domain\", target: \"example.com\", interval: \"24h\" }\n\nDELETE /api/watches/:id\n\nGET /api/auth/me\n  Response: { id, username, tier, requestsLeft, subscriptionExpiresAt }\n\nGET /api/stats\n  Response: { totalUsers, totalReports, checksToday, threatsBlocked }\n\nGET /api/activity\n  Response: [{ type, target, riskLevel, timestamp }]\n\nGET /api/threat-feed\n  Response: [{ id, title, severity, type, source, description }]\n\nPOST /api/breach-check\n  Body: { email: \"user@example.com\" }\n  Response: { breached, breaches[], exposedData[] }\n\nGET /api/quick-check?type=ip&target=8.8.8.8\n  (Public, no auth, 3 checks/day per IP)"] },
 
-        { tag: "h3", children: ["🛡 Use Cases"] },
+        { tag: "h3", children: [tl("🛡 Сценарії використання", "🛡 Сценарии использования", "🛡 Use Cases", pl)] },
         { tag: "p", children: [{ tag: "b", children: ["Crypto Security"] }, " — Check wallet addresses before sending crypto. Detect scam wallets, mixers, and suspicious transaction patterns."] },
         { tag: "p", children: [{ tag: "b", children: ["Email Protection"] }, " — Verify email addresses for data breaches. Check if passwords have been compromised. Detect disposable/fake emails."] },
         { tag: "p", children: [{ tag: "b", children: ["Infrastructure Analysis"] }, " — Full domain/IP OSINT: WHOIS, DNS, SSL, technologies. Perfect for pentesting, bug bounty, due diligence."] },
@@ -199,7 +202,7 @@ export async function setupBot(storage: IStorage) {
         { tag: "p", children: [{ tag: "b", children: ["Threat Intelligence"] }, " — Track CVE vulnerabilities, analyze malware hashes, monitor suspicious URLs. Integrate with SIEM/SOC via API."] },
         { tag: "p", children: [{ tag: "b", children: ["OSINT Intelligence"] }, " — Username search across 200+ platforms, digital footprint analysis, card BIN checks. For journalists and investigators."] },
 
-        { tag: "h3", children: ["⭐ Subscription Plans"] },
+        { tag: "h3", children: [tl("⭐ Тарифні плани", "⭐ Тарифные планы", "⭐ Subscription Plans", pl)] },
         { tag: "p", children: [{ tag: "b", children: ["🆓 FREE — $0/month"] }] },
         { tag: "ul", children: [
           { tag: "li", children: ["5 checks per day"] },
@@ -230,7 +233,7 @@ export async function setupBot(storage: IStorage) {
         ]},
         { tag: "p", children: ["Payment methods: Crypto (TON -5%, USDT, ETH, BTC), MonoPay (Monobank), promo codes."] },
 
-        { tag: "h3", children: ["💡 Security Tips"] },
+        { tag: "h3", children: [tl("💡 Поради безпеки", "💡 Советы безопасности", "💡 Security Tips", pl)] },
         { tag: "ul", children: [
           { tag: "li", children: ["Always check crypto wallets before sending funds — even from trusted contacts"] },
           { tag: "li", children: ["Verify URLs before entering passwords — phishing sites look identical to originals"] },
@@ -244,7 +247,7 @@ export async function setupBot(storage: IStorage) {
           { tag: "li", children: ["Invite colleagues via referral program — earn bonus checks (+3 per friend)"] },
         ]},
 
-        { tag: "h3", children: ["❓ FAQ"] },
+        { tag: "h3", children: [tl("❓ Часті питання", "❓ Частые вопросы", "❓ FAQ", pl)] },
         { tag: "p", children: [{ tag: "b", children: ["How many free checks per day?"] }, " — FREE plan: 5 checks/day, resets at 00:00 UTC. Earn more via referrals (+3 per friend)."] },
         { tag: "p", children: [{ tag: "b", children: ["How does inline mode work?"] }, " — In any Telegram chat, type @DARKSHAREN1_BOT + check type + value. Result appears as sendable inline message."] },
         { tag: "p", children: [{ tag: "b", children: ["How to pay?"] }, " — Crypto (TON, USDT, ETH, BTC), MonoPay, or promo codes. Available in bot and on website /pricing page."] },
@@ -253,30 +256,39 @@ export async function setupBot(storage: IStorage) {
         { tag: "p", children: [{ tag: "b", children: ["How does monitoring work?"] }, " — Add targets to monitoring. System auto-checks at chosen intervals (1/6/24h) and notifies via Telegram."] },
 
         { tag: "p", children: ["—"] },
-        { tag: "p", children: [{ tag: "a", attrs: { href: webUrl }, children: ["🌐 Open DARKSHARE Web Panel"] }, " | ", { tag: "a", attrs: { href: `${webUrl}/guide` }, children: ["📖 Full Guide on Website"] }, " | ", { tag: "a", attrs: { href: `${webUrl}/api-docs` }, children: ["📄 API Documentation"] }] },
+        { tag: "p", children: [{ tag: "a", attrs: { href: webUrl }, children: [tl("🌐 Відкрити DARKSHARE", "🌐 Открыть DARKSHARE", "🌐 Open DARKSHARE Web Panel", pl)] }, " | ", { tag: "a", attrs: { href: `${webUrl}/guide` }, children: [tl("📖 Повна інструкція", "📖 Полная инструкция", "📖 Full Guide on Website", pl)] }, " | ", { tag: "a", attrs: { href: `${webUrl}/api-docs` }, children: ["📄 API Documentation"] }] },
       ];
+      }
 
-      const pageRes = await fetch("https://api.telegra.ph/createPage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          access_token: accessToken,
-          title: "DARKSHARE — Security OSINT Guide",
-          author_name: "DARKSHARE",
-          author_url: webUrl,
-          content,
-          return_content: false
-        })
-      });
-      const pageData = await pageRes.json() as any;
-      if (pageData.ok) {
-        telegraphUrl = pageData.result.url;
-        console.log("Telegraph guide page created:", telegraphUrl);
-      } else {
-        console.error("Telegraph page error:", pageData);
+      const titles: Record<string, string> = { uk: "DARKSHARE — Інструкція OSINT", ru: "DARKSHARE — Инструкция OSINT", en: "DARKSHARE — Security OSINT Guide" };
+
+      for (const pageLang of ["uk", "ru", "en"]) {
+        try {
+          const pageRes = await fetch("https://api.telegra.ph/createPage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              access_token: accessToken,
+              title: titles[pageLang] || titles.en,
+              author_name: "DARKSHARE",
+              author_url: webUrl,
+              content: buildContent(pageLang),
+              return_content: false
+            })
+          });
+          const pageData = await pageRes.json() as any;
+          if (pageData.ok) {
+            telegraphUrls[pageLang] = pageData.result.url;
+            console.log(`Telegraph page (${pageLang}) created:`, pageData.result.url);
+          } else {
+            console.error(`Telegraph page error (${pageLang}):`, pageData);
+          }
+        } catch (e) {
+          console.error(`Failed to create Telegraph page (${pageLang}):`, e);
+        }
       }
     } catch (err) {
-      console.error("Failed to create Telegraph page:", err);
+      console.error("Failed to create Telegraph pages:", err);
     }
   }
   createTelegraphPage();
@@ -598,22 +610,19 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
     const keyboardRows: any[][] = [
       [cb("🔍 " + t(lang, "buttons.check"), "check_all", "primary", E.search)],
       [
-        cb(t(lang, "buttons.settings"), "settings", "primary", E.gear),
+        cb(t(lang, "buttons.profile"), "profile", "primary", E.user),
         cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)
       ],
       [
-        cb(t(lang, "buttons.profile"), "profile", "primary", E.user),
-        cb(t(lang, "buttons.referrals"), "referrals", "success", E.link)
+        cb(t(lang, "buttons.referrals"), "referrals", "success", E.link),
+        cb(t(lang, "buttons.history"), "history", "primary", E.clock)
       ],
       [
-        cb(t(lang, "buttons.history"), "history", "primary", E.clock),
-        cb(t(lang, "buttons.monitoring"), "monitoring", "primary", E.eye)
+        cb(t(lang, "buttons.monitoring"), "monitoring", "primary", E.eye),
+        cb(t(lang, "support.command"), "open_support", "primary", E.msg)
       ],
       [
-        cb(t(lang, "support.command"), "open_support", "primary", E.msg),
-        cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)
-      ],
-      [
+        cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc),
         cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard", "danger", E.bolt)
       ],
       [
@@ -2688,7 +2697,12 @@ ${streakMasterDone} 🔥 Streak Master — ${streakMasterProgress}/7
 ${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
 
 💎 *${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}*
-└ ${tierBenefits}`;
+└ ${tierBenefits}
+
+🌐 *${lang === "uk" ? "Мова" : lang === "ru" ? "Язык" : "Language"}:* ${languageNames[lang]}`;
+
+    const langFlags: Record<string, string> = { uk: "🇺🇦", en: "🇬🇧", ru: "🇷🇺", es: "🇪🇸", de: "🇩🇪" };
+    const currentFlag = langFlags[lang] || "🌐";
 
     const keyboard = Markup.inlineKeyboard([
       [
@@ -2696,7 +2710,11 @@ ${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
         cb("🎁 " + (lang === "uk" ? "Реф. посилання" : lang === "ru" ? "Реф. ссылка" : "Ref. link"), "profile_ref_link", "success", E.link)
       ],
       [
-        cb("⚙️ " + (lang === "uk" ? "Налаштування" : lang === "ru" ? "Настройки" : "Settings"), "settings", "primary", E.gear),
+        cb("🇺🇦 UA", "set_lang_uk", lang === "uk" ? "success" : "primary", E.globe),
+        cb("🇬🇧 EN", "set_lang_en", lang === "en" ? "success" : "primary", E.globe),
+        cb("🇷🇺 RU", "set_lang_ru", lang === "ru" ? "success" : "primary", E.globe)
+      ],
+      [
         cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)
       ]
     ]);
@@ -4510,8 +4528,9 @@ ${allTypesText}
     const helpButtons: any[][] = [
       [cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)],
     ];
-    if (telegraphUrl) {
-      helpButtons.push([urlS("📄 " + (lang === "uk" ? "Читати на Telegraph" : lang === "ru" ? "Читать на Telegraph" : "Read on Telegraph"), telegraphUrl, "success", E.doc)]);
+    const tgUrl = telegraphUrls[lang] || telegraphUrls["en"] || "";
+    if (tgUrl) {
+      helpButtons.push([urlS("📄 " + (lang === "uk" ? "Читати на Telegraph" : lang === "ru" ? "Читать на Telegraph" : "Read on Telegraph"), tgUrl, "success", E.doc)]);
     }
     helpButtons.push([urlS("🌐 " + (lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"), `${webUrl}/guide`, "success", E.globe)]);
     helpButtons.push([cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]);
@@ -4760,8 +4779,9 @@ ${allTypesText}
 └ 👑 ENTERPRISE — unlimited ($35/mo)`;
 
     const guideButtons: any[][] = [];
-    if (telegraphUrl) {
-      guideButtons.push([urlS("📄 " + (lang === "uk" ? "Читати на Telegraph" : lang === "ru" ? "Читать на Telegraph" : "Read on Telegraph"), telegraphUrl, "success", E.doc)]);
+    const guideTgUrl = telegraphUrls[lang] || telegraphUrls["en"] || "";
+    if (guideTgUrl) {
+      guideButtons.push([urlS("📄 " + (lang === "uk" ? "Читати на Telegraph" : lang === "ru" ? "Читать на Telegraph" : "Read on Telegraph"), guideTgUrl, "success", E.doc)]);
     }
     guideButtons.push([urlS("🌐 " + (lang === "uk" ? "Інструкція на сайті" : lang === "ru" ? "Инструкция на сайте" : "Guide on website"), `${webUrl}/guide`, "primary", E.globe)]);
     guideButtons.push([cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]);

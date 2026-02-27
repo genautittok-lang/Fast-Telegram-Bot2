@@ -206,20 +206,20 @@ function QuickCheck({ lang }: { lang: string }) {
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             value={quickValue}
             onChange={(e) => setQuickValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleQuickCheck()}
             placeholder={typeOptions.find(o => o.value === quickType)?.placeholder}
-            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
+            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors min-w-0"
             data-testid="input-quick-check"
           />
           <Button
             onClick={handleQuickCheck}
             disabled={quickLoading || !quickValue.trim()}
-            className="px-4 h-[42px]"
+            className="px-4 h-[42px] shrink-0 w-full sm:w-auto"
             data-testid="button-quick-check"
           >
             {quickLoading ? (
