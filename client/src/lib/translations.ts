@@ -13,6 +13,7 @@ export interface TranslationSchema {
     teams: string;
     widget: string;
     chat: string;
+    guide: string;
   };
   common: {
     loading: string;
@@ -772,6 +773,7 @@ export const translations: Record<Language, TranslationSchema> = {
       teams: "Teams",
       widget: "Widget",
       chat: "Chat",
+      guide: "Guide",
     },
     common: {
       loading: "Loading...",
@@ -1529,6 +1531,7 @@ export const translations: Record<Language, TranslationSchema> = {
       teams: "Команди",
       widget: "Віджет",
       chat: "Чат",
+      guide: "Інструкція",
     },
     common: {
       loading: "Завантаження...",
@@ -2286,6 +2289,7 @@ export const translations: Record<Language, TranslationSchema> = {
       teams: "Команды",
       widget: "Виджет",
       chat: "Чат",
+      guide: "Инструкция",
     },
     common: {
       loading: "Загрузка...",
@@ -3043,6 +3047,7 @@ export const translations: Record<Language, TranslationSchema> = {
       teams: "Equipos",
       widget: "Widget",
       chat: "Chat",
+      guide: "Guía",
     },
     common: {
       loading: "Cargando...",
@@ -3800,6 +3805,7 @@ export const translations: Record<Language, TranslationSchema> = {
       teams: "Teams",
       widget: "Widget",
       chat: "Chat",
+      guide: "Anleitung",
     },
     common: {
       loading: "Laden...",

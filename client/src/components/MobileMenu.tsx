@@ -22,6 +22,7 @@ import {
   Zap,
   Code2,
   Blocks,
+  BookOpen,
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ export function MobileMenu({
     { href: "/support", icon: MessageSquare, label: t('nav.support'), desc: "Help Center" },
     { href: "/api-docs", icon: Code2, label: t('nav.apiDocs'), desc: "REST API" },
     { href: "/widget", icon: Blocks, label: t('nav.widget'), desc: "Security Badge" },
+    { href: "/guide", icon: BookOpen, label: t('nav.guide'), desc: "How to use" },
   ];
 
   const navItems = isAuthenticated ? authItems : publicItems;

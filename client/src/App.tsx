@@ -25,6 +25,7 @@ import Widget from "@/pages/Widget";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Chat from "@/pages/Chat";
+import Guide from "@/pages/Guide";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/chat" component={Chat} />
+      <Route path="/guide" component={Guide} />
       <Route component={NotFound} />
     </Switch>
   );

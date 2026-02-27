@@ -880,7 +880,7 @@ export default function Pricing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95 overflow-x-hidden max-w-[100vw]">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_50%)]" />
       <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">

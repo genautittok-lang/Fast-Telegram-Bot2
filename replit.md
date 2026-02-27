@@ -84,6 +84,12 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Subscription expiry countdown on Dashboard: shows days remaining, expiry date, auto-renew badge for paid users; color-coded (green/orange/red) with animated progress bar
 - /api/auth/me now returns subscriptionExpiresAt and autoRenew fields
 - Enhanced Chat page: 3D holographic header, glassmorphism message cards, reply-to-message with quoted block rendering, message search, pinned messages bar (report messages), date separators, typing indicator, scroll-to-bottom with new message counter, message status indicators
+- Mobile responsiveness fixes: overflow-x-hidden on html/body, reduced gradient blob sizes on mobile, fixed Home/Pricing/History overflow
+- Guide page (/guide): comprehensive instruction page with check types, inline bot mode examples, dashboard features, subscription plans; multi-language (5 languages)
+- Bot guide button in dashboard menu, /help command updated with inline mode examples, "open_guide" action handler with full instructions (uk/ru/en)
+- Daily auto-broadcast: personalized daily message to all users with their stats, remaining checks, scam warning; scheduled at 10:00 UTC hourly check
+- Admin daily broadcast controls: toggle on/off, send now, status display, reach stats (bot + web admin panel)
+- Admin panel Settings tab: daily broadcast card with enable/disable, last sent date, reach count, message template preview
 
 ## User Preferences
 

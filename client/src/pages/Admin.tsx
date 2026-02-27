@@ -85,6 +85,9 @@ interface Coupon {
 interface PaymentSettings {
   proPrice: string;
   enterprisePrice: string;
+  dailyBroadcastEnabled?: boolean;
+  dailyBroadcastLastSent?: string | null;
+  dailyBroadcastLastReach?: number;
 }
 
 interface PaymentRecord {
@@ -911,6 +914,58 @@ export default function Admin() {
                       </Button>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    Авторозсилка (Щоденна)
+                  </CardTitle>
+                  <CardDescription>Щоденне повідомлення всім користувачам з їхньою статистикою</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-3 h-3 rounded-full ${settings?.dailyBroadcastEnabled ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`} />
+                      <span className="text-sm font-medium">{settings?.dailyBroadcastEnabled ? 'Увімкнено' : 'Вимкнено'}</span>
+                    </div>
+                    <Button
+                      variant={settings?.dailyBroadcastEnabled ? "destructive" : "default"}
+                      size="sm"
+                      onClick={() => updateSettingsMutation.mutate({ ...settingsForm, dailyBroadcastEnabled: !settings?.dailyBroadcastEnabled })}
+                      disabled={updateSettingsMutation.isPending}
+                      className="gap-2"
+                      data-testid="button-toggle-daily-broadcast"
+                    >
+                      {settings?.dailyBroadcastEnabled ? <X className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+                      {settings?.dailyBroadcastEnabled ? 'Вимкнути' : 'Увімкнути'}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Час відправки</p>
+                      <p className="text-sm font-mono font-bold mt-1">10:00 UTC</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Остання розсилка</p>
+                      <p className="text-sm font-mono font-bold mt-1">
+                        {settings?.dailyBroadcastLastSent 
+                          ? new Date(settings.dailyBroadcastLastSent).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+                          : '—'
+                        }
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Охоплення</p>
+                      <p className="text-sm font-mono font-bold mt-1">{settings?.dailyBroadcastLastReach || 0} юзерів</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <p className="text-xs text-muted-foreground mb-1">Шаблон повідомлення:</p>
+                    <p className="text-xs text-white/70 italic">"Привіт, {'{'}{'{'}username{'}'}{'}'}'! У тебе {'{'}{'{'}requestsLeft{'}'}{'}'} перевірок. Сьогодні N людей ледь не попалися на скам!"</p>
+                  </div>
                 </CardContent>
               </Card>
 

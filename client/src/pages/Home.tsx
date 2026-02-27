@@ -386,12 +386,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden flex flex-col bg-background">
-      <div className="absolute inset-0 z-0 overflow-hidden">
+    <div className="min-h-screen w-full relative overflow-x-hidden overflow-y-auto flex flex-col bg-background max-w-[100vw]">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 right-1/3 w-48 h-48 bg-blue-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-primary/20 rounded-full blur-[128px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 sm:w-64 h-48 sm:h-64 bg-primary/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 right-1/3 w-32 sm:w-48 h-32 sm:h-48 bg-blue-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
       <FloatingParticles count={25} />
@@ -439,7 +439,7 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="flex-grow relative z-10 overflow-hidden">
+      <main className="flex-grow relative z-10 overflow-x-hidden">
         <section className="pt-8 sm:pt-12 md:pt-20 pb-12 sm:pb-16 md:pb-24 px-4 sm:px-6 max-w-7xl mx-auto w-full overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12">
             <div className="lg:col-span-3 space-y-5 sm:space-y-6 md:space-y-8">

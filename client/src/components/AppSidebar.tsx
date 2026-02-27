@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Code2,
   Blocks,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -33,6 +34,7 @@ const navItems = [
   { id: "support", labelKey: "nav.support", icon: MessageSquare, href: "/support" },
   { id: "api-docs", labelKey: "nav.apiDocs", icon: Code2, href: "/api-docs" },
   { id: "widget", labelKey: "nav.widget", icon: Blocks, href: "/widget" },
+  { id: "guide", labelKey: "nav.guide", icon: BookOpen, href: "/guide" },
 ];
 
 export function AppSidebar() {

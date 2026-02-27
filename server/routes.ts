@@ -2371,6 +2371,9 @@ export async function registerRoutes(
     res.json({
       proPrice: settingsMap['pro_price'] || '10',
       enterprisePrice: settingsMap['enterprise_price'] || '50',
+      dailyBroadcastEnabled: settingsMap['daily_broadcast_enabled'] === 'true',
+      dailyBroadcastLastSent: settingsMap['daily_broadcast_last_sent'] || null,
+      dailyBroadcastLastReach: parseInt(settingsMap['daily_broadcast_last_reach'] || '0'),
     });
   });
 
@@ -2380,9 +2383,12 @@ export async function registerRoutes(
     if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
       return res.status(403).json({ error: "Access denied" });
     }
-    const { proPrice, enterprisePrice } = req.body;
+    const { proPrice, enterprisePrice, dailyBroadcastEnabled } = req.body;
     if (proPrice) await storage.setAdminSetting('pro_price', proPrice.toString());
     if (enterprisePrice) await storage.setAdminSetting('enterprise_price', enterprisePrice.toString());
+    if (dailyBroadcastEnabled !== undefined) {
+      await storage.setAdminSetting('daily_broadcast_enabled', dailyBroadcastEnabled ? 'true' : 'false');
+    }
     res.json({ success: true });
   });
 

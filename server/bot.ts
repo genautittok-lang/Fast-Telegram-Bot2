@@ -140,7 +140,8 @@ export async function setupBot(storage: IStorage) {
       [cb("💵 " + (t(lang, "admin.revenueBtn") || "Revenue"), "admin_revenue", "success", E.chart),
        cb("📋 " + (t(lang, "admin.reportsBtn") || "Reports"), "admin_reports", "primary", E.doc)],
       [cb("📢 " + (t(lang, "admin.broadcastBtn") || "Broadcast"), "admin_broadcast", "primary", E.bell),
-       cb("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user", "danger", E.cross)],
+       cb("📅 " + (lang === "uk" ? "Авторозсилка" : lang === "ru" ? "Авторассылка" : "Auto Mail"), "admin_daily_broadcast", "success", E.clock)],
+      [cb("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user", "danger", E.cross)],
       [cb("⭐ " + (t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier", "primary", E.star),
        cb("➕ " + (t(lang, "admin.addReqBtn") || "Add Req"), "admin_add_requests", "success", E.check)],
       [cb("⚙️ " + (t(lang, "admin.settingsBtn") || "Settings"), "admin_settings", "primary", E.gear),
@@ -400,6 +401,9 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
       ],
       [
         cb(t(lang, "support.command"), "open_support", "primary", E.msg),
+        cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)
+      ],
+      [
         cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard", "danger", E.bolt)
       ],
       [
@@ -4274,33 +4278,71 @@ ${allTypesText}
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
     
-    const text = `📚 *ДОВІДКА DARKSHARE*\n\n` +
+    const text = lang === "uk" ?
+      `📚 *ДОВІДКА DARKSHARE*\n\n` +
       `*Команди:*\n` +
-      `• /start - Головне меню\n` +
-      `• /menu - Панель управління\n` +
-      `• /check <тип> <значення> - Швидка перевірка\n` +
-      `• /stats - Ваша статистика\n` +
-      `• /ref - Реферальна програма\n` +
-      `• /help - Ця довідка\n\n` +
+      `├ /start — Головне меню\n` +
+      `├ /menu — Панель управління\n` +
+      `├ /check <тип> <значення> — Швидка перевірка\n` +
+      `├ /stats — Ваша статистика\n` +
+      `├ /ref — Реферальна програма\n` +
+      `└ /help — Ця довідка\n\n` +
+      `📱 *Inline режим (будь-який чат):*\n` +
+      `├ \`@DARKSHAREN1_BOT ip 8.8.8.8\`\n` +
+      `├ \`@DARKSHAREN1_BOT email test@mail.com\`\n` +
+      `├ \`@DARKSHAREN1_BOT domain google.com\`\n` +
+      `└ \`@DARKSHAREN1_BOT wallet 0x...\`\n\n` +
       `*Типи перевірок:*\n` +
-      `🌐 IP - аналіз IP адрес\n` +
-      `💰 Wallet - крипто гаманці\n` +
-      `📧 Email - email адреси\n` +
-      `📱 Phone - номери телефонів\n` +
-      `🔗 Domain - домени\n` +
-      `🔍 URL - посилання\n` +
-      `🐛 CVE - вразливості\n` +
-      `#️⃣ Hash - файлові хеші\n` +
-      `👤 Username - юзернейми\n\n` +
-      `*Приклад швидкої перевірки:*\n` +
-      `\`/check ip 8.8.8.8\`\n\n` +
-      `🌐 Веб-панель: www.darkshare.store`;
+      `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
+      `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
+      `👤 Username  💳 Card BIN\n\n` +
+      `🌐 Веб-панель: ${webUrl}` :
+    lang === "ru" ?
+      `📚 *СПРАВКА DARKSHARE*\n\n` +
+      `*Команды:*\n` +
+      `├ /start — Главное меню\n` +
+      `├ /menu — Панель управления\n` +
+      `├ /check <тип> <значение> — Быстрая проверка\n` +
+      `├ /stats — Ваша статистика\n` +
+      `├ /ref — Реферальная программа\n` +
+      `└ /help — Эта справка\n\n` +
+      `📱 *Inline режим (любой чат):*\n` +
+      `├ \`@DARKSHAREN1_BOT ip 8.8.8.8\`\n` +
+      `├ \`@DARKSHAREN1_BOT email test@mail.com\`\n` +
+      `├ \`@DARKSHAREN1_BOT domain google.com\`\n` +
+      `└ \`@DARKSHAREN1_BOT wallet 0x...\`\n\n` +
+      `*Типы проверок:*\n` +
+      `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
+      `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
+      `👤 Username  💳 Card BIN\n\n` +
+      `🌐 Веб-панель: ${webUrl}` :
+      `📚 *DARKSHARE HELP*\n\n` +
+      `*Commands:*\n` +
+      `├ /start — Main menu\n` +
+      `├ /menu — Dashboard\n` +
+      `├ /check <type> <value> — Quick check\n` +
+      `├ /stats — Your statistics\n` +
+      `├ /ref — Referral program\n` +
+      `└ /help — This help\n\n` +
+      `📱 *Inline mode (any chat):*\n` +
+      `├ \`@DARKSHAREN1_BOT ip 8.8.8.8\`\n` +
+      `├ \`@DARKSHAREN1_BOT email test@mail.com\`\n` +
+      `├ \`@DARKSHAREN1_BOT domain google.com\`\n` +
+      `└ \`@DARKSHAREN1_BOT wallet 0x...\`\n\n` +
+      `*Check types:*\n` +
+      `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
+      `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
+      `👤 Username  💳 Card BIN\n\n` +
+      `🌐 Web panel: ${webUrl}`;
     
     await ctx.reply(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
-        [cb("🏠 Меню", "dashboard", "primary", E.home)]
+        [cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)],
+        [urlS("🌐 " + (lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"), `${webUrl}/guide`, "success", E.globe)],
+        [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
       ])
     });
   });
@@ -4425,6 +4467,371 @@ ${allTypesText}
       }], { cache_time: 5 });
     }
   });
+
+  // GUIDE / INSTRUCTION handler
+  bot.action("open_guide", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+
+    const guideText = lang === "uk" ? 
+`📖 *ІНСТРУКЦІЯ DARKSHARE*
+━━━━━━━━━━━━━━━━━━━━
+
+🔍 *Як перевіряти?*
+
+*1. Через бота:*
+├ Натисни «Перевірка» в меню
+├ Обери тип (IP, Email, Wallet...)
+└ Відправ дані для аналізу
+
+*2. Inline режим (в будь-якому чаті):*
+├ Напиши: \`@DARKSHAREN1_BOT ip 8.8.8.8\`
+├ Або: \`@DARKSHAREN1_BOT email test@mail.com\`
+└ Результат з'явиться прямо в чаті!
+
+*3. Веб-панель:*
+└ Перейди на ${webUrl}/dashboard
+
+📋 *Типи перевірок:*
+├ 🌐 \`ip\` — IP адреси
+├ 💰 \`wallet\` — крипто гаманці
+├ 📧 \`email\` — email адреси
+├ 📱 \`phone\` — номери телефонів
+├ 🔗 \`domain\` — домени
+├ 🔍 \`url\` — посилання
+├ 🐛 \`cve\` — вразливості
+├ #️⃣ \`hash\` — файлові хеші
+├ 👤 \`username\` — юзернейми
+└ 💳 \`card\` — BIN карток
+
+⭐ *Тарифи:*
+├ 🆓 FREE — 5 перевірок/день
+├ ⭐ PRO — 50 перевірок/день ($10/міс)
+└ 👑 ENTERPRISE — безлімітно ($35/міс)
+
+💡 *Поради:*
+├ Перевіряй перед переказом крипти
+├ Завжди перевіряй нові контакти
+└ Використай inline для швидкої перевірки` :
+    lang === "ru" ?
+`📖 *ИНСТРУКЦИЯ DARKSHARE*
+━━━━━━━━━━━━━━━━━━━━
+
+🔍 *Как проверять?*
+
+*1. Через бота:*
+├ Нажми «Проверка» в меню
+├ Выбери тип (IP, Email, Wallet...)
+└ Отправь данные для анализа
+
+*2. Inline режим (в любом чате):*
+├ Напиши: \`@DARKSHAREN1_BOT ip 8.8.8.8\`
+├ Или: \`@DARKSHAREN1_BOT email test@mail.com\`
+└ Результат появится прямо в чате!
+
+*3. Веб-панель:*
+└ Перейди на ${webUrl}/dashboard
+
+📋 *Типы проверок:*
+├ 🌐 \`ip\` — IP адреса
+├ 💰 \`wallet\` — крипто кошельки
+├ 📧 \`email\` — email адреса
+├ 📱 \`phone\` — номера телефонов
+├ 🔗 \`domain\` — домены
+├ 🔍 \`url\` — ссылки
+├ 🐛 \`cve\` — уязвимости
+├ #️⃣ \`hash\` — файловые хеши
+├ 👤 \`username\` — юзернеймы
+└ 💳 \`card\` — BIN карт
+
+⭐ *Тарифы:*
+├ 🆓 FREE — 5 проверок/день
+├ ⭐ PRO — 50 проверок/день ($10/мес)
+└ 👑 ENTERPRISE — безлимитно ($35/мес)` :
+`📖 *DARKSHARE GUIDE*
+━━━━━━━━━━━━━━━━━━━━
+
+🔍 *How to check?*
+
+*1. Via bot:*
+├ Press «Check» in the menu
+├ Choose type (IP, Email, Wallet...)
+└ Send data for analysis
+
+*2. Inline mode (in any chat):*
+├ Type: \`@DARKSHAREN1_BOT ip 8.8.8.8\`
+├ Or: \`@DARKSHAREN1_BOT email test@mail.com\`
+└ Result appears right in the chat!
+
+*3. Web panel:*
+└ Go to ${webUrl}/dashboard
+
+📋 *Check types:*
+├ 🌐 \`ip\` — IP addresses
+├ 💰 \`wallet\` — crypto wallets
+├ 📧 \`email\` — email addresses
+├ 📱 \`phone\` — phone numbers
+├ 🔗 \`domain\` — domains
+├ 🔍 \`url\` — URLs
+├ 🐛 \`cve\` — vulnerabilities
+├ #️⃣ \`hash\` — file hashes
+├ 👤 \`username\` — usernames
+└ 💳 \`card\` — card BINs
+
+⭐ *Plans:*
+├ 🆓 FREE — 5 checks/day
+├ ⭐ PRO — 50 checks/day ($10/mo)
+└ 👑 ENTERPRISE — unlimited ($35/mo)`;
+
+    try {
+      await ctx.editMessageText(guideText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [urlS("🌐 " + (lang === "uk" ? "Інструкція на сайті" : lang === "ru" ? "Инструкция на сайте" : "Guide on website"), `${webUrl}/guide`, "primary", E.globe)],
+          [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
+        ])
+      });
+    } catch {
+      await ctx.reply(guideText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [urlS("🌐 " + (lang === "uk" ? "Інструкція на сайті" : lang === "ru" ? "Инструкция на сайте" : "Guide on website"), `${webUrl}/guide`, "primary", E.globe)],
+          [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
+        ])
+      });
+    }
+  });
+
+  // ADMIN DAILY BROADCAST settings
+  bot.action("admin_daily_broadcast", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    const enabled = await storage.getAdminSetting("daily_broadcast_enabled");
+    const lastSent = await storage.getAdminSetting("daily_broadcast_last_sent");
+    const lastReach = await storage.getAdminSetting("daily_broadcast_last_reach");
+    const allUsers = await storage.getAllUsers();
+    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false);
+
+    const statusEmoji = enabled === "true" ? "✅" : "❌";
+    const statusText = enabled === "true" 
+      ? (lang === "uk" ? "Увімкнено" : lang === "ru" ? "Включено" : "Enabled")
+      : (lang === "uk" ? "Вимкнено" : lang === "ru" ? "Выключено" : "Disabled");
+
+    const lastSentText = lastSent 
+      ? new Date(lastSent).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US")
+      : (lang === "uk" ? "Ще не відправлялась" : lang === "ru" ? "Еще не отправлялась" : "Never sent");
+
+    const text = `📅 *${lang === "uk" ? "Авторозсилка" : lang === "ru" ? "Авторассылка" : "Auto Daily Broadcast"}*
+━━━━━━━━━━━━━━━━━━━━
+
+${statusEmoji} ${lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status"}: *${statusText}*
+🕐 ${lang === "uk" ? "Час відправки" : lang === "ru" ? "Время отправки" : "Send time"}: *10:00 UTC*
+📨 ${lang === "uk" ? "Остання розсилка" : lang === "ru" ? "Последняя рассылка" : "Last broadcast"}: ${lastSentText}
+📊 ${lang === "uk" ? "Останнє охоплення" : lang === "ru" ? "Последний охват" : "Last reach"}: *${lastReach || 0}* ${lang === "uk" ? "юзерів" : lang === "ru" ? "юзеров" : "users"}
+
+👥 ${lang === "uk" ? "Всього користувачів" : lang === "ru" ? "Всего пользователей" : "Total users"}: *${allUsers.length}*
+🔔 ${lang === "uk" ? "З нотифікаціями" : lang === "ru" ? "С уведомлениями" : "With notifications"}: *${eligibleUsers.length}*
+
+💬 *${lang === "uk" ? "Шаблон повідомлення" : lang === "ru" ? "Шаблон сообщения" : "Message template"}:*
+_"${lang === "uk" ? "Привіт, {username}! У тебе {requestsLeft} перевірок. Сьогодні {scamCount} людей ледь не попалися на скам!" : lang === "ru" ? "Привет, {username}! У тебя {requestsLeft} проверок. Сегодня {scamCount} людей чуть не попались на скам!" : "Hi {username}! You have {requestsLeft} checks left. Today {scamCount} people nearly got scammed!"}_`;
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [enabled === "true"
+          ? cb("❌ " + (lang === "uk" ? "Вимкнути" : lang === "ru" ? "Выключить" : "Disable"), "admin_daily_toggle_off", "danger", E.cross)
+          : cb("✅ " + (lang === "uk" ? "Увімкнути" : lang === "ru" ? "Включить" : "Enable"), "admin_daily_toggle_on", "success", E.check)
+        ],
+        [cb("🚀 " + (lang === "uk" ? "Надіслати зараз" : lang === "ru" ? "Отправить сейчас" : "Send now"), "admin_daily_send_now", "primary", E.rocket)],
+        [cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "admin_daily_broadcast", "primary", E.bolt)],
+        [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
+      ])
+    });
+  });
+
+  bot.action("admin_daily_toggle_on", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    await storage.setAdminSetting("daily_broadcast_enabled", "true");
+    await ctx.answerCbQuery(
+      (await getLang(tgId)) === "uk" ? "✅ Увімкнено" : (await getLang(tgId)) === "ru" ? "✅ Включено" : "✅ Enabled"
+    );
+    const lang = await getLang(tgId);
+    const lastSent = await storage.getAdminSetting("daily_broadcast_last_sent");
+    const lastReach = await storage.getAdminSetting("daily_broadcast_last_reach");
+    const allUsers = await storage.getAllUsers();
+    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false);
+    const text = `📅 *${lang === "uk" ? "Авторозсилка" : lang === "ru" ? "Авторассылка" : "Auto Daily Broadcast"}*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ${lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status"}: *${lang === "uk" ? "Увімкнено" : lang === "ru" ? "Включено" : "Enabled"}*\n🕐 ${lang === "uk" ? "Час" : lang === "ru" ? "Время" : "Time"}: *10:00 UTC*\n📨 ${lang === "uk" ? "Остання" : lang === "ru" ? "Последняя" : "Last"}: ${lastSent ? new Date(lastSent).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US") : "—"}\n📊 ${lang === "uk" ? "Охоплення" : lang === "ru" ? "Охват" : "Reach"}: *${lastReach || 0}*\n👥 ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${allUsers.length}*\n🔔 ${lang === "uk" ? "Активних" : lang === "ru" ? "Активных" : "Active"}: *${eligibleUsers.length}*`;
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard([
+        [cb("❌ " + (lang === "uk" ? "Вимкнути" : lang === "ru" ? "Выключить" : "Disable"), "admin_daily_toggle_off", "danger", E.cross)],
+        [cb("🚀 " + (lang === "uk" ? "Надіслати зараз" : lang === "ru" ? "Отправить сейчас" : "Send now"), "admin_daily_send_now", "primary", E.rocket)],
+        [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
+      ]) });
+    } catch { }
+  });
+
+  bot.action("admin_daily_toggle_off", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    await storage.setAdminSetting("daily_broadcast_enabled", "false");
+    const lang = await getLang(tgId);
+    await ctx.answerCbQuery(lang === "uk" ? "❌ Вимкнено" : lang === "ru" ? "❌ Выключено" : "❌ Disabled");
+    const allUsers = await storage.getAllUsers();
+    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false);
+    const lastSent = await storage.getAdminSetting("daily_broadcast_last_sent");
+    const lastReach = await storage.getAdminSetting("daily_broadcast_last_reach");
+    const text = `📅 *${lang === "uk" ? "Авторозсилка" : lang === "ru" ? "Авторассылка" : "Auto Daily Broadcast"}*\n━━━━━━━━━━━━━━━━━━━━\n\n❌ ${lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status"}: *${lang === "uk" ? "Вимкнено" : lang === "ru" ? "Выключено" : "Disabled"}*\n🕐 ${lang === "uk" ? "Час" : lang === "ru" ? "Время" : "Time"}: *10:00 UTC*\n📨 ${lang === "uk" ? "Остання" : lang === "ru" ? "Последняя" : "Last"}: ${lastSent ? new Date(lastSent).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US") : "—"}\n📊 ${lang === "uk" ? "Охоплення" : lang === "ru" ? "Охват" : "Reach"}: *${lastReach || 0}*\n👥 ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${allUsers.length}*\n🔔 ${lang === "uk" ? "Активних" : lang === "ru" ? "Активных" : "Active"}: *${eligibleUsers.length}*`;
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard([
+        [cb("✅ " + (lang === "uk" ? "Увімкнути" : lang === "ru" ? "Включить" : "Enable"), "admin_daily_toggle_on", "success", E.check)],
+        [cb("🚀 " + (lang === "uk" ? "Надіслати зараз" : lang === "ru" ? "Отправить сейчас" : "Send now"), "admin_daily_send_now", "primary", E.rocket)],
+        [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
+      ]) });
+    } catch { }
+  });
+
+  async function sendDailyBroadcast(): Promise<number> {
+    const allUsers = await storage.getAllUsers();
+    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false && u.tgId && !u.tgId.startsWith("replit:"));
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+    const scamCount = Math.floor(Math.random() * 8) + 2;
+    let sentCount = 0;
+
+    for (const u of eligibleUsers) {
+      const lang = getUserLang(u.lang);
+      const name = u.username || (lang === "uk" ? "друже" : lang === "ru" ? "друг" : "friend");
+      const left = u.requestsLeft ?? 0;
+
+      const tierLabel = u.tier === "PRO" ? "⭐ PRO" : u.tier === "ENTERPRISE" ? "👑 ENTERPRISE" : u.tier === "GROUPS" ? "👥 GROUPS" : "🆓 FREE";
+
+      const text = lang === "uk" ?
+`🛡 *DARKSHARE — Щоденний звіт*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 Привіт, *${name}*!
+
+📊 *Твій акаунт:*
+├ 🎖 Тариф: ${tierLabel}
+├ 🔍 Залишилось перевірок: *${left}*
+└ 🔥 Серія: *${u.streakDays || 0}* днів
+
+⚠️ *Сьогодні ${scamCount} людей ледь не попалися на скам!*
+Перевіряй контакти, адреси і гаманці перед тим як довіряти.
+
+💡 _Використай свої перевірки — захисти себе!_` :
+      lang === "ru" ?
+`🛡 *DARKSHARE — Ежедневный отчёт*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 Привет, *${name}*!
+
+📊 *Твой аккаунт:*
+├ 🎖 Тариф: ${tierLabel}
+├ 🔍 Осталось проверок: *${left}*
+└ 🔥 Серия: *${u.streakDays || 0}* дней
+
+⚠️ *Сегодня ${scamCount} людей чуть не попались на скам!*
+Проверяй контакты, адреса и кошельки перед тем как доверять.
+
+💡 _Используй свои проверки — защити себя!_` :
+`🛡 *DARKSHARE — Daily Report*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 Hi, *${name}*!
+
+📊 *Your account:*
+├ 🎖 Plan: ${tierLabel}
+├ 🔍 Checks remaining: *${left}*
+└ 🔥 Streak: *${u.streakDays || 0}* days
+
+⚠️ *Today ${scamCount} people almost got scammed!*
+Always check contacts, addresses and wallets before trusting.
+
+💡 _Use your checks — protect yourself!_`;
+
+      try {
+        await bot.telegram.sendMessage(u.tgId!, text, {
+          parse_mode: "Markdown",
+          ...Markup.inlineKeyboard([
+            [cb("🔍 " + (lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : "Check now"), "check_all", "primary", E.search)],
+            [urlS("🌐 " + (lang === "uk" ? "Відкрити DARKSHARE" : lang === "ru" ? "Открыть DARKSHARE" : "Open DARKSHARE"), webUrl, "success", E.globe)]
+          ])
+        });
+        sentCount++;
+      } catch (err: any) {
+        if (err?.response?.error_code === 403) {
+          // user blocked the bot
+        }
+      }
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    await storage.setAdminSetting("daily_broadcast_last_sent", new Date().toISOString());
+    await storage.setAdminSetting("daily_broadcast_last_reach", sentCount.toString());
+    console.log(`Daily broadcast sent to ${sentCount}/${eligibleUsers.length} users`);
+    return sentCount;
+  }
+
+  bot.action("admin_daily_send_now", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    
+    await ctx.answerCbQuery(lang === "uk" ? "🚀 Розсилка почалась..." : "🚀 Broadcasting...");
+    try {
+      await ctx.editMessageText(
+        `🚀 *${lang === "uk" ? "Розсилка почалась..." : lang === "ru" ? "Рассылка началась..." : "Broadcasting..."}*\n\n${lang === "uk" ? "Зачекайте, це може зайняти деякий час." : lang === "ru" ? "Подождите, это может занять некоторое время." : "Please wait, this may take some time."}`,
+        { parse_mode: "Markdown" }
+      );
+    } catch { }
+
+    const sentCount = await sendDailyBroadcast();
+    
+    const doneText = `✅ *${lang === "uk" ? "Розсилку завершено!" : lang === "ru" ? "Рассылка завершена!" : "Broadcast complete!"}*\n\n📊 ${lang === "uk" ? "Відправлено" : lang === "ru" ? "Отправлено" : "Sent"}: *${sentCount}* ${lang === "uk" ? "повідомлень" : lang === "ru" ? "сообщений" : "messages"}`;
+    try {
+      await ctx.editMessageText(doneText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [cb("📅 " + (lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "admin_daily_broadcast", "primary", E.back)],
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
+        ])
+      });
+    } catch {
+      await ctx.reply(doneText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]
+        ])
+      });
+    }
+  });
+
+  // Daily broadcast scheduler - runs every hour, sends at 10:00 UTC
+  setInterval(async () => {
+    try {
+      const enabled = await storage.getAdminSetting("daily_broadcast_enabled");
+      if (enabled !== "true") return;
+
+      const now = new Date();
+      if (now.getUTCHours() !== 10) return;
+
+      const lastSent = await storage.getAdminSetting("daily_broadcast_last_sent");
+      if (lastSent) {
+        const lastDate = new Date(lastSent);
+        const hoursSince = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+        if (hoursSince < 20) return;
+      }
+
+      console.log("Running scheduled daily broadcast...");
+      await sendDailyBroadcast();
+    } catch (err) {
+      console.error("Daily broadcast scheduler error:", err);
+    }
+  }, 60 * 60 * 1000);
 
   bot.catch((err: any, ctx) => {
     if (err?.message?.includes("message is not modified")) {
