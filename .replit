@@ -44,5 +44,3 @@ integrations = ["javascript_log_in_with_replit:2.0.0", "javascript_openai_ai_int
 [userenv]
 
 [userenv.shared]
-GOOGLE_CLIENT_ID = "446109774925-jj6p60v3jc1sffopfb6gd6heksfi11p2.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
