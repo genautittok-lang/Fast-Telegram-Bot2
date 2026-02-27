@@ -83,6 +83,101 @@ export async function setupBot(storage: IStorage) {
   const bot = new Telegraf<BotContext>(token);
   botInstance = bot;
 
+  let telegraphUrl = "";
+  async function createTelegraphPage() {
+    try {
+      const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+      const accRes = await fetch("https://api.telegra.ph/createAccount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ short_name: "DARKSHARE", author_name: "DARKSHARE OSINT", author_url: webUrl })
+      });
+      const accData = await accRes.json() as any;
+      if (!accData.ok) { console.error("Telegraph account error:", accData); return; }
+      const accessToken = accData.result.access_token;
+
+      const content = [
+        { tag: "h3", children: ["🛡 DARKSHARE — Security OSINT Platform"] },
+        { tag: "p", children: [{ tag: "b", children: ["Professional security intelligence for analyzing blockchain wallets, IPs, emails, phones, domains, URLs, CVEs, file hashes, usernames, and card BINs."] }] },
+        { tag: "h4", children: ["🔍 How to Use"] },
+        { tag: "p", children: [{ tag: "b", children: ["1. Via Telegram Bot:"] }] },
+        { tag: "ul", children: [
+          { tag: "li", children: ["Open @DARKSHAREN1_BOT"] },
+          { tag: "li", children: ["Press 'Check' and select a module (IP, Email, Wallet...)"] },
+          { tag: "li", children: ["Send the value to analyze"] },
+          { tag: "li", children: ["Get a detailed OSINT report with risk assessment"] },
+        ]},
+        { tag: "p", children: [{ tag: "b", children: ["2. Inline Mode (any chat):"] }] },
+        { tag: "pre", children: ["@DARKSHAREN1_BOT ip 8.8.8.8\n@DARKSHAREN1_BOT email test@mail.com\n@DARKSHAREN1_BOT domain google.com\n@DARKSHAREN1_BOT wallet 0x742d35Cc...\n@DARKSHAREN1_BOT phone +380501234567\n@DARKSHAREN1_BOT cve CVE-2024-1234\n@DARKSHAREN1_BOT username johndoe"] },
+        { tag: "p", children: ["Type ", { tag: "code", children: ["@DARKSHAREN1_BOT"] }, " followed by the check type and value — results appear instantly in the chat!"] },
+        { tag: "p", children: [{ tag: "b", children: ["3. Web Dashboard:"] }] },
+        { tag: "p", children: ["Visit ", { tag: "a", attrs: { href: `${webUrl}/dashboard` }, children: [`${webUrl}/dashboard`] }, " for the full web interface with batch checks, monitoring, PDF reports, and more."] },
+        { tag: "h4", children: ["📋 Check Types"] },
+        { tag: "ul", children: [
+          { tag: "li", children: ["🌐 IP — geolocation, VPN/proxy detection, blacklist checks"] },
+          { tag: "li", children: ["💰 Wallet — ETH/BTC/TRX/SOL analysis, scam detection, balance"] },
+          { tag: "li", children: ["📧 Email — data leaks, MX records, disposable detection"] },
+          { tag: "li", children: ["📱 Phone — carrier info, VOIP detection, region"] },
+          { tag: "li", children: ["🔗 Domain — WHOIS, SSL certificates, DNS records"] },
+          { tag: "li", children: ["🔍 URL — phishing scan, redirect chains, safety score"] },
+          { tag: "li", children: ["🐛 CVE — vulnerability details, severity, affected systems"] },
+          { tag: "li", children: ["#️⃣ Hash — malware analysis, VirusTotal results"] },
+          { tag: "li", children: ["👤 Username — social media OSINT, profile discovery"] },
+          { tag: "li", children: ["💳 Card BIN — bank info, card type, country"] },
+        ]},
+        { tag: "h4", children: ["⭐ Subscription Plans"] },
+        { tag: "ul", children: [
+          { tag: "li", children: ["🆓 FREE — 5 checks per day"] },
+          { tag: "li", children: ["⭐ PRO — 50 checks per day ($10/month)"] },
+          { tag: "li", children: ["👑 ENTERPRISE — unlimited checks ($35/month)"] },
+          { tag: "li", children: ["👥 GROUPS — team access ($65/month)"] },
+        ]},
+        { tag: "h4", children: ["📱 Bot Commands"] },
+        { tag: "ul", children: [
+          { tag: "li", children: ["/start — Main menu"] },
+          { tag: "li", children: ["/menu — Dashboard"] },
+          { tag: "li", children: ["/check <type> <value> — Quick check"] },
+          { tag: "li", children: ["/stats — Your statistics"] },
+          { tag: "li", children: ["/ref — Referral program (earn free checks!)"] },
+          { tag: "li", children: ["/help — Help & commands"] },
+        ]},
+        { tag: "h4", children: ["💡 Tips"] },
+        { tag: "ul", children: [
+          { tag: "li", children: ["Always check crypto wallets before sending funds"] },
+          { tag: "li", children: ["Verify new contacts and emails for data breaches"] },
+          { tag: "li", children: ["Use inline mode for quick checks without leaving your chat"] },
+          { tag: "li", children: ["Download PDF reports for documentation"] },
+          { tag: "li", children: ["Set up monitoring to track changes over time"] },
+          { tag: "li", children: ["Invite friends via referral to earn bonus checks"] },
+        ]},
+        { tag: "p", children: [{ tag: "a", attrs: { href: webUrl }, children: ["🌐 Open DARKSHARE Web Panel"] }] },
+      ];
+
+      const pageRes = await fetch("https://api.telegra.ph/createPage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: accessToken,
+          title: "DARKSHARE — Security OSINT Guide",
+          author_name: "DARKSHARE",
+          author_url: webUrl,
+          content,
+          return_content: false
+        })
+      });
+      const pageData = await pageRes.json() as any;
+      if (pageData.ok) {
+        telegraphUrl = pageData.result.url;
+        console.log("Telegraph guide page created:", telegraphUrl);
+      } else {
+        console.error("Telegraph page error:", pageData);
+      }
+    } catch (err) {
+      console.error("Failed to create Telegraph page:", err);
+    }
+  }
+  createTelegraphPage();
+
   bot.telegram.getMe()
     .then((botInfo) => console.log("Bot info:", botInfo.username))
     .catch((err) => console.error("Failed to get bot info:", err.message));
@@ -141,11 +236,11 @@ export async function setupBot(storage: IStorage) {
        cb("📋 " + (t(lang, "admin.reportsBtn") || "Reports"), "admin_reports", "primary", E.doc)],
       [cb("📢 " + (t(lang, "admin.broadcastBtn") || "Broadcast"), "admin_broadcast", "primary", E.bell),
        cb("📅 " + (lang === "uk" ? "Авторозсилка" : lang === "ru" ? "Авторассылка" : "Auto Mail"), "admin_daily_broadcast", "success", E.clock)],
-      [cb("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user", "danger", E.cross)],
-      [cb("⭐ " + (t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier", "primary", E.star),
+      [cb("🚫 " + (t(lang, "admin.blockingBtn") || "Block"), "admin_block_user", "danger", E.cross),
        cb("➕ " + (t(lang, "admin.addReqBtn") || "Add Req"), "admin_add_requests", "success", E.check)],
-      [cb("⚙️ " + (t(lang, "admin.settingsBtn") || "Settings"), "admin_settings", "primary", E.gear),
+      [cb("⭐ " + (t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier", "primary", E.star),
        cb("📈 " + (lang === "uk" ? "Онлайн" : lang === "ru" ? "Онлайн" : "Online"), "admin_online", "primary", E.globe)],
+      [cb("⚙️ " + (t(lang, "admin.settingsBtn") || "Settings"), "admin_settings", "primary", E.gear)],
       [cb("🔙 " + (t(lang, "admin.exitBtn") || "Exit"), exitAction, "danger", E.back)]
     ]);
   }
@@ -618,58 +713,6 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       ...Markup.inlineKeyboard([
         [cb(t(lang, "buttons.newCheck"), "dashboard", "primary", E.search)],
         [cb(t(lang, "buttons.referrals"), "referrals", "success", E.link)],
-        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
-      ])
-    });
-  });
-
-  bot.command("help", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const user = await storage.getUserByTgId(tgId);
-    const lang = getUserLang(user?.lang);
-
-    const helpText = `❓ *${t(lang, "common.help")}*
-━━━━━━━━━━━━━━━━━━━━
-
-🤖 ${t(lang, "common.commands")}:
-• /start - ${t(lang, "help.startDesc")}
-• /menu - ${t(lang, "help.menuDesc")}
-• /stats - ${t(lang, "help.statsDesc")}
-• /help - ${t(lang, "help.helpDesc")}
-
-━━━━━━━━━━━━━━━━━━━━
-
-🔍 ${t(lang, "dashboard.selectModule")}:
-• 🌐 IP - geo, VPN, blacklists
-• 💰 Wallet - ETH/BTC/TRX/SOL
-• 📱 Phone - carrier, VOIP
-• 📧 Email - leaks, MX
-• 🏢 Domain - WHOIS, SSL
-• 🔗 URL - phishing scan
-• 🔓 CVE - vulnerabilities
-• 🔢 Hash - malware
-• 👤 Username - OSINT
-
-━━━━━━━━━━━━━━━━━━━━
-
-📝 ${t(lang, "common.examples")}:
-• IP: \`8.8.8.8\`
-• Wallet: 0x742d35Cc...
-• Email: user@example.com
-• Domain: example.com
-• URL: https://site.com
-• CVE: CVE-2024-1234
-
-💡 ${t(lang, "common.tips")}:
-• ${t(lang, "help.tipPdf")}
-• ${t(lang, "help.tipMonitor")}
-• ${t(lang, "help.tipReferral")}`;
-
-    await ctx.reply(helpText, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [cb(t(lang, "buttons.newCheck"), "dashboard", "primary", E.search)],
-        [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)],
         [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
       ])
     });
@@ -4337,13 +4380,18 @@ ${allTypesText}
       `👤 Username  💳 Card BIN\n\n` +
       `🌐 Web panel: ${webUrl}`;
     
+    const helpButtons: any[][] = [
+      [cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)],
+    ];
+    if (telegraphUrl) {
+      helpButtons.push([urlS("📄 " + (lang === "uk" ? "Читати на Telegraph" : lang === "ru" ? "Читать на Telegraph" : "Read on Telegraph"), telegraphUrl, "success", E.doc)]);
+    }
+    helpButtons.push([urlS("🌐 " + (lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"), `${webUrl}/guide`, "success", E.globe)]);
+    helpButtons.push([cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]);
+
     await ctx.reply(text, {
       parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [cb("📖 " + (lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)],
-        [urlS("🌐 " + (lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"), `${webUrl}/guide`, "success", E.globe)],
-        [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
-      ])
+      ...Markup.inlineKeyboard(helpButtons)
     });
   });
 
@@ -4584,21 +4632,22 @@ ${allTypesText}
 ├ ⭐ PRO — 50 checks/day ($10/mo)
 └ 👑 ENTERPRISE — unlimited ($35/mo)`;
 
+    const guideButtons: any[][] = [];
+    if (telegraphUrl) {
+      guideButtons.push([urlS("📄 " + (lang === "uk" ? "Читати на Telegraph" : lang === "ru" ? "Читать на Telegraph" : "Read on Telegraph"), telegraphUrl, "success", E.doc)]);
+    }
+    guideButtons.push([urlS("🌐 " + (lang === "uk" ? "Інструкція на сайті" : lang === "ru" ? "Инструкция на сайте" : "Guide on website"), `${webUrl}/guide`, "primary", E.globe)]);
+    guideButtons.push([cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]);
+
     try {
       await ctx.editMessageText(guideText, {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([
-          [urlS("🌐 " + (lang === "uk" ? "Інструкція на сайті" : lang === "ru" ? "Инструкция на сайте" : "Guide on website"), `${webUrl}/guide`, "primary", E.globe)],
-          [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
-        ])
+        ...Markup.inlineKeyboard(guideButtons)
       });
     } catch {
       await ctx.reply(guideText, {
         parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([
-          [urlS("🌐 " + (lang === "uk" ? "Інструкція на сайті" : lang === "ru" ? "Инструкция на сайте" : "Guide on website"), `${webUrl}/guide`, "primary", E.globe)],
-          [cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
-        ])
+        ...Markup.inlineKeyboard(guideButtons)
       });
     }
   });

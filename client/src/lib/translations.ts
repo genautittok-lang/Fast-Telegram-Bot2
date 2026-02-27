@@ -31,6 +31,7 @@ export interface TranslationSchema {
     viewAll: string;
     learnMore: string;
     comingSoon: string;
+    or: string;
   };
   auth: {
     login: string;
@@ -791,6 +792,7 @@ export const translations: Record<Language, TranslationSchema> = {
       viewAll: "View all",
       learnMore: "Learn more",
       comingSoon: "Coming soon",
+      or: "or",
     },
     auth: {
       login: "Login",
@@ -1549,6 +1551,7 @@ export const translations: Record<Language, TranslationSchema> = {
       viewAll: "Переглянути все",
       learnMore: "Дізнатися більше",
       comingSoon: "Незабаром",
+      or: "або",
     },
     auth: {
       login: "Увійти",
@@ -2307,6 +2310,7 @@ export const translations: Record<Language, TranslationSchema> = {
       viewAll: "Показать все",
       learnMore: "Узнать больше",
       comingSoon: "Скоро",
+      or: "или",
     },
     auth: {
       login: "Войти",
@@ -3065,6 +3069,7 @@ export const translations: Record<Language, TranslationSchema> = {
       viewAll: "Ver todo",
       learnMore: "Más información",
       comingSoon: "Próximamente",
+      or: "o",
     },
     auth: {
       login: "Iniciar sesión",
@@ -3823,6 +3828,7 @@ export const translations: Record<Language, TranslationSchema> = {
       viewAll: "Alle anzeigen",
       learnMore: "Mehr erfahren",
       comingSoon: "Demnächst",
+      or: "oder",
     },
     auth: {
       login: "Anmelden",

@@ -90,6 +90,10 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Daily auto-broadcast: personalized daily message to all users with their stats, remaining checks, scam warning; scheduled at 10:00 UTC hourly check
 - Admin daily broadcast controls: toggle on/off, send now, status display, reach stats (bot + web admin panel)
 - Admin panel Settings tab: daily broadcast card with enable/disable, last sent date, reach count, message template preview
+- Telegraph API integration: auto-creates instruction page on bot startup (telegra.ph), "Read on Telegraph" button in /help and Guide; Instant View support
+- Removed duplicate /help handler (was registered twice); kept the detailed multilingual version
+- Fixed admin keyboard layout: Block + Add Req paired in same row, Settings alone in row
+- Added missing `common.or` translation key across all 5 languages (en/uk/ru/es/de)
 
 ## User Preferences
 
