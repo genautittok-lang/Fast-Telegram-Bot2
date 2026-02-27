@@ -19,6 +19,8 @@ interface User {
   digestsOn?: boolean;
   lang?: string;
   totpEnabled?: boolean;
+  subscriptionExpiresAt?: string | null;
+  autoRenew?: boolean;
 }
 
 interface AuthContextType {
@@ -60,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             digestsOn: data.digestsOn,
             lang: data.lang,
             totpEnabled: data.totpEnabled,
+            subscriptionExpiresAt: data.subscriptionExpiresAt || null,
+            autoRenew: data.autoRenew || false,
           });
           setRequiresTwoFactor(false);
         } else {

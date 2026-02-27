@@ -559,6 +559,8 @@ export async function registerRoutes(
       totpEnabled: authReq.user.totpEnabled || false,
       provider: isReplitUser ? "google" : "telegram",
       email: (req.session as any)?.email || null,
+      subscriptionExpiresAt: authReq.user.subscriptionExpiresAt || null,
+      autoRenew: authReq.user.autoRenew || false,
     });
   });
 

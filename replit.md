@@ -81,6 +81,9 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - Fixed Railway healthcheck: /health endpoint registered before async DB/Stripe init
 - Fixed bot 409 conflict: limited retries with exponential backoff instead of infinite retry
 - Improved bot dashboard formatting: clean mobile-friendly layout without broken box characters
+- Subscription expiry countdown on Dashboard: shows days remaining, expiry date, auto-renew badge for paid users; color-coded (green/orange/red) with animated progress bar
+- /api/auth/me now returns subscriptionExpiresAt and autoRenew fields
+- Enhanced Chat page: 3D holographic header, glassmorphism message cards, reply-to-message with quoted block rendering, message search, pinned messages bar (report messages), date separators, typing indicator, scroll-to-bottom with new message counter, message status indicators
 
 ## User Preferences
 

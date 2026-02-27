@@ -64,7 +64,8 @@ import {
   HelpCircle,
   List,
   Star,
-  X
+  X,
+  Timer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -699,6 +700,87 @@ Sources: ${result.sources.join(', ')}`;
                       <Crown className="w-3 h-3 mr-1" />{t('pricing.upgrade')}
                     </Button>
                   )}
+                </motion.div>
+              );
+            })()}
+
+            {(() => {
+              const paidTiers = ["PRO", "ENTERPRISE", "GROUPS"];
+              const userTier = (user?.tier || "FREE").toUpperCase();
+              const expiresAt = user?.subscriptionExpiresAt;
+              if (!paidTiers.includes(userTier) || !expiresAt) return null;
+
+              const expiryDate = new Date(expiresAt);
+              const now = new Date();
+              const diffMs = expiryDate.getTime() - now.getTime();
+              const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+              const totalDays = 30;
+              const progressPct = Math.max(0, Math.min(100, (daysRemaining / totalDays) * 100));
+              const isExpired = daysRemaining <= 0;
+
+              const colorClass = isExpired ? "text-red-400" : daysRemaining <= 3 ? "text-red-400" : daysRemaining <= 7 ? "text-orange-400" : "text-emerald-400";
+              const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-emerald-500";
+              const borderColor = isExpired ? "border-red-500/30" : daysRemaining <= 3 ? "border-red-500/30" : daysRemaining <= 7 ? "border-orange-500/30" : "border-emerald-500/30";
+              const glowColor = isExpired ? "shadow-red-500/10" : daysRemaining <= 3 ? "shadow-red-500/10" : daysRemaining <= 7 ? "shadow-orange-500/10" : "shadow-emerald-500/10";
+              const iconBg = isExpired ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 3 ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 7 ? "bg-orange-500/20 border-orange-500/30" : "bg-emerald-500/20 border-emerald-500/30";
+
+              const subLabels = {
+                title: lang === "uk" ? "Підписка" : lang === "ru" ? "Подписка" : "Subscription",
+                daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : "days left",
+                expires: lang === "uk" ? "Закінчується" : lang === "ru" ? "Истекает" : "Expires",
+                expired: lang === "uk" ? "Закінчилась" : lang === "ru" ? "Истекла" : "Expired",
+                autoRenew: lang === "uk" ? "Авто-продовження" : lang === "ru" ? "Авто-продление" : "Auto-renew",
+                on: lang === "uk" ? "Увімк." : lang === "ru" ? "Вкл." : "On",
+                off: lang === "uk" ? "Вимк." : lang === "ru" ? "Выкл." : "Off",
+              };
+
+              const formattedDate = expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              });
+
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.05 }}
+                  className={`flex items-center gap-3 p-3 lg:p-4 rounded-2xl bg-gradient-to-r from-white/[0.03] to-transparent border ${borderColor} backdrop-blur-xl shadow-[0_0_30px] ${glowColor}`}
+                  data-testid="widget-subscription-countdown"
+                >
+                  <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center ${iconBg} border shrink-0`}>
+                    <Timer className={`w-4 h-4 lg:w-5 lg:h-5 ${colorClass}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                      <span className="text-xs font-medium text-muted-foreground">{subLabels.title}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {user?.autoRenew ? (
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 border text-[10px] px-1.5 py-0" data-testid="badge-auto-renew">
+                            {subLabels.autoRenew}: {subLabels.on}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-zinc-500/20 text-zinc-400 border-zinc-500/30 border text-[10px] px-1.5 py-0" data-testid="badge-auto-renew-off">
+                            {subLabels.autoRenew}: {subLabels.off}
+                          </Badge>
+                        )}
+                        <span className={`text-sm font-mono font-bold ${colorClass}`} data-testid="text-days-remaining">
+                          {isExpired ? subLabels.expired : `${daysRemaining} ${subLabels.daysLeft}`}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-1">
+                      <motion.div
+                        className={`h-full rounded-full ${barColor}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progressPct}%` }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                      />
+                    </div>
+                    <div className="text-[10px] text-muted-foreground" data-testid="text-expiry-date">
+                      {isExpired ? subLabels.expired : subLabels.expires}: {formattedDate}
+                    </div>
+                  </div>
                 </motion.div>
               );
             })()}
