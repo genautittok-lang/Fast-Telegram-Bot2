@@ -44,13 +44,18 @@ export async function setupAuth(app: Express) {
     return;
   }
 
+  const replitDomain = process.env.REPLIT_DOMAINS?.split(",")[0];
+  const webDomain = process.env.WEB_DOMAIN;
+  const baseUrl = webDomain || (replitDomain ? `https://${replitDomain}` : "http://localhost:5000");
+  const callbackURL = `${baseUrl}/api/callback`;
+  console.log("Google OAuth callback URL:", callbackURL);
+
   passport.use(
     new GoogleStrategy(
       {
         clientID,
         clientSecret,
-        callbackURL: "/api/callback",
-        proxy: true,
+        callbackURL,
       },
       async (_accessToken, _refreshToken, profile, done) => {
         try {
