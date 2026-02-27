@@ -37,6 +37,8 @@ export async function setupAuth(app: Express) {
   const clientID = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
+  console.log("Google OAuth config:", clientID ? `ID starts with ${clientID.substring(0, 10)}...` : "NO ID", clientSecret ? "Secret set" : "NO SECRET");
+
   if (!clientID || !clientSecret) {
     console.warn("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set. Google login disabled.");
     return;
