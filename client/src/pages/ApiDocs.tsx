@@ -449,7 +449,7 @@ export default function ApiDocs() {
                 {currentEndpoint.requestBody && (
                   <div className="mt-4">
                     <p className="text-xs font-mono text-muted-foreground mb-2 tracking-wider">REQUEST BODY</p>
-                    <div className="bg-black/40 rounded-lg p-3 border border-white/10">
+                    <div className="bg-black/40 rounded-lg p-3 border border-white/10 overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="text-muted-foreground text-xs font-mono">

@@ -1309,7 +1309,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Terminal className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
                         {t('dashboard.technicalDetails') || 'Technical Details'}
                       </h4>
-                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
                         {Object.entries(result.details).map(([key, value], idx) => (
                           <motion.div 
                             key={key}
