@@ -926,6 +926,45 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/quick-check", async (req, res) => {
+    const ip = req.ip || "unknown";
+    if (rateLimit("quickcheck:" + ip, 3, 86400000)) {
+      return res.status(429).json({ error: "Daily quick check limit reached. Sign up for more!" });
+    }
+
+    const { type, value } = req.body;
+    if (!type || !value) {
+      return res.status(400).json({ error: "Type and value are required" });
+    }
+
+    const allowedTypes = ["ip", "email", "domain", "wallet"];
+    if (!allowedTypes.includes(type)) {
+      return res.status(400).json({ error: "Quick check supports: IP, Email, Domain, Wallet" });
+    }
+
+    const validation = validateInput(type, value);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    try {
+      const result = await performCheck(type, value);
+      addActivity(type, value, result.riskLevel);
+      res.json({
+        type: result.type,
+        target: result.target,
+        riskScore: result.riskScore,
+        riskLevel: result.riskLevel,
+        summary: result.summary,
+        findings: result.findings.slice(0, 3),
+        timestamp: result.timestamp.toISOString(),
+        limited: true,
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // Bulk check endpoint (requires auth)
   app.post(api.check.bulk.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;

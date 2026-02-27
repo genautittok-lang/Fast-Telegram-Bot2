@@ -4305,6 +4305,127 @@ ${allTypesText}
     });
   });
 
+  bot.on("inline_query", async (ctx) => {
+    const query = ctx.inlineQuery.query.trim();
+    if (!query || query.length < 3) {
+      return ctx.answerInlineQuery([{
+        type: "article",
+        id: "help",
+        title: "🔍 DARKSHARE Quick Check",
+        description: "Type: ip 8.8.8.8 / email test@mail.com / domain google.com",
+        input_message_content: { message_text: "🛡 *DARKSHARE OSINT*\n\nUse inline: `@DARKSHAREN1_BOT ip 8.8.8.8`\n\nSupported: ip, wallet, email, phone, domain, url, cve, hash, username, card", parse_mode: "Markdown" },
+      }], { cache_time: 10 });
+    }
+
+    const parts = query.split(/\s+/);
+    const moduleType = parts[0]?.toLowerCase();
+    const inputValue = parts.slice(1).join(" ");
+
+    const validTypes: Record<string, string> = {
+      ip: "🌐 IP Analysis", wallet: "💰 Crypto Wallet", email: "📧 Email OSINT",
+      phone: "📱 Phone OSINT", domain: "🏢 Domain WHOIS", url: "🔗 URL Scanner",
+      cve: "🔓 CVE Lookup", hash: "🔢 Hash Analysis", username: "👤 Username OSINT",
+      card: "💳 BIN Lookup",
+    };
+
+    if (!validTypes[moduleType]) {
+      const suggestions = Object.entries(validTypes).map(([key, label], i) => ({
+        type: "article" as const,
+        id: `suggest-${key}`,
+        title: label,
+        description: `Type: ${key} <value>`,
+        input_message_content: { message_text: `🔍 Use: \`@DARKSHAREN1_BOT ${key} <value>\``, parse_mode: "Markdown" as const },
+      }));
+      return ctx.answerInlineQuery(suggestions, { cache_time: 10 });
+    }
+
+    if (!inputValue) {
+      return ctx.answerInlineQuery([{
+        type: "article",
+        id: "need-value",
+        title: `${validTypes[moduleType]}`,
+        description: `Enter value after "${moduleType}"`,
+        input_message_content: { message_text: `🔍 Enter: \`@DARKSHAREN1_BOT ${moduleType} <value>\``, parse_mode: "Markdown" },
+      }], { cache_time: 5 });
+    }
+
+    const escapeMdInline = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
+    const validation = (await import("./checkService")).validateInput(moduleType, inputValue);
+    if (!validation.valid) {
+      return ctx.answerInlineQuery([{
+        type: "article",
+        id: "invalid",
+        title: "❌ Invalid input",
+        description: validation.error || "Check your input format",
+        input_message_content: { message_text: `❌ ${validation.error || "Invalid input"}`, parse_mode: "Markdown" },
+      }], { cache_time: 5 });
+    }
+
+    try {
+      const tgId = ctx.from.id.toString();
+      const user = await storage.getUserByTgId(tgId);
+
+      if (!user || (user.requestsLeft ?? 0) <= 0) {
+        return ctx.answerInlineQuery([{
+          type: "article",
+          id: "no-checks",
+          title: "⚠️ No checks remaining",
+          description: "Daily limit reached. Upgrade your plan!",
+          input_message_content: { message_text: "⚠️ Daily check limit reached.\n🚀 Upgrade at darkshare.store/pricing", parse_mode: "Markdown" },
+        }], { cache_time: 5 });
+      }
+
+      const checkResult = await performCheck(moduleType, inputValue);
+      
+      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 1) - 1) });
+
+      const getRiskEmoji = (level: string) => {
+        switch (level) {
+          case "low": return "🟢";
+          case "medium": return "⚠️";
+          case "high": return "🔴";
+          case "critical": return "💀";
+          default: return "⚪";
+        }
+      };
+
+      const riskEmoji = getRiskEmoji(checkResult.riskLevel);
+      const filled = Math.round(checkResult.riskScore / 10);
+      const riskBar = "▓".repeat(filled) + "░".repeat(10 - filled);
+      
+      const safeTarget = escapeMdInline(checkResult.target);
+      const safeFindings = checkResult.findings.slice(0, 4).map((f, i, arr) => 
+        i === arr.length - 1 ? `└ ${escapeMdInline(f)}` : `├ ${escapeMdInline(f)}`
+      ).join("\n");
+      const safeSummary = escapeMdInline(checkResult.summary);
+
+      const resultText = `🛡 *DARKSHARE ${validTypes[moduleType]}*\n\n` +
+        `🎯 Target: \`${safeTarget}\`\n` +
+        `${riskEmoji} Risk: *${checkResult.riskScore}%* ${checkResult.riskLevel.toUpperCase()}\n` +
+        `\`${riskBar}\`\n\n` +
+        `📋 *Findings:*\n${safeFindings}\n\n` +
+        `📝 ${safeSummary}\n\n` +
+        `🔗 Full report → darkshare.store`;
+
+      return ctx.answerInlineQuery([{
+        type: "article",
+        id: `result-${Date.now()}`,
+        title: `${riskEmoji} ${checkResult.riskLevel.toUpperCase()} — ${checkResult.riskScore}% risk`,
+        description: checkResult.summary.slice(0, 100),
+        input_message_content: { message_text: resultText, parse_mode: "Markdown" },
+      }], { cache_time: 0 });
+
+    } catch (err: any) {
+      return ctx.answerInlineQuery([{
+        type: "article",
+        id: "error",
+        title: "❌ Check failed",
+        description: err.message || "Error performing check",
+        input_message_content: { message_text: `❌ Error: ${err.message || "Check failed"}`, parse_mode: "Markdown" },
+      }], { cache_time: 5 });
+    }
+  });
+
   bot.catch((err: any, ctx) => {
     if (err?.message?.includes("message is not modified")) {
       return;

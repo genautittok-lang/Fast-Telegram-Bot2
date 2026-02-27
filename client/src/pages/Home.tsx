@@ -126,6 +126,152 @@ function ModuleCard({ icon, title, description, apis, delay = 0, onClick }: {
   );
 }
 
+function QuickCheck({ lang }: { lang: string }) {
+  const [quickType, setQuickType] = useState("ip");
+  const [quickValue, setQuickValue] = useState("");
+  const [quickResult, setQuickResult] = useState<any>(null);
+  const [quickLoading, setQuickLoading] = useState(false);
+  const [quickError, setQuickError] = useState("");
+
+  const typeOptions = [
+    { value: "ip", label: "IP", icon: "🌐", placeholder: "8.8.8.8" },
+    { value: "email", label: "Email", icon: "📧", placeholder: "user@example.com" },
+    { value: "domain", label: "Domain", icon: "🏢", placeholder: "example.com" },
+    { value: "wallet", label: "Wallet", icon: "💰", placeholder: "0x..." },
+  ];
+
+  const handleQuickCheck = async () => {
+    if (!quickValue.trim()) return;
+    setQuickLoading(true);
+    setQuickError("");
+    setQuickResult(null);
+    try {
+      const res = await fetch("/api/quick-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: quickType, value: quickValue.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setQuickResult(data);
+    } catch (err: any) {
+      setQuickError(err.message);
+    } finally {
+      setQuickLoading(false);
+    }
+  };
+
+  const getRiskColor = (level: string) => {
+    switch (level) {
+      case "low": return "text-green-400 border-green-500/30 bg-green-500/10";
+      case "medium": return "text-yellow-400 border-yellow-500/30 bg-yellow-500/10";
+      case "high": return "text-red-400 border-red-500/30 bg-red-500/10";
+      case "critical": return "text-red-500 border-red-600/30 bg-red-600/10";
+      default: return "text-gray-400";
+    }
+  };
+
+  const tryItLabel = lang === "uk" ? "Спробуй безкоштовно" : lang === "ru" ? "Попробуй бесплатно" : lang === "es" ? "Prueba gratis" : lang === "de" ? "Kostenlos testen" : "Try it free";
+  const noRegLabel = lang === "uk" ? "Без реєстрації · 3 перевірки/день" : lang === "ru" ? "Без регистрации · 3 проверки/день" : lang === "es" ? "Sin registro · 3 verificaciones/día" : lang === "de" ? "Ohne Registrierung · 3 Checks/Tag" : "No signup · 3 checks/day";
+  const checkBtn = lang === "uk" ? "Перевірити" : lang === "ru" ? "Проверить" : lang === "es" ? "Verificar" : lang === "de" ? "Prüfen" : "Check";
+  const fullReportLabel = lang === "uk" ? "Повний звіт — увійдіть для деталей" : lang === "ru" ? "Полный отчёт — войдите для деталей" : lang === "es" ? "Informe completo — inicie sesión" : lang === "de" ? "Vollständiger Bericht — melden Sie sich an" : "Full report — sign in for details";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5, duration: 0.6 }}
+      className="mt-6 sm:mt-8"
+    >
+      <Card className="bg-card/60 backdrop-blur-sm border-white/10 p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" />
+            {tryItLabel}
+          </h3>
+          <span className="text-[10px] text-muted-foreground">{noRegLabel}</span>
+        </div>
+
+        <div className="flex gap-2 mb-3">
+          {typeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setQuickType(opt.value); setQuickResult(null); setQuickError(""); }}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${quickType === opt.value ? "bg-primary/20 border border-primary/40 text-primary" : "bg-white/5 border border-white/10 text-muted-foreground hover:border-white/20"}`}
+              data-testid={`quick-type-${opt.value}`}
+            >
+              <span>{opt.icon}</span>
+              <span className="hidden sm:inline">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={quickValue}
+            onChange={(e) => setQuickValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleQuickCheck()}
+            placeholder={typeOptions.find(o => o.value === quickType)?.placeholder}
+            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/40 transition-colors"
+            data-testid="input-quick-check"
+          />
+          <Button
+            onClick={handleQuickCheck}
+            disabled={quickLoading || !quickValue.trim()}
+            className="px-4 h-[42px]"
+            data-testid="button-quick-check"
+          >
+            {quickLoading ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>{checkBtn}</>
+            )}
+          </Button>
+        </div>
+
+        {quickError && (
+          <div className="mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+            {quickError}
+          </div>
+        )}
+
+        {quickResult && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-3"
+          >
+            <div className={`p-3 rounded-lg border ${getRiskColor(quickResult.riskLevel)}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-mono opacity-80">{quickResult.target}</span>
+                <span className="text-sm font-bold">{quickResult.riskScore}% {quickResult.riskLevel.toUpperCase()}</span>
+              </div>
+              <div className="w-full h-1.5 bg-white/10 rounded-full mb-2">
+                <div
+                  className={`h-full rounded-full transition-all duration-1000 ${quickResult.riskScore >= 60 ? "bg-red-500" : quickResult.riskScore >= 40 ? "bg-yellow-500" : "bg-green-500"}`}
+                  style={{ width: `${quickResult.riskScore}%` }}
+                />
+              </div>
+              <p className="text-xs opacity-80 mb-2">{quickResult.summary}</p>
+              {quickResult.findings?.map((f: string, i: number) => (
+                <p key={i} className="text-[11px] opacity-60">{i === quickResult.findings.length - 1 ? "└" : "├"} {f}</p>
+              ))}
+              <div className="mt-2 pt-2 border-t border-white/10">
+                <Link href="/login">
+                  <span className="text-[11px] text-primary hover:underline cursor-pointer" data-testid="link-full-report">
+                    {fullReportLabel} →
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </Card>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const { t, lang } = useTranslation();
   
@@ -359,6 +505,8 @@ export default function Home() {
                     <span>{t("landing.cta.apiIntegration")}</span>
                   </div>
                 </div>
+
+                <QuickCheck lang={lang} />
               </motion.div>
             </div>
 

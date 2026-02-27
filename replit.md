@@ -5,6 +5,9 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Feb 2026)
+- Quick Check on landing page: public `/api/quick-check` endpoint (no auth, 3 checks/day per IP, limited response), QuickCheck widget in hero section with IP/Email/Domain/Wallet type selector
+- Telegram bot inline mode: `@DARKSHAREN1_BOT ip 8.8.8.8` works in any chat, shows risk score and findings inline, validates input before checking, escapes Markdown in results
+- Google OAuth via passport-google-oauth20: `/api/login` → Google consent → `/api/callback`, supports Railway (`WEB_DOMAIN` env var) and Replit (`REPLIT_DOMAINS`) deployments
 - Enhanced Chat: supports photo/video uploads (multer, 25MB limit), emoji picker with 4 categories (faces, security, finance, flags), team group chat (switch between global and team-specific chats), auto-expanding textarea with Shift+Enter for newlines, media preview with lightbox for images
 - Team Group Chat: team members can chat privately via team tabs in Chat page, messages filtered by teamId, access control verifies team membership
 - Landing page improvements: "Today Detected" block with animated threat stats, Demo Result block showing example wallet analysis (risk score 78/100), "When to Use" section with 4 use cases (crypto, Telegram, investments, partners), Case Studies with 3 real protection stories, "Discuss Risks in Chat" CTA button
