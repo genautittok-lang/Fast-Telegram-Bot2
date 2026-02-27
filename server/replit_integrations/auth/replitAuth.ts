@@ -100,14 +100,27 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/callback",
-    passport.authenticate("google", {
-      failureRedirect: "/login",
-    }),
-    (_req, res) => {
-      res.redirect("/dashboard");
-    }
-  );
+  app.get("/api/callback", (req, res, next) => {
+    console.log("Google callback received, query:", JSON.stringify(req.query));
+    passport.authenticate("google", (err: any, user: any, info: any) => {
+      if (err) {
+        console.error("Google auth error:", err);
+        return res.redirect("/login?error=auth_failed");
+      }
+      if (!user) {
+        console.error("Google auth no user, info:", info);
+        return res.redirect("/login?error=no_user");
+      }
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Google login error:", loginErr);
+          return res.redirect("/login?error=login_failed");
+        }
+        console.log("Google auth success, user:", JSON.stringify(user.claims?.email));
+        return res.redirect("/dashboard");
+      });
+    })(req, res, next);
+  });
 
   app.get("/api/logout", (req, res) => {
     req.logout(() => {
