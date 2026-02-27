@@ -755,6 +755,62 @@ export default function Account() {
                     <p className="text-xs lg:text-sm text-muted-foreground">{t('account.corporatePlan')}</p>
                   )}
                 </div>
+                {userTier !== "FREE" && user?.subscriptionExpiresAt && (() => {
+                  const expiryDate = new Date(user.subscriptionExpiresAt);
+                  const now = new Date();
+                  const diffMs = expiryDate.getTime() - now.getTime();
+                  const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+                  const isExpired = daysRemaining <= 0;
+                  const progressPct = Math.max(0, Math.min(100, (daysRemaining / 30) * 100));
+                  const colorClass = isExpired ? "text-red-400" : daysRemaining <= 3 ? "text-red-400" : daysRemaining <= 7 ? "text-orange-400" : "text-emerald-400";
+                  const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-emerald-500";
+
+                  const subLabels = {
+                    daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : "days left",
+                    expires: lang === "uk" ? "Закінчується" : lang === "ru" ? "Истекает" : "Expires",
+                    expired: lang === "uk" ? "Підписка закінчилась!" : lang === "ru" ? "Подписка истекла!" : "Subscription expired!",
+                    autoRenew: lang === "uk" ? "Авто-продовження" : lang === "ru" ? "Авто-продление" : "Auto-renew",
+                    on: lang === "uk" ? "увімкнено" : lang === "ru" ? "включено" : "on",
+                    off: lang === "uk" ? "вимкнено" : lang === "ru" ? "выключено" : "off",
+                    renew: lang === "uk" ? "Продовжити" : lang === "ru" ? "Продлить" : "Renew",
+                  };
+
+                  const formattedDate = expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US", {
+                    day: "numeric", month: "long", year: "numeric",
+                  });
+
+                  return (
+                    <div className="mt-3 space-y-2" data-testid="subscription-expiry-info">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span className="text-xs lg:text-sm text-muted-foreground">
+                          {isExpired ? subLabels.expired : `${subLabels.expires}: ${formattedDate}`}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <span className={`text-sm font-bold font-mono ${colorClass}`} data-testid="text-days-remaining-account">
+                          {isExpired ? "0" : daysRemaining} {subLabels.daysLeft}
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className={`h-full rounded-full ${barColor} transition-all duration-500`} style={{ width: `${progressPct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {subLabels.autoRenew}: <span className={user?.autoRenew ? "text-emerald-400" : "text-zinc-400"}>{user?.autoRenew ? subLabels.on : subLabels.off}</span>
+                        </span>
+                        {(isExpired || daysRemaining <= 5) && (
+                          <Link href="/pricing">
+                            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-xs h-7" data-testid="button-renew">
+                              <RefreshCw className="w-3 h-3 mr-1" />{subLabels.renew}
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
                 {userTier === "FREE" && (
                   <Link href="/pricing">
                     <Button 

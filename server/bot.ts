@@ -474,7 +474,19 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
 ├ ${statusIcon} ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${requestsLeft}* / ${requestsLimit}
 ├ ${progressBar}
 ├ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${user?.streakDays || 0}* ${lang === "uk" ? "днів" : lang === "ru" ? "дней" : "days"}
-└ 🕐 ${lastActivity}${requestsWarning}
+└ 🕐 ${lastActivity}${requestsWarning}${(() => {
+  if (user?.subscriptionExpiresAt && tierName !== "FREE") {
+    const expDate = new Date(user.subscriptionExpiresAt);
+    const daysLeft = Math.max(0, Math.ceil((expDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    const expStr = expDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "short" });
+    const icon = daysLeft <= 0 ? "🔴" : daysLeft <= 7 ? "🟠" : "📅";
+    const label = daysLeft <= 0 
+      ? (lang === "uk" ? "Підписка закінчилась!" : lang === "ru" ? "Подписка истекла!" : "Subscription expired!")
+      : `${daysLeft} ${lang === "uk" ? "дн. до" : lang === "ru" ? "дн. до" : "days until"} ${expStr}`;
+    return `\n${icon} ${label}`;
+  }
+  return "";
+})()}
 
 💡 ${lang === "uk" ? "Натисни «Перевірка» для початку аналізу" : lang === "ru" ? "Нажми «Проверка» для начала анализа" : "Press «Check» to start analysis"}`;
 
@@ -3596,7 +3608,19 @@ ${allTypesText}
       `├ ${t(lang, "admin.streakLabel")} ${user.streakDays} ${t(lang, "admin.days")}\n` +
       `├ ${t(lang, "admin.refCode")} \`${user.refCode || "—"}\`\n` +
       `├ ${t(lang, "admin.discount")} ${user.discountPct || 0}%\n` +
-      `└ ${t(lang, "admin.registrationDate")} ${user.createdAt ? new Date(user.createdAt).toLocaleDateString(dateLocale) : "—"}\n\n` +
+      `├ ${t(lang, "admin.registrationDate")} ${user.createdAt ? new Date(user.createdAt).toLocaleDateString(dateLocale) : "—"}\n` +
+      (() => {
+        if (user.subscriptionExpiresAt) {
+          const expDate = new Date(user.subscriptionExpiresAt);
+          const daysLeft = Math.max(0, Math.ceil((expDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+          const expStr = expDate.toLocaleDateString(dateLocale);
+          const statusIcon = daysLeft <= 0 ? "🔴" : daysLeft <= 7 ? "🟠" : "🟢";
+          const expiryLabel = lang === "uk" ? "Підписка до" : lang === "ru" ? "Подписка до" : "Subscription until";
+          const daysLabel = lang === "uk" ? "днів" : lang === "ru" ? "дней" : "days";
+          return `└ ${statusIcon} ${expiryLabel}: ${expStr} (${daysLeft} ${daysLabel})`;
+        }
+        return `└ ${lang === "uk" ? "Без підписки" : lang === "ru" ? "Без подписки" : "No subscription"}`;
+      })() + `\n\n` +
       `${t(lang, "admin.activityTitle")}\n` +
       `├ ${t(lang, "admin.reportsLabel")} ${reports.length}\n` +
       `└ ${t(lang, "admin.monitorsLabel")} ${watches.length}`;
