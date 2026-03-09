@@ -75,10 +75,14 @@ export function MobileMenu({
   const publicItems: Array<{ href: string; icon: any; label: string; highlight?: boolean; desc?: string }> = [
     { href: "/", icon: Home, label: t('mobile.home'), desc: "OSINT Platform" },
     { href: "/pricing", icon: CreditCard, label: t('nav.pricing'), desc: "PRO & Enterprise" },
-    { href: "/login", icon: Shield, label: t('auth.signIn'), highlight: true, desc: "Telegram Login" },
+    ...(isAuthenticated
+      ? [{ href: "/dashboard", icon: Shield, label: "Open App", highlight: true, desc: "Security Scanner" }]
+      : [{ href: "/login", icon: Shield, label: t('auth.signIn'), highlight: true, desc: "Telegram Login" }]
+    ),
   ];
 
   const authItems: Array<{ href: string; icon: any; label: string; highlight?: boolean; desc?: string }> = [
+    { href: "/", icon: Home, label: "Website", desc: "Landing Page" },
     { href: "/dashboard", icon: Shield, label: t('mobile.checks'), highlight: true, desc: "OSINT Scanner" },
     { href: "/history", icon: History, label: t('nav.history'), desc: "Check Results" },
     { href: "/monitoring", icon: Eye, label: t('nav.monitoring'), desc: "Real-time Alerts" },

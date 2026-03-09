@@ -60,6 +60,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { ThreatFeed } from "@/components/ThreatFeed";
 import { Footer } from "@/components/Footer";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -275,6 +276,7 @@ function QuickCheck({ lang }: { lang: string }) {
 
 export default function Home() {
   const { t, lang } = useTranslation();
+  const { isAuthenticated } = useAuth();
   
   const [openFaqItems, setOpenFaqItems] = useState<number[]>([]);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
@@ -422,12 +424,22 @@ export default function Home() {
                 {lang === "uk" ? "Бот" : lang === "ru" ? "Бот" : lang === "es" ? "Bot" : lang === "de" ? "Bot" : "Bot"}
               </Button>
             </a>
-            <Link href="/login">
-              <Button size="sm" className="ml-2" data-testid="link-nav-login">
-                <Shield className="w-4 h-4 mr-1.5" />
-                {t("auth.signIn")}
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <Button size="sm" className="ml-2 bg-gradient-to-r from-primary to-emerald-400 text-black font-semibold hover:opacity-90" data-testid="link-nav-open-app">
+                  <Smartphone className="w-4 h-4 mr-1.5" />
+                  {lang === "uk" ? "Відкрити додаток" : lang === "ru" ? "Открыть приложение" : lang === "es" ? "Abrir app" : lang === "de" ? "App öffnen" : "Open App"}
+                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button size="sm" className="ml-2" data-testid="link-nav-login">
+                  <Shield className="w-4 h-4 mr-1.5" />
+                  {t("auth.signIn")}
+                </Button>
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
@@ -435,7 +447,7 @@ export default function Home() {
             
             <LanguageSwitcher />
             
-            <MobileMenu isAuthenticated={false} />
+            <MobileMenu isAuthenticated={isAuthenticated} />
           </div>
         </div>
       </nav>
@@ -467,15 +479,18 @@ export default function Home() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
-                  <Link href="/login">
+                  <Link href={isAuthenticated ? "/dashboard" : "/login"}>
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group animate-glow-pulse hover:scale-[1.02] transition-transform duration-300"
+                      className={`w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group hover:scale-[1.02] transition-transform duration-300 ${isAuthenticated ? 'bg-gradient-to-r from-primary to-emerald-400 text-black font-bold animate-glow-pulse' : 'animate-glow-pulse'}`}
                       data-testid="button-web-dashboard"
                     >
-                      <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {t("landing.cta.webDashboard")}
-                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      {isAuthenticated ? <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" /> : <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />}
+                      {isAuthenticated 
+                        ? (lang === "uk" ? "Відкрити додаток" : lang === "ru" ? "Открыть приложение" : lang === "es" ? "Abrir app" : lang === "de" ? "App öffnen" : "Open App")
+                        : t("landing.cta.webDashboard")
+                      }
+                      <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
                   <a 
