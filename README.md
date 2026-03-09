@@ -1,4 +1,4 @@
-# DARKSHARE v4.0
+# DARKSHARE v4.4
 
 Digital risk assessment platform with Telegram bot and web dashboard.
 

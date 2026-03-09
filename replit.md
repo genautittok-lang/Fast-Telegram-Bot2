@@ -6,7 +6,7 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 
 ## Recent Changes (Feb 2026)
 - Quick Check on landing page: public `/api/quick-check` endpoint (no auth, 3 checks/day per IP, limited response), QuickCheck widget in hero section with IP/Email/Domain/Wallet type selector
-- Telegram bot inline mode: `@DARKSHAREN1_BOT ip 8.8.8.8` works in any chat, shows risk score and findings inline, validates input before checking, escapes Markdown in results
+- Telegram bot inline mode: `@DarkShare1Bot ip 8.8.8.8` works in any chat, shows risk score and findings inline, validates input before checking, escapes Markdown in results
 - Google OAuth via passport-google-oauth20: `/api/login` → Google consent → `/api/callback`, supports Railway (`WEB_DOMAIN` env var) and Replit (`REPLIT_DOMAINS`) deployments
 - Enhanced Chat: supports photo/video uploads (multer, 25MB limit), emoji picker with 4 categories (faces, security, finance, flags), team group chat (switch between global and team-specific chats), auto-expanding textarea with Shift+Enter for newlines, media preview with lightbox for images
 - Team Group Chat: team members can chat privately via team tabs in Chat page, messages filtered by teamId, access control verifies team membership

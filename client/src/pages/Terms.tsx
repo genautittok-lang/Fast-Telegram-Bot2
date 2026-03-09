@@ -63,7 +63,7 @@ function TermsContent() {
     },
     {
       title: "13. Contact Information",
-      content: "For questions about these Terms of Service, please contact us at darkshare.store@gmail.com or through our Telegram bot @DARKSHAREN1_BOT."
+      content: "For questions about these Terms of Service, please contact us at darkshare.store@gmail.com or through our Telegram bot @DarkShare1Bot."
     },
   ];
 

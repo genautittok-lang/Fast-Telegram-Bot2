@@ -115,7 +115,7 @@ export async function registerRoutes(
       if (passportUser?.claims?.sub && !req.session?.userId) {
         const claims = passportUser.claims;
         const email = claims.email || claims.sub;
-        const username = claims.first_name || claims.email?.split('@')[0] || 'user';
+        const username = 'Dark' + Math.floor(1000000 + Math.random() * 9000000);
         const photoUrl = claims.profile_image_url || '';
         
         let dsUser = await storage.getUserByTgId(`replit:${claims.sub}`);
@@ -141,7 +141,7 @@ export async function registerRoutes(
         req.session.save(() => {});
       }
     } catch (e) {
-      // Silently continue if bridge fails
+      console.error("Auth bridge error:", e);
     }
     next();
   });

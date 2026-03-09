@@ -106,13 +106,13 @@ export async function setupBot(storage: IStorage) {
         { tag: "h3", children: [tl("📋 Початок роботи", "📋 Начало работы", "📋 Getting Started", pl)] },
         { tag: "p", children: [tl("DARKSHARE доступний трьома способами:", "DARKSHARE доступен тремя способами:", "DARKSHARE is available in three ways:", pl)] },
         { tag: "ul", children: [
-          { tag: "li", children: [{ tag: "b", children: ["Telegram Bot"] }, " — @DARKSHAREN1_BOT ", tl("для швидких перевірок та inline режиму", "для быстрых проверок и inline режима", "for quick checks and inline mode", pl)] },
+          { tag: "li", children: [{ tag: "b", children: ["Telegram Bot"] }, " — @DarkShare1Bot ", tl("для швидких перевірок та inline режиму", "для быстрых проверок и inline режима", "for quick checks and inline mode", pl)] },
           { tag: "li", children: [{ tag: "b", children: [tl("Веб-дашборд", "Веб-дашборд", "Web Dashboard", pl)] }, " — ", { tag: "a", attrs: { href: webUrl }, children: [webUrl] }, tl(" для аналітики, масових перевірок, моніторингу", " для аналитики, массовых проверок, мониторинга", " for full analytics, bulk checks, monitoring", pl)] },
           { tag: "li", children: [{ tag: "b", children: ["REST API"] }, " — ", tl("для інтеграції з вашими системами безпеки та SIEM/SOC", "для интеграции с вашими системами безопасности и SIEM/SOC", "for integration with your security tools and SIEM/SOC", pl)] },
         ]},
         { tag: "p", children: [{ tag: "b", children: [tl("Швидкий старт:", "Быстрый старт:", "Quick start:", pl)] }] },
         { tag: "ul", children: [
-          { tag: "li", children: [tl("1. Відкрийте @DARKSHAREN1_BOT у Telegram і натисніть /start", "1. Откройте @DARKSHAREN1_BOT в Telegram и нажмите /start", "1. Open @DARKSHAREN1_BOT in Telegram and press /start", pl)] },
+          { tag: "li", children: [tl("1. Відкрийте @DarkShare1Bot у Telegram і натисніть /start", "1. Откройте @DarkShare1Bot в Telegram и нажмите /start", "1. Open @DarkShare1Bot in Telegram and press /start", pl)] },
           { tag: "li", children: [tl("2. Увійдіть на ", "2. Войдите на ", "2. Sign in at ", pl), { tag: "a", attrs: { href: webUrl }, children: [webUrl] }, tl(" через Telegram або Google", " через Telegram или Google", " via Telegram or Google", pl)] },
           { tag: "li", children: [tl("3. Оберіть тип перевірки та введіть значення", "3. Выберите тип проверки и введите значение", "3. Choose a check type and enter the target value", pl)] },
           { tag: "li", children: [tl("4. Отримайте детальний звіт з risk score, findings та metadata", "4. Получите детальный отчёт с risk score, findings и metadata", "4. Get a detailed report with risk score, findings, and metadata", pl)] },
@@ -167,8 +167,8 @@ export async function setupBot(storage: IStorage) {
         { tag: "pre", children: ["/start    — Main menu and dashboard\n/menu     — Open control panel\n/check    — Quick check: /check ip 8.8.8.8\n/stats    — Your personal statistics\n/ref      — Referral program\n/help     — Full help & instructions\n/support  — Contact support team"] },
 
         { tag: "h3", children: [tl("⚡ Inline режим (у будь-якому чаті!)", "⚡ Inline режим (в любом чате!)", "⚡ Inline Mode (Use in Any Chat!)", pl)] },
-        { tag: "p", children: ["Type @DARKSHAREN1_BOT followed by check type and value directly in any Telegram chat — personal, group, or channel. Results appear as inline messages."] },
-        { tag: "pre", children: ["@DARKSHAREN1_BOT ip 8.8.8.8\n@DARKSHAREN1_BOT email test@mail.com\n@DARKSHAREN1_BOT domain google.com\n@DARKSHAREN1_BOT wallet 0x742d35Cc...\n@DARKSHAREN1_BOT phone +380501234567\n@DARKSHAREN1_BOT cve CVE-2021-44228\n@DARKSHAREN1_BOT hash d41d8cd98f...\n@DARKSHAREN1_BOT username johndoe\n@DARKSHAREN1_BOT card 424242\n@DARKSHAREN1_BOT url https://site.com"] },
+        { tag: "p", children: ["Type @DarkShare1Bot followed by check type and value directly in any Telegram chat — personal, group, or channel. Results appear as inline messages."] },
+        { tag: "pre", children: ["@DarkShare1Bot ip 8.8.8.8\n@DarkShare1Bot email test@mail.com\n@DarkShare1Bot domain google.com\n@DarkShare1Bot wallet 0x742d35Cc...\n@DarkShare1Bot phone +380501234567\n@DarkShare1Bot cve CVE-2021-44228\n@DarkShare1Bot hash d41d8cd98f...\n@DarkShare1Bot username johndoe\n@DarkShare1Bot card 424242\n@DarkShare1Bot url https://site.com"] },
         { tag: "p", children: ["All 11 modules work in inline mode. Each result includes risk score, key findings, and a link to the full report."] },
 
         { tag: "h3", children: [tl("🖥 Можливості веб-дашборду", "🖥 Возможности веб-дашборда", "🖥 Web Dashboard Features", pl)] },
@@ -249,7 +249,7 @@ export async function setupBot(storage: IStorage) {
 
         { tag: "h3", children: [tl("❓ Часті питання", "❓ Частые вопросы", "❓ FAQ", pl)] },
         { tag: "p", children: [{ tag: "b", children: ["How many free checks per day?"] }, " — FREE plan: 5 checks/day, resets at 00:00 UTC. Earn more via referrals (+3 per friend)."] },
-        { tag: "p", children: [{ tag: "b", children: ["How does inline mode work?"] }, " — In any Telegram chat, type @DARKSHAREN1_BOT + check type + value. Result appears as sendable inline message."] },
+        { tag: "p", children: [{ tag: "b", children: ["How does inline mode work?"] }, " — In any Telegram chat, type @DarkShare1Bot + check type + value. Result appears as sendable inline message."] },
         { tag: "p", children: [{ tag: "b", children: ["How to pay?"] }, " — Crypto (TON, USDT, ETH, BTC), MonoPay, or promo codes. Available in bot and on website /pricing page."] },
         { tag: "p", children: [{ tag: "b", children: ["Is my data safe?"] }, " — Yes. No raw data stored. Results encrypted. 2FA available. Sessions manageable from Account page."] },
         { tag: "p", children: [{ tag: "b", children: ["What is Bulk mode?"] }, " — Check up to 50 targets at once. Paste a list (one per line) and get a bulk report."] },
@@ -850,7 +850,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     
-    const botUsername = (await bot.telegram.getMe()).username || "ShareposchukBot";
+    const botUsername = (await bot.telegram.getMe()).username || "DarkShare1Bot";
     const shareText = `🔍 ${t(lang, "share.checked")}:\n${module.toUpperCase()}: ${target.substring(0, 30)}...\n\n🤖 ${t(lang, "share.tryIt")}: @${botUsername}`;
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/${botUsername}`)}&text=${encodeURIComponent(shareText)}`;
     
@@ -2007,7 +2007,7 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       console.log("Failed to get referral stats:", e);
     }
 
-    const refLink = `t.me/DARKSHAREN1_BOT?start=ref_${user.refCode}`;
+    const refLink = `t.me/DarkShare1Bot?start=ref_${user.refCode}`;
     const bonusEarned = referralStats.count * 2;
     const discountProgress = Math.min(referralStats.count, 5);
     const discountPercent = discountProgress * 4;
@@ -2080,7 +2080,7 @@ ${faqText}`;
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     if (user) {
-      const refLink = `t.me/DARKSHAREN1_BOT?start=ref_${user.refCode}`;
+      const refLink = `t.me/DarkShare1Bot?start=ref_${user.refCode}`;
       await ctx.answerCbQuery("Посилання скопійовано!");
       await ctx.reply(`📋 Твоє реферальне посилання:\n\n\`${refLink}\``, { parse_mode: "Markdown" });
     }
@@ -2832,7 +2832,7 @@ ${allTypesText}
     }
     
     const refCode = user.refCode || "—";
-    const botUsername = "DARKSHAREN1_BOT";
+    const botUsername = "DarkShare1Bot";
     const refLink = `t.me/${botUsername}?start=ref_${refCode}`;
     
     let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
@@ -4478,10 +4478,10 @@ ${allTypesText}
       `├ /ref — Реферальна програма\n` +
       `└ /help — Ця довідка\n\n` +
       `📱 *Inline режим (будь-який чат):*\n` +
-      `├ \`@DARKSHAREN1_BOT ip 8.8.8.8\`\n` +
-      `├ \`@DARKSHAREN1_BOT email test@mail.com\`\n` +
-      `├ \`@DARKSHAREN1_BOT domain google.com\`\n` +
-      `└ \`@DARKSHAREN1_BOT wallet 0x...\`\n\n` +
+      `├ \`@DarkShare1Bot ip 8.8.8.8\`\n` +
+      `├ \`@DarkShare1Bot email test@mail.com\`\n` +
+      `├ \`@DarkShare1Bot domain google.com\`\n` +
+      `└ \`@DarkShare1Bot wallet 0x...\`\n\n` +
       `*Типи перевірок:*\n` +
       `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
       `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
@@ -4497,10 +4497,10 @@ ${allTypesText}
       `├ /ref — Реферальная программа\n` +
       `└ /help — Эта справка\n\n` +
       `📱 *Inline режим (любой чат):*\n` +
-      `├ \`@DARKSHAREN1_BOT ip 8.8.8.8\`\n` +
-      `├ \`@DARKSHAREN1_BOT email test@mail.com\`\n` +
-      `├ \`@DARKSHAREN1_BOT domain google.com\`\n` +
-      `└ \`@DARKSHAREN1_BOT wallet 0x...\`\n\n` +
+      `├ \`@DarkShare1Bot ip 8.8.8.8\`\n` +
+      `├ \`@DarkShare1Bot email test@mail.com\`\n` +
+      `├ \`@DarkShare1Bot domain google.com\`\n` +
+      `└ \`@DarkShare1Bot wallet 0x...\`\n\n` +
       `*Типы проверок:*\n` +
       `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
       `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
@@ -4515,10 +4515,10 @@ ${allTypesText}
       `├ /ref — Referral program\n` +
       `└ /help — This help\n\n` +
       `📱 *Inline mode (any chat):*\n` +
-      `├ \`@DARKSHAREN1_BOT ip 8.8.8.8\`\n` +
-      `├ \`@DARKSHAREN1_BOT email test@mail.com\`\n` +
-      `├ \`@DARKSHAREN1_BOT domain google.com\`\n` +
-      `└ \`@DARKSHAREN1_BOT wallet 0x...\`\n\n` +
+      `├ \`@DarkShare1Bot ip 8.8.8.8\`\n` +
+      `├ \`@DarkShare1Bot email test@mail.com\`\n` +
+      `├ \`@DarkShare1Bot domain google.com\`\n` +
+      `└ \`@DarkShare1Bot wallet 0x...\`\n\n` +
       `*Check types:*\n` +
       `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
       `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
@@ -4549,7 +4549,7 @@ ${allTypesText}
         id: "help",
         title: "🔍 DARKSHARE Quick Check",
         description: "Type: ip 8.8.8.8 / email test@mail.com / domain google.com",
-        input_message_content: { message_text: "🛡 *DARKSHARE OSINT*\n\nUse inline: `@DARKSHAREN1_BOT ip 8.8.8.8`\n\nSupported: ip, wallet, email, phone, domain, url, cve, hash, username, card", parse_mode: "Markdown" },
+        input_message_content: { message_text: "🛡 *DARKSHARE OSINT*\n\nUse inline: `@DarkShare1Bot ip 8.8.8.8`\n\nSupported: ip, wallet, email, phone, domain, url, cve, hash, username, card", parse_mode: "Markdown" },
       }], { cache_time: 10 });
     }
 
@@ -4570,7 +4570,7 @@ ${allTypesText}
         id: `suggest-${key}`,
         title: label,
         description: `Type: ${key} <value>`,
-        input_message_content: { message_text: `🔍 Use: \`@DARKSHAREN1_BOT ${key} <value>\``, parse_mode: "Markdown" as const },
+        input_message_content: { message_text: `🔍 Use: \`@DarkShare1Bot ${key} <value>\``, parse_mode: "Markdown" as const },
       }));
       return ctx.answerInlineQuery(suggestions, { cache_time: 10 });
     }
@@ -4581,7 +4581,7 @@ ${allTypesText}
         id: "need-value",
         title: `${validTypes[moduleType]}`,
         description: `Enter value after "${moduleType}"`,
-        input_message_content: { message_text: `🔍 Enter: \`@DARKSHAREN1_BOT ${moduleType} <value>\``, parse_mode: "Markdown" },
+        input_message_content: { message_text: `🔍 Enter: \`@DarkShare1Bot ${moduleType} <value>\``, parse_mode: "Markdown" },
       }], { cache_time: 5 });
     }
 
@@ -4680,8 +4680,8 @@ ${allTypesText}
 └ Відправ дані для аналізу
 
 *2. Inline режим (в будь-якому чаті):*
-├ Напиши: \`@DARKSHAREN1_BOT ip 8.8.8.8\`
-├ Або: \`@DARKSHAREN1_BOT email test@mail.com\`
+├ Напиши: \`@DarkShare1Bot ip 8.8.8.8\`
+├ Або: \`@DarkShare1Bot email test@mail.com\`
 └ Результат з'явиться прямо в чаті!
 
 *3. Веб-панель:*
@@ -4720,8 +4720,8 @@ ${allTypesText}
 └ Отправь данные для анализа
 
 *2. Inline режим (в любом чате):*
-├ Напиши: \`@DARKSHAREN1_BOT ip 8.8.8.8\`
-├ Или: \`@DARKSHAREN1_BOT email test@mail.com\`
+├ Напиши: \`@DarkShare1Bot ip 8.8.8.8\`
+├ Или: \`@DarkShare1Bot email test@mail.com\`
 └ Результат появится прямо в чате!
 
 *3. Веб-панель:*
@@ -4754,8 +4754,8 @@ ${allTypesText}
 └ Send data for analysis
 
 *2. Inline mode (in any chat):*
-├ Type: \`@DARKSHAREN1_BOT ip 8.8.8.8\`
-├ Or: \`@DARKSHAREN1_BOT email test@mail.com\`
+├ Type: \`@DarkShare1Bot ip 8.8.8.8\`
+├ Or: \`@DarkShare1Bot email test@mail.com\`
 └ Result appears right in the chat!
 
 *3. Web panel:*

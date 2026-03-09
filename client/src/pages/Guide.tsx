@@ -179,16 +179,16 @@ export default function Guide() {
   ];
 
   const inlineExamples = [
-    { cmd: "@DARKSHAREN1_BOT ip 8.8.8.8", desc: L("Перевірка IP адреси", "Проверка IP адреса", "Check IP address") },
-    { cmd: "@DARKSHAREN1_BOT email test@mail.com", desc: L("Перевірка email на витоки", "Проверка email на утечки", "Check email for breaches") },
-    { cmd: "@DARKSHAREN1_BOT domain google.com", desc: L("WHOIS та DNS домену", "WHOIS и DNS домена", "Domain WHOIS and DNS") },
-    { cmd: "@DARKSHAREN1_BOT wallet 0x742d...", desc: L("Аналіз крипто гаманця", "Анализ крипто кошелька", "Crypto wallet analysis") },
-    { cmd: "@DARKSHAREN1_BOT phone +380501234567", desc: L("Перевірка номеру телефону", "Проверка номера телефона", "Phone number lookup") },
-    { cmd: "@DARKSHAREN1_BOT cve CVE-2021-44228", desc: L("Пошук вразливості", "Поиск уязвимости", "Vulnerability lookup") },
-    { cmd: "@DARKSHAREN1_BOT hash d41d8cd98f...", desc: L("Перевірка хешу файлу", "Проверка хеша файла", "File hash check") },
-    { cmd: "@DARKSHAREN1_BOT username johndoe", desc: L("OSINT пошук юзернейму", "OSINT поиск юзернейма", "Username OSINT search") },
-    { cmd: "@DARKSHAREN1_BOT card 424242", desc: L("BIN lookup картки", "BIN lookup карты", "Card BIN lookup") },
-    { cmd: "@DARKSHAREN1_BOT url https://site.com", desc: L("Перевірка URL на фішинг", "Проверка URL на фишинг", "URL phishing check") },
+    { cmd: "@DarkShare1Bot ip 8.8.8.8", desc: L("Перевірка IP адреси", "Проверка IP адреса", "Check IP address") },
+    { cmd: "@DarkShare1Bot email test@mail.com", desc: L("Перевірка email на витоки", "Проверка email на утечки", "Check email for breaches") },
+    { cmd: "@DarkShare1Bot domain google.com", desc: L("WHOIS та DNS домену", "WHOIS и DNS домена", "Domain WHOIS and DNS") },
+    { cmd: "@DarkShare1Bot wallet 0x742d...", desc: L("Аналіз крипто гаманця", "Анализ крипто кошелька", "Crypto wallet analysis") },
+    { cmd: "@DarkShare1Bot phone +380501234567", desc: L("Перевірка номеру телефону", "Проверка номера телефона", "Phone number lookup") },
+    { cmd: "@DarkShare1Bot cve CVE-2021-44228", desc: L("Пошук вразливості", "Поиск уязвимости", "Vulnerability lookup") },
+    { cmd: "@DarkShare1Bot hash d41d8cd98f...", desc: L("Перевірка хешу файлу", "Проверка хеша файла", "File hash check") },
+    { cmd: "@DarkShare1Bot username johndoe", desc: L("OSINT пошук юзернейму", "OSINT поиск юзернейма", "Username OSINT search") },
+    { cmd: "@DarkShare1Bot card 424242", desc: L("BIN lookup картки", "BIN lookup карты", "Card BIN lookup") },
+    { cmd: "@DarkShare1Bot url https://site.com", desc: L("Перевірка URL на фішинг", "Проверка URL на фишинг", "URL phishing check") },
   ];
 
   const dashFeatures = [
@@ -234,7 +234,7 @@ export default function Guide() {
 
   const faqItems = [
     { q: L("Скільки перевірок я можу робити безкоштовно?", "Сколько проверок я могу делать бесплатно?", "How many free checks can I do?"), a: L("FREE тариф дає 5 перевірок на день. Вони оновлюються щодня о 00:00 UTC. Також можна отримати додаткові перевірки через реферальну програму (+3 за кожного друга).", "FREE тариф даёт 5 проверок в день. Они обновляются ежедневно в 00:00 UTC. Также можно получить дополнительные проверки через реферальную программу (+3 за каждого друга).", "FREE plan gives 5 checks per day. They reset daily at 00:00 UTC. You can also earn extra checks via referral program (+3 per friend).") },
-    { q: L("Як працює inline режим бота?", "Как работает inline режим бота?", "How does bot inline mode work?"), a: L("В будь-якому чаті Telegram введіть @DARKSHAREN1_BOT, потім тип перевірки та значення. Наприклад: @DARKSHAREN1_BOT ip 8.8.8.8. Результат з'явиться як inline повідомлення, яке можна надіслати в чат.", "В любом чате Telegram введите @DARKSHAREN1_BOT, затем тип проверки и значение. Например: @DARKSHAREN1_BOT ip 8.8.8.8. Результат появится как inline сообщение.", "In any Telegram chat, type @DARKSHAREN1_BOT followed by check type and value. Example: @DARKSHAREN1_BOT ip 8.8.8.8. Result appears as inline message you can send.") },
+    { q: L("Як працює inline режим бота?", "Как работает inline режим бота?", "How does bot inline mode work?"), a: L("В будь-якому чаті Telegram введіть @DarkShare1Bot, потім тип перевірки та значення. Наприклад: @DarkShare1Bot ip 8.8.8.8. Результат з'явиться як inline повідомлення, яке можна надіслати в чат.", "В любом чате Telegram введите @DarkShare1Bot, затем тип проверки и значение. Например: @DarkShare1Bot ip 8.8.8.8. Результат появится как inline сообщение.", "In any Telegram chat, type @DarkShare1Bot followed by check type and value. Example: @DarkShare1Bot ip 8.8.8.8. Result appears as inline message you can send.") },
     { q: L("Як оплатити підписку?", "Как оплатить подписку?", "How to pay for subscription?"), a: L("Підписку можна оплатити через: криптовалюту (TON, USDT, ETH, BTC), MonoPay (Monobank), або промокод. Оплата доступна як через бота, так і через сайт на сторінці Pricing.", "Подписку можно оплатить через: криптовалюту (TON, USDT, ETH, BTC), MonoPay (Monobank), или промокод. Оплата доступна как через бота, так и через сайт.", "You can pay via: cryptocurrency (TON, USDT, ETH, BTC), MonoPay (Monobank), or promo code. Payment available both via bot and website Pricing page.") },
     { q: L("Мої дані в безпеці?", "Мои данные в безопасности?", "Is my data safe?"), a: L("Так. Ми не зберігаємо raw дані ваших перевірок. Результати зберігаються у зашифрованому вигляді. 2FA доступний для додаткового захисту. Сесії можна переглядати та видаляти на сторінці Account.", "Да. Мы не храним raw данные ваших проверок. Результаты хранятся в зашифрованном виде. 2FA доступен для дополнительной защиты. Сессии можно просматривать и удалять.", "Yes. We don't store raw data of your checks. Results are stored encrypted. 2FA is available for extra protection. Sessions can be viewed and deleted on Account page.") },
     { q: L("Як працює моніторинг?", "Как работает мониторинг?", "How does monitoring work?"), a: L("Додайте домен, IP або гаманець до моніторингу. Система автоматично перевірятиме їх з обраним інтервалом (1, 6 або 24 години) і повідомить вас через Telegram бота при зміні статусу.", "Добавьте домен, IP или кошелёк в мониторинг. Система автоматически проверяет их с выбранным интервалом и уведомит вас через Telegram бота при изменении статуса.", "Add a domain, IP or wallet to monitoring. The system auto-checks them at chosen intervals (1, 6, or 24 hours) and notifies you via Telegram bot on status changes.") },
@@ -314,13 +314,13 @@ export default function Guide() {
 
         <Section title={L("Початок роботи", "Начало работы", "Getting Started")} icon={<Zap className="w-4 h-4 text-primary" />} delay={0.05}>
           <Card className="p-4 sm:p-5 bg-card/60 border-white/10 space-y-4">
-            <StepCard step={1} title={L("Відкрийте бота", "Откройте бота", "Open the bot")} description={L("Знайдіть @DARKSHAREN1_BOT у Telegram і натисніть /start. Бот автоматично створить ваш акаунт.", "Найдите @DARKSHAREN1_BOT в Telegram и нажмите /start. Бот автоматически создаст ваш аккаунт.", "Find @DARKSHAREN1_BOT on Telegram and press /start. Bot auto-creates your account.")} />
+            <StepCard step={1} title={L("Відкрийте бота", "Откройте бота", "Open the bot")} description={L("Знайдіть @DarkShare1Bot у Telegram і натисніть /start. Бот автоматично створить ваш акаунт.", "Найдите @DarkShare1Bot в Telegram и нажмите /start. Бот автоматически создаст ваш аккаунт.", "Find @DarkShare1Bot on Telegram and press /start. Bot auto-creates your account.")} />
             <StepCard step={2} title={L("Увійдіть на сайт", "Войдите на сайт", "Sign in to website")} description={L("Авторизуйтесь через Telegram або Google на darkshare.store для повного доступу до дашборду, історії та налаштувань.", "Авторизуйтесь через Telegram или Google на darkshare.store для полного доступа к дашборду, истории и настройкам.", "Auth via Telegram or Google at darkshare.store for full dashboard, history and settings access.")} />
             <StepCard step={3} title={L("Оберіть тип перевірки", "Выберите тип проверки", "Choose check type")} description={L("Натисніть «Перевірка» в боті або введіть дані на дашборді. Підтримується 11 типів аналізу.", "Нажмите «Проверка» в боте или введите данные на дашборде. Поддерживается 11 типов анализа.", "Press 'Check' in bot or enter data on dashboard. 11 analysis types supported.")} />
             <StepCard step={4} title={L("Отримайте звіт", "Получите отчёт", "Get report")} description={L("Детальний аналіз з risk score, findings, metadata. Збережіть у PDF, додайте до обраних або налаштуйте моніторинг.", "Детальный анализ с risk score, findings, metadata. Сохраните в PDF, добавьте в избранное или настройте мониторинг.", "Detailed analysis with risk score, findings, metadata. Save as PDF, add to favorites or set up monitoring.")} />
           </Card>
           <div className="flex flex-col sm:flex-row gap-2">
-            <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
+            <a href="https://t.me/DarkShare1Bot" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="w-full sm:w-auto" data-testid="button-guide-open-bot">
                 <SiTelegram className="w-4 h-4 mr-2" />
                 {L("Відкрити бота", "Открыть бота", "Open Bot")}
@@ -389,7 +389,7 @@ export default function Guide() {
             <p className="text-xs font-semibold text-[#2AABEE]">{L("Як це працює:", "Как это работает:", "How it works:")}</p>
             <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">1. {L("Відкрийте будь-який чат у Telegram", "Откройте любой чат в Telegram", "Open any Telegram chat")}</p>
-              <p className="text-xs text-muted-foreground">2. {L("Введіть: @DARKSHAREN1_BOT ip 8.8.8.8", "Введите: @DARKSHAREN1_BOT ip 8.8.8.8", "Type: @DARKSHAREN1_BOT ip 8.8.8.8")}</p>
+              <p className="text-xs text-muted-foreground">2. {L("Введіть: @DarkShare1Bot ip 8.8.8.8", "Введите: @DarkShare1Bot ip 8.8.8.8", "Type: @DarkShare1Bot ip 8.8.8.8")}</p>
               <p className="text-xs text-muted-foreground">3. {L("Натисніть на результат для відправки у чат", "Нажмите на результат для отправки в чат", "Click the result to send it to chat")}</p>
               <p className="text-xs text-muted-foreground">4. {L("Всі 11 модулів доступні в inline режимі!", "Все 11 модулей доступны в inline режиме!", "All 11 modules available in inline mode!")}</p>
             </div>
@@ -536,7 +536,7 @@ export default function Guide() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
-          <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
+          <a href="https://t.me/DarkShare1Bot" target="_blank" rel="noopener noreferrer">
             <Button variant="outline" className="w-full sm:w-auto" data-testid="button-guide-telegram">
               <SiTelegram className="w-4 h-4 mr-2" />
               Telegram Bot

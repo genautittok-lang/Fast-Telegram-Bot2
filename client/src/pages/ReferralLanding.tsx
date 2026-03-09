@@ -29,7 +29,7 @@ export default function ReferralLanding() {
   const [countdown, setCountdown] = useState(5);
   const [autoRedirect, setAutoRedirect] = useState(true);
   
-  const botUsername = "DARKSHAREN1_BOT";
+  const botUsername = "DarkShare1Bot";
   const telegramDeepLink = `https://t.me/${botUsername}?start=ref_${code}`;
   
   useEffect(() => {

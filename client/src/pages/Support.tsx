@@ -66,11 +66,11 @@ function SupportForm() {
               <p className="text-sm font-medium truncate">darkshare.store@gmail.com</p>
             </div>
           </a>
-          <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-[#2AABEE]/5 border border-[#2AABEE]/20 active:bg-[#2AABEE]/10" data-testid="link-support-telegram">
+          <a href="https://t.me/DarkShare1Bot" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-[#2AABEE]/5 border border-[#2AABEE]/20 active:bg-[#2AABEE]/10" data-testid="link-support-telegram">
             <SiTelegram className="w-5 h-5 text-[#2AABEE] flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Telegram Bot</p>
-              <p className="text-sm font-medium">@DARKSHAREN1_BOT</p>
+              <p className="text-sm font-medium">@DarkShare1Bot</p>
             </div>
           </a>
         </CardContent>

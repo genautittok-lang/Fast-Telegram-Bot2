@@ -2,7 +2,7 @@ export type Language = "uk" | "en" | "ru" | "es" | "de";
 
 export const translations = {
   uk: {
-    welcome: `🌑 DARKSHARE v4.0
+    welcome: `🌑 DARKSHARE v4.4
 
 Ласкаво просимо, {username}!
 Твій ID: {tgId}
@@ -101,7 +101,7 @@ export const translations = {
     referrals: {
       title: "📣 Реферальна програма",
       yourCode: "Твій код: {code}",
-      link: "Посилання: t.me/DARKSHAREN1_BOT?start=ref_{code}",
+      link: "Посилання: t.me/DarkShare1Bot?start=ref_{code}",
       count: "Рефералів: {count}/5 (до -20% знижки)",
       earnings: "Заробіток: {amount} USDT",
       invite: "Запроси друзів та отримуй бонуси!",
@@ -414,7 +414,7 @@ export const translations = {
       capCve: "🔓 CVE вразливості",
       capMore: "...та багато іншого!",
       selectLanguage: "👇 *Обери мову для початку:*",
-      regularTitle: "🌑 *DARKSHARE v4.1*",
+      regularTitle: "🌑 *DARKSHARE v4.4*",
       regularGreeting: "👋 *Привіт, {name}!*",
       yourId: "Твій ID:",
       platformDesc: "🛡️ *DARKSHARE* - професійна OSINT платформа для аналізу безпеки.",
@@ -518,7 +518,7 @@ export const translations = {
   },
   
   en: {
-    welcome: `🌑 DARKSHARE v4.0
+    welcome: `🌑 DARKSHARE v4.4
 
 Welcome, {username}!
 Your ID: {tgId}
@@ -617,7 +617,7 @@ Select a module for analysis:`,
     referrals: {
       title: "📣 Referral Program",
       yourCode: "Your code: {code}",
-      link: "Link: t.me/DARKSHAREN1_BOT?start=ref_{code}",
+      link: "Link: t.me/DarkShare1Bot?start=ref_{code}",
       count: "Referrals: {count}/5 (up to -20% discount)",
       earnings: "Earnings: {amount} USDT",
       invite: "Invite friends and get bonuses!",
@@ -930,7 +930,7 @@ Select a module for analysis:`,
       capCve: "🔓 CVE vulnerabilities",
       capMore: "...and much more!",
       selectLanguage: "👇 *Choose your language:*",
-      regularTitle: "🌑 *DARKSHARE v4.1*",
+      regularTitle: "🌑 *DARKSHARE v4.4*",
       regularGreeting: "👋 *Hello, {name}!*",
       yourId: "Your ID:",
       platformDesc: "🛡️ *DARKSHARE* - professional OSINT platform for security analysis.",
@@ -1034,7 +1034,7 @@ Select a module for analysis:`,
   },
   
   ru: {
-    welcome: `🌑 DARKSHARE v4.0
+    welcome: `🌑 DARKSHARE v4.4
 
 Добро пожаловать, {username}!
 Твой ID: {tgId}
@@ -1133,7 +1133,7 @@ Select a module for analysis:`,
     referrals: {
       title: "📣 Реферальная программа",
       yourCode: "Твой код: {code}",
-      link: "Ссылка: t.me/DARKSHAREN1_BOT?start=ref_{code}",
+      link: "Ссылка: t.me/DarkShare1Bot?start=ref_{code}",
       count: "Рефералов: {count}/5 (до -20% скидки)",
       earnings: "Заработок: {amount} USDT",
       invite: "Пригласи друзей и получай бонусы!",
@@ -1446,7 +1446,7 @@ Select a module for analysis:`,
       capCve: "🔓 CVE уязвимости",
       capMore: "...и многое другое!",
       selectLanguage: "👇 *Выбери язык:*",
-      regularTitle: "🌑 *DARKSHARE v4.1*",
+      regularTitle: "🌑 *DARKSHARE v4.4*",
       regularGreeting: "👋 *Привет, {name}!*",
       yourId: "Твой ID:",
       platformDesc: "🛡️ *DARKSHARE* - профессиональная OSINT платформа для анализа безопасности.",
@@ -1550,7 +1550,7 @@ Select a module for analysis:`,
   },
   
   es: {
-    welcome: `🌑 DARKSHARE v4.0
+    welcome: `🌑 DARKSHARE v4.4
 
 ¡Bienvenido, {username}!
 Tu ID: {tgId}
@@ -1649,7 +1649,7 @@ Selecciona un módulo para análisis:`,
     referrals: {
       title: "📣 Programa de Referidos",
       yourCode: "Tu código: {code}",
-      link: "Enlace: t.me/DARKSHAREN1_BOT?start=ref_{code}",
+      link: "Enlace: t.me/DarkShare1Bot?start=ref_{code}",
       count: "Referidos: {count}/5 (hasta -20% descuento)",
       earnings: "Ganancias: {amount} USDT",
       invite: "¡Invita amigos y obtén bonificaciones!",
@@ -1962,7 +1962,7 @@ Selecciona un módulo para análisis:`,
       capCve: "🔓 Vulnerabilidades CVE",
       capMore: "...¡y mucho más!",
       selectLanguage: "👇 *Elige tu idioma:*",
-      regularTitle: "🌑 *DARKSHARE v4.1*",
+      regularTitle: "🌑 *DARKSHARE v4.4*",
       regularGreeting: "👋 *¡Hola, {name}!*",
       yourId: "Tu ID:",
       platformDesc: "🛡️ *DARKSHARE* - plataforma OSINT profesional para análisis de seguridad.",
@@ -2066,7 +2066,7 @@ Selecciona un módulo para análisis:`,
   },
   
   de: {
-    welcome: `🌑 DARKSHARE v4.0
+    welcome: `🌑 DARKSHARE v4.4
 
 Willkommen, {username}!
 Deine ID: {tgId}
@@ -2165,7 +2165,7 @@ Wähle ein Modul zur Analyse:`,
     referrals: {
       title: "📣 Empfehlungsprogramm",
       yourCode: "Dein Code: {code}",
-      link: "Link: t.me/DARKSHAREN1_BOT?start=ref_{code}",
+      link: "Link: t.me/DarkShare1Bot?start=ref_{code}",
       count: "Empfehlungen: {count}/5 (bis -20% Rabatt)",
       earnings: "Verdienst: {amount} USDT",
       invite: "Lade Freunde ein und erhalte Boni!",
@@ -2478,7 +2478,7 @@ Wähle ein Modul zur Analyse:`,
       capCve: "🔓 CVE-Schwachstellen",
       capMore: "...und vieles mehr!",
       selectLanguage: "👇 *Wähle deine Sprache:*",
-      regularTitle: "🌑 *DARKSHARE v4.1*",
+      regularTitle: "🌑 *DARKSHARE v4.4*",
       regularGreeting: "👋 *Hallo, {name}!*",
       yourId: "Deine ID:",
       platformDesc: "🛡️ *DARKSHARE* - professionelle OSINT-Plattform für Sicherheitsanalyse.",

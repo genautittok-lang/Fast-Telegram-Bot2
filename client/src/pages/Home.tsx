@@ -404,7 +404,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-base sm:text-lg tracking-tight text-white">DARKSHARE</span>
-              <span className="text-[10px] text-primary font-mono -mt-0.5 hidden sm:block">v4.0 OSINT Platform</span>
+              <span className="text-[10px] text-primary font-mono -mt-0.5 hidden sm:block">v4.4 OSINT Platform</span>
             </div>
           </div>
           
@@ -415,7 +415,7 @@ export default function Home() {
                 {t("nav.pricing")}
               </Button>
             </Link>
-            <a href="https://t.me/DARKSHAREN1_BOT" target="_blank" rel="noopener noreferrer">
+            <a href="https://t.me/DarkShare1Bot" target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="sm" data-testid="link-nav-bot">
                 <SiTelegram className="w-4 h-4 mr-1.5" />
                 {lang === "uk" ? "Бот" : lang === "ru" ? "Бот" : lang === "es" ? "Bot" : lang === "de" ? "Bot" : "Bot"}
@@ -478,7 +478,7 @@ export default function Home() {
                     </Button>
                   </Link>
                   <a 
-                    href="https://t.me/DARKSHAREN1_BOT" 
+                    href="https://t.me/DarkShare1Bot" 
                     target="_blank" 
                     rel="noreferrer"
                   >
@@ -1470,7 +1470,7 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                 <div className="w-3 h-3 rounded-full bg-green-500/80" />
               </div>
-              <div className="flex-1 text-center font-mono text-xs text-muted-foreground">darkshare_cli — v4.0</div>
+              <div className="flex-1 text-center font-mono text-xs text-muted-foreground">darkshare_cli — v4.4</div>
             </div>
             <div className="p-3 sm:p-4 md:p-6 font-mono text-[10px] sm:text-xs md:text-sm space-y-2 sm:space-y-3 h-[240px] sm:h-[280px] md:h-[320px] overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a] z-10 pointer-events-none" />
@@ -1675,7 +1675,7 @@ export default function Home() {
                 },
                 {
                   q: lang === "uk" ? "Чи можна використовувати DARKSHARE через Telegram?" : lang === "ru" ? "Можно ли использовать DARKSHARE через Telegram?" : lang === "es" ? "¿Puedo usar DARKSHARE a través de Telegram?" : lang === "de" ? "Kann ich DARKSHARE über Telegram nutzen?" : "Can I use DARKSHARE via Telegram?",
-                  a: lang === "uk" ? "Так! Наш Telegram-бот @DARKSHAREN1_BOT надає ті ж можливості аналізу прямо у вашому месенджері. Просто надішліть ціль і отримайте миттєві результати." : lang === "ru" ? "Да! Наш Telegram-бот @DARKSHAREN1_BOT предоставляет те же возможности анализа прямо в вашем мессенджере. Просто отправьте цель и получите мгновенные результаты." : lang === "es" ? "¡Sí! Nuestro bot de Telegram @DARKSHAREN1_BOT ofrece las mismas capacidades de análisis directamente en su mensajero. Solo envíe un objetivo y obtenga resultados instantáneos." : lang === "de" ? "Ja! Unser Telegram-Bot @DARKSHAREN1_BOT bietet die gleichen Analysefunktionen direkt in Ihrem Messenger. Senden Sie einfach ein Ziel und erhalten Sie sofortige Ergebnisse." : "Yes! Our Telegram bot @DARKSHAREN1_BOT provides the same analysis capabilities directly in your messenger. Just send a target and get instant results."
+                  a: lang === "uk" ? "Так! Наш Telegram-бот @DarkShare1Bot надає ті ж можливості аналізу прямо у вашому месенджері. Просто надішліть ціль і отримайте миттєві результати." : lang === "ru" ? "Да! Наш Telegram-бот @DarkShare1Bot предоставляет те же возможности анализа прямо в вашем мессенджере. Просто отправьте цель и получите мгновенные результаты." : lang === "es" ? "¡Sí! Nuestro bot de Telegram @DarkShare1Bot ofrece las mismas capacidades de análisis directamente en su mensajero. Solo envíe un objetivo y obtenga resultados instantáneos." : lang === "de" ? "Ja! Unser Telegram-Bot @DarkShare1Bot bietet die gleichen Analysefunktionen direkt in Ihrem Messenger. Senden Sie einfach ein Ziel und erhalten Sie sofortige Ergebnisse." : "Yes! Our Telegram bot @DarkShare1Bot provides the same analysis capabilities directly in your messenger. Just send a target and get instant results."
                 },
                 {
                   q: lang === "uk" ? "Які способи оплати ви приймаєте?" : lang === "ru" ? "Какие способы оплаты вы принимаете?" : lang === "es" ? "¿Qué métodos de pago aceptan?" : lang === "de" ? "Welche Zahlungsmethoden akzeptieren Sie?" : "What payment methods do you accept?",
@@ -1766,7 +1766,7 @@ export default function Home() {
                   </Button>
                 </Link>
                 <a 
-                  href="https://t.me/DARKSHAREN1_BOT" 
+                  href="https://t.me/DarkShare1Bot" 
                   target="_blank" 
                   rel="noreferrer"
                 >

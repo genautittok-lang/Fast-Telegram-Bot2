@@ -106,7 +106,7 @@ function PrivacyContent() {
       title: "12. Contact Information",
       content: "For questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us:\n\n" +
         "\u2022 Email: darkshare.store@gmail.com\n\n" +
-        "\u2022 Telegram: @DARKSHAREN1_BOT\n\n" +
+        "\u2022 Telegram: @DarkShare1Bot\n\n" +
         "\u2022 Support Page: Available through the DARKSHARE platform"
     },
   ];

@@ -17,7 +17,7 @@ export function Footer() {
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg tracking-tight">DARKSHARE</span>
-                <span className="text-[10px] text-primary font-mono -mt-0.5">v4.1 OSINT Platform</span>
+                <span className="text-[10px] text-primary font-mono -mt-0.5">v4.4 OSINT Platform</span>
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
@@ -25,14 +25,14 @@ export function Footer() {
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a 
-                href="https://t.me/DARKSHAREN1_BOT" 
+                href="https://t.me/DarkShare1Bot" 
                 target="_blank" 
                 rel="noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#229ED9]/10 border border-[#229ED9]/20 text-[#229ED9] text-sm font-medium hover:bg-[#229ED9]/20 transition-colors"
                 data-testid="link-telegram-footer"
               >
                 <SiTelegram className="w-4 h-4" />
-                @DARKSHAREN1_BOT
+                @DarkShare1Bot
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
@@ -86,7 +86,7 @@ export function Footer() {
 
         <div className="border-t border-white/5 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-xs text-muted-foreground font-mono order-2 sm:order-1">
-            © 2025 DARKSHARE. All rights reserved.
+            © 2026 DARKSHARE. All rights reserved.
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground order-1 sm:order-2">
             <Link href="/terms">

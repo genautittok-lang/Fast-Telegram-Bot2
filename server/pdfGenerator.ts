@@ -77,7 +77,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       bufferPages: true,
       info: {
         Title: `DARKSHARE Report - ${data.moduleType.toUpperCase()}`,
-        Author: "DARKSHARE v4.0",
+        Author: "DARKSHARE v4.4",
         Subject: `Risk Assessment for ${data.targetValue}`,
         Keywords: "risk, assessment, security, darkshare, osint",
         CreationDate: data.timestamp,
@@ -341,7 +341,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.text("CONFIDENTIAL - This report is intended for authorized recipients only.", margin, footerY);
     
     const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 16);
-    doc.text(`DARKSHARE v4.0  •  Hash: ${hash}  •  © ${new Date().getFullYear()}`, margin, footerY + 12);
+    doc.text(`DARKSHARE v4.4  •  Hash: ${hash}  •  © ${new Date().getFullYear()}`, margin, footerY + 12);
 
     doc.end();
   });

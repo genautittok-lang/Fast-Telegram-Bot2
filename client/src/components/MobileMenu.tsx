@@ -249,7 +249,7 @@ export function MobileMenu({
 
                 <div className="mt-5 pt-4 border-t border-border/30">
                   <motion.a
-                    href="https://t.me/DARKSHAREN1_BOT"
+                    href="https://t.me/DarkShare1Bot"
                     target="_blank"
                     rel="noopener noreferrer"
                     initial={{ opacity: 0, x: 20 }}
@@ -263,7 +263,7 @@ export function MobileMenu({
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="font-medium text-sm block">Telegram Bot</span>
-                      <span className="text-[10px] text-muted-foreground">@DARKSHAREN1_BOT</span>
+                      <span className="text-[10px] text-muted-foreground">@DarkShare1Bot</span>
                     </div>
                     <ExternalLink className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
                   </motion.a>
@@ -302,7 +302,7 @@ export function MobileMenu({
 
               <div className="px-4 py-3 border-t border-border/10">
                 <p className="text-[10px] text-center text-muted-foreground/50">
-                  DARKSHARE v4.1 - OSINT Security Platform
+                  DARKSHARE v4.4 - OSINT Security Platform
                 </p>
               </div>
             </div>

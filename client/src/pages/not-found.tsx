@@ -33,7 +33,7 @@ export default function NotFound() {
         </Link>
         
         <div className="mt-12 font-mono text-[10px] text-muted-foreground/30 tracking-wider">
-          DARKSHARE SECURITY OSINT v4.3
+          DARKSHARE SECURITY OSINT v4.4
         </div>
       </div>
     </div>
