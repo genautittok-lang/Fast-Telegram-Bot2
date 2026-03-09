@@ -673,6 +673,131 @@
   transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Phone Float Animation */
+@keyframes phone-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+.phone-float {
+  animation: phone-float 4s ease-in-out infinite;
+}
+
+/* Scan Line Animation */
+@keyframes scan-line {
+  0% { top: -2px; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.phone-scan-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.7), rgba(56, 189, 248, 0.5), transparent);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5), 0 0 24px rgba(34, 197, 94, 0.2);
+  z-index: 15;
+  animation: scan-line 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Shimmer Glow for check result items */
+@keyframes shimmer-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.0);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 8px 0 rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.15);
+  }
+}
+
+.shimmer-glow {
+  animation: shimmer-glow 2.5s ease-in-out infinite;
+}
+
+/* Rotating Gradient Border */
+@keyframes rotate-border {
+  0% { --rotate-angle: 0deg; }
+  100% { --rotate-angle: 360deg; }
+}
+
+@property --rotate-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.rotate-border-effect {
+  position: relative;
+}
+
+.rotate-border-effect::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 42px;
+  background: conic-gradient(
+    from var(--rotate-angle, 0deg),
+    rgba(34, 197, 94, 0.6),
+    rgba(56, 189, 248, 0.4),
+    rgba(168, 85, 247, 0.3),
+    rgba(34, 197, 94, 0.1),
+    rgba(56, 189, 248, 0.4),
+    rgba(34, 197, 94, 0.6)
+  );
+  animation: rotate-border 4s linear infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Security Score Pulsing Green Glow */
+@keyframes score-glow {
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(34, 197, 94, 0.8), 0 0 24px rgba(34, 197, 94, 0.4);
+  }
+}
+
+.score-glow-text {
+  animation: score-glow 2s ease-in-out infinite;
+}
+
+@keyframes progress-bar-glow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.6), 0 0 20px rgba(34, 197, 94, 0.3);
+    filter: brightness(1.2);
+  }
+}
+
+.progress-bar-glow {
+  animation: progress-bar-glow 2s ease-in-out infinite;
+}
+
+/* Active Tab Glow */
+@keyframes tab-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.7)) drop-shadow(0 0 12px rgba(34, 197, 94, 0.3));
+  }
+}
+
+.tab-glow-active {
+  animation: tab-glow-pulse 2s ease-in-out infinite;
+}
+
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .holographic,
@@ -692,6 +817,15 @@
   .scan-beam::before {
     animation: none !important;
     display: none;
+  }
+  .phone-float,
+  .phone-scan-line::after,
+  .shimmer-glow,
+  .rotate-border-effect::before,
+  .score-glow-text,
+  .progress-bar-glow,
+  .tab-glow-active {
+    animation: none !important;
   }
   .cyber-border::before {
     animation: none !important;

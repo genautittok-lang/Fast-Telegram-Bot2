@@ -214,11 +214,11 @@ export default function DownloadPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="flex-shrink-0"
+              className="flex-shrink-0 phone-float"
             >
               <div className="relative w-[220px] h-[440px] sm:w-[260px] sm:h-[520px]" style={{ perspective: "1200px" }}>
-                <div className="absolute inset-0 rounded-[40px] bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-900 p-[3px] shadow-[0_0_60px_rgba(16,185,129,0.2)]" style={{ transform: "rotateY(-8deg) rotateX(3deg)", transformStyle: "preserve-3d", transition: "transform 0.6s ease" }}>
-                  <div className="w-full h-full rounded-[38px] bg-[#0a0a0b] overflow-hidden relative">
+                <div className="absolute inset-0 rounded-[40px] bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-900 p-[3px] shadow-[0_0_60px_rgba(16,185,129,0.2)] rotate-border-effect" style={{ transform: "rotateY(-8deg) rotateX(3deg)", transformStyle: "preserve-3d", transition: "transform 0.6s ease" }}>
+                  <div className="w-full h-full rounded-[38px] bg-[#0a0a0b] overflow-hidden relative phone-scan-line">
                     <div className="absolute inset-0 holographic opacity-30 pointer-events-none z-20 rounded-[38px]" />
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-900 rounded-b-2xl z-10" />
 
@@ -243,12 +243,12 @@ export default function DownloadPage() {
                           </div>
                           <div>
                             <div className="text-[9px] text-muted-foreground">{L("Рівень безпеки", "Уровень безопасности", "Security Score", "Puntuación", "Sicherheit")}</div>
-                            <div className="text-sm font-bold text-emerald-400">92/100</div>
+                            <div className="text-sm font-bold text-emerald-400 score-glow-text">92/100</div>
                           </div>
                         </div>
                         <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                           <motion.div
-                            className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full"
+                            className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full progress-bar-glow"
                             initial={{ width: 0 }}
                             animate={{ width: "92%" }}
                             transition={{ delay: 1, duration: 1.5 }}
@@ -286,7 +286,8 @@ export default function DownloadPage() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 1.2 + i * 0.2 }}
-                            className="flex items-center gap-2 bg-zinc-900/60 rounded-lg px-2.5 py-1.5 border border-white/5"
+                            className="flex items-center gap-2 bg-zinc-900/60 rounded-lg px-2.5 py-1.5 border border-white/5 shimmer-glow"
+                            style={{ animationDelay: `${i * 0.8}s` }}
                           >
                             <div className={`w-1.5 h-1.5 rounded-full ${item.color}`} />
                             <span className="text-[8px] text-muted-foreground flex-1 truncate">{item.target}</span>
@@ -302,7 +303,7 @@ export default function DownloadPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 1.8 + i * 0.1 }}
-                            className={`p-1.5 rounded-lg ${i === 0 ? "bg-emerald-500/20" : ""}`}
+                            className={`p-1.5 rounded-lg ${i === 0 ? "bg-emerald-500/20 tab-glow-active" : ""}`}
                           >
                             <Icon className={`w-3.5 h-3.5 ${i === 0 ? "text-emerald-400" : "text-zinc-500"}`} />
                           </motion.div>

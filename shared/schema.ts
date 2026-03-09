@@ -157,6 +157,15 @@ export const chatMessages = pgTable("ds_chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const adminMessages = pgTable("ds_admin_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  message: text("message").notNull(),
+  sender: text("sender").notNull(),
+  ticketId: integer("ticket_id").references(() => supportTickets.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastReminderSent: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
@@ -171,6 +180,7 @@ export const insertTeamSchema = createInsertSchema(teams).omit({ id: true, creat
 export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, joinedAt: true });
 export const insertFavoriteSchema = createInsertSchema(favorites).omit({ id: true, createdAt: true });
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
+export const insertAdminMessageSchema = createInsertSchema(adminMessages).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -192,6 +202,8 @@ export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type AdminMessage = typeof adminMessages.$inferSelect;
+export type InsertAdminMessage = z.infer<typeof insertAdminMessageSchema>;
 
 // Note: Replit Auth tables are in shared/models/auth.ts
 // Import them directly where needed to avoid type conflicts

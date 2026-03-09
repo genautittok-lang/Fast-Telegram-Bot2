@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Shield,
@@ -28,6 +28,15 @@ import {
   UserCheck,
   UserX,
   Send,
+  MessagesSquare,
+  ChevronRight,
+  MoreHorizontal,
+  Eye,
+  Hash,
+  TrendingUp,
+  Clock,
+  AlertCircle,
+  ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,7 +135,24 @@ interface AdminUser {
   lastLogin: string | null;
 }
 
-type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings";
+interface AdminMessage {
+  id: number;
+  userId: number;
+  message: string;
+  sender: string;
+  ticketId: number | null;
+  createdAt: string;
+}
+
+interface Conversation {
+  userId: number;
+  username: string | null;
+  lastMessage: string;
+  lastAt: string | null;
+  unreadCount: number;
+}
+
+type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages";
 
 function generateCouponCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -137,12 +163,33 @@ function generateCouponCode(): string {
   return code;
 }
 
+function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "щойно";
+  if (mins < 60) return `${mins} хв`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} год`;
+  const days = Math.floor(hrs / 24);
+  return `${days} д`;
+}
+
 export default function Admin() {
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [userSearch, setUserSearch] = useState("");
   const [ticketReply, setTicketReply] = useState<{ id: number; text: string } | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [showNewConversation, setShowNewConversation] = useState(false);
+  const [newConvUserId, setNewConvUserId] = useState("");
+  const [newConvMessage, setNewConvMessage] = useState("");
+  const [userTierFilter, setUserTierFilter] = useState<string>("all");
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [editChecksAmount, setEditChecksAmount] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [couponForm, setCouponForm] = useState({
     code: "",
@@ -196,7 +243,19 @@ export default function Admin() {
 
   const { data: allUsers, isLoading: usersLoading } = useQuery<AdminUser[]>({
     queryKey: ["/api/admin/users"],
-    enabled: !!isAdmin && activeTab === "users",
+    enabled: !!isAdmin && (activeTab === "users" || activeTab === "messages"),
+  });
+
+  const { data: conversations, isLoading: convsLoading } = useQuery<Conversation[]>({
+    queryKey: ["/api/admin/conversations"],
+    enabled: !!isAdmin && activeTab === "messages",
+    refetchInterval: 10000,
+  });
+
+  const { data: chatMessages, isLoading: chatLoading } = useQuery<AdminMessage[]>({
+    queryKey: ["/api/admin/messages", selectedConversation],
+    enabled: !!isAdmin && !!selectedConversation,
+    refetchInterval: 5000,
   });
 
   useEffect(() => {
@@ -204,6 +263,10 @@ export default function Admin() {
       setSettingsForm({ proPrice: settings.proPrice, enterprisePrice: settings.enterprisePrice });
     }
   }, [settings]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
 
   const createCouponMutation = useMutation({
     mutationFn: async (data: typeof couponForm) => {
@@ -275,6 +338,40 @@ export default function Admin() {
     },
   });
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ userId, message, ticketId }: { userId: number; message: string; ticketId?: number }) => {
+      const res = await apiRequest("POST", `/api/admin/messages/${userId}`, { message, ticketId });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/messages", selectedConversation] });
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/conversations"] });
+      setNewMessage("");
+    },
+  });
+
+  const changeTierMutation = useMutation({
+    mutationFn: async ({ userId, tier }: { userId: number; tier: string }) => {
+      await apiRequest("POST", `/api/admin/users/${userId}/tier`, { tier });
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({ title: "Тариф оновлено" });
+      setSelectedUser(null);
+    },
+  });
+
+  const addChecksMutation = useMutation({
+    mutationFn: async ({ userId, amount }: { userId: number; amount: number }) => {
+      await apiRequest("POST", `/api/admin/users/${userId}/checks`, { amount });
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({ title: "Перевірки додано" });
+      setEditChecksAmount("");
+    },
+  });
+
   if (adminLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -309,9 +406,13 @@ export default function Admin() {
     );
   }
 
+  const openTickets = tickets?.filter(t => t.status === "open").length || 0;
+  const totalUnread = conversations?.reduce((sum, c) => sum + c.unreadCount, 0) || 0;
+
   const tabs: { id: AdminTab; label: string; icon: any; count?: number }[] = [
     { id: "dashboard", label: "Огляд", icon: Activity },
-    { id: "tickets", label: "Звернення", icon: MessageSquare, count: tickets?.filter(t => t.status === "open").length },
+    { id: "messages", label: "Повідомлення", icon: MessagesSquare, count: totalUnread },
+    { id: "tickets", label: "Звернення", icon: MessageSquare, count: openTickets },
     { id: "payments", label: "Платежі", icon: CreditCard, count: pendingPayments?.length },
     { id: "users", label: "Користувачі", icon: Users },
     { id: "coupons", label: "Купони", icon: Ticket },
@@ -323,13 +424,37 @@ export default function Admin() {
     { label: "Звіти", value: stats?.totalReports ?? 0, icon: FileText, gradient: "from-purple-500/20 to-pink-500/10", iconColor: "text-purple-400" },
     { label: "Моніторинг", value: stats?.activeWatches ?? 0, icon: Activity, gradient: "from-green-500/20 to-emerald-500/10", iconColor: "text-green-400" },
     { label: "Очікують оплату", value: stats?.pendingPayments ?? 0, icon: CreditCard, gradient: "from-orange-500/20 to-yellow-500/10", iconColor: "text-orange-400" },
+    { label: "Відкриті тікети", value: openTickets, icon: AlertCircle, gradient: "from-red-500/20 to-rose-500/10", iconColor: "text-red-400" },
+    { label: "Діалоги", value: conversations?.length ?? 0, icon: MessagesSquare, gradient: "from-indigo-500/20 to-violet-500/10", iconColor: "text-indigo-400" },
   ];
 
   const filteredUsers = allUsers?.filter(u => {
-    if (!userSearch) return true;
-    const q = userSearch.toLowerCase();
-    return u.username?.toLowerCase().includes(q) || u.tgId.includes(q) || u.id.toString().includes(q);
+    const matchesSearch = !userSearch || u.username?.toLowerCase().includes(userSearch.toLowerCase()) || u.tgId.includes(userSearch) || u.id.toString().includes(userSearch);
+    const matchesTier = userTierFilter === "all" || (u.tier || "FREE") === userTierFilter;
+    return matchesSearch && matchesTier;
   }) || [];
+
+  const handleOpenDialog = (userId: number) => {
+    setSelectedConversation(userId);
+    setActiveTab("messages");
+  };
+
+  const handleStartNewConversation = () => {
+    if (!newConvUserId || !newConvMessage.trim()) return;
+    const userId = parseInt(newConvUserId);
+    if (isNaN(userId)) {
+      toast({ title: "Невірний ID користувача", variant: "destructive" });
+      return;
+    }
+    sendMessageMutation.mutate({ userId, message: newConvMessage.trim() }, {
+      onSuccess: () => {
+        setShowNewConversation(false);
+        setNewConvUserId("");
+        setNewConvMessage("");
+        setSelectedConversation(userId);
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -365,7 +490,7 @@ export default function Admin() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-4 relative z-10">
-        <div className="flex gap-1 overflow-x-auto pb-2 mb-6 border-b border-white/5">
+        <div className="flex gap-1 overflow-x-auto pb-2 mb-6 border-b border-white/5 scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -391,9 +516,9 @@ export default function Admin() {
         <main className="space-y-6 pb-8">
           {activeTab === "dashboard" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 {statsLoading
-                  ? Array(4).fill(0).map((_, i) => (
+                  ? Array(6).fill(0).map((_, i) => (
                       <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10">
                         <Skeleton className="h-4 w-20 mb-2" />
                         <Skeleton className="h-8 w-16" />
@@ -404,8 +529,8 @@ export default function Admin() {
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`p-4 rounded-xl bg-gradient-to-br ${stat.gradient} border border-white/10`}
+                        transition={{ delay: i * 0.05 }}
+                        className={`p-4 rounded-xl bg-gradient-to-br ${stat.gradient} border border-white/10 hover:border-white/20 transition-colors cursor-default`}
                         data-testid={`stat-${stat.label.toLowerCase()}`}
                       >
                         <div className="flex items-center gap-2 mb-2">
@@ -419,66 +544,295 @@ export default function Admin() {
                     ))}
               </div>
 
-              {tickets && tickets.filter(t => t.status === "open").length > 0 && (
-                <Card className="border-white/10 bg-white/5">
-                  <CardHeader className="flex flex-row items-center justify-between gap-4">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-primary" />
-                      Нові звернення ({tickets.filter(t => t.status === "open").length})
-                    </CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => setActiveTab("tickets")} data-testid="button-view-all-tickets">
-                      Переглянути всі
-                    </Button>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {tickets.filter(t => t.status === "open").slice(0, 3).map((ticket) => (
-                        <div key={ticket.id} className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1">
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="text-sm font-medium">#{ticket.id} {ticket.name}</span>
-                            <Badge variant="outline" className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30 text-xs">{ticket.source}</Badge>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {tickets && tickets.filter(t => t.status === "open").length > 0 && (
+                  <Card className="border-white/10 bg-white/5">
+                    <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-primary" />
+                        Нові звернення ({tickets.filter(t => t.status === "open").length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab("tickets")} data-testid="button-view-all-tickets">
+                        Переглянути
+                        <ArrowUpRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {tickets.filter(t => t.status === "open").slice(0, 4).map((ticket) => (
+                          <div key={ticket.id} className="p-3 rounded-lg bg-white/5 border border-white/10 space-y-1 hover:bg-white/8 transition-colors cursor-pointer" onClick={() => { setActiveTab("tickets"); }}>
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-sm font-medium">#{ticket.id} {ticket.name}</span>
+                              <span className="text-[10px] text-muted-foreground">{timeAgo(ticket.createdAt)}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate">{ticket.message}</p>
                           </div>
-                          <p className="text-xs text-muted-foreground truncate">{ticket.message}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-              {pendingPayments && pendingPayments.length > 0 && (
+                {pendingPayments && pendingPayments.length > 0 && (
+                  <Card className="border-white/10 bg-white/5">
+                    <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-orange-400" />
+                        Очікуючі платежі ({pendingPayments.length})
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab("payments")} data-testid="button-view-all-payments">
+                        Переглянути
+                        <ArrowUpRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {pendingPayments.slice(0, 4).map((p) => (
+                          <div key={p.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-4 flex-wrap">
+                            <div>
+                              <span className="text-sm font-medium">{p.username || `User #${p.userId}`}</span>
+                              <span className="text-xs text-muted-foreground ml-2">{p.tier} - ${p.amountUsdt}</span>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" className="text-green-400 h-8 w-8" onClick={() => approvePaymentMutation.mutate(p.id)} data-testid={`button-quick-approve-${p.id}`}>
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => rejectPaymentMutation.mutate(p.id)} data-testid={`button-quick-reject-${p.id}`}>
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {conversations && conversations.length > 0 && (
+                  <Card className="border-white/10 bg-white/5">
+                    <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <MessagesSquare className="w-4 h-4 text-indigo-400" />
+                        Останні діалоги
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab("messages")} data-testid="button-view-all-messages">
+                        Переглянути
+                        <ArrowUpRight className="w-3 h-3 ml-1" />
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {conversations.slice(0, 4).map((conv) => (
+                          <div key={conv.userId} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3 hover:bg-white/8 transition-colors cursor-pointer" onClick={() => handleOpenDialog(conv.userId)}>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{conv.username || `#${conv.userId}`}</span>
+                                {conv.unreadCount > 0 && (
+                                  <Badge className="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0">{conv.unreadCount}</Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo(conv.lastAt)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card className="border-white/10 bg-white/5">
-                  <CardHeader className="flex flex-row items-center justify-between gap-4">
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-orange-400" />
-                      Очікуючі платежі ({pendingPayments.length})
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      Швидкі дії
                     </CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => setActiveTab("payments")} data-testid="button-view-all-payments">
-                      Переглянути всі
-                    </Button>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {pendingPayments.slice(0, 3).map((p) => (
-                        <div key={p.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-4 flex-wrap">
-                          <div>
-                            <span className="text-sm font-medium">{p.username || `User #${p.userId}`}</span>
-                            <span className="text-xs text-muted-foreground ml-2">{p.tier} - ${p.amountUsdt}</span>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="text-green-400" onClick={() => approvePaymentMutation.mutate(p.id)} data-testid={`button-quick-approve-${p.id}`}>
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-red-400" onClick={() => rejectPaymentMutation.mutate(p.id)} data-testid={`button-quick-reject-${p.id}`}>
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm" className="justify-start gap-2" onClick={() => setActiveTab("users")} data-testid="button-quick-users">
+                        <Users className="w-3.5 h-3.5" /> Користувачі
+                      </Button>
+                      <Button variant="outline" size="sm" className="justify-start gap-2" onClick={() => { setActiveTab("messages"); setShowNewConversation(true); }} data-testid="button-quick-message">
+                        <Send className="w-3.5 h-3.5" /> Написати
+                      </Button>
+                      <Button variant="outline" size="sm" className="justify-start gap-2" onClick={() => setActiveTab("coupons")} data-testid="button-quick-coupon">
+                        <Ticket className="w-3.5 h-3.5" /> Купони
+                      </Button>
+                      <Button variant="outline" size="sm" className="justify-start gap-2" onClick={() => setActiveTab("settings")} data-testid="button-quick-settings">
+                        <Settings className="w-3.5 h-3.5" /> Налаштування
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              )}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "messages" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <MessagesSquare className="w-5 h-5 text-primary" />
+                  Діалоги з користувачами
+                </h2>
+                <Button size="sm" className="gap-2" onClick={() => setShowNewConversation(!showNewConversation)} data-testid="button-new-conversation">
+                  <Plus className="w-4 h-4" />
+                  Написати
+                </Button>
+              </div>
+
+              <AnimatePresence>
+                {showNewConversation && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                    <Card className="border-primary/30 bg-primary/5">
+                      <CardContent className="pt-4 space-y-3">
+                        <p className="text-sm font-medium">Новий діалог</p>
+                        <div className="flex gap-3 flex-col sm:flex-row">
+                          <div className="space-y-1 flex-1">
+                            <label className="text-xs text-muted-foreground">User ID</label>
+                            <Input value={newConvUserId} onChange={(e) => setNewConvUserId(e.target.value)} placeholder="ID користувача" className="bg-white/5 border-white/10" data-testid="input-conv-user-id" />
+                          </div>
+                          <div className="space-y-1 flex-[2]">
+                            <label className="text-xs text-muted-foreground">Повідомлення</label>
+                            <div className="flex gap-2">
+                              <Input value={newConvMessage} onChange={(e) => setNewConvMessage(e.target.value)} placeholder="Введіть повідомлення..." className="bg-white/5 border-white/10" onKeyDown={(e) => e.key === "Enter" && handleStartNewConversation()} data-testid="input-conv-message" />
+                              <Button onClick={handleStartNewConversation} disabled={sendMessageMutation.isPending} data-testid="button-send-new-conv">
+                                {sendMessageMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <Card className="border-white/10 bg-white/5 lg:col-span-1">
+                  <CardContent className="pt-4 p-3">
+                    <div className="space-y-1 max-h-[500px] overflow-y-auto scrollbar-hide">
+                      {convsLoading ? (
+                        Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-16 w-full mb-1" />)
+                      ) : !conversations?.length ? (
+                        <div className="text-center py-8">
+                          <MessagesSquare className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">Немає діалогів</p>
+                        </div>
+                      ) : (
+                        conversations.map((conv) => (
+                          <div
+                            key={conv.userId}
+                            onClick={() => setSelectedConversation(conv.userId)}
+                            className={`p-3 rounded-lg cursor-pointer transition-all ${
+                              selectedConversation === conv.userId
+                                ? "bg-primary/10 border border-primary/30"
+                                : "hover:bg-white/5 border border-transparent"
+                            }`}
+                            data-testid={`conv-${conv.userId}`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                                  <Users className="w-4 h-4 text-muted-foreground" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium truncate">{conv.username || `User #${conv.userId}`}</p>
+                                  <p className="text-[11px] text-muted-foreground truncate">{conv.lastMessage}</p>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                                <span className="text-[10px] text-muted-foreground">{timeAgo(conv.lastAt)}</span>
+                                {conv.unreadCount > 0 && (
+                                  <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 h-4">{conv.unreadCount}</Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-white/10 bg-white/5 lg:col-span-2">
+                  <CardContent className="pt-4 p-3 flex flex-col h-[500px]">
+                    {!selectedConversation ? (
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="text-center space-y-2">
+                          <MessagesSquare className="w-12 h-12 mx-auto text-muted-foreground" />
+                          <p className="text-muted-foreground">Оберіть діалог</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 pb-3 border-b border-white/10 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Users className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {conversations?.find(c => c.userId === selectedConversation)?.username || `User #${selectedConversation}`}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">ID: {selectedConversation}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto space-y-2 scrollbar-hide pr-1">
+                          {chatLoading ? (
+                            <div className="flex items-center justify-center h-full">
+                              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                            </div>
+                          ) : !chatMessages?.length ? (
+                            <div className="flex items-center justify-center h-full">
+                              <p className="text-sm text-muted-foreground">Немає повідомлень</p>
+                            </div>
+                          ) : (
+                            chatMessages.map((msg) => (
+                              <div key={msg.id} className={`flex ${msg.sender === "admin" ? "justify-end" : "justify-start"}`}>
+                                <div className={`max-w-[75%] p-2.5 rounded-xl text-sm ${
+                                  msg.sender === "admin"
+                                    ? "bg-primary/20 border border-primary/30 rounded-br-sm"
+                                    : "bg-white/5 border border-white/10 rounded-bl-sm"
+                                }`}>
+                                  <p className="break-words">{msg.message}</p>
+                                  <p className={`text-[10px] mt-1 ${msg.sender === "admin" ? "text-primary/60" : "text-muted-foreground"}`}>
+                                    {msg.sender === "admin" ? "Адмін" : "Користувач"} · {msg.createdAt ? format(new Date(msg.createdAt), "HH:mm dd.MM") : ""}
+                                  </p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          <div ref={messagesEndRef} />
+                        </div>
+
+                        <div className="flex gap-2 pt-3 border-t border-white/10 mt-3">
+                          <Input
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Написати повідомлення..."
+                            className="bg-white/5 border-white/10"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && newMessage.trim()) {
+                                sendMessageMutation.mutate({ userId: selectedConversation, message: newMessage.trim() });
+                              }
+                            }}
+                            data-testid="input-chat-message"
+                          />
+                          <Button
+                            onClick={() => newMessage.trim() && sendMessageMutation.mutate({ userId: selectedConversation, message: newMessage.trim() })}
+                            disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                            data-testid="button-send-message"
+                          >
+                            {sendMessageMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </motion.div>
           )}
 
@@ -563,6 +917,12 @@ export default function Admin() {
                                 <MessageSquare className="w-3 h-3 mr-1" />
                                 Відповісти
                               </Button>
+                              {ticket.userId && (
+                                <Button variant="outline" size="sm" onClick={() => handleOpenDialog(ticket.userId!)} data-testid={`button-open-dialog-${ticket.id}`}>
+                                  <MessagesSquare className="w-3 h-3 mr-1" />
+                                  Діалог
+                                </Button>
+                              )}
                               {ticket.status !== "closed" && (
                                 <Button variant="outline" size="sm" onClick={() => updateTicketMutation.mutate({ id: ticket.id, status: "closed" })} data-testid={`button-close-ticket-${ticket.id}`}>
                                   <Check className="w-3 h-3 mr-1" />
@@ -637,10 +997,10 @@ export default function Admin() {
                               <TableCell className="text-right">
                                 {payment.status === "pending" && (
                                   <div className="flex justify-end gap-1">
-                                    <Button variant="ghost" size="icon" className="text-green-400" onClick={() => approvePaymentMutation.mutate(payment.id)} data-testid={`button-approve-${payment.id}`}>
+                                    <Button variant="ghost" size="icon" className="text-green-400 h-8 w-8" onClick={() => approvePaymentMutation.mutate(payment.id)} data-testid={`button-approve-${payment.id}`}>
                                       <Check className="w-4 h-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="text-red-400" onClick={() => rejectPaymentMutation.mutate(payment.id)} data-testid={`button-reject-${payment.id}`}>
+                                    <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => rejectPaymentMutation.mutate(payment.id)} data-testid={`button-reject-${payment.id}`}>
                                       <X className="w-4 h-4" />
                                     </Button>
                                   </div>
@@ -664,15 +1024,28 @@ export default function Admin() {
                   <Users className="w-5 h-5 text-primary" />
                   Користувачі
                 </h2>
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    placeholder="Пошук..."
-                    className="pl-9 bg-white/5 border-white/10"
-                    data-testid="input-search-users"
-                  />
+                <div className="flex items-center gap-2">
+                  <Select value={userTierFilter} onValueChange={setUserTierFilter}>
+                    <SelectTrigger className="w-32 bg-white/5 border-white/10 h-9" data-testid="select-tier-filter">
+                      <SelectValue placeholder="Тариф" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Всі</SelectItem>
+                      <SelectItem value="FREE">FREE</SelectItem>
+                      <SelectItem value="PRO">PRO</SelectItem>
+                      <SelectItem value="ENTERPRISE">ENTERPRISE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative w-48">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                      placeholder="Пошук..."
+                      className="pl-9 bg-white/5 border-white/10 h-9"
+                      data-testid="input-search-users"
+                    />
+                  </div>
                 </div>
               </div>
               <Card className="border-white/10 bg-white/5">
@@ -697,7 +1070,7 @@ export default function Admin() {
                         </TableHeader>
                         <TableBody>
                           {filteredUsers.map((user) => (
-                            <TableRow key={user.id} className="border-white/10" data-testid={`user-row-${user.id}`}>
+                            <TableRow key={user.id} className="border-white/10 group" data-testid={`user-row-${user.id}`}>
                               <TableCell className="font-mono text-xs">#{user.id}</TableCell>
                               <TableCell className="font-medium">{user.username || "—"}</TableCell>
                               <TableCell className="font-mono text-xs text-muted-foreground">{user.tgId}</TableCell>
@@ -723,16 +1096,79 @@ export default function Admin() {
                                 {user.lastLogin ? format(new Date(user.lastLogin), "dd.MM.yyyy HH:mm") : "—"}
                               </TableCell>
                               <TableCell className="text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className={user.blocked ? "text-green-400" : "text-red-400"}
-                                  onClick={() => blockUserMutation.mutate({ userId: user.id, blocked: !user.blocked })}
-                                  disabled={blockUserMutation.isPending}
-                                  data-testid={`button-toggle-block-${user.id}`}
-                                >
-                                  {user.blocked ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
-                                </Button>
+                                <div className="flex justify-end gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-indigo-400 h-7 w-7"
+                                    onClick={() => handleOpenDialog(user.id)}
+                                    title="Написати"
+                                    data-testid={`button-message-${user.id}`}
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="text-muted-foreground h-7 w-7" data-testid={`button-more-${user.id}`}>
+                                        <MoreHorizontal className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-56 p-2" align="end">
+                                      <div className="space-y-1">
+                                        <p className="text-xs text-muted-foreground px-2 py-1 font-medium">Змінити тариф</p>
+                                        {["FREE", "PRO", "ENTERPRISE"].map(tier => (
+                                          <Button
+                                            key={tier}
+                                            variant="ghost"
+                                            size="sm"
+                                            className={`w-full justify-start text-xs ${(user.tier || "FREE") === tier ? "text-primary" : ""}`}
+                                            onClick={() => changeTierMutation.mutate({ userId: user.id, tier })}
+                                            disabled={changeTierMutation.isPending}
+                                            data-testid={`button-set-tier-${user.id}-${tier}`}
+                                          >
+                                            <Crown className="w-3 h-3 mr-2" />
+                                            {tier}
+                                          </Button>
+                                        ))}
+                                        <div className="border-t border-white/10 my-1" />
+                                        <div className="flex items-center gap-1 px-2">
+                                          <Input
+                                            type="number"
+                                            placeholder="+перевірки"
+                                            className="h-7 text-xs bg-white/5 border-white/10"
+                                            value={editChecksAmount}
+                                            onChange={(e) => setEditChecksAmount(e.target.value)}
+                                            data-testid={`input-checks-${user.id}`}
+                                          />
+                                          <Button
+                                            size="sm"
+                                            className="h-7 px-2"
+                                            onClick={() => {
+                                              const amount = parseInt(editChecksAmount);
+                                              if (amount > 0) addChecksMutation.mutate({ userId: user.id, amount });
+                                            }}
+                                            disabled={addChecksMutation.isPending}
+                                            data-testid={`button-add-checks-${user.id}`}
+                                          >
+                                            <Plus className="w-3 h-3" />
+                                          </Button>
+                                        </div>
+                                        <div className="border-t border-white/10 my-1" />
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={`w-full justify-start text-xs ${user.blocked ? "text-green-400" : "text-red-400"}`}
+                                          onClick={() => blockUserMutation.mutate({ userId: user.id, blocked: !user.blocked })}
+                                          disabled={blockUserMutation.isPending}
+                                          data-testid={`button-toggle-block-${user.id}`}
+                                        >
+                                          {user.blocked ? <UserCheck className="w-3 h-3 mr-2" /> : <UserX className="w-3 h-3 mr-2" />}
+                                          {user.blocked ? "Розблокувати" : "Заблокувати"}
+                                        </Button>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -870,7 +1306,7 @@ export default function Admin() {
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{coupon.expiresAt ? format(new Date(coupon.expiresAt), "dd.MM.yyyy") : "—"}</TableCell>
                               <TableCell className="text-right">
-                                <Button variant="ghost" size="icon" className="text-red-400" onClick={() => deleteCouponMutation.mutate(coupon.id)} disabled={deleteCouponMutation.isPending} data-testid={`button-delete-coupon-${coupon.id}`}>
+                                <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => deleteCouponMutation.mutate(coupon.id)} disabled={deleteCouponMutation.isPending} data-testid={`button-delete-coupon-${coupon.id}`}>
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </TableCell>

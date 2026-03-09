@@ -2606,6 +2606,111 @@ export async function registerRoutes(
     }
   });
 
+  // ============ Admin Messages / Support Dialog Routes ============
+
+  app.get("/api/admin/conversations", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    try {
+      const conversations = await storage.getConversationList();
+      res.json(conversations);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/admin/messages/:userId", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    try {
+      const messages = await storage.getAdminMessages(parseInt(req.params.userId));
+      res.json(messages);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/admin/messages/:userId", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { message, ticketId } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: "Message required" });
+    try {
+      const created = await storage.createAdminMessage({
+        userId: parseInt(req.params.userId),
+        message: message.trim(),
+        sender: "admin",
+        ticketId: ticketId || null,
+      });
+      res.json(created);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to send message" });
+    }
+  });
+
+  app.get("/api/support/messages", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    try {
+      const messages = await storage.getAdminMessages(authReq.user!.id);
+      res.json(messages);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/support/messages", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: "Message required" });
+    try {
+      const created = await storage.createAdminMessage({
+        userId: authReq.user!.id,
+        message: message.trim(),
+        sender: "user",
+        ticketId: null,
+      });
+      res.json(created);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to send message" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/tier", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { tier } = req.body;
+    if (!["FREE", "PRO", "ENTERPRISE"].includes(tier)) return res.status(400).json({ error: "Invalid tier" });
+    try {
+      const user = await storage.updateUserTier(parseInt(req.params.id), tier);
+      res.json(user);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to update tier" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/checks", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { amount } = req.body;
+    if (!amount || amount < 1) return res.status(400).json({ error: "Invalid amount" });
+    try {
+      const user = await storage.addChecksToUser(parseInt(req.params.id), amount);
+      res.json(user);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to add checks" });
+    }
+  });
+
   // ============ CSV Export & Breach Check Routes ============
 
   app.get("/api/reports/export/csv", loadUser, requireAuth, async (req, res) => {

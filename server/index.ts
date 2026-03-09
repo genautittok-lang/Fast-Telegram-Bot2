@@ -247,6 +247,17 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS photo_url TEXT`);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_admin_messages (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES ds_users(id),
+        message TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        ticket_id INTEGER REFERENCES ds_support_tickets(id),
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS sessions (
         sid VARCHAR PRIMARY KEY,
         sess JSONB NOT NULL,

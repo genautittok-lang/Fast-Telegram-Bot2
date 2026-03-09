@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
@@ -117,6 +117,13 @@ export interface IStorage {
   getReactions(messageIds: number[]): Promise<{ messageId: number; emoji: string; userId: number }[]>;
   addReaction(messageId: number, userId: number, emoji: string): Promise<void>;
   removeReaction(messageId: number, userId: number, emoji: string): Promise<void>;
+
+  // Admin Messages (support dialogs)
+  getAdminMessages(userId: number): Promise<AdminMessage[]>;
+  createAdminMessage(msg: InsertAdminMessage): Promise<AdminMessage>;
+  getConversationList(): Promise<Array<{ userId: number; username: string | null; lastMessage: string; lastAt: Date | null; unreadCount: number }>>;
+  updateUserTier(userId: number, tier: string): Promise<User>;
+  addChecksToUser(userId: number, amount: number): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -641,6 +648,51 @@ export class DatabaseStorage implements IStorage {
       [messageId, userId, emoji]
     );
   }
+
+  async getAdminMessages(userId: number): Promise<AdminMessage[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(adminMessages).where(eq(adminMessages.userId, userId)).orderBy(adminMessages.createdAt);
+  }
+
+  async createAdminMessage(msg: InsertAdminMessage): Promise<AdminMessage> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(adminMessages).values(msg).returning();
+    return created;
+  }
+
+  async getConversationList(): Promise<Array<{ userId: number; username: string | null; lastMessage: string; lastAt: Date | null; unreadCount: number }>> {
+    const { pool } = await import("./db");
+    const result = await pool.query(`
+      SELECT 
+        m.user_id as "userId",
+        u.username,
+        (SELECT message FROM ds_admin_messages WHERE user_id = m.user_id ORDER BY created_at DESC LIMIT 1) as "lastMessage",
+        MAX(m.created_at) as "lastAt",
+        COUNT(CASE WHEN m.sender = 'user' AND m.created_at > COALESCE(
+          (SELECT MAX(created_at) FROM ds_admin_messages WHERE user_id = m.user_id AND sender = 'admin'), 
+          '1970-01-01'
+        ) THEN 1 END)::int as "unreadCount"
+      FROM ds_admin_messages m
+      LEFT JOIN ds_users u ON u.id = m.user_id
+      GROUP BY m.user_id, u.username
+      ORDER BY MAX(m.created_at) DESC
+    `);
+    return result.rows;
+  }
+
+  async updateUserTier(userId: number, tier: string): Promise<User> {
+    if (!db) throw new Error("Database not available");
+    const [updated] = await db.update(users).set({ tier }).where(eq(users.id, userId)).returning();
+    return updated;
+  }
+
+  async addChecksToUser(userId: number, amount: number): Promise<User> {
+    if (!db) throw new Error("Database not available");
+    const [updated] = await db.update(users).set({ 
+      requestsLeft: sql`COALESCE(${users.requestsLeft}, 0) + ${amount}` 
+    }).where(eq(users.id, userId)).returning();
+    return updated;
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -1082,6 +1134,44 @@ export class MemStorage implements IStorage {
 
   async removeReaction(messageId: number, userId: number, emoji: string): Promise<void> {
     this.memReactions = this.memReactions.filter(r => !(r.messageId === messageId && r.userId === userId && r.emoji === emoji));
+  }
+
+  private memAdminMessages: AdminMessage[] = [];
+  private nextAdminMsgId = 1;
+
+  async getAdminMessages(userId: number): Promise<AdminMessage[]> {
+    return this.memAdminMessages.filter(m => m.userId === userId).sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
+  }
+
+  async createAdminMessage(msg: InsertAdminMessage): Promise<AdminMessage> {
+    const created: AdminMessage = { id: this.nextAdminMsgId++, userId: msg.userId, message: msg.message, sender: msg.sender, ticketId: msg.ticketId ?? null, createdAt: new Date() };
+    this.memAdminMessages.push(created);
+    return created;
+  }
+
+  async getConversationList(): Promise<Array<{ userId: number; username: string | null; lastMessage: string; lastAt: Date | null; unreadCount: number }>> {
+    const userIds = [...new Set(this.memAdminMessages.map(m => m.userId))];
+    return userIds.map(userId => {
+      const msgs = this.memAdminMessages.filter(m => m.userId === userId);
+      const last = msgs[msgs.length - 1];
+      return { userId, username: null, lastMessage: last?.message || "", lastAt: last?.createdAt || null, unreadCount: 0 };
+    });
+  }
+
+  async updateUserTier(userId: number, tier: string): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("User not found");
+    const updated = { ...user, tier };
+    this.users.set(userId, updated);
+    return updated;
+  }
+
+  async addChecksToUser(userId: number, amount: number): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) throw new Error("User not found");
+    const updated = { ...user, requestsLeft: (user.requestsLeft || 0) + amount };
+    this.users.set(userId, updated);
+    return updated;
   }
 }
 

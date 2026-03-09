@@ -175,7 +175,8 @@ Preferred communication style: Simple, everyday language.
 - Support email: darkshare.store@gmail.com displayed in Footer, AppSidebar, MobileMenu.
 - Support tickets stored in `support_tickets` table with userId, name, contact, message, status (open/replied/closed), adminReply, source (web/telegram).
 - Admin receives Telegram notifications when tickets are created (web or bot).
-- Admin panel (`/admin`) has tabbed layout: Dashboard, Tickets, Payments, Users, Coupons, Settings.
+- Admin panel (`/admin`) has tabbed layout: Dashboard, Messages, Tickets, Payments, Users, Coupons, Settings.
+- Admin Messages system: `ds_admin_messages` table for admin-user conversations. Admin can message any user, open dialogs from tickets or user list. User-side API at `/api/support/messages`. Conversation list with unread counts, real-time chat UI.
 - Bot admin panel: expanded with Stats, Users, Search, Payments, Tickets, Coupons, Revenue, Reports, Broadcast, Block, Tiers, Add Requests, Settings sections.
 - Free tier: 5 requests per day.
 
