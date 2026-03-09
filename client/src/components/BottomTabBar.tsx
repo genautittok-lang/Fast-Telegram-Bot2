@@ -15,7 +15,8 @@ export function BottomTabBar() {
 
   return (
     <div className="app-bottom-bar lg:hidden" data-testid="app-bottom-tab-bar">
-      <div className="flex items-end justify-around px-2 pt-1.5 pb-1.5">
+      <div className="absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+      <div className="flex items-end justify-around px-2 pt-1.5 pb-2">
         {tabs.map((tab) => {
           const isActive = tab.id === "scan"
             ? false
@@ -27,14 +28,24 @@ export function BottomTabBar() {
             return (
               <Link key={tab.id} href={tab.href}>
                 <motion.button
-                  className="relative -mt-5 flex flex-col items-center"
-                  whileTap={{ scale: 0.9 }}
+                  className="relative -mt-6 flex flex-col items-center"
+                  whileTap={{ scale: 0.88 }}
                   data-testid="tab-scan"
                 >
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.4)] border-4 border-background">
+                  <motion.div
+                    className="w-[3.5rem] h-[3.5rem] rounded-full bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center border-[3px] border-[#0a0a0f] relative"
+                    animate={{
+                      boxShadow: [
+                        "0 0 15px rgba(34,197,94,0.3), 0 0 30px rgba(34,197,94,0.1)",
+                        "0 0 25px rgba(34,197,94,0.5), 0 0 40px rgba(34,197,94,0.2)",
+                        "0 0 15px rgba(34,197,94,0.3), 0 0 30px rgba(34,197,94,0.1)"
+                      ]
+                    }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  >
                     <Search className="w-6 h-6 text-black" />
-                  </div>
-                  <span className="text-[9px] font-medium text-primary mt-0.5">Scan</span>
+                  </motion.div>
+                  <span className="text-[9px] font-semibold text-primary mt-1">Scan</span>
                 </motion.button>
               </Link>
             );
@@ -47,21 +58,30 @@ export function BottomTabBar() {
                 whileTap={{ scale: 0.85 }}
                 data-testid={`tab-${tab.id}`}
               >
-                <tab.icon
-                  className={`w-5 h-5 transition-colors duration-200 ${
-                    isActive ? "text-primary" : "text-zinc-500"
-                  }`}
-                />
+                <div className="relative">
+                  <tab.icon
+                    className={`w-5 h-5 transition-all duration-300 ${
+                      isActive ? "text-primary" : "text-zinc-500"
+                    }`}
+                  />
+                  {isActive && (
+                    <motion.div
+                      className="absolute -inset-2 rounded-full bg-primary/10 -z-10"
+                      layoutId="tabGlow"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </div>
                 <span
-                  className={`text-[9px] font-medium transition-colors duration-200 ${
-                    isActive ? "text-primary" : "text-zinc-500"
+                  className={`text-[9px] font-semibold transition-all duration-300 ${
+                    isActive ? "text-primary" : "text-zinc-600"
                   }`}
                 >
                   {tab.label}
                 </span>
                 {isActive && (
                   <motion.div
-                    className="absolute -top-0.5 w-5 h-0.5 rounded-full bg-primary"
+                    className="absolute -top-0.5 w-6 h-[2px] rounded-full bg-gradient-to-r from-primary to-cyan-400"
                     layoutId="tabIndicator"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />

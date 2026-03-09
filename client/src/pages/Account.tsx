@@ -421,7 +421,7 @@ export default function Account() {
   const isDataLoading = reportsLoading || watchesLoading || referralsLoading;
 
   return (
-    <PageLayout title="Account">
+    <PageLayout title="Account" appMode>
       <main className="flex-1 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 

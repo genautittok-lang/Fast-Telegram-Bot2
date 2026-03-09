@@ -227,42 +227,68 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative rounded-2xl overflow-hidden app-card"
+      className="relative rounded-[1.5rem] overflow-hidden"
       data-testid="widget-status-bar"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-cyan-500/5 to-purple-500/10" />
-      <div className="relative p-4 lg:p-5">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center shadow-[0_0_16px_rgba(34,197,94,0.3)]">
-            <span className="text-black font-bold text-sm">{greetName.charAt(0).toUpperCase()}</span>
-          </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-emerald-500/10 to-cyan-500/15" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+      <motion.div
+        className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/10 blur-[60px]"
+        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-cyan-500/10 blur-[50px]"
+        animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <div className="relative p-5 lg:p-6">
+        <div className="flex items-center gap-4 mb-4">
+          <motion.div
+            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)]"
+            animate={{ boxShadow: ["0 4px 20px rgba(34,197,94,0.25)", "0 4px 30px rgba(34,197,94,0.45)", "0 4px 20px rgba(34,197,94,0.25)"] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <span className="text-black font-bold text-lg">{greetName.charAt(0).toUpperCase()}</span>
+          </motion.div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-semibold text-white truncate" data-testid="text-greeting">
+            <h2 className="text-lg font-bold text-white truncate" data-testid="text-greeting">
               Hi, {greetName}! 👋
             </h2>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-1">
               <TierBadge tier={tier} />
+              {streakDays > 0 && (
+                <motion.div
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/20"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Flame className="w-3 h-3 text-orange-400" />
+                  <span className="text-[10px] font-bold text-orange-400">{streakDays}</span>
+                </motion.div>
+              )}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/[0.06]">
-            <Flame className={`w-3.5 h-3.5 ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`} />
-            <span className={`text-xs font-bold font-mono ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`}>{streakDays}d</span>
+        <div className="flex items-center gap-2 bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
+          <div className={`app-icon-circle ${pct <= 20 ? 'bg-red-500/15' : 'bg-emerald-500/15'}`} style={{ width: '2rem', height: '2rem' }}>
+            <Zap className={`w-4 h-4 ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`} />
           </div>
-          <div className="flex-1 flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/[0.06]">
-            <Zap className={`w-3.5 h-3.5 flex-shrink-0 ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`} />
-            <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-muted-foreground">Checks remaining</span>
+              <span className={`text-xs font-bold font-mono ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`}>
+                {isUnlimited ? '∞' : `${checksLeft}/${maxChecks}`}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
               <motion.div
-                className={`h-full rounded-full ${pct <= 20 ? 'bg-red-500' : pct <= 50 ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                className={`h-full rounded-full ${pct <= 20 ? 'bg-gradient-to-r from-red-500 to-red-400' : pct <= 50 ? 'bg-gradient-to-r from-orange-500 to-yellow-400' : 'bg-gradient-to-r from-emerald-500 to-cyan-400'}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
               />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground flex-shrink-0">
-              {isUnlimited ? '∞' : `${checksLeft}/${maxChecks}`}
-            </span>
           </div>
         </div>
       </div>
@@ -275,42 +301,65 @@ function SecurityGauge({ score }: { score: number }) {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
   const color = score >= 80 ? '#22c55e' : score >= 60 ? '#eab308' : '#ef4444';
-  const glowColor = score >= 80 ? 'rgba(34,197,94,0.4)' : score >= 60 ? 'rgba(234,179,8,0.4)' : 'rgba(239,68,68,0.4)';
+  const color2 = score >= 80 ? '#06b6d4' : score >= 60 ? '#f97316' : '#f43f5e';
+  const glowColor = score >= 80 ? 'rgba(34,197,94,0.5)' : score >= 60 ? 'rgba(234,179,8,0.5)' : 'rgba(239,68,68,0.5)';
   const neonClass = score >= 80 ? 'neon-text-green' : score >= 60 ? 'neon-text-yellow' : 'neon-text-red';
+  const label = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : 'At Risk';
 
   return (
     <div className="flex flex-col items-center" data-testid="card-security-score">
-      <div className="relative w-32 h-32 lg:w-36 lg:h-36">
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+      <div className="relative w-36 h-36 lg:w-40 lg:h-40">
+        <motion.div
+          className="absolute inset-[-8px] rounded-full"
+          style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)` }}
+          animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.95, 1.05, 0.95] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <svg className="w-full h-full -rotate-90 relative z-10" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="10" />
+          <circle cx="60" cy="60" r={radius - 12} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
           <motion.circle
             cx="60" cy="60" r={radius}
             className="app-gauge-ring"
-            stroke={color}
-            strokeWidth="8"
+            stroke={`url(#gaugeGradient)`}
+            strokeWidth="10"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
-            style={{ filter: `drop-shadow(0 0 8px ${glowColor})` }}
+            transition={{ duration: 1.8, ease: "easeOut", delay: 0.3 }}
+            style={{ filter: `drop-shadow(0 0 12px ${glowColor})` }}
           />
+          <defs>
+            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={color} />
+              <stop offset="100%" stopColor={color2} />
+            </linearGradient>
+          </defs>
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
           <motion.span
-            className={`text-3xl lg:text-4xl font-bold font-mono ${neonClass}`}
+            className={`text-4xl lg:text-5xl font-bold font-mono ${neonClass}`}
             key={score}
-            initial={{ scale: 0.5, opacity: 0 }}
+            initial={{ scale: 0.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.6, delay: 0.5, type: "spring", stiffness: 200 }}
             style={{ color }}
             data-testid="text-security-score"
           >
             {score}
           </motion.span>
-          <span className="text-[10px] text-muted-foreground">/ 100</span>
+          <motion.span
+            className="text-[10px] font-medium mt-0.5"
+            style={{ color }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            {label}
+          </motion.span>
         </div>
       </div>
-      <span className="text-xs text-muted-foreground mt-1 font-medium">Security Score</span>
+      <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Security Score</span>
     </div>
   );
 }
@@ -334,33 +383,33 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
       icon: History,
       label: "Last Check",
       value: lastCheck ? (lastCheck.target?.length > 10 ? `${lastCheck.target.slice(0, 8)}..` : lastCheck.target) : "—",
-      color: "from-blue-500/20 to-blue-600/10",
+      gradient: "from-blue-500 to-indigo-600",
+      bgGlow: "rgba(59,130,246,0.15)",
       iconColor: lastRiskColor,
-      borderColor: "border-blue-500/20",
     },
     {
       icon: Eye,
       label: "Monitoring",
       value: `${monitoringCount}`,
-      color: "from-cyan-500/20 to-cyan-600/10",
+      gradient: "from-cyan-400 to-teal-500",
+      bgGlow: "rgba(34,211,238,0.15)",
       iconColor: "text-cyan-400",
-      borderColor: "border-cyan-500/20",
     },
     {
       icon: Flame,
       label: "Streak",
       value: `${streakDays}d`,
-      color: "from-orange-500/20 to-orange-600/10",
+      gradient: "from-orange-400 to-red-500",
+      bgGlow: "rgba(249,115,22,0.15)",
       iconColor: streakDays > 0 ? "text-orange-400" : "text-zinc-500",
-      borderColor: "border-orange-500/20",
     },
     {
       icon: Activity,
-      label: "Checks",
+      label: "Total",
       value: `${totalChecks}`,
-      color: "from-purple-500/20 to-purple-600/10",
+      gradient: "from-purple-400 to-pink-500",
+      bgGlow: "rgba(168,85,247,0.15)",
       iconColor: "text-purple-400",
-      borderColor: "border-purple-500/20",
     },
   ];
 
@@ -369,30 +418,37 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.15 }}
-      className="flex flex-col items-center gap-4"
+      className="flex flex-col items-center gap-5"
       data-testid="widget-quick-actions"
     >
       <SecurityGauge score={securityScore} />
 
-      <div className="w-full grid grid-cols-4 gap-2 lg:gap-3">
+      <div className="w-full grid grid-cols-4 gap-3 lg:gap-4">
         {actions.map((action, idx) => (
           <motion.div
             key={action.label}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + idx * 0.08 }}
-            className="flex flex-col items-center gap-1.5"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 + idx * 0.1, type: "spring", stiffness: 300 }}
+            className="flex flex-col items-center gap-2"
           >
             <motion.div
-              whileTap={{ scale: 0.9 }}
-              className={`app-icon-circle bg-gradient-to-br ${action.color} border ${action.borderColor}`}
+              whileTap={{ scale: 0.85 }}
+              whileHover={{ y: -3, scale: 1.05 }}
+              className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl flex items-center justify-center relative overflow-hidden"
+              style={{ background: `radial-gradient(circle at 30% 30%, ${action.bgGlow}, transparent)` }}
             >
-              <action.icon className={`w-5 h-5 ${action.iconColor}`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-20`} />
+              <div className="absolute inset-[1px] rounded-[0.9rem] bg-[#14141c]/80 flex items-center justify-center">
+                <action.icon className={`w-6 h-6 ${action.iconColor}`} />
+              </div>
             </motion.div>
-            <span className="text-[10px] text-muted-foreground font-medium text-center leading-tight">{action.label}</span>
-            <span className={`text-xs font-bold font-mono ${action.iconColor}`} data-testid={`text-action-${action.label.toLowerCase().replace(' ', '-')}`}>
-              {action.value}
-            </span>
+            <div className="text-center">
+              <span className={`text-sm font-bold font-mono block ${action.iconColor}`} data-testid={`text-action-${action.label.toLowerCase().replace(' ', '-')}`}>
+                {action.value}
+              </span>
+              <span className="text-[9px] text-muted-foreground font-medium">{action.label}</span>
+            </div>
           </motion.div>
         ))}
       </div>
@@ -814,7 +870,7 @@ Sources: ${result.sources.join(', ')}`;
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
   return (
-    <PageLayout title="Dashboard">
+    <PageLayout title="Dashboard" appMode>
       <AnimatePresence>
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>

@@ -941,7 +941,7 @@ export default function Chat() {
   }, [filteredMessages, lang]);
 
   return (
-    <PageLayout title="Chat">
+    <PageLayout title="Chat" appMode>
       <div className="flex-1 flex flex-col h-full lg:h-auto lg:min-h-screen max-w-full overflow-hidden relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(142_71%_45%/0.03)_0%,transparent_60%)]" />
