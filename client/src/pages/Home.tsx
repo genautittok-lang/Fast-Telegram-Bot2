@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   ShieldCheck, 
   Globe, 
@@ -274,6 +274,15 @@ function QuickCheck({ lang }: { lang: string }) {
 
 export default function Home() {
   const { t, lang } = useTranslation();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      || (window.navigator as any).standalone === true;
+    if (isStandalone) {
+      setLocation("/dashboard");
+    }
+  }, [setLocation]);
   
   const [openFaqItems, setOpenFaqItems] = useState<number[]>([]);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
