@@ -45,7 +45,8 @@ import {
   FileWarning,
   Handshake,
   ShoppingBag,
-  MessageCircle
+  MessageCircle,
+  Download
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -465,7 +466,7 @@ export default function Home() {
                   {t("landing.hero.description")}
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
                   <Link href="/login">
                     <Button 
                       size="lg"
@@ -493,6 +494,17 @@ export default function Home() {
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </a>
+                  <Link href="/download">
+                    <Button 
+                      size="lg"
+                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group bg-gradient-to-r from-emerald-600 to-green-500 border-emerald-500/30 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+                      data-testid="button-download-apk"
+                    >
+                      <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      {lang === "uk" ? "Завантажити APK" : lang === "ru" ? "Скачать APK" : lang === "es" ? "Descargar APK" : lang === "de" ? "APK herunterladen" : "Download APK"}
+                      <Smartphone className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-4 text-xs sm:text-sm text-muted-foreground">

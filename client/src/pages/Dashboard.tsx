@@ -65,7 +65,12 @@ import {
   List,
   Star,
   X,
-  Timer
+  Timer,
+  Flame,
+  Activity,
+  Gauge,
+  History,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -206,6 +211,259 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
       <Icon className="w-4 h-4 mr-1.5" />
       {t(labelKey).toUpperCase()} — {score}/100
     </Badge>
+  );
+}
+
+function StatusBarWidget({ user, streakDays, checksLeft, maxChecks, tier }: { user: any; streakDays: number; checksLeft: number; maxChecks: number; tier: string }) {
+  const isUnlimited = maxChecks >= 9999;
+  const pct = isUnlimited ? 100 : Math.round((checksLeft / maxChecks) * 100);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-black/80 via-black/60 to-black/80 backdrop-blur-2xl p-3 lg:p-4"
+      data-testid="widget-status-bar"
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-purple-500/5" />
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent"
+        animate={{ x: ['-100%', '100%'] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+      />
+      <div className="relative flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <TierBadge tier={tier} />
+          <div className="h-5 w-px bg-white/10" />
+          <div className="flex items-center gap-1.5" data-testid="status-streak">
+            <motion.div
+              animate={streakDays > 0 ? { scale: [1, 1.2, 1] } : {}}
+              transition={{ duration: 0.8, repeat: Infinity }}
+            >
+              <Flame className={`w-4 h-4 ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`} />
+            </motion.div>
+            <span className={`text-xs font-bold font-mono ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`}>
+              {streakDays}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2" data-testid="status-checks">
+          <Zap className={`w-3.5 h-3.5 ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`} />
+          <div className="flex items-center gap-2">
+            <div className="w-20 h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <motion.div
+                className={`h-full rounded-full ${pct <= 20 ? 'bg-red-500' : pct <= 50 ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
+            </div>
+            <span className="text-[10px] font-mono text-muted-foreground">
+              {isUnlimited ? '∞' : `${checksLeft}/${maxChecks}`}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks }: { lastCheck: any; monitoringCount: number; streakDays: number; totalChecks: number }) {
+  const securityScore = useMemo(() => {
+    let score = 50;
+    if (streakDays > 0) score += Math.min(streakDays * 2, 20);
+    if (totalChecks > 5) score += 10;
+    if (totalChecks > 20) score += 10;
+    if (monitoringCount > 0) score += 10;
+    return Math.min(score, 100);
+  }, [streakDays, totalChecks, monitoringCount]);
+
+  const scoreColor = securityScore >= 80 ? 'text-emerald-400' : securityScore >= 60 ? 'text-yellow-400' : 'text-red-400';
+  const scoreBorder = securityScore >= 80 ? 'border-emerald-500/30' : securityScore >= 60 ? 'border-yellow-500/30' : 'border-red-500/30';
+  const scoreGlow = securityScore >= 80 ? 'shadow-emerald-500/10' : securityScore >= 60 ? 'shadow-yellow-500/10' : 'shadow-red-500/10';
+
+  const lastRiskColor = lastCheck
+    ? lastCheck.riskLevel === 'critical' ? 'text-red-400' : lastCheck.riskLevel === 'high' ? 'text-orange-400' : lastCheck.riskLevel === 'medium' ? 'text-yellow-400' : 'text-green-400'
+    : 'text-zinc-500';
+  const lastRiskBg = lastCheck
+    ? lastCheck.riskLevel === 'critical' ? 'from-red-500/15' : lastCheck.riskLevel === 'high' ? 'from-orange-500/15' : lastCheck.riskLevel === 'medium' ? 'from-yellow-500/15' : 'from-green-500/15'
+    : 'from-zinc-500/10';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.15 }}
+      className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3"
+      data-testid="widget-quick-actions"
+    >
+      <motion.div
+        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+        className={`relative p-3 lg:p-4 rounded-xl border border-white/10 bg-gradient-to-br ${lastRiskBg} to-transparent backdrop-blur-sm overflow-hidden`}
+        data-testid="card-last-check"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-white/10`}>
+            <History className={`w-3.5 h-3.5 ${lastRiskColor}`} />
+          </div>
+          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Last Check</span>
+        </div>
+        {lastCheck ? (
+          <>
+            <p className={`text-sm lg:text-base font-bold font-mono truncate ${lastRiskColor}`} data-testid="text-last-check-target">
+              {lastCheck.target?.length > 12 ? `${lastCheck.target.slice(0, 10)}...` : lastCheck.target}
+            </p>
+            <p className={`text-[9px] lg:text-[10px] uppercase font-semibold ${lastRiskColor}`} data-testid="text-last-check-risk">
+              {lastCheck.riskLevel}
+            </p>
+          </>
+        ) : (
+          <p className="text-xs text-zinc-500">No checks yet</p>
+        )}
+      </motion.div>
+
+      <motion.div
+        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+        className="relative p-3 lg:p-4 rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-transparent backdrop-blur-sm overflow-hidden"
+        data-testid="card-monitoring"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-cyan-500/20">
+            <Eye className="w-3.5 h-3.5 text-cyan-400" />
+          </div>
+          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Monitoring</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="text-sm lg:text-base font-bold font-mono text-cyan-400" data-testid="text-monitoring-count">{monitoringCount}</p>
+          <motion.div
+            className="w-2 h-2 rounded-full bg-cyan-400"
+            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </div>
+        <p className="text-[9px] lg:text-[10px] text-muted-foreground">Active watches</p>
+      </motion.div>
+
+      <motion.div
+        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+        className="relative p-3 lg:p-4 rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent backdrop-blur-sm overflow-hidden"
+        data-testid="card-streak"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <motion.div
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{
+              background: streakDays > 0
+                ? "linear-gradient(135deg, rgba(249,115,22,0.3), rgba(239,68,68,0.2))"
+                : "rgba(63,63,70,0.3)"
+            }}
+            animate={streakDays > 0 ? {
+              boxShadow: [
+                "0 0 8px rgba(249,115,22,0.3)",
+                "0 0 16px rgba(249,115,22,0.5)",
+                "0 0 8px rgba(249,115,22,0.3)",
+              ]
+            } : {}}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            <Flame className={`w-3.5 h-3.5 ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`} />
+          </motion.div>
+          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Streak</span>
+        </div>
+        <motion.p
+          className={`text-sm lg:text-base font-bold font-mono ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`}
+          animate={streakDays >= 7 ? { scale: [1, 1.05, 1] } : {}}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          data-testid="text-streak-count"
+        >
+          {streakDays} days
+        </motion.p>
+        {streakDays >= 7 && (
+          <motion.p className="text-[9px] text-orange-500/80" animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }}>
+            On fire!
+          </motion.p>
+        )}
+        {streakDays < 7 && <p className="text-[9px] lg:text-[10px] text-muted-foreground">Daily streak</p>}
+      </motion.div>
+
+      <motion.div
+        whileHover={{ y: -2, transition: { duration: 0.2 } }}
+        className={`relative p-3 lg:p-4 rounded-xl border ${scoreBorder} bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-sm overflow-hidden shadow-[0_0_20px] ${scoreGlow}`}
+        data-testid="card-security-score"
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-white/10`}>
+            <Gauge className={`w-3.5 h-3.5 ${scoreColor}`} />
+          </div>
+          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Security</span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <motion.p
+            className={`text-sm lg:text-base font-bold font-mono ${scoreColor}`}
+            key={securityScore}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            data-testid="text-security-score"
+          >
+            {securityScore}
+          </motion.p>
+          <span className="text-[9px] text-muted-foreground">/100</span>
+        </div>
+        <div className="mt-1 w-full h-1 rounded-full bg-white/10 overflow-hidden">
+          <motion.div
+            className={`h-full rounded-full ${securityScore >= 80 ? 'bg-emerald-500' : securityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${securityScore}%` }}
+            transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+          />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function MobileBottomBar({ selectedType, onSelectType, checkTypes }: { selectedType: string; onSelectType: (id: string) => void; checkTypes: any[] }) {
+  const quickTypes = checkTypes.slice(0, 5);
+  return (
+    <motion.div
+      initial={{ y: 80 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      data-testid="mobile-bottom-bar"
+    >
+      <div className="mx-3 mb-3 rounded-2xl border border-white/10 bg-black/90 backdrop-blur-2xl shadow-[0_-4px_30px_rgba(0,0,0,0.5)] p-1.5">
+        <div className="flex items-center justify-around gap-1">
+          {quickTypes.map((type) => {
+            const isActive = selectedType === type.id;
+            return (
+              <motion.button
+                key={type.id}
+                onClick={() => onSelectType(type.id)}
+                className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all duration-200 flex-1 ${
+                  isActive ? 'bg-white/10' : ''
+                }`}
+                whileTap={{ scale: 0.9 }}
+                data-testid={`bottom-bar-${type.id}`}
+              >
+                <type.icon className={`w-4 h-4 ${isActive ? type.iconColor : 'text-zinc-500'}`} />
+                <span className={`text-[8px] font-medium ${isActive ? type.iconColor : 'text-zinc-500'}`}>
+                  {type.label?.split(' ')[0] || type.id}
+                </span>
+                {isActive && (
+                  <motion.div
+                    className="w-4 h-0.5 rounded-full bg-primary"
+                    layoutId="bottomBarIndicator"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -627,8 +885,25 @@ Sources: ${result.sources.join(', ')}`;
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
-          <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
+        <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full pb-20 lg:pb-8">
+          <div className="max-w-6xl mx-auto space-y-4 lg:space-y-6">
+            {user && (
+              <StatusBarWidget
+                user={user}
+                streakDays={user.streakDays ?? 0}
+                checksLeft={user.requestsLeft ?? 0}
+                maxChecks={(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 }; return limits[(user.tier || "FREE").toUpperCase()] || 5; })()}
+                tier={(user.tier || "FREE").toUpperCase()}
+              />
+            )}
+
+            <QuickActionsGrid
+              lastCheck={recentReports.length > 0 ? recentReports[0] : null}
+              monitoringCount={platformStats?.activeWatches ?? 0}
+              streakDays={user?.streakDays ?? 0}
+              totalChecks={recentReports.length}
+            />
+
             <div className="hidden lg:block relative">
               <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
               <motion.div 
@@ -1073,22 +1348,46 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                     )}
 
-                    <motion.div whileTap={{ scale: 0.98 }}>
+                    <motion.div whileTap={{ scale: 0.98 }} className="relative">
+                      {!(checkMutation.isPending || bulkCheckMutation.isPending) && !bulkMode && (
+                        <>
+                          <motion.div
+                            className="absolute inset-0 rounded-xl border-2 border-primary/30"
+                            animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          />
+                          <motion.div
+                            className="absolute inset-0 rounded-xl border border-primary/20"
+                            animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0, 0.3] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                          />
+                        </>
+                      )}
                       <Button 
                         onClick={bulkMode ? handleBulkCheck : handleCheck} 
                         disabled={checkMutation.isPending || bulkCheckMutation.isPending}
-                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation ${!inputValue.trim() && !bulkMode ? 'animate-subtle-pulse' : ''}`}
+                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden ${!inputValue.trim() && !bulkMode ? 'animate-subtle-pulse' : ''}`}
                         data-testid="button-perform-check"
                       >
                         {(checkMutation.isPending || bulkCheckMutation.isPending) ? (
                           <div className="flex items-center gap-2">
-                            <motion.div
-                              className="relative w-5 h-5"
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            >
-                              <Scan className="w-5 h-5 absolute" />
-                            </motion.div>
+                            <div className="relative w-6 h-6">
+                              <motion.div
+                                className="absolute inset-0 rounded-full border-2 border-black/30"
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                              />
+                              <motion.div
+                                className="absolute inset-0"
+                                style={{
+                                  background: "conic-gradient(from 0deg, transparent 0%, rgba(0,0,0,0.3) 30%, transparent 60%)",
+                                  borderRadius: "50%",
+                                }}
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                              />
+                              <Scan className="w-4 h-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                            </div>
                             <motion.span
                               animate={{ opacity: [1, 0.5, 1] }}
                               transition={{ duration: 1.2, repeat: Infinity }}
@@ -1185,14 +1484,16 @@ Sources: ${result.sources.join(', ')}`;
               {result && !checkMutation.isPending && (
                 <motion.div
                   ref={resultsRef}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                   className="space-y-3 lg:space-y-6"
                 >
-                  <div className="p-3.5 lg:p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)]">
-                    <div className="flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/10">
+                  <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)]" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
+                    <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
+                    <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/10">
                       <div className="flex items-center gap-3">
                         <motion.div 
                           className={`w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${
@@ -1222,7 +1523,7 @@ Sources: ${result.sources.join(', ')}`;
                     </div>
 
                     <motion.div 
-                      className="p-3 lg:p-4 rounded-xl bg-white/5 border border-white/10 mb-3 lg:mb-6"
+                      className="relative p-3 lg:p-4 rounded-xl bg-white/5 border border-white/10 mb-3 lg:mb-6"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1, duration: 0.3 }}
@@ -1234,7 +1535,7 @@ Sources: ${result.sources.join(', ')}`;
                       <p className="font-mono text-xs lg:text-xl break-all text-primary leading-relaxed">{result.target}</p>
                     </motion.div>
 
-                    <div className="mb-3 lg:mb-6">
+                    <div className="relative mb-3 lg:mb-6">
                       <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
                         <AlertTriangle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-500" />
                         {t('dashboard.findings')} ({result.findings.length})
@@ -1304,7 +1605,7 @@ Sources: ${result.sources.join(', ')}`;
                       </motion.div>
                     )}
 
-                    <div className="mb-3 lg:mb-6">
+                    <div className="relative mb-3 lg:mb-6">
                       <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
                         <Terminal className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
                         {t('dashboard.technicalDetails') || 'Technical Details'}
@@ -1335,7 +1636,7 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/10">
+                    <div className="relative flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/10">
                       <div className="flex items-center gap-1.5 text-[9px] lg:text-xs text-muted-foreground">
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                         <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
@@ -1914,7 +2215,7 @@ Sources: ${result.sources.join(', ')}`;
       </Dialog>
 
       <motion.button
-        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-cyan-500/10 border border-primary/30 flex items-center justify-center text-primary hover:border-primary/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-300"
+        className="fixed bottom-20 lg:bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-cyan-500/10 border border-primary/30 flex items-center justify-center text-primary hover:border-primary/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-300"
         onClick={() => setShowShortcuts(true)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
@@ -1923,6 +2224,16 @@ Sources: ${result.sources.join(', ')}`;
       >
         <HelpCircle className="w-5 h-5" />
       </motion.button>
+
+      <MobileBottomBar
+        selectedType={selectedType}
+        onSelectType={(id) => {
+          setSelectedType(id);
+          setInputValue("");
+          setResult(null);
+        }}
+        checkTypes={checkTypes}
+      />
     </PageLayout>
   );
 }

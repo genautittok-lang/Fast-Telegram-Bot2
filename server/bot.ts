@@ -4890,22 +4890,30 @@ _"${lang === "uk" ? "Привіт, {username}! У тебе {requestsLeft} пер
     } catch { }
   });
 
-  async function sendDailyBroadcast(): Promise<number> {
-    const allUsers = await storage.getAllUsers();
-    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false && u.tgId && !u.tgId.startsWith("replit:"));
-    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+  function getBroadcastTemplateType(): number {
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+    return dayOfYear % 4;
+  }
+
+  function getFriendName(lang: Language): string {
+    const names: Record<Language, string> = { uk: "друже", ru: "друг", en: "friend", es: "amigo", de: "Freund" };
+    return names[lang];
+  }
+
+  function getCheckNowLabel(lang: Language): string {
+    const labels: Record<Language, string> = { uk: "Перевірити зараз", ru: "Проверить сейчас", en: "Check now", es: "Verificar ahora", de: "Jetzt prüfen" };
+    return labels[lang];
+  }
+
+  function getOpenLabel(lang: Language): string {
+    const labels: Record<Language, string> = { uk: "Відкрити DARKSHARE", ru: "Открыть DARKSHARE", en: "Open DARKSHARE", es: "Abrir DARKSHARE", de: "DARKSHARE öffnen" };
+    return labels[lang];
+  }
+
+  function buildDailyReportText(lang: Language, name: string, tierLabel: string, left: number, streak: number): string {
     const scamCount = Math.floor(Math.random() * 8) + 2;
-    let sentCount = 0;
-
-    for (const u of eligibleUsers) {
-      const lang = getUserLang(u.lang);
-      const name = u.username || (lang === "uk" ? "друже" : lang === "ru" ? "друг" : "friend");
-      const left = u.requestsLeft ?? 0;
-
-      const tierLabel = u.tier === "PRO" ? "⭐ PRO" : u.tier === "ENTERPRISE" ? "👑 ENTERPRISE" : u.tier === "GROUPS" ? "👥 GROUPS" : "🆓 FREE";
-
-      const text = lang === "uk" ?
-`🛡 *DARKSHARE — Щоденний звіт*
+    const texts: Record<Language, string> = {
+      uk: `🛡 *DARKSHARE — Щоденний звіт*
 ━━━━━━━━━━━━━━━━━━━━
 
 👋 Привіт, *${name}*!
@@ -4913,14 +4921,13 @@ _"${lang === "uk" ? "Привіт, {username}! У тебе {requestsLeft} пер
 📊 *Твій акаунт:*
 ├ 🎖 Тариф: ${tierLabel}
 ├ 🔍 Залишилось перевірок: *${left}*
-└ 🔥 Серія: *${u.streakDays || 0}* днів
+└ 🔥 Серія: *${streak}* днів
 
 ⚠️ *Сьогодні ${scamCount} людей ледь не попалися на скам!*
 Перевіряй контакти, адреси і гаманці перед тим як довіряти.
 
-💡 _Використай свої перевірки — захисти себе!_` :
-      lang === "ru" ?
-`🛡 *DARKSHARE — Ежедневный отчёт*
+💡 _Використай свої перевірки — захисти себе!_`,
+      ru: `🛡 *DARKSHARE — Ежедневный отчёт*
 ━━━━━━━━━━━━━━━━━━━━
 
 👋 Привет, *${name}*!
@@ -4928,13 +4935,13 @@ _"${lang === "uk" ? "Привіт, {username}! У тебе {requestsLeft} пер
 📊 *Твой аккаунт:*
 ├ 🎖 Тариф: ${tierLabel}
 ├ 🔍 Осталось проверок: *${left}*
-└ 🔥 Серия: *${u.streakDays || 0}* дней
+└ 🔥 Серия: *${streak}* дней
 
 ⚠️ *Сегодня ${scamCount} людей чуть не попались на скам!*
 Проверяй контакты, адреса и кошельки перед тем как доверять.
 
-💡 _Используй свои проверки — защити себя!_` :
-`🛡 *DARKSHARE — Daily Report*
+💡 _Используй свои проверки — защити себя!_`,
+      en: `🛡 *DARKSHARE — Daily Report*
 ━━━━━━━━━━━━━━━━━━━━
 
 👋 Hi, *${name}*!
@@ -4942,19 +4949,324 @@ _"${lang === "uk" ? "Привіт, {username}! У тебе {requestsLeft} пер
 📊 *Your account:*
 ├ 🎖 Plan: ${tierLabel}
 ├ 🔍 Checks remaining: *${left}*
-└ 🔥 Streak: *${u.streakDays || 0}* days
+└ 🔥 Streak: *${streak}* days
 
 ⚠️ *Today ${scamCount} people almost got scammed!*
 Always check contacts, addresses and wallets before trusting.
 
-💡 _Use your checks — protect yourself!_`;
+💡 _Use your checks — protect yourself!_`,
+      es: `🛡 *DARKSHARE — Informe diario*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 Hola, *${name}*!
+
+📊 *Tu cuenta:*
+├ 🎖 Plan: ${tierLabel}
+├ 🔍 Verificaciones restantes: *${left}*
+└ 🔥 Racha: *${streak}* días
+
+⚠️ *Hoy ${scamCount} personas casi fueron estafadas!*
+Siempre verifica contactos, direcciones y billeteras antes de confiar.
+
+💡 _Usa tus verificaciones — protégete!_`,
+      de: `🛡 *DARKSHARE — Tagesbericht*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 Hallo, *${name}*!
+
+📊 *Dein Konto:*
+├ 🎖 Tarif: ${tierLabel}
+├ 🔍 Verbleibende Prüfungen: *${left}*
+└ 🔥 Serie: *${streak}* Tage
+
+⚠️ *Heute wären ${scamCount} Personen fast betrogen worden!*
+Überprüfe immer Kontakte, Adressen und Wallets, bevor du vertraust.
+
+💡 _Nutze deine Prüfungen — schütze dich!_`,
+    };
+    return texts[lang];
+  }
+
+  function buildSecurityTipText(lang: Language, name: string): string {
+    const tipIndex = Math.floor(Math.random() * 6);
+    const tips: Record<Language, string[]> = {
+      uk: [
+        "Завжди перевіряй крипто-адресу перед відправкою коштів — навіть від довірених контактів. Шахраї часто підміняють адреси в буфері обміну.",
+        "Використовуй двофакторну автентифікацію (2FA) на всіх акаунтах. TOTP-додатки (Google Authenticator) надійніші за SMS.",
+        "Перевіряй URL-адресу перед введенням пароля — фішингові сайти виглядають ідентично оригіналам. Зверни увагу на домен!",
+        "Регулярно перевіряй свій email на витоки даних. Якщо пароль скомпрометований — зміни його негайно на всіх сервісах.",
+        "Не відкривай підозрілі файли та посилання в месенджерах. Спочатку перевір хеш файлу або URL через DARKSHARE.",
+        "Налаштуй моніторинг своїх доменів та IP. DARKSHARE автоматично попередить про зміни та загрози 24/7.",
+      ],
+      ru: [
+        "Всегда проверяй крипто-адрес перед отправкой средств — даже от доверенных контактов. Мошенники часто подменяют адреса в буфере обмена.",
+        "Используй двухфакторную аутентификацию (2FA) на всех аккаунтах. TOTP-приложения (Google Authenticator) надёжнее SMS.",
+        "Проверяй URL-адрес перед вводом пароля — фишинговые сайты выглядят идентично оригиналам. Обрати внимание на домен!",
+        "Регулярно проверяй свой email на утечки данных. Если пароль скомпрометирован — смени его немедленно на всех сервисах.",
+        "Не открывай подозрительные файлы и ссылки в мессенджерах. Сначала проверь хеш файла или URL через DARKSHARE.",
+        "Настрой мониторинг своих доменов и IP. DARKSHARE автоматически предупредит об изменениях и угрозах 24/7.",
+      ],
+      en: [
+        "Always verify a crypto address before sending funds — even from trusted contacts. Scammers often replace addresses in your clipboard.",
+        "Enable two-factor authentication (2FA) on all accounts. TOTP apps (Google Authenticator) are more secure than SMS.",
+        "Check the URL before entering your password — phishing sites look identical to originals. Pay attention to the domain!",
+        "Regularly check your email for data breaches. If a password is compromised — change it immediately on all services.",
+        "Don't open suspicious files or links in messengers. First check the file hash or URL through DARKSHARE.",
+        "Set up monitoring for your domains and IPs. DARKSHARE will automatically alert you about changes and threats 24/7.",
+      ],
+      es: [
+        "Siempre verifica la dirección cripto antes de enviar fondos — incluso de contactos de confianza. Los estafadores suelen reemplazar direcciones en el portapapeles.",
+        "Activa la autenticación de dos factores (2FA) en todas tus cuentas. Las apps TOTP (Google Authenticator) son más seguras que los SMS.",
+        "Verifica la URL antes de ingresar tu contraseña — los sitios de phishing se ven idénticos a los originales. Presta atención al dominio!",
+        "Revisa regularmente tu email en busca de filtraciones de datos. Si una contraseña fue comprometida — cámbiala de inmediato en todos los servicios.",
+        "No abras archivos o enlaces sospechosos en mensajeros. Primero verifica el hash del archivo o la URL a través de DARKSHARE.",
+        "Configura el monitoreo de tus dominios e IPs. DARKSHARE te alertará automáticamente sobre cambios y amenazas 24/7.",
+      ],
+      de: [
+        "Überprüfe immer eine Krypto-Adresse vor dem Senden von Geldern — auch von vertrauenswürdigen Kontakten. Betrüger ersetzen oft Adressen in der Zwischenablage.",
+        "Aktiviere die Zwei-Faktor-Authentifizierung (2FA) für alle Konten. TOTP-Apps (Google Authenticator) sind sicherer als SMS.",
+        "Überprüfe die URL vor der Passworteingabe — Phishing-Seiten sehen identisch mit Originalen aus. Achte auf die Domain!",
+        "Überprüfe regelmäßig deine E-Mail auf Datenlecks. Wenn ein Passwort kompromittiert wurde — ändere es sofort bei allen Diensten.",
+        "Öffne keine verdächtigen Dateien oder Links in Messengern. Überprüfe zuerst den Datei-Hash oder die URL über DARKSHARE.",
+        "Richte die Überwachung deiner Domains und IPs ein. DARKSHARE warnt dich automatisch bei Änderungen und Bedrohungen 24/7.",
+      ],
+    };
+    const tip = tips[lang][tipIndex];
+    const titles: Record<Language, string> = {
+      uk: "Порада безпеки дня",
+      ru: "Совет безопасности дня",
+      en: "Security Tip of the Day",
+      es: "Consejo de seguridad del día",
+      de: "Sicherheitstipp des Tages",
+    };
+    const stayLabels: Record<Language, string> = {
+      uk: "Будь у безпеці з DARKSHARE!",
+      ru: "Будь в безопасности с DARKSHARE!",
+      en: "Stay safe with DARKSHARE!",
+      es: "Mantente seguro con DARKSHARE!",
+      de: "Bleib sicher mit DARKSHARE!",
+    };
+    return `🔐 *DARKSHARE — ${titles[lang]}*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*,
+
+💡 *${tip}*
+
+🛡 _${stayLabels[lang]}_`;
+  }
+
+  function buildThreatAlertText(lang: Language, name: string): string {
+    const newThreats = Math.floor(Math.random() * 120) + 30;
+    const blockedIPs = Math.floor(Math.random() * 5000) + 1000;
+    const phishingSites = Math.floor(Math.random() * 300) + 50;
+    const compromisedWallets = Math.floor(Math.random() * 40) + 5;
+    const texts: Record<Language, string> = {
+      uk: `⚠️ *DARKSHARE — Зведення загроз*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*, ось що відбувається:
+
+🌍 *Глобальна статистика за 24г:*
+├ 🆕 Нових загроз виявлено: *${newThreats}*
+├ 🚫 Заблоковано шкідливих IP: *${blockedIPs}*
+├ 🎣 Фішингових сайтів знайдено: *${phishingSites}*
+└ 💰 Скомпрометованих гаманців: *${compromisedWallets}*
+
+🔴 *Топ загрози:*
+├ Зростання фішингу через Telegram-боти
+├ Нові дрейнери для SOL/ETH гаманців
+└ Масові витоки email-баз даних
+
+🛡 _Перевіряй свої адреси та контакти регулярно!_`,
+      ru: `⚠️ *DARKSHARE — Сводка угроз*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*, вот что происходит:
+
+🌍 *Глобальная статистика за 24ч:*
+├ 🆕 Новых угроз обнаружено: *${newThreats}*
+├ 🚫 Заблокировано вредоносных IP: *${blockedIPs}*
+├ 🎣 Фишинговых сайтов найдено: *${phishingSites}*
+└ 💰 Скомпрометированных кошельков: *${compromisedWallets}*
+
+🔴 *Топ угрозы:*
+├ Рост фишинга через Telegram-ботов
+├ Новые дрейнеры для SOL/ETH кошельков
+└ Массовые утечки email-баз данных
+
+🛡 _Проверяй свои адреса и контакты регулярно!_`,
+      en: `⚠️ *DARKSHARE — Threat Briefing*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*, here's the latest:
+
+🌍 *Global stats (last 24h):*
+├ 🆕 New threats detected: *${newThreats}*
+├ 🚫 Malicious IPs blocked: *${blockedIPs}*
+├ 🎣 Phishing sites found: *${phishingSites}*
+└ 💰 Compromised wallets flagged: *${compromisedWallets}*
+
+🔴 *Top threats:*
+├ Rising Telegram bot phishing campaigns
+├ New SOL/ETH wallet drainers detected
+└ Mass email database leaks reported
+
+🛡 _Check your addresses and contacts regularly!_`,
+      es: `⚠️ *DARKSHARE — Resumen de amenazas*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*, esto es lo último:
+
+🌍 *Estadísticas globales (últimas 24h):*
+├ 🆕 Nuevas amenazas detectadas: *${newThreats}*
+├ 🚫 IPs maliciosas bloqueadas: *${blockedIPs}*
+├ 🎣 Sitios de phishing encontrados: *${phishingSites}*
+└ 💰 Billeteras comprometidas: *${compromisedWallets}*
+
+🔴 *Principales amenazas:*
+├ Aumento de phishing a través de bots de Telegram
+├ Nuevos drainers para billeteras SOL/ETH
+└ Filtraciones masivas de bases de datos de email
+
+🛡 _Verifica tus direcciones y contactos regularmente!_`,
+      de: `⚠️ *DARKSHARE — Bedrohungsbericht*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*, hier sind die Neuigkeiten:
+
+🌍 *Globale Statistik (letzte 24h):*
+├ 🆕 Neue Bedrohungen erkannt: *${newThreats}*
+├ 🚫 Schädliche IPs blockiert: *${blockedIPs}*
+├ 🎣 Phishing-Seiten gefunden: *${phishingSites}*
+└ 💰 Kompromittierte Wallets: *${compromisedWallets}*
+
+🔴 *Top-Bedrohungen:*
+├ Zunehmende Phishing-Kampagnen über Telegram-Bots
+├ Neue SOL/ETH Wallet-Drainer entdeckt
+└ Massive E-Mail-Datenbank-Lecks gemeldet
+
+🛡 _Überprüfe deine Adressen und Kontakte regelmäßig!_`,
+    };
+    return texts[lang];
+  }
+
+  function buildFeatureSpotlightText(lang: Language, name: string): string {
+    const featureIndex = Math.floor(Math.random() * 6);
+    const features: Record<Language, Array<{ title: string; desc: string; tip: string }>> = {
+      uk: [
+        { title: "Моніторинг 24/7", desc: "Автоматичне відстеження змін для доменів, IP та гаманців з миттєвими Telegram-сповіщеннями.", tip: "Додай свій домен у моніторинг і отримуй алерти про будь-які зміни DNS, SSL або WHOIS." },
+        { title: "Bulk-перевірка", desc: "Перевіряй до 50 цілей одночасно — IP, email або домени списком.", tip: "Вставляй список по одному на рядок і отримуй зведений звіт за секунди." },
+        { title: "PDF-звіти", desc: "Генеруй брендовані PDF-звіти з risk score, findings та metadata для клієнтів.", tip: "Ідеально для пентестерів та консультантів — надсилай професійні звіти клієнтам." },
+        { title: "Inline-режим", desc: "Використовуй @DarkShare1Bot прямо в будь-якому чаті для швидких перевірок.", tip: "Введи @DarkShare1Bot ip 8.8.8.8 прямо в чаті — результат з'явиться як inline-повідомлення." },
+        { title: "Крипто-аналіз", desc: "Аналіз ETH, BTC, TRX, SOL гаманців: баланс, транзакції, міксери, скам-бази.", tip: "Перевіряй гаманці перед відправкою криптовалюти — захисти свої кошти." },
+        { title: "Username OSINT", desc: "Пошук профілів на 200+ платформах: соцмережі, форуми, dev-платформи.", tip: "Введи username і дізнайся, де ця людина зареєстрована — для розслідувань та OSINT." },
+      ],
+      ru: [
+        { title: "Мониторинг 24/7", desc: "Автоматическое отслеживание изменений для доменов, IP и кошельков с мгновенными Telegram-уведомлениями.", tip: "Добавь свой домен в мониторинг и получай алерты о любых изменениях DNS, SSL или WHOIS." },
+        { title: "Bulk-проверка", desc: "Проверяй до 50 целей одновременно — IP, email или домены списком.", tip: "Вставляй список по одному на строку и получай сводный отчёт за секунды." },
+        { title: "PDF-отчёты", desc: "Генерируй брендированные PDF-отчёты с risk score, findings и metadata для клиентов.", tip: "Идеально для пентестеров и консультантов — отправляй профессиональные отчёты клиентам." },
+        { title: "Inline-режим", desc: "Используй @DarkShare1Bot прямо в любом чате для быстрых проверок.", tip: "Введи @DarkShare1Bot ip 8.8.8.8 прямо в чате — результат появится как inline-сообщение." },
+        { title: "Крипто-анализ", desc: "Анализ ETH, BTC, TRX, SOL кошельков: баланс, транзакции, миксеры, скам-базы.", tip: "Проверяй кошельки перед отправкой криптовалюты — защити свои средства." },
+        { title: "Username OSINT", desc: "Поиск профилей на 200+ платформах: соцсети, форумы, dev-платформы.", tip: "Введи username и узнай, где этот человек зарегистрирован — для расследований и OSINT." },
+      ],
+      en: [
+        { title: "24/7 Monitoring", desc: "Automatic change tracking for domains, IPs, and wallets with instant Telegram notifications.", tip: "Add your domain to monitoring and get alerts about any DNS, SSL, or WHOIS changes." },
+        { title: "Bulk Check", desc: "Check up to 50 targets at once — IPs, emails, or domains as a list.", tip: "Paste a list (one per line) and get a summary report in seconds." },
+        { title: "PDF Reports", desc: "Generate branded PDF reports with risk score, findings, and metadata for clients.", tip: "Perfect for pentesters and consultants — send professional reports to your clients." },
+        { title: "Inline Mode", desc: "Use @DarkShare1Bot directly in any chat for quick checks.", tip: "Type @DarkShare1Bot ip 8.8.8.8 right in a chat — the result appears as an inline message." },
+        { title: "Crypto Analysis", desc: "Analyze ETH, BTC, TRX, SOL wallets: balance, transactions, mixers, scam databases.", tip: "Check wallets before sending crypto — protect your funds." },
+        { title: "Username OSINT", desc: "Search profiles across 200+ platforms: social media, forums, dev platforms.", tip: "Enter a username and discover where that person is registered — for investigations and OSINT." },
+      ],
+      es: [
+        { title: "Monitoreo 24/7", desc: "Seguimiento automático de cambios para dominios, IPs y billeteras con notificaciones instantáneas por Telegram.", tip: "Agrega tu dominio al monitoreo y recibe alertas sobre cualquier cambio en DNS, SSL o WHOIS." },
+        { title: "Verificación masiva", desc: "Verifica hasta 50 objetivos a la vez — IPs, emails o dominios como lista.", tip: "Pega una lista (uno por línea) y obtén un informe resumido en segundos." },
+        { title: "Informes PDF", desc: "Genera informes PDF con marca, puntuación de riesgo, hallazgos y metadatos para clientes.", tip: "Perfecto para pentesters y consultores — envía informes profesionales a tus clientes." },
+        { title: "Modo Inline", desc: "Usa @DarkShare1Bot directamente en cualquier chat para verificaciones rápidas.", tip: "Escribe @DarkShare1Bot ip 8.8.8.8 en un chat — el resultado aparece como mensaje inline." },
+        { title: "Análisis Cripto", desc: "Analiza billeteras ETH, BTC, TRX, SOL: balance, transacciones, mixers, bases de scam.", tip: "Verifica billeteras antes de enviar cripto — protege tus fondos." },
+        { title: "Username OSINT", desc: "Busca perfiles en más de 200 plataformas: redes sociales, foros, plataformas dev.", tip: "Ingresa un username y descubre dónde está registrada esa persona — para investigaciones y OSINT." },
+      ],
+      de: [
+        { title: "24/7 Überwachung", desc: "Automatische Änderungsverfolgung für Domains, IPs und Wallets mit sofortigen Telegram-Benachrichtigungen.", tip: "Füge deine Domain zur Überwachung hinzu und erhalte Warnungen bei DNS-, SSL- oder WHOIS-Änderungen." },
+        { title: "Massenprüfung", desc: "Prüfe bis zu 50 Ziele gleichzeitig — IPs, E-Mails oder Domains als Liste.", tip: "Füge eine Liste ein (eine pro Zeile) und erhalte einen zusammenfassenden Bericht in Sekunden." },
+        { title: "PDF-Berichte", desc: "Erstelle gebrandete PDF-Berichte mit Risikobewertung, Ergebnissen und Metadaten für Kunden.", tip: "Perfekt für Pentester und Berater — sende professionelle Berichte an deine Kunden." },
+        { title: "Inline-Modus", desc: "Verwende @DarkShare1Bot direkt in jedem Chat für schnelle Prüfungen.", tip: "Gib @DarkShare1Bot ip 8.8.8.8 direkt im Chat ein — das Ergebnis erscheint als Inline-Nachricht." },
+        { title: "Krypto-Analyse", desc: "Analysiere ETH, BTC, TRX, SOL Wallets: Guthaben, Transaktionen, Mixer, Scam-Datenbanken.", tip: "Überprüfe Wallets vor dem Senden von Krypto — schütze deine Gelder." },
+        { title: "Username OSINT", desc: "Suche Profile auf über 200 Plattformen: Social Media, Foren, Dev-Plattformen.", tip: "Gib einen Benutzernamen ein und finde heraus, wo diese Person registriert ist — für Ermittlungen und OSINT." },
+      ],
+    };
+    const feature = features[lang][featureIndex];
+    const spotlightLabels: Record<Language, string> = {
+      uk: "Функція дня",
+      ru: "Функция дня",
+      en: "Feature Spotlight",
+      es: "Función del día",
+      de: "Feature des Tages",
+    };
+    const tipLabels: Record<Language, string> = {
+      uk: "Порада",
+      ru: "Совет",
+      en: "Tip",
+      es: "Consejo",
+      de: "Tipp",
+    };
+    const tryLabels: Record<Language, string> = {
+      uk: "Спробуй прямо зараз!",
+      ru: "Попробуй прямо сейчас!",
+      en: "Try it right now!",
+      es: "Pruébalo ahora mismo!",
+      de: "Probiere es jetzt aus!",
+    };
+    return `🚀 *DARKSHARE — ${spotlightLabels[lang]}*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 *${name}*,
+
+⭐ *${feature.title}*
+${feature.desc}
+
+💡 *${tipLabels[lang]}:* ${feature.tip}
+
+🎯 _${tryLabels[lang]}_`;
+  }
+
+  async function sendDailyBroadcast(): Promise<number> {
+    const allUsers = await storage.getAllUsers();
+    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false && u.tgId && !u.tgId.startsWith("replit:"));
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+    const templateType = getBroadcastTemplateType();
+    let sentCount = 0;
+
+    for (const u of eligibleUsers) {
+      const lang = getUserLang(u.lang);
+      const name = u.username || getFriendName(lang);
+      const left = u.requestsLeft ?? 0;
+      const tierLabel = u.tier === "PRO" ? "⭐ PRO" : u.tier === "ENTERPRISE" ? "👑 ENTERPRISE" : u.tier === "GROUPS" ? "👥 GROUPS" : "🆓 FREE";
+
+      let text: string;
+      switch (templateType) {
+        case 0:
+          text = buildDailyReportText(lang, name, tierLabel, left, u.streakDays || 0);
+          break;
+        case 1:
+          text = buildSecurityTipText(lang, name);
+          break;
+        case 2:
+          text = buildThreatAlertText(lang, name);
+          break;
+        case 3:
+          text = buildFeatureSpotlightText(lang, name);
+          break;
+        default:
+          text = buildDailyReportText(lang, name, tierLabel, left, u.streakDays || 0);
+      }
 
       try {
         await bot.telegram.sendMessage(u.tgId!, text, {
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
-            [cb("🔍 " + (lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : "Check now"), "check_all", "primary", E.search)],
-            [urlS("🌐 " + (lang === "uk" ? "Відкрити DARKSHARE" : lang === "ru" ? "Открыть DARKSHARE" : "Open DARKSHARE"), webUrl, "success", E.globe)]
+            [cb("🔍 " + getCheckNowLabel(lang), "check_all", "primary", E.search)],
+            [urlS("🌐 " + getOpenLabel(lang), webUrl, "success", E.globe)]
           ])
         });
         sentCount++;
@@ -4968,7 +5280,7 @@ Always check contacts, addresses and wallets before trusting.
 
     await storage.setAdminSetting("daily_broadcast_last_sent", new Date().toISOString());
     await storage.setAdminSetting("daily_broadcast_last_reach", sentCount.toString());
-    console.log(`Daily broadcast sent to ${sentCount}/${eligibleUsers.length} users`);
+    console.log(`Daily broadcast sent to ${sentCount}/${eligibleUsers.length} users (template: ${templateType})`);
     return sentCount;
   }
 

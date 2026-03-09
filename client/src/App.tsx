@@ -26,6 +26,7 @@ import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
 import Chat from "@/pages/Chat";
 import Guide from "@/pages/Guide";
+import Download from "@/pages/Download";
 
 function Router() {
   return (
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/chat" component={Chat} />
       <Route path="/guide" component={Guide} />
+      <Route path="/download" component={Download} />
       <Route component={NotFound} />
     </Switch>
   );
