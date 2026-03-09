@@ -207,10 +207,12 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
   
   const { className, glow, icon: Icon, labelKey } = config[level as keyof typeof config] || config.low;
   
+  const neonClass = level === 'critical' || level === 'high' ? 'neon-text-red' : level === 'medium' ? 'neon-text-yellow' : 'neon-text-green';
+  
   return (
     <Badge className={`${className} ${glow} border px-3 py-1 text-sm font-bold tracking-wide`}>
       <Icon className="w-4 h-4 mr-1.5" />
-      {t(labelKey).toUpperCase()} — {score}/100
+      {t(labelKey).toUpperCase()} — <span className={neonClass}>{score}/100</span>
     </Badge>
   );
 }
@@ -224,7 +226,7 @@ function StatusBarWidget({ user, streakDays, checksLeft, maxChecks, tier }: { us
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-black/80 via-black/60 to-black/80 backdrop-blur-2xl p-3 lg:p-4"
+      className="relative rounded-2xl bg-gradient-to-r from-black/80 via-black/60 to-black/80 backdrop-blur-2xl p-3 lg:p-4 cyber-border"
       data-testid="widget-status-bar"
     >
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-purple-500/5" />
@@ -300,8 +302,9 @@ function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks 
       data-testid="widget-quick-actions"
     >
       <motion.div
-        whileHover={{ y: -2, transition: { duration: 0.2 } }}
-        className={`relative p-3 lg:p-4 rounded-xl border border-white/10 bg-gradient-to-br ${lastRiskBg} to-transparent backdrop-blur-sm overflow-hidden`}
+        whileHover={{ y: -4, rotateX: -3, rotateY: 3, transition: { duration: 0.3 } }}
+        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
+        className={`relative p-3 lg:p-4 rounded-xl border border-white/10 bg-gradient-to-br ${lastRiskBg} to-transparent backdrop-blur-sm`}
         data-testid="card-last-check"
       >
         <div className="flex items-center gap-2 mb-2">
@@ -325,8 +328,9 @@ function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks 
       </motion.div>
 
       <motion.div
-        whileHover={{ y: -2, transition: { duration: 0.2 } }}
-        className="relative p-3 lg:p-4 rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-transparent backdrop-blur-sm overflow-hidden"
+        whileHover={{ y: -4, rotateX: -3, rotateY: -3, transition: { duration: 0.3 } }}
+        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
+        className="relative p-3 lg:p-4 rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-transparent backdrop-blur-sm"
         data-testid="card-monitoring"
       >
         <div className="flex items-center gap-2 mb-2">
@@ -347,8 +351,9 @@ function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks 
       </motion.div>
 
       <motion.div
-        whileHover={{ y: -2, transition: { duration: 0.2 } }}
-        className="relative p-3 lg:p-4 rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent backdrop-blur-sm overflow-hidden"
+        whileHover={{ y: -4, rotateX: 3, rotateY: 3, transition: { duration: 0.3 } }}
+        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
+        className="relative p-3 lg:p-4 rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent backdrop-blur-sm"
         data-testid="card-streak"
       >
         <div className="flex items-center gap-2 mb-2">
@@ -389,8 +394,9 @@ function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks 
       </motion.div>
 
       <motion.div
-        whileHover={{ y: -2, transition: { duration: 0.2 } }}
-        className={`relative p-3 lg:p-4 rounded-xl border ${scoreBorder} bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-sm overflow-hidden shadow-[0_0_20px] ${scoreGlow}`}
+        whileHover={{ y: -4, rotateX: 3, rotateY: -3, transition: { duration: 0.3 } }}
+        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
+        className={`relative p-3 lg:p-4 rounded-xl border ${scoreBorder} bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-sm shadow-[0_0_20px] ${scoreGlow}`}
         data-testid="card-security-score"
       >
         <div className="flex items-center gap-2 mb-2">
@@ -401,7 +407,7 @@ function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks 
         </div>
         <div className="flex items-baseline gap-1">
           <motion.p
-            className={`text-sm lg:text-base font-bold font-mono ${scoreColor}`}
+            className={`text-sm lg:text-base font-bold font-mono ${scoreColor} ${securityScore >= 80 ? 'neon-text-green' : securityScore >= 60 ? 'neon-text-yellow' : 'neon-text-red'}`}
             key={securityScore}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -1287,9 +1293,9 @@ Sources: ${result.sources.join(', ')}`;
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative flex flex-col items-center justify-center gap-2 sm:gap-2.5 lg:gap-3 p-3 sm:p-4 lg:p-5 rounded-xl touch-manipulation min-h-[80px] sm:min-h-[90px] lg:min-h-[110px] border transition-all duration-300 group ${
+                      className={`relative flex flex-col items-center justify-center gap-2 sm:gap-2.5 lg:gap-3 p-3 sm:p-4 lg:p-5 rounded-xl touch-manipulation min-h-[80px] sm:min-h-[90px] lg:min-h-[110px] border transition-all duration-300 group depth-glow ${
                         isSelected
-                          ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor}`
+                          ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor} btn-3d btn-3d-selected ${type.btn3d}`
                           : 'bg-[#17171c] border-white/[0.06] hover:bg-[#1c1c22] hover:border-white/15'
                       }`}
                       initial={{ opacity: 0, y: 12 }}
@@ -1482,7 +1488,7 @@ Sources: ${result.sources.join(', ')}`;
                       <Button 
                         onClick={bulkMode ? handleBulkCheck : handleCheck} 
                         disabled={checkMutation.isPending || bulkCheckMutation.isPending}
-                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden ${!inputValue.trim() && !bulkMode ? 'animate-subtle-pulse' : ''}`}
+                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode ? 'animate-subtle-pulse ring-pulse' : ''}`}
                         data-testid="button-perform-check"
                       >
                         {(checkMutation.isPending || bulkCheckMutation.isPending) ? (
@@ -1542,7 +1548,7 @@ Sources: ${result.sources.join(', ')}`;
                   exit={{ opacity: 0 }}
                   className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden"
                 >
-                  <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute inset-0 overflow-hidden scan-beam">
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"
                       animate={{ x: ['-100%', '100%'] }}
@@ -1606,7 +1612,7 @@ Sources: ${result.sources.join(', ')}`;
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="space-y-3 lg:space-y-6"
                 >
-                  <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)]" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
+                  <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
                     <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
                     <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/10">
