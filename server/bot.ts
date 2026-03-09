@@ -626,7 +626,8 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
         cb("🔄 " + (lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"), "refresh_dashboard", "danger", E.bolt)
       ],
       [
-        urlS("🖥️ " + t(lang, "common.webPanel"), webUrl, "primary", E.globe)
+        urlS("🖥️ " + t(lang, "common.webPanel"), webUrl, "primary", E.globe),
+        urlS("📲 " + (lang === "uk" ? "Додаток" : lang === "ru" ? "Приложение" : lang === "es" ? "App" : lang === "de" ? "App" : "App"), `${webUrl}/download`, "success", E.phone)
       ]
     ];
     
