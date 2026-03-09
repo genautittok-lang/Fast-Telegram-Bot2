@@ -169,7 +169,7 @@ export default function Support() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout>
+      <PageLayout title="Support">
         <SupportForm />
       </PageLayout>
     );

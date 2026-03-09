@@ -217,44 +217,42 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
   );
 }
 
-function StatusBarWidget({ user, streakDays, checksLeft, maxChecks, tier }: { user: any; streakDays: number; checksLeft: number; maxChecks: number; tier: string }) {
+function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: any; streakDays: number; checksLeft: number; maxChecks: number; tier: string }) {
   const isUnlimited = maxChecks >= 9999;
   const pct = isUnlimited ? 100 : Math.round((checksLeft / maxChecks) * 100);
+  const greetName = user?.username || "User";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative rounded-2xl bg-gradient-to-r from-black/80 via-black/60 to-black/80 backdrop-blur-2xl p-3 lg:p-4 cyber-border"
+      className="relative rounded-2xl overflow-hidden app-card"
       data-testid="widget-status-bar"
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-cyan-500/5 to-purple-500/5" />
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent"
-        animate={{ x: ['-100%', '100%'] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-      />
-      <div className="relative flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
-          <TierBadge tier={tier} />
-          <div className="h-5 w-px bg-white/10" />
-          <div className="flex items-center gap-1.5" data-testid="status-streak">
-            <motion.div
-              animate={streakDays > 0 ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 0.8, repeat: Infinity }}
-            >
-              <Flame className={`w-4 h-4 ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`} />
-            </motion.div>
-            <span className={`text-xs font-bold font-mono ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`}>
-              {streakDays}
-            </span>
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-cyan-500/5 to-purple-500/10" />
+      <div className="relative p-4 lg:p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center shadow-[0_0_16px_rgba(34,197,94,0.3)]">
+            <span className="text-black font-bold text-sm">{greetName.charAt(0).toUpperCase()}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-semibold text-white truncate" data-testid="text-greeting">
+              Hi, {greetName}! 👋
+            </h2>
+            <div className="flex items-center gap-2 mt-0.5">
+              <TierBadge tier={tier} />
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2" data-testid="status-checks">
-          <Zap className={`w-3.5 h-3.5 ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`} />
-          <div className="flex items-center gap-2">
-            <div className="w-20 h-1.5 rounded-full bg-white/10 overflow-hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/[0.06]">
+            <Flame className={`w-3.5 h-3.5 ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`} />
+            <span className={`text-xs font-bold font-mono ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`}>{streakDays}d</span>
+          </div>
+          <div className="flex-1 flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/[0.06]">
+            <Zap className={`w-3.5 h-3.5 flex-shrink-0 ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`} />
+            <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
               <motion.div
                 className={`h-full rounded-full ${pct <= 20 ? 'bg-red-500' : pct <= 50 ? 'bg-orange-500' : 'bg-emerald-500'}`}
                 initial={{ width: 0 }}
@@ -262,7 +260,7 @@ function StatusBarWidget({ user, streakDays, checksLeft, maxChecks, tier }: { us
                 transition={{ duration: 1, ease: "easeOut" }}
               />
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground">
+            <span className="text-[10px] font-mono text-muted-foreground flex-shrink-0">
               {isUnlimited ? '∞' : `${checksLeft}/${maxChecks}`}
             </span>
           </div>
@@ -272,7 +270,52 @@ function StatusBarWidget({ user, streakDays, checksLeft, maxChecks, tier }: { us
   );
 }
 
-function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks }: { lastCheck: any; monitoringCount: number; streakDays: number; totalChecks: number }) {
+function SecurityGauge({ score }: { score: number }) {
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
+  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#eab308' : '#ef4444';
+  const glowColor = score >= 80 ? 'rgba(34,197,94,0.4)' : score >= 60 ? 'rgba(234,179,8,0.4)' : 'rgba(239,68,68,0.4)';
+  const neonClass = score >= 80 ? 'neon-text-green' : score >= 60 ? 'neon-text-yellow' : 'neon-text-red';
+
+  return (
+    <div className="flex flex-col items-center" data-testid="card-security-score">
+      <div className="relative w-32 h-32 lg:w-36 lg:h-36">
+        <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+          <motion.circle
+            cx="60" cy="60" r={radius}
+            className="app-gauge-ring"
+            stroke={color}
+            strokeWidth="8"
+            strokeDasharray={circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+            style={{ filter: `drop-shadow(0 0 8px ${glowColor})` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.span
+            className={`text-3xl lg:text-4xl font-bold font-mono ${neonClass}`}
+            key={score}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            style={{ color }}
+            data-testid="text-security-score"
+          >
+            {score}
+          </motion.span>
+          <span className="text-[10px] text-muted-foreground">/ 100</span>
+        </div>
+      </div>
+      <span className="text-xs text-muted-foreground mt-1 font-medium">Security Score</span>
+    </div>
+  );
+}
+
+function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }: { lastCheck: any; monitoringCount: number; streakDays: number; totalChecks: number }) {
   const securityScore = useMemo(() => {
     let score = 50;
     if (streakDays > 0) score += Math.min(streakDays * 2, 20);
@@ -282,197 +325,81 @@ function QuickActionsGrid({ lastCheck, monitoringCount, streakDays, totalChecks 
     return Math.min(score, 100);
   }, [streakDays, totalChecks, monitoringCount]);
 
-  const scoreColor = securityScore >= 80 ? 'text-emerald-400' : securityScore >= 60 ? 'text-yellow-400' : 'text-red-400';
-  const scoreBorder = securityScore >= 80 ? 'border-emerald-500/30' : securityScore >= 60 ? 'border-yellow-500/30' : 'border-red-500/30';
-  const scoreGlow = securityScore >= 80 ? 'shadow-emerald-500/10' : securityScore >= 60 ? 'shadow-yellow-500/10' : 'shadow-red-500/10';
-
   const lastRiskColor = lastCheck
     ? lastCheck.riskLevel === 'critical' ? 'text-red-400' : lastCheck.riskLevel === 'high' ? 'text-orange-400' : lastCheck.riskLevel === 'medium' ? 'text-yellow-400' : 'text-green-400'
     : 'text-zinc-500';
-  const lastRiskBg = lastCheck
-    ? lastCheck.riskLevel === 'critical' ? 'from-red-500/15' : lastCheck.riskLevel === 'high' ? 'from-orange-500/15' : lastCheck.riskLevel === 'medium' ? 'from-yellow-500/15' : 'from-green-500/15'
-    : 'from-zinc-500/10';
+
+  const actions = [
+    {
+      icon: History,
+      label: "Last Check",
+      value: lastCheck ? (lastCheck.target?.length > 10 ? `${lastCheck.target.slice(0, 8)}..` : lastCheck.target) : "—",
+      color: "from-blue-500/20 to-blue-600/10",
+      iconColor: lastRiskColor,
+      borderColor: "border-blue-500/20",
+    },
+    {
+      icon: Eye,
+      label: "Monitoring",
+      value: `${monitoringCount}`,
+      color: "from-cyan-500/20 to-cyan-600/10",
+      iconColor: "text-cyan-400",
+      borderColor: "border-cyan-500/20",
+    },
+    {
+      icon: Flame,
+      label: "Streak",
+      value: `${streakDays}d`,
+      color: "from-orange-500/20 to-orange-600/10",
+      iconColor: streakDays > 0 ? "text-orange-400" : "text-zinc-500",
+      borderColor: "border-orange-500/20",
+    },
+    {
+      icon: Activity,
+      label: "Checks",
+      value: `${totalChecks}`,
+      color: "from-purple-500/20 to-purple-600/10",
+      iconColor: "text-purple-400",
+      borderColor: "border-purple-500/20",
+    },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.15 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3"
+      className="flex flex-col items-center gap-4"
       data-testid="widget-quick-actions"
     >
-      <motion.div
-        whileHover={{ y: -4, rotateX: -3, rotateY: 3, transition: { duration: 0.3 } }}
-        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
-        className={`relative p-3 lg:p-4 rounded-xl border border-white/10 bg-gradient-to-br ${lastRiskBg} to-transparent backdrop-blur-sm`}
-        data-testid="card-last-check"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-white/10`}>
-            <History className={`w-3.5 h-3.5 ${lastRiskColor}`} />
-          </div>
-          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Last Check</span>
-        </div>
-        {lastCheck ? (
-          <>
-            <p className={`text-sm lg:text-base font-bold font-mono truncate ${lastRiskColor}`} data-testid="text-last-check-target">
-              {lastCheck.target?.length > 12 ? `${lastCheck.target.slice(0, 10)}...` : lastCheck.target}
-            </p>
-            <p className={`text-[9px] lg:text-[10px] uppercase font-semibold ${lastRiskColor}`} data-testid="text-last-check-risk">
-              {lastCheck.riskLevel}
-            </p>
-          </>
-        ) : (
-          <p className="text-xs text-zinc-500">No checks yet</p>
-        )}
-      </motion.div>
+      <SecurityGauge score={securityScore} />
 
-      <motion.div
-        whileHover={{ y: -4, rotateX: -3, rotateY: -3, transition: { duration: 0.3 } }}
-        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
-        className="relative p-3 lg:p-4 rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-transparent backdrop-blur-sm"
-        data-testid="card-monitoring"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-cyan-500/20">
-            <Eye className="w-3.5 h-3.5 text-cyan-400" />
-          </div>
-          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Monitoring</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm lg:text-base font-bold font-mono text-cyan-400" data-testid="text-monitoring-count">{monitoringCount}</p>
+      <div className="w-full grid grid-cols-4 gap-2 lg:gap-3">
+        {actions.map((action, idx) => (
           <motion.div
-            className="w-2 h-2 rounded-full bg-cyan-400"
-            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-        </div>
-        <p className="text-[9px] lg:text-[10px] text-muted-foreground">Active watches</p>
-      </motion.div>
-
-      <motion.div
-        whileHover={{ y: -4, rotateX: 3, rotateY: 3, transition: { duration: 0.3 } }}
-        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
-        className="relative p-3 lg:p-4 rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent backdrop-blur-sm"
-        data-testid="card-streak"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <motion.div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{
-              background: streakDays > 0
-                ? "linear-gradient(135deg, rgba(249,115,22,0.3), rgba(239,68,68,0.2))"
-                : "rgba(63,63,70,0.3)"
-            }}
-            animate={streakDays > 0 ? {
-              boxShadow: [
-                "0 0 8px rgba(249,115,22,0.3)",
-                "0 0 16px rgba(249,115,22,0.5)",
-                "0 0 8px rgba(249,115,22,0.3)",
-              ]
-            } : {}}
-            transition={{ duration: 1.5, repeat: Infinity }}
+            key={action.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + idx * 0.08 }}
+            className="flex flex-col items-center gap-1.5"
           >
-            <Flame className={`w-3.5 h-3.5 ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`} />
+            <motion.div
+              whileTap={{ scale: 0.9 }}
+              className={`app-icon-circle bg-gradient-to-br ${action.color} border ${action.borderColor}`}
+            >
+              <action.icon className={`w-5 h-5 ${action.iconColor}`} />
+            </motion.div>
+            <span className="text-[10px] text-muted-foreground font-medium text-center leading-tight">{action.label}</span>
+            <span className={`text-xs font-bold font-mono ${action.iconColor}`} data-testid={`text-action-${action.label.toLowerCase().replace(' ', '-')}`}>
+              {action.value}
+            </span>
           </motion.div>
-          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Streak</span>
-        </div>
-        <motion.p
-          className={`text-sm lg:text-base font-bold font-mono ${streakDays > 0 ? 'text-orange-400' : 'text-zinc-500'}`}
-          animate={streakDays >= 7 ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          data-testid="text-streak-count"
-        >
-          {streakDays} days
-        </motion.p>
-        {streakDays >= 7 && (
-          <motion.p className="text-[9px] text-orange-500/80" animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 2, repeat: Infinity }}>
-            On fire!
-          </motion.p>
-        )}
-        {streakDays < 7 && <p className="text-[9px] lg:text-[10px] text-muted-foreground">Daily streak</p>}
-      </motion.div>
-
-      <motion.div
-        whileHover={{ y: -4, rotateX: 3, rotateY: -3, transition: { duration: 0.3 } }}
-        style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
-        className={`relative p-3 lg:p-4 rounded-xl border ${scoreBorder} bg-gradient-to-br from-white/[0.03] to-transparent backdrop-blur-sm shadow-[0_0_20px] ${scoreGlow}`}
-        data-testid="card-security-score"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-white/10`}>
-            <Gauge className={`w-3.5 h-3.5 ${scoreColor}`} />
-          </div>
-          <span className="text-[10px] lg:text-xs text-muted-foreground font-medium">Security</span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <motion.p
-            className={`text-sm lg:text-base font-bold font-mono ${scoreColor} ${securityScore >= 80 ? 'neon-text-green' : securityScore >= 60 ? 'neon-text-yellow' : 'neon-text-red'}`}
-            key={securityScore}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            data-testid="text-security-score"
-          >
-            {securityScore}
-          </motion.p>
-          <span className="text-[9px] text-muted-foreground">/100</span>
-        </div>
-        <div className="mt-1 w-full h-1 rounded-full bg-white/10 overflow-hidden">
-          <motion.div
-            className={`h-full rounded-full ${securityScore >= 80 ? 'bg-emerald-500' : securityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${securityScore}%` }}
-            transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
-          />
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function MobileBottomBar({ selectedType, onSelectType, checkTypes }: { selectedType: string; onSelectType: (id: string) => void; checkTypes: any[] }) {
-  const quickTypes = checkTypes.slice(0, 5);
-  return (
-    <motion.div
-      initial={{ y: 80 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-      data-testid="mobile-bottom-bar"
-    >
-      <div className="mx-3 mb-3 rounded-2xl border border-white/10 bg-black/90 backdrop-blur-2xl shadow-[0_-4px_30px_rgba(0,0,0,0.5)] p-1.5">
-        <div className="flex items-center justify-around gap-1">
-          {quickTypes.map((type) => {
-            const isActive = selectedType === type.id;
-            return (
-              <motion.button
-                key={type.id}
-                onClick={() => onSelectType(type.id)}
-                className={`flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all duration-200 flex-1 ${
-                  isActive ? 'bg-white/10' : ''
-                }`}
-                whileTap={{ scale: 0.9 }}
-                data-testid={`bottom-bar-${type.id}`}
-              >
-                <type.icon className={`w-4 h-4 ${isActive ? type.iconColor : 'text-zinc-500'}`} />
-                <span className={`text-[8px] font-medium ${isActive ? type.iconColor : 'text-zinc-500'}`}>
-                  {type.label?.split(' ')[0] || type.id}
-                </span>
-                {isActive && (
-                  <motion.div
-                    className="w-4 h-0.5 rounded-full bg-primary"
-                    layoutId="bottomBarIndicator"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
+        ))}
       </div>
     </motion.div>
   );
 }
+
 
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 
@@ -887,15 +814,15 @@ Sources: ${result.sources.join(', ')}`;
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
   return (
-    <PageLayout>
+    <PageLayout title="Dashboard">
       <AnimatePresence>
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full pb-20 lg:pb-8">
+        <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full lg:pb-8">
           <div className="max-w-6xl mx-auto space-y-4 lg:space-y-6">
             {user && (
-              <StatusBarWidget
+              <AppHeroCard
                 user={user}
                 streakDays={user.streakDays ?? 0}
                 checksLeft={user.requestsLeft ?? 0}
@@ -904,7 +831,7 @@ Sources: ${result.sources.join(', ')}`;
               />
             )}
 
-            <QuickActionsGrid
+            <AppQuickActions
               lastCheck={recentReports.length > 0 ? recentReports[0] : null}
               monitoringCount={platformStats?.activeWatches ?? 0}
               streakDays={user?.streakDays ?? 0}
@@ -2379,15 +2306,6 @@ Sources: ${result.sources.join(', ')}`;
         <HelpCircle className="w-5 h-5" />
       </motion.button>
 
-      <MobileBottomBar
-        selectedType={selectedType}
-        onSelectType={(id) => {
-          setSelectedType(id);
-          setInputValue("");
-          setResult(null);
-        }}
-        checkTypes={checkTypes}
-      />
     </PageLayout>
   );
 }

@@ -216,7 +216,7 @@ export default function Widget() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout>
+      <PageLayout title="Widget">
         <WidgetContent />
       </PageLayout>
     );

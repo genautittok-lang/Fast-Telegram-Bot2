@@ -183,7 +183,7 @@ export default function Privacy() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout>
+      <PageLayout title="Privacy">
         <PrivacyContent />
       </PageLayout>
     );

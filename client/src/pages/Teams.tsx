@@ -838,7 +838,7 @@ export default function Teams() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout>
+      <PageLayout title="Teams">
         <TeamsContent />
       </PageLayout>
     );

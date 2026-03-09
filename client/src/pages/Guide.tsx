@@ -290,7 +290,7 @@ export default function Guide() {
   );
 
   return (
-    <PageLayout>
+    <PageLayout title="Guide">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div className="flex items-center gap-2 flex-wrap">

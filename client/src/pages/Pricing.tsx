@@ -873,7 +873,7 @@ export default function Pricing() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout>
+      <PageLayout title="Pricing">
         <PricingContent />
       </PageLayout>
     );

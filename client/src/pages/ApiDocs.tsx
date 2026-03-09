@@ -304,7 +304,7 @@ export default function ApiDocs() {
   const jsCode = generateJS(currentEndpoint, apiKey);
 
   return (
-    <PageLayout>
+    <PageLayout title="API Docs">
       <div className="min-h-screen bg-background relative overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />

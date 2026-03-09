@@ -139,7 +139,7 @@ export default function Terms() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout>
+      <PageLayout title="Terms">
         <TermsContent />
       </PageLayout>
     );
