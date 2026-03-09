@@ -327,7 +327,7 @@ export default function Guide() {
                 <ExternalLink className="w-3.5 h-3.5 ml-2" />
               </Button>
             </a>
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button className="w-full sm:w-auto" data-testid="button-guide-sign-in">
                 <Shield className="w-4 h-4 mr-2" />
                 {t("auth.signIn")}
@@ -529,7 +529,7 @@ export default function Guide() {
           viewport={{ once: true }}
           className="flex flex-col sm:flex-row gap-3 pt-4 pb-8"
         >
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button className="w-full sm:w-auto" data-testid="button-guide-dashboard">
               <Shield className="w-4 h-4 mr-2" />
               {t("nav.dashboard")}

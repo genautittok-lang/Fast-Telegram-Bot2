@@ -30,6 +30,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
+import { useIsStandalone } from "@/hooks/use-mobile";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SiTelegram } from "react-icons/si";
 import { apiRequest } from "@/lib/queryClient";
@@ -78,6 +79,7 @@ function TierBadge({ tier }: { tier: string }) {
 }
 
 export default function Referral() {
+  const isStandalone = useIsStandalone();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [partnerExpanded, setPartnerExpanded] = useState(false);
@@ -225,7 +227,7 @@ export default function Referral() {
   };
 
   return (
-    <PageLayout title="Referral" appMode>
+    <PageLayout title="Referral" appMode={isStandalone}>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
         <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
           <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">

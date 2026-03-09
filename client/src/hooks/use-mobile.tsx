@@ -17,3 +17,15 @@ export function useIsMobile() {
 
   return !!isMobile
 }
+
+export function useIsStandalone() {
+  const [isStandalone, setIsStandalone] = React.useState(false)
+
+  React.useEffect(() => {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches
+      || (window.navigator as any).standalone === true
+    setIsStandalone(standalone)
+  }, [])
+
+  return isStandalone
+}

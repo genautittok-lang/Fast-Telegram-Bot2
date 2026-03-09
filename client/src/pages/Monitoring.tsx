@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
+import { useIsStandalone } from "@/hooks/use-mobile";
 
 interface Watch {
   id: number;
@@ -275,6 +276,7 @@ function MonitorCard({
 }
 
 export default function Monitoring() {
+  const isStandalone = useIsStandalone();
   const [newType, setNewType] = useState("ip");
   const [newValue, setNewValue] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
@@ -360,7 +362,7 @@ export default function Monitoring() {
   const CurrentTypeIcon = currentTypeConfig.icon;
 
   return (
-    <PageLayout title="Monitoring" appMode>
+    <PageLayout title="Monitoring" appMode={isStandalone}>
       <div className="min-h-screen bg-background">
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />

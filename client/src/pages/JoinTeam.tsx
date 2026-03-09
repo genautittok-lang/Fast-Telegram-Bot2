@@ -54,7 +54,7 @@ export default function JoinTeam() {
             <p className="text-sm text-muted-foreground">
               {lang === "uk" ? "Вам потрібно увійти в акаунт, щоб приєднатися до команди." : lang === "ru" ? "Вам нужно войти в аккаунт, чтобы присоединиться к команде." : "You need to sign in to join a team."}
             </p>
-            <Button onClick={() => setLocation("/dashboard")} data-testid="button-login-to-join">
+            <Button onClick={() => setLocation("/login")} data-testid="button-login-to-join">
               {lang === "uk" ? "Увійти" : lang === "ru" ? "Войти" : "Sign In"}
             </Button>
           </CardContent>

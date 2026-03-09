@@ -243,7 +243,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !appMode) {
-      setLocation("/dashboard");
+      setLocation("/login");
     }
   }, [isLoading, isAuthenticated, setLocation, appMode]);
 

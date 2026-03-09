@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { 
   ShieldCheck, 
   Globe, 
@@ -258,7 +258,7 @@ function QuickCheck({ lang }: { lang: string }) {
                 <p key={i} className="text-[11px] opacity-60">{i === quickResult.findings.length - 1 ? "└" : "├"} {f}</p>
               ))}
               <div className="mt-2 pt-2 border-t border-white/10">
-                <Link href="/dashboard">
+                <Link href="/login">
                   <span className="text-[11px] text-primary hover:underline cursor-pointer" data-testid="link-full-report">
                     {fullReportLabel} →
                   </span>
@@ -274,15 +274,6 @@ function QuickCheck({ lang }: { lang: string }) {
 
 export default function Home() {
   const { t, lang } = useTranslation();
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      || (window.navigator as any).standalone === true;
-    if (isStandalone) {
-      setLocation("/dashboard");
-    }
-  }, [setLocation]);
   
   const [openFaqItems, setOpenFaqItems] = useState<number[]>([]);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
@@ -430,7 +421,7 @@ export default function Home() {
                 {lang === "uk" ? "Бот" : lang === "ru" ? "Бот" : lang === "es" ? "Bot" : lang === "de" ? "Bot" : "Bot"}
               </Button>
             </a>
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button size="sm" className="ml-2" data-testid="link-nav-login">
                 <Shield className="w-4 h-4 mr-1.5" />
                 {t("auth.signIn")}
@@ -475,7 +466,7 @@ export default function Home() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
-                  <Link href="/dashboard">
+                  <Link href="/login">
                     <Button 
                       size="lg"
                       className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group animate-glow-pulse hover:scale-[1.02] transition-transform duration-300"
@@ -687,7 +678,7 @@ export default function Home() {
                   </div>
 
                   <div className="flex justify-center">
-                    <Link href="/dashboard">
+                    <Link href="/login">
                       <Button
                         size="sm"
                         className="bg-red-500/90 hover:bg-red-500 border-red-400/30 text-white no-default-hover-elevate"
@@ -1419,7 +1410,7 @@ export default function Home() {
                           </span>
                         ))}
                       </div>
-                      <Link href="/dashboard">
+                      <Link href="/login">
                         <Button className="w-full mt-3" data-testid="button-go-to-check">
                           <ChevronRight className="w-4 h-4 mr-2" />
                           {goToCheck}
@@ -1767,7 +1758,7 @@ export default function Home() {
                   : "Join thousands of users who trust DARKSHARE for their cybersecurity needs"}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
-                <Link href="/dashboard">
+                <Link href="/login">
                   <Button size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base" data-testid="button-dashboard-cta">
                     <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {t("landing.cta.webDashboard")}

@@ -4,6 +4,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
+import { useIsStandalone } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -730,6 +731,7 @@ function MessageBubble({
 }
 
 export default function Chat() {
+  const isStandalone = useIsStandalone();
   const { user } = useAuth();
   const { t, lang } = useTranslation();
   const { toast } = useToast();
@@ -941,7 +943,7 @@ export default function Chat() {
   }, [filteredMessages, lang]);
 
   return (
-    <PageLayout title="Chat" appMode>
+    <PageLayout title="Chat" appMode={isStandalone}>
       <div className="flex-1 flex flex-col h-full lg:h-auto lg:min-h-screen max-w-full overflow-hidden relative">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(142_71%_45%/0.03)_0%,transparent_60%)]" />

@@ -97,6 +97,7 @@ import { PageLayout } from "@/components/PageLayout";
 import { useTranslation } from "@/lib/i18n";
 import { useStats } from "@/hooks/use-stats";
 import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
+import { useIsStandalone } from "@/hooks/use-mobile";
 
 interface AIInsights {
   summary: string;
@@ -464,6 +465,7 @@ interface BulkCheckResult extends CheckResult {
 }
 
 export default function Dashboard() {
+  const isStandalone = useIsStandalone();
   const [selectedType, setSelectedType] = useState("ip");
   const [inputValue, setInputValue] = useState("");
   const [result, setResult] = useState<CheckResult | null>(null);
@@ -870,7 +872,7 @@ Sources: ${result.sources.join(', ')}`;
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
   return (
-    <PageLayout title="Dashboard" appMode>
+    <PageLayout title="Dashboard" appMode={isStandalone}>
       <AnimatePresence>
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>

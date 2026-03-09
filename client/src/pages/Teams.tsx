@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageLayout } from "@/components/PageLayout";
+import { useIsStandalone } from "@/hooks/use-mobile";
 import { MobileMenu } from "@/components/MobileMenu";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Footer } from "@/components/Footer";
@@ -820,6 +821,7 @@ function TeamsContent() {
 }
 
 export default function Teams() {
+  const isStandalone = useIsStandalone();
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -838,7 +840,7 @@ export default function Teams() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout title="Teams" appMode>
+      <PageLayout title="Teams" appMode={isStandalone}>
         <TeamsContent />
       </PageLayout>
     );

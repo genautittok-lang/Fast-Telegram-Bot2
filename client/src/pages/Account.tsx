@@ -52,6 +52,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PageLayout } from "@/components/PageLayout";
+import { useIsStandalone } from "@/hooks/use-mobile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -135,6 +136,7 @@ function StatCardSkeleton() {
 }
 
 export default function Account() {
+  const isStandalone = useIsStandalone();
   const { user, isAuthenticated, checkAuth } = useAuth();
   const { t, lang } = useTranslation();
   const { toast } = useToast();
@@ -421,7 +423,7 @@ export default function Account() {
   const isDataLoading = reportsLoading || watchesLoading || referralsLoading;
 
   return (
-    <PageLayout title="Account" appMode>
+    <PageLayout title="Account" appMode={isStandalone}>
       <main className="flex-1 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
