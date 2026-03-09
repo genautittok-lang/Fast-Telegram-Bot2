@@ -70,7 +70,8 @@ import {
   Activity,
   Gauge,
   History,
-  Bell
+  Bell,
+  Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1060,6 +1061,121 @@ Sources: ${result.sources.join(', ')}`;
               );
             })()}
 
+            {/* API Integration Widget */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.07 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"
+            >
+              <div
+                className="p-3 lg:p-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent border border-indigo-500/20 backdrop-blur-xl"
+                data-testid="widget-api-integration"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center bg-indigo-500/20 border border-indigo-500/30">
+                    <Key className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-indigo-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xs lg:text-sm font-display font-semibold">API Key</h3>
+                    <p className="text-[9px] lg:text-[10px] text-muted-foreground">Integration access</p>
+                  </div>
+                  {(() => {
+                    const paidTiers = ["PRO", "ENTERPRISE", "GROUPS"];
+                    const hasApiAccess = paidTiers.includes((user?.tier || "FREE").toUpperCase());
+                    return (
+                      <Badge className={`text-[9px] lg:text-[10px] ${hasApiAccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'} border`} data-testid="badge-api-status">
+                        {hasApiAccess ? 'Active' : 'Inactive'}
+                      </Badge>
+                    );
+                  })()}
+                </div>
+                {(() => {
+                  const paidTiers = ["PRO", "ENTERPRISE", "GROUPS"];
+                  const hasApiAccess = paidTiers.includes((user?.tier || "FREE").toUpperCase());
+                  return (
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-[10px] lg:text-xs font-mono bg-black/40 border border-white/5 rounded-lg p-2 truncate text-indigo-300" data-testid="text-api-key">
+                        {hasApiAccess ? `dk_${'•'.repeat(24)}` : 'Upgrade to PRO'}
+                      </code>
+                      {hasApiAccess && (
+                        <Link href="/account">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="flex-shrink-0"
+                            data-testid="button-manage-api-key"
+                          >
+                            <Key className="w-3.5 h-3.5 text-indigo-400" />
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })()}
+                <Link href="/api-docs">
+                  <Button variant="ghost" size="sm" className="mt-2 text-[10px] lg:text-xs text-indigo-400 w-full justify-start" data-testid="link-api-docs">
+                    <ExternalLink className="w-3 h-3 mr-1.5" />
+                    View API Documentation
+                  </Button>
+                </Link>
+              </div>
+
+              <div
+                className="p-3 lg:p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-transparent border border-emerald-500/20 backdrop-blur-xl"
+                data-testid="widget-scan-frequency"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center bg-emerald-500/20 border border-emerald-500/30">
+                    <BarChart3 className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xs lg:text-sm font-display font-semibold">Scan Frequency</h3>
+                    <p className="text-[9px] lg:text-[10px] text-muted-foreground">Last 7 days</p>
+                  </div>
+                </div>
+                {(() => {
+                  const days: { label: string; count: number }[] = [];
+                  const now = new Date();
+                  for (let i = 6; i >= 0; i--) {
+                    const d = new Date(now);
+                    d.setDate(d.getDate() - i);
+                    const dayStr = d.toLocaleDateString('en', { weekday: 'short' }).slice(0, 2);
+                    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                    const dayEnd = new Date(dayStart.getTime() + 86400000);
+                    const count = recentReports.filter((r: any) => {
+                      const rd = new Date(r.createdAt);
+                      return rd >= dayStart && rd < dayEnd;
+                    }).length;
+                    days.push({ label: dayStr, count });
+                  }
+                  const maxCount = Math.max(...days.map(d => d.count), 1);
+                  return (
+                    <div className="flex items-end justify-between gap-1.5 h-[80px] lg:h-[100px]" data-testid="chart-scan-frequency">
+                      {days.map((day, idx) => {
+                        const heightPct = Math.max((day.count / maxCount) * 100, 4);
+                        return (
+                          <div key={idx} className="flex flex-col items-center gap-1 flex-1">
+                            <span className="text-[8px] lg:text-[9px] font-mono text-muted-foreground" data-testid={`text-scan-count-${idx}`}>
+                              {day.count}
+                            </span>
+                            <div className="w-full flex items-end" style={{ height: '60px' }}>
+                              <div
+                                className="w-full rounded-t-sm bg-gradient-to-t from-emerald-500/60 to-emerald-400/30 border border-emerald-500/20 border-b-0 transition-all duration-500"
+                                style={{ height: `${heightPct}%`, minHeight: '3px' }}
+                                data-testid={`bar-scan-day-${idx}`}
+                              />
+                            </div>
+                            <span className="text-[8px] lg:text-[9px] text-muted-foreground/60">{day.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+            </motion.div>
+
             {/* Quick Actions Widget - hidden on mobile */}
             {recentReports.length > 0 && (
               <motion.div
@@ -1694,6 +1810,38 @@ Sources: ${result.sources.join(', ')}`;
                             <span className="truncate">{isCurrentTargetFavorited ? favLabels.remove : favLabels.addToFav}</span>
                           </Button>
                         </motion.div>
+                        {'share' in navigator && (
+                          <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-blue-500/30 text-blue-400 touch-manipulation"
+                              onClick={async () => {
+                                if (!result) return;
+                                const shareText = `DARKSHARE Security Report\nTarget: ${result.target}\nType: ${result.type}\nRisk: ${result.riskLevel.toUpperCase()} (${result.riskScore}/100)\n\nFindings:\n${result.findings.slice(0, 5).map(f => `- ${f}`).join('\n')}`;
+                                try {
+                                  await navigator.share({
+                                    title: `DARKSHARE - ${result.target}`,
+                                    text: shareText,
+                                  });
+                                } catch (err: any) {
+                                  if (err.name !== 'AbortError') {
+                                    try {
+                                      await navigator.clipboard.writeText(shareText);
+                                      toast({ title: 'Copied to clipboard' });
+                                    } catch {
+                                      toast({ title: 'Share not available', variant: 'destructive' });
+                                    }
+                                  }
+                                }
+                              }}
+                              data-testid="button-share-results"
+                            >
+                              <Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
+                              <span className="truncate">Share</span>
+                            </Button>
+                          </motion.div>
+                        )}
                       </div>
                     </div>
                   </div>

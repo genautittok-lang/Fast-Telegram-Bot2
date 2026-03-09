@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   Settings,
   Bell,
+  BellRing,
   Globe,
   Key,
   Lock,
@@ -33,7 +34,10 @@ import {
   KeyRound,
   ShieldCheck,
   QrCode,
-  X
+  X,
+  Info,
+  HardDrive,
+  Wifi
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { FireStreak } from "@/components/FireStreak";
@@ -343,6 +347,77 @@ export default function Account() {
     };
   }, [userTier, user?.requestsLeft]);
 
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [cacheSize, setCacheSize] = useState<string | null>(null);
+  const [lastSyncTime] = useState(() => new Date().toISOString());
+
+  useEffect(() => {
+    if ("Notification" in window) {
+      setPushEnabled(Notification.permission === "granted");
+    }
+  }, []);
+
+  useEffect(() => {
+    if ("caches" in window) {
+      caches.keys().then(async (names) => {
+        let totalSize = 0;
+        for (const name of names) {
+          const cache = await caches.open(name);
+          const keys = await cache.keys();
+          totalSize += keys.length * 50 * 1024;
+        }
+        if (totalSize < 1024 * 1024) {
+          setCacheSize(`${(totalSize / 1024).toFixed(1)} KB`);
+        } else {
+          setCacheSize(`${(totalSize / (1024 * 1024)).toFixed(1)} MB`);
+        }
+      });
+    } else {
+      setCacheSize("N/A");
+    }
+  }, []);
+
+  const handlePushToggle = useCallback(async (enable: boolean) => {
+    if (!("Notification" in window)) {
+      toast({ title: t('account.pushNotSupported'), variant: "destructive" });
+      return;
+    }
+    if (enable) {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        setPushEnabled(true);
+        toast({ title: t('account.pushEnabled') });
+      } else {
+        setPushEnabled(false);
+        toast({ title: t('account.pushPermissionDenied'), variant: "destructive" });
+      }
+    } else {
+      setPushEnabled(false);
+      toast({ title: t('account.pushDisabled') });
+    }
+  }, [toast, t]);
+
+  const securityLevel = useMemo(() => {
+    const totalChecks = reports.length;
+    if (totalChecks >= 100) return { level: t('account.levelElite'), color: "from-purple-500 to-pink-500", textColor: "text-purple-400", borderColor: "border-purple-500/30", bgColor: "bg-purple-500/10" };
+    if (totalChecks >= 50) return { level: t('account.levelExpert'), color: "from-orange-500 to-red-500", textColor: "text-orange-400", borderColor: "border-orange-500/30", bgColor: "bg-orange-500/10" };
+    if (totalChecks >= 10) return { level: t('account.levelAnalyst'), color: "from-blue-500 to-cyan-500", textColor: "text-blue-400", borderColor: "border-blue-500/30", bgColor: "bg-blue-500/10" };
+    return { level: t('account.levelBeginner'), color: "from-zinc-500 to-zinc-400", textColor: "text-zinc-400", borderColor: "border-zinc-500/30", bgColor: "bg-zinc-500/10" };
+  }, [reports.length, t]);
+
+  const heatmapData = useMemo(() => {
+    const now = new Date();
+    const days: { date: string; count: number; dayOfWeek: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const count = reports.filter(r => r.createdAt?.startsWith(dateStr)).length;
+      days.push({ date: dateStr, count, dayOfWeek: d.getDay() });
+    }
+    return days;
+  }, [reports]);
+
   const isDataLoading = reportsLoading || watchesLoading || referralsLoading;
 
   return (
@@ -569,6 +644,94 @@ export default function Account() {
             )}
           </motion.div>
 
+          <motion.div
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-4 lg:mb-6 flex-wrap">
+              <div className="flex items-center gap-2 lg:gap-3">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 flex items-center justify-center">
+                  <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400" />
+                </div>
+                <h2 className="text-lg lg:text-xl font-bold text-white" data-testid="text-security-level-title">{t('account.securityLevel')}</h2>
+              </div>
+              <Badge className={`${securityLevel.bgColor} ${securityLevel.textColor} ${securityLevel.borderColor} border text-sm lg:text-base px-3 lg:px-4 py-1 lg:py-1.5 font-bold tracking-wider`} data-testid="badge-security-level">
+                <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${securityLevel.color} mr-2`} />
+                {securityLevel.level}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br ${securityLevel.color} flex items-center justify-center shadow-lg`}>
+                <Shield className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-lg lg:text-xl font-bold ${securityLevel.textColor}`} data-testid="text-security-level-value">{securityLevel.level}</p>
+                <p className="text-xs lg:text-sm text-muted-foreground">
+                  {stats.totalChecks} {t('account.totalChecks').toLowerCase()} — {
+                    reports.length < 10 ? `10 ${t('account.scans')} → ${t('account.levelAnalyst')}` :
+                    reports.length < 50 ? `50 ${t('account.scans')} → ${t('account.levelExpert')}` :
+                    reports.length < 100 ? `100 ${t('account.scans')} → ${t('account.levelElite')}` :
+                    t('account.levelElite')
+                  }
+                </p>
+                <Progress
+                  value={Math.min(100, reports.length >= 100 ? 100 : reports.length >= 50 ? (reports.length / 100) * 100 : reports.length >= 10 ? (reports.length / 50) * 100 : (reports.length / 10) * 100)}
+                  className="h-1.5 mt-2 bg-zinc-800"
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.27 }}
+          >
+            <div className="flex items-center justify-between gap-2 mb-4 lg:mb-6 flex-wrap">
+              <div className="flex items-center gap-2 lg:gap-3">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center">
+                  <Activity className="w-4 h-4 lg:w-5 lg:h-5 text-green-400" />
+                </div>
+                <h2 className="text-lg lg:text-xl font-bold text-white" data-testid="text-heatmap-title">{t('account.activityHeatmap')}</h2>
+              </div>
+              <span className="text-xs lg:text-sm text-muted-foreground">{t('account.activityLast30Days')}</span>
+            </div>
+            <div className="grid grid-cols-10 gap-1 lg:gap-1.5" data-testid="activity-heatmap">
+              {heatmapData.map((day, idx) => {
+                const intensity = day.count === 0 ? 0 : day.count <= 1 ? 1 : day.count <= 3 ? 2 : day.count <= 5 ? 3 : 4;
+                const colors = [
+                  "bg-zinc-800/60",
+                  "bg-green-900/60",
+                  "bg-green-700/60",
+                  "bg-green-500/60",
+                  "bg-green-400/80",
+                ];
+                return (
+                  <div
+                    key={idx}
+                    className={`aspect-square rounded-sm ${colors[intensity]} border border-white/5 relative group`}
+                    data-testid={`heatmap-cell-${idx}`}
+                  >
+                    <div className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-[10px] text-white whitespace-nowrap z-50">
+                      {day.date}: {day.count} {t('account.scans')}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-end gap-1.5 mt-3">
+              <span className="text-[10px] lg:text-xs text-muted-foreground mr-1">{t('account.noActivity')}</span>
+              <div className="w-3 h-3 rounded-sm bg-zinc-800/60 border border-white/5" />
+              <div className="w-3 h-3 rounded-sm bg-green-900/60 border border-white/5" />
+              <div className="w-3 h-3 rounded-sm bg-green-700/60 border border-white/5" />
+              <div className="w-3 h-3 rounded-sm bg-green-500/60 border border-white/5" />
+              <div className="w-3 h-3 rounded-sm bg-green-400/80 border border-white/5" />
+            </div>
+          </motion.div>
+
           <motion.div 
             className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
             initial={{ opacity: 0, y: 20 }}
@@ -663,6 +826,21 @@ export default function Account() {
                     checked={notifications.updates} 
                     onCheckedChange={(v) => handleNotificationChange("updates", v)}
                     data-testid="switch-updates-notifications"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-zinc-900/50 to-transparent border border-amber-500/20">
+                  <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                    <BellRing className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-white text-sm lg:text-base truncate">{t('account.pushNotifications')}</p>
+                      <p className="text-xs lg:text-sm text-muted-foreground">{t('account.pushNotificationsDesc')}</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={pushEnabled}
+                    onCheckedChange={handlePushToggle}
+                    data-testid="switch-push-notifications"
                   />
                 </div>
               </div>
@@ -1112,6 +1290,52 @@ export default function Account() {
                     </Button>
                   )}
                 </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-slate-500/20 to-zinc-500/10 flex items-center justify-center">
+                <Info className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
+              </div>
+              <h2 className="text-lg lg:text-xl font-bold text-white" data-testid="text-app-info-title">{t('account.appInfo')}</h2>
+            </div>
+
+            <div className="space-y-2 lg:space-y-3">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
+                  <p className="font-medium text-white text-sm lg:text-base">{t('account.appVersion')}</p>
+                </div>
+                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs lg:text-sm px-2 py-0.5" data-testid="text-app-version">
+                  v4.4
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <HardDrive className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400 flex-shrink-0" />
+                  <p className="font-medium text-white text-sm lg:text-base">{t('account.cacheSize')}</p>
+                </div>
+                <span className="text-xs lg:text-sm font-mono text-muted-foreground" data-testid="text-cache-size">
+                  {cacheSize || t('account.calculating')}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+                  <Wifi className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
+                  <p className="font-medium text-white text-sm lg:text-base">{t('account.lastSync')}</p>
+                </div>
+                <span className="text-xs lg:text-sm font-mono text-muted-foreground" data-testid="text-last-sync">
+                  {new Date(lastSyncTime).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US")}
+                </span>
               </div>
             </div>
           </motion.div>

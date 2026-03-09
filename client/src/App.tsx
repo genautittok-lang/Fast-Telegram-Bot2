@@ -7,6 +7,10 @@ import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import { PWAProvider } from "@/lib/pwa";
 import { CookieBanner } from "@/components/CookieBanner";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { AppUpdateBanner } from "@/components/AppUpdateBanner";
+import { InstallBanner } from "@/components/InstallBanner";
+import { NotificationManager } from "@/components/NotificationManager";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
@@ -64,6 +68,10 @@ function App() {
         <LanguageProvider>
           <PWAProvider>
             <AuthProvider>
+              <OfflineIndicator />
+              <AppUpdateBanner />
+              <InstallBanner />
+              <NotificationManager />
               <Toaster />
               <CookieBanner />
               <Router />

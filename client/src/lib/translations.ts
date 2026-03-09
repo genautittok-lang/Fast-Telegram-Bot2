@@ -486,6 +486,26 @@ export interface TranslationSchema {
     twoFactorInvalidCode: string;
     twoFactorRequired: string;
     twoFactorLoginDesc: string;
+    activityHeatmap: string;
+    activityLast30Days: string;
+    noActivity: string;
+    scans: string;
+    securityLevel: string;
+    levelBeginner: string;
+    levelAnalyst: string;
+    levelExpert: string;
+    levelElite: string;
+    pushNotifications: string;
+    pushNotificationsDesc: string;
+    pushEnabled: string;
+    pushDisabled: string;
+    pushNotSupported: string;
+    pushPermissionDenied: string;
+    appInfo: string;
+    appVersion: string;
+    cacheSize: string;
+    lastSync: string;
+    calculating: string;
   };
   landing: {
     hero: {
@@ -1247,6 +1267,26 @@ export const translations: Record<Language, TranslationSchema> = {
       twoFactorInvalidCode: "Invalid verification code",
       twoFactorRequired: "Two-factor authentication required",
       twoFactorLoginDesc: "Enter the code from your authenticator app",
+      activityHeatmap: "Activity Heatmap",
+      activityLast30Days: "Last 30 days",
+      noActivity: "No activity",
+      scans: "scans",
+      securityLevel: "Security Level",
+      levelBeginner: "Beginner",
+      levelAnalyst: "Analyst",
+      levelExpert: "Expert",
+      levelElite: "Elite",
+      pushNotifications: "Push Notifications",
+      pushNotificationsDesc: "Receive browser push notifications for alerts",
+      pushEnabled: "Push notifications enabled",
+      pushDisabled: "Push notifications disabled",
+      pushNotSupported: "Push notifications not supported in this browser",
+      pushPermissionDenied: "Notification permission denied",
+      appInfo: "App Info",
+      appVersion: "Version",
+      cacheSize: "Cache Size",
+      lastSync: "Last Sync",
+      calculating: "Calculating...",
     },
     landing: {
       hero: {
@@ -2006,6 +2046,26 @@ export const translations: Record<Language, TranslationSchema> = {
       twoFactorInvalidCode: "Невірний код підтвердження",
       twoFactorRequired: "Потрібна двофакторна автентифікація",
       twoFactorLoginDesc: "Введіть код з додатку автентифікації",
+      activityHeatmap: "Карта активності",
+      activityLast30Days: "Останні 30 днів",
+      noActivity: "Немає активності",
+      scans: "перевірок",
+      securityLevel: "Рівень безпеки",
+      levelBeginner: "Початківець",
+      levelAnalyst: "Аналітик",
+      levelExpert: "Експерт",
+      levelElite: "Еліта",
+      pushNotifications: "Push-сповіщення",
+      pushNotificationsDesc: "Отримувати сповіщення браузера про алерти",
+      pushEnabled: "Push-сповіщення увімкнено",
+      pushDisabled: "Push-сповіщення вимкнено",
+      pushNotSupported: "Push-сповіщення не підтримуються в цьому браузері",
+      pushPermissionDenied: "Дозвіл на сповіщення відхилено",
+      appInfo: "Інформація про додаток",
+      appVersion: "Версія",
+      cacheSize: "Розмір кешу",
+      lastSync: "Остання синхронізація",
+      calculating: "Розраховується...",
     },
     landing: {
       hero: {
@@ -2765,6 +2825,26 @@ export const translations: Record<Language, TranslationSchema> = {
       twoFactorInvalidCode: "Неверный код подтверждения",
       twoFactorRequired: "Требуется двухфакторная аутентификация",
       twoFactorLoginDesc: "Введите код из приложения аутентификации",
+      activityHeatmap: "Карта активности",
+      activityLast30Days: "Последние 30 дней",
+      noActivity: "Нет активности",
+      scans: "проверок",
+      securityLevel: "Уровень безопасности",
+      levelBeginner: "Новичок",
+      levelAnalyst: "Аналитик",
+      levelExpert: "Эксперт",
+      levelElite: "Элита",
+      pushNotifications: "Push-уведомления",
+      pushNotificationsDesc: "Получать уведомления браузера об алертах",
+      pushEnabled: "Push-уведомления включены",
+      pushDisabled: "Push-уведомления отключены",
+      pushNotSupported: "Push-уведомления не поддерживаются в этом браузере",
+      pushPermissionDenied: "Разрешение на уведомления отклонено",
+      appInfo: "Информация о приложении",
+      appVersion: "Версия",
+      cacheSize: "Размер кеша",
+      lastSync: "Последняя синхронизация",
+      calculating: "Вычисляется...",
     },
     landing: {
       hero: {
@@ -3524,6 +3604,26 @@ export const translations: Record<Language, TranslationSchema> = {
       twoFactorInvalidCode: "Código de verificación inválido",
       twoFactorRequired: "Se requiere autenticación de dos factores",
       twoFactorLoginDesc: "Introduce el código de tu aplicación de autenticación",
+      activityHeatmap: "Mapa de actividad",
+      activityLast30Days: "Últimos 30 días",
+      noActivity: "Sin actividad",
+      scans: "escaneos",
+      securityLevel: "Nivel de seguridad",
+      levelBeginner: "Principiante",
+      levelAnalyst: "Analista",
+      levelExpert: "Experto",
+      levelElite: "Élite",
+      pushNotifications: "Notificaciones push",
+      pushNotificationsDesc: "Recibir notificaciones del navegador para alertas",
+      pushEnabled: "Notificaciones push activadas",
+      pushDisabled: "Notificaciones push desactivadas",
+      pushNotSupported: "Las notificaciones push no son compatibles con este navegador",
+      pushPermissionDenied: "Permiso de notificación denegado",
+      appInfo: "Información de la app",
+      appVersion: "Versión",
+      cacheSize: "Tamaño de caché",
+      lastSync: "Última sincronización",
+      calculating: "Calculando...",
     },
     landing: {
       hero: {
@@ -4283,6 +4383,26 @@ export const translations: Record<Language, TranslationSchema> = {
       twoFactorInvalidCode: "Ungültiger Bestätigungscode",
       twoFactorRequired: "Zwei-Faktor-Authentifizierung erforderlich",
       twoFactorLoginDesc: "Geben Sie den Code aus Ihrer Authenticator-App ein",
+      activityHeatmap: "Aktivitätskarte",
+      activityLast30Days: "Letzte 30 Tage",
+      noActivity: "Keine Aktivität",
+      scans: "Scans",
+      securityLevel: "Sicherheitsstufe",
+      levelBeginner: "Anfänger",
+      levelAnalyst: "Analyst",
+      levelExpert: "Experte",
+      levelElite: "Elite",
+      pushNotifications: "Push-Benachrichtigungen",
+      pushNotificationsDesc: "Browser-Push-Benachrichtigungen für Alarme erhalten",
+      pushEnabled: "Push-Benachrichtigungen aktiviert",
+      pushDisabled: "Push-Benachrichtigungen deaktiviert",
+      pushNotSupported: "Push-Benachrichtigungen werden in diesem Browser nicht unterstützt",
+      pushPermissionDenied: "Benachrichtigungsberechtigung verweigert",
+      appInfo: "App-Info",
+      appVersion: "Version",
+      cacheSize: "Cache-Größe",
+      lastSync: "Letzte Synchronisierung",
+      calculating: "Berechne...",
     },
     landing: {
       hero: {

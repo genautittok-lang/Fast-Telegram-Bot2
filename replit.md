@@ -53,6 +53,10 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - MonoPay webhook auto-confirms payments and upgrades user tier automatically on success
 - Bot-accessible MonoPay endpoint `/api/payments/monopay/bot-create` with X-Bot-Token auth
 - PWA (Progressive Web App): service worker (`client/public/sw.js`) with cache-first for assets & network-first for API, manifest.json with proper installability fields, `PWAProvider` context in `client/src/lib/pwa.tsx` captures `beforeinstallprompt` globally so install prompt works across all routes. Download page (`/download`) rebuilt as app-store-like install page with phone mockup, feature cards, iOS instructions, install detection. Home page button changed from "Download APK" to "Install App".
+- Notification system: `client/src/lib/notifications.ts` provides browser notification API with permission management, scan/streak reminders (8h/4h intervals), threat alerts, daily digests. `NotificationManager` component shows permission prompt banner on first visit. Service worker handles `push` and `notificationclick` events.
+- PWA UI components: `OfflineIndicator` (red/green status banner), `AppUpdateBanner` (SW update refresh prompt), `InstallBanner` (dismissible mobile install prompt with 7-day localStorage memory). All rendered globally in App.tsx.
+- Enhanced Account page: Security Level badge (Beginner/Analyst/Expert/Elite based on check count), 30-day activity heatmap (GitHub-style grid), push notification toggle with real browser permission request, app info section (version, cache size, last sync).
+- Dashboard widgets: API Key status widget (links to Account for key management), scan frequency mini chart (CSS bar chart, last 7 days from reports data), Quick Share button on results (Web Share API with clipboard fallback).
 - Home page modules compacted for mobile: 2-column grid, hidden descriptions/tags, smaller icons
 - Reversh Partnership redesigned as collapsible banner at top of Referral page
 - Reorganized Telegram bot dashboard into categories: Network & Web, Crypto & Finance, OSINT, Security
