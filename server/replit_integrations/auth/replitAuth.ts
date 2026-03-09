@@ -105,16 +105,16 @@ export async function setupAuth(app: Express) {
     passport.authenticate("google", (err: any, user: any, info: any) => {
       if (err) {
         console.error("Google auth error:", err);
-        return res.redirect("/login?error=auth_failed");
+        return res.redirect("/dashboard?error=auth_failed");
       }
       if (!user) {
         console.error("Google auth failed, info:", info);
-        return res.redirect("/login?error=no_user");
+        return res.redirect("/dashboard?error=no_user");
       }
       req.logIn(user, (loginErr) => {
         if (loginErr) {
           console.error("Google login error:", loginErr);
-          return res.redirect("/login?error=login_failed");
+          return res.redirect("/dashboard?error=login_failed");
         }
         return res.redirect("/dashboard");
       });

@@ -327,7 +327,7 @@ export default function Guide() {
                 <ExternalLink className="w-3.5 h-3.5 ml-2" />
               </Button>
             </a>
-            <Link href="/login">
+            <Link href="/dashboard">
               <Button className="w-full sm:w-auto" data-testid="button-guide-sign-in">
                 <Shield className="w-4 h-4 mr-2" />
                 {t("auth.signIn")}

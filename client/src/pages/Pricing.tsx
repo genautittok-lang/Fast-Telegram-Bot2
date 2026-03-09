@@ -107,7 +107,7 @@ function PricingContent() {
 
   const handlePayment = (tier: "PRO" | "ENTERPRISE" | "GROUPS") => {
     if (!user) {
-      setLocation("/login");
+      setLocation("/dashboard");
       return;
     }
     setPaymentStep("method");
@@ -298,7 +298,7 @@ function PricingContent() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => setLocation(isAuthenticated ? "/dashboard" : "/login")}
+                  onClick={() => setLocation("/dashboard")}
                   data-testid="button-free-plan"
                 >
                   {isAuthenticated ? t('nav.dashboard') : t('pricing.startFree')}

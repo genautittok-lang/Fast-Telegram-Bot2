@@ -14,6 +14,7 @@ import { NotificationManager } from "@/components/NotificationManager";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
+import { Redirect } from "wouter";
 import Dashboard from "@/pages/Dashboard";
 import History from "@/pages/History";
 import Monitoring from "@/pages/Monitoring";
@@ -37,7 +38,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/login" component={Login} />
+      <Route path="/login">{() => <Redirect to="/dashboard" />}</Route>
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/history" component={History} />
       <Route path="/monitoring" component={Monitoring} />

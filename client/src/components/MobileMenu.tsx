@@ -77,7 +77,7 @@ export function MobileMenu({
     { href: "/pricing", icon: CreditCard, label: t('nav.pricing'), desc: "PRO & Enterprise" },
     ...(isAuthenticated
       ? [{ href: "/dashboard", icon: Shield, label: "Open App", highlight: true, desc: "Security Scanner" }]
-      : [{ href: "/login", icon: Shield, label: t('auth.signIn'), highlight: true, desc: "Telegram Login" }]
+      : [{ href: "/dashboard", icon: Shield, label: t('auth.signIn'), highlight: true, desc: "Telegram Login" }]
     ),
   ];
 

@@ -44,7 +44,7 @@ export function AppSidebar() {
 
   const handleLogout = async () => {
     await logout();
-    setLocation("/login");
+    setLocation("/dashboard");
   };
 
   return (
