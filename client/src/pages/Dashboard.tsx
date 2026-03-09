@@ -875,24 +875,26 @@ Sources: ${result.sources.join(', ')}`;
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <div className="flex-1 p-3 lg:p-8 overflow-auto max-w-full lg:pb-8">
-          <div className="max-w-6xl mx-auto space-y-4 lg:space-y-6">
-            {user && (
-              <AppHeroCard
-                user={user}
-                streakDays={user.streakDays ?? 0}
-                checksLeft={user.requestsLeft ?? 0}
-                maxChecks={(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 }; return limits[(user.tier || "FREE").toUpperCase()] || 5; })()}
-                tier={(user.tier || "FREE").toUpperCase()}
-              />
-            )}
+        <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full lg:pb-8">
+          <div className="max-w-6xl mx-auto lg:space-y-6">
+            <div className="px-4 pt-3 pb-2 lg:px-0 lg:pt-0 space-y-3">
+              {user && (
+                <AppHeroCard
+                  user={user}
+                  streakDays={user.streakDays ?? 0}
+                  checksLeft={user.requestsLeft ?? 0}
+                  maxChecks={(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 }; return limits[(user.tier || "FREE").toUpperCase()] || 5; })()}
+                  tier={(user.tier || "FREE").toUpperCase()}
+                />
+              )}
 
-            <AppQuickActions
-              lastCheck={recentReports.length > 0 ? recentReports[0] : null}
-              monitoringCount={platformStats?.activeWatches ?? 0}
-              streakDays={user?.streakDays ?? 0}
-              totalChecks={recentReports.length}
-            />
+              <AppQuickActions
+                lastCheck={recentReports.length > 0 ? recentReports[0] : null}
+                monitoringCount={platformStats?.activeWatches ?? 0}
+                streakDays={user?.streakDays ?? 0}
+                totalChecks={recentReports.length}
+              />
+            </div>
 
             <div className="hidden lg:block relative">
               <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
@@ -938,7 +940,7 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
-                  className={`p-3 lg:p-4 rounded-xl border backdrop-blur-xl flex items-center gap-3 ${isZero ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-orange-500/10 border-orange-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}
+                  className={`hidden lg:flex p-3 lg:p-4 rounded-xl border backdrop-blur-xl items-center gap-3 ${isZero ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-orange-500/10 border-orange-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}
                   data-testid="checks-counter"
                 >
                   <div className={`p-2 rounded-lg ${isZero ? 'bg-red-500/20' : isLow ? 'bg-orange-500/20' : 'bg-emerald-500/20'}`}>
@@ -1010,7 +1012,7 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.05 }}
-                  className={`flex items-center gap-3 p-3 lg:p-4 rounded-2xl bg-gradient-to-r from-white/[0.03] to-transparent border ${borderColor} backdrop-blur-xl shadow-[0_0_30px] ${glowColor}`}
+                  className={`hidden lg:flex items-center gap-3 p-3 lg:p-4 rounded-2xl bg-gradient-to-r from-white/[0.03] to-transparent border ${borderColor} backdrop-blur-xl shadow-[0_0_30px] ${glowColor}`}
                   data-testid="widget-subscription-countdown"
                 >
                   <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center ${iconBg} border shrink-0`}>
@@ -1050,12 +1052,12 @@ Sources: ${result.sources.join(', ')}`;
               );
             })()}
 
-            {/* API Integration Widget */}
+            {/* API Integration Widget - desktop only */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.07 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"
+              className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"
             >
               <div
                 className="p-3 lg:p-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent border border-indigo-500/20 backdrop-blur-xl"
@@ -1264,8 +1266,57 @@ Sources: ${result.sources.join(', ')}`;
               </motion.div>
             )}
 
-            <div className="space-y-4 lg:space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 lg:gap-3">
+            <div className="space-y-3 lg:space-y-6">
+              {/* Mobile: horizontal scroll strip */}
+              <div className="lg:hidden">
+                <div className="flex overflow-x-auto gap-2 px-4 pb-2 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {checkTypes.map((type, idx) => {
+                    const isSelected = selectedType === type.id;
+                    return (
+                      <motion.button
+                        key={type.id}
+                        onClick={() => {
+                          setSelectedType(type.id);
+                          setInputValue("");
+                          setResult(null);
+                        }}
+                        className={`relative flex flex-col items-center gap-1.5 min-w-[4rem] py-2 px-1 rounded-2xl touch-manipulation transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-white/[0.06]'
+                            : 'bg-transparent'
+                        }`}
+                        whileTap={{ scale: 0.92 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        data-testid={`button-check-type-${type.id}`}
+                      >
+                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+                          isSelected
+                            ? `bg-gradient-to-br ${type.gradient} border ${type.borderColor.split(' ')[0]} shadow-lg`
+                            : 'bg-[#1a1a24] border border-white/[0.06]'
+                        }`}>
+                          <type.icon className={`w-5 h-5 ${isSelected ? type.iconColor : 'text-zinc-500'}`} />
+                        </div>
+                        <span className={`text-[9px] font-medium text-center leading-tight w-full truncate ${
+                          isSelected ? type.iconColor : 'text-zinc-500'
+                        }`}>
+                          {type.label}
+                        </span>
+                        {isSelected && (
+                          <motion.div
+                            className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-primary"
+                            layoutId="mobileActiveIndicator"
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Desktop: grid */}
+              <div className="hidden lg:grid grid-cols-5 gap-3">
                 {checkTypes.map((type, idx) => {
                   const isSelected = selectedType === type.id;
                   return (
@@ -1276,7 +1327,7 @@ Sources: ${result.sources.join(', ')}`;
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative flex flex-col items-center justify-center gap-2 sm:gap-2.5 lg:gap-3 p-3 sm:p-4 lg:p-5 rounded-xl touch-manipulation min-h-[80px] sm:min-h-[90px] lg:min-h-[110px] border transition-all duration-300 group depth-glow ${
+                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border transition-all duration-300 group depth-glow ${
                         isSelected
                           ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor} btn-3d btn-3d-selected ${type.btn3d}`
                           : 'bg-[#17171c] border-white/[0.06] hover:bg-[#1c1c22] hover:border-white/15'
@@ -1286,10 +1337,10 @@ Sources: ${result.sources.join(', ')}`;
                       whileHover={{ y: -2, transition: { duration: 0.2 } }}
                       whileTap={{ scale: 0.97 }}
                       transition={{ delay: idx * 0.04, duration: 0.35, type: "spring", stiffness: 260, damping: 20 }}
-                      data-testid={`button-check-type-${type.id}`}
+                      data-testid={`button-check-type-desktop-${type.id}`}
                     >
                       <motion.div
-                        className={`w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                        className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all duration-300 ${
                           isSelected
                             ? `${type.iconColor} bg-white/10 border border-white/15`
                             : 'text-muted-foreground bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.07] group-hover:border-white/10'
@@ -1297,28 +1348,19 @@ Sources: ${result.sources.join(', ')}`;
                         animate={isSelected ? { scale: [1, 1.08, 1] } : {}}
                         transition={{ duration: 0.3 }}
                       >
-                        <type.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
+                        <type.icon className="w-5 h-5" />
                       </motion.div>
-                      <span className={`text-[10px] sm:text-[11px] lg:text-xs font-medium text-center leading-tight line-clamp-2 transition-colors duration-300 ${
+                      <span className={`text-xs font-medium text-center leading-tight line-clamp-2 transition-colors duration-300 ${
                         isSelected ? `${type.iconColor}` : 'text-muted-foreground group-hover:text-foreground/70'
                       }`}>
                         {type.label}
                       </span>
                       {isSelected && (
                         <motion.div
-                          className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 lg:w-12 h-0.5 rounded-full`}
+                          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 rounded-full"
                           style={{ background: `var(--color-primary)` }}
                           layoutId="activeIndicator"
                           transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        />
-                      )}
-                      {isSelected && (
-                        <motion.div
-                          className="absolute inset-0 rounded-xl pointer-events-none"
-                          style={{ background: 'radial-gradient(ellipse at center bottom, rgba(255,255,255,0.03) 0%, transparent 70%)' }}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
                         />
                       )}
                     </motion.button>
@@ -1327,12 +1369,12 @@ Sources: ${result.sources.join(', ')}`;
               </div>
 
               <motion.div
-                className="relative"
+                className="relative px-4 lg:px-0"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <div className={`p-3.5 lg:p-8 rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
+                <div className={`p-3.5 lg:p-8 rounded-2xl lg:rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
                   <AnimatePresence mode="wait">
                     <motion.div 
                       key={selectedType}
@@ -2021,7 +2063,7 @@ Sources: ${result.sources.join(', ')}`;
 
             {!result && !bulkMode && bulkResults.length === 0 && (
               <motion.div 
-                className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4"
+                className="hidden lg:grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
@@ -2052,7 +2094,7 @@ Sources: ${result.sources.join(', ')}`;
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent border border-red-500/20 backdrop-blur-xl"
+              className="hidden lg:block p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent border border-red-500/20 backdrop-blur-xl"
               data-testid="section-breach-monitor"
             >
               <div className="flex items-center gap-2 mb-3 lg:mb-4">
