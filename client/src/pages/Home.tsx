@@ -500,9 +500,9 @@ export default function Home() {
                       className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group bg-gradient-to-r from-emerald-600 to-green-500 border-emerald-500/30 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
                       data-testid="button-download-apk"
                     >
-                      <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      {lang === "uk" ? "Завантажити APK" : lang === "ru" ? "Скачать APK" : lang === "es" ? "Descargar APK" : lang === "de" ? "APK herunterladen" : "Download APK"}
-                      <Smartphone className="w-4 h-4 ml-1" />
+                      <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      {lang === "uk" ? "Встановити додаток" : lang === "ru" ? "Установить приложение" : lang === "es" ? "Instalar app" : lang === "de" ? "App installieren" : "Install App"}
+                      <Download className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
                 </div>

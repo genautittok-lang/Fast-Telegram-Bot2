@@ -2,11 +2,15 @@
   "name": "DARKSHARE — Security OSINT Platform",
   "short_name": "DARKSHARE",
   "description": "Professional security OSINT platform for analyzing IPs, wallets, emails, domains, URLs, CVEs",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0b",
   "theme_color": "#22c55e",
   "orientation": "any",
+  "prefer_related_applications": false,
+  "categories": ["security", "utilities", "productivity"],
   "icons": [
     {
       "src": "/favicon.png",

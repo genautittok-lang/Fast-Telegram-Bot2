@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
+import { PWAProvider } from "@/lib/pwa";
 import { CookieBanner } from "@/components/CookieBanner";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
@@ -61,11 +62,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <LanguageProvider>
-          <AuthProvider>
-            <Toaster />
-            <CookieBanner />
-            <Router />
-          </AuthProvider>
+          <PWAProvider>
+            <AuthProvider>
+              <Toaster />
+              <CookieBanner />
+              <Router />
+            </AuthProvider>
+          </PWAProvider>
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>
