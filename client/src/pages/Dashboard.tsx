@@ -299,41 +299,90 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
 
 function SecurityGauge({ score }: { score: number }) {
   const radius = 52;
+  const innerRadius = 42;
   const circumference = 2 * Math.PI * radius;
+  const innerCircumference = 2 * Math.PI * innerRadius;
   const offset = circumference - (score / 100) * circumference;
+  const innerOffset = innerCircumference - (score / 100) * innerCircumference;
   const color = score >= 80 ? '#22c55e' : score >= 60 ? '#eab308' : '#ef4444';
   const color2 = score >= 80 ? '#06b6d4' : score >= 60 ? '#f97316' : '#f43f5e';
   const glowColor = score >= 80 ? 'rgba(34,197,94,0.5)' : score >= 60 ? 'rgba(234,179,8,0.5)' : 'rgba(239,68,68,0.5)';
   const neonClass = score >= 80 ? 'neon-text-green' : score >= 60 ? 'neon-text-yellow' : 'neon-text-red';
   const label = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : 'At Risk';
 
+  const ticks = Array.from({ length: 36 }, (_, i) => {
+    const angle = (i * 10) * (Math.PI / 180);
+    const isActive = (i / 36) * 100 <= score;
+    const x1 = 60 + Math.cos(angle - Math.PI / 2) * 56;
+    const y1 = 60 + Math.sin(angle - Math.PI / 2) * 56;
+    const x2 = 60 + Math.cos(angle - Math.PI / 2) * 58;
+    const y2 = 60 + Math.sin(angle - Math.PI / 2) * 58;
+    return { x1, y1, x2, y2, isActive };
+  });
+
   return (
     <div className="flex flex-col items-center" data-testid="card-security-score">
       <div className="relative w-36 h-36 lg:w-40 lg:h-40">
         <motion.div
-          className="absolute inset-[-8px] rounded-full"
-          style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)` }}
-          animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.95, 1.05, 0.95] }}
+          className="absolute inset-[-12px] rounded-full"
+          style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 60%)` }}
+          animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.92, 1.08, 0.92] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
+        <motion.div
+          className="absolute inset-[-4px] rounded-full"
+          style={{ background: `conic-gradient(from 0deg, ${color}15, transparent 30%, ${color2}15, transparent 60%, ${color}15)` }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
         <svg className="w-full h-full -rotate-90 relative z-10" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="10" />
-          <circle cx="60" cy="60" r={radius - 12} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+          <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="8" />
+          <circle cx="60" cy="60" r={innerRadius} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="3" strokeDasharray="4 6" />
+          {ticks.map((tick, i) => (
+            <motion.line
+              key={i}
+              x1={tick.x1} y1={tick.y1} x2={tick.x2} y2={tick.y2}
+              stroke={tick.isActive ? color : 'rgba(255,255,255,0.06)'}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: tick.isActive ? 0.8 : 0.3 }}
+              transition={{ delay: i * 0.02, duration: 0.3 }}
+            />
+          ))}
           <motion.circle
             cx="60" cy="60" r={radius}
             className="app-gauge-ring"
+            fill="none"
             stroke={`url(#gaugeGradient)`}
-            strokeWidth="10"
+            strokeWidth="8"
+            strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: offset }}
             transition={{ duration: 1.8, ease: "easeOut", delay: 0.3 }}
             style={{ filter: `drop-shadow(0 0 12px ${glowColor})` }}
           />
+          <motion.circle
+            cx="60" cy="60" r={innerRadius}
+            fill="none"
+            stroke={`url(#innerGaugeGradient)`}
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray={innerCircumference}
+            initial={{ strokeDashoffset: innerCircumference }}
+            animate={{ strokeDashoffset: innerOffset }}
+            transition={{ duration: 2, ease: "easeOut", delay: 0.6 }}
+            style={{ opacity: 0.4 }}
+          />
           <defs>
             <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor={color} />
               <stop offset="100%" stopColor={color2} />
+            </linearGradient>
+            <linearGradient id="innerGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={color2} />
+              <stop offset="100%" stopColor={color} />
             </linearGradient>
           </defs>
         </svg>
@@ -344,13 +393,13 @@ function SecurityGauge({ score }: { score: number }) {
             initial={{ scale: 0.3, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5, type: "spring", stiffness: 200 }}
-            style={{ color }}
+            style={{ color, textShadow: `0 0 20px ${glowColor}` }}
             data-testid="text-security-score"
           >
             {score}
           </motion.span>
           <motion.span
-            className="text-[10px] font-medium mt-0.5"
+            className="text-[10px] font-medium mt-0.5 tracking-wider"
             style={{ color }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1375,35 +1424,31 @@ Sources: ${result.sources.join(', ')}`;
               {/* Mobile: horizontal scroll strip */}
               <div className="lg:hidden">
                 <div className="flex overflow-x-auto gap-2 px-4 pb-2 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  {checkTypes.map((type, idx) => {
+                  {checkTypes.map((type) => {
                     const isSelected = selectedType === type.id;
                     return (
-                      <motion.button
+                      <button
                         key={type.id}
                         onClick={() => {
                           setSelectedType(type.id);
                           setInputValue("");
                           setResult(null);
                         }}
-                        className={`relative flex flex-col items-center gap-1.5 min-w-[4rem] py-2 px-1 rounded-2xl touch-manipulation transition-all duration-200 ${
+                        className={`relative flex flex-col items-center gap-1.5 min-w-[4rem] py-2 px-1 rounded-2xl touch-manipulation active:scale-[0.92] transition-transform duration-150 ${
                           isSelected
                             ? 'bg-white/[0.06]'
                             : 'bg-transparent'
                         }`}
-                        whileTap={{ scale: 0.92 }}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.03 }}
                         data-testid={`button-check-type-${type.id}`}
                       >
-                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors duration-150 ${
                           isSelected
                             ? `bg-gradient-to-br ${type.gradient} border ${type.borderColor.split(' ')[0]} shadow-lg`
                             : 'bg-[#1a1a24] border border-white/[0.06]'
                         }`}>
-                          <type.icon className={`w-5 h-5 ${isSelected ? type.iconColor : 'text-zinc-500'}`} />
+                          <type.icon className={`w-5 h-5 transition-colors duration-150 ${isSelected ? type.iconColor : 'text-zinc-500'}`} />
                         </div>
-                        <span className={`text-[9px] font-medium text-center leading-tight w-full truncate ${
+                        <span className={`text-[9px] font-medium text-center leading-tight w-full truncate transition-colors duration-150 ${
                           isSelected ? type.iconColor : 'text-zinc-500'
                         }`}>
                           {type.label}
@@ -1412,50 +1457,43 @@ Sources: ${result.sources.join(', ')}`;
                           <motion.div
                             className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-primary"
                             layoutId="mobileActiveIndicator"
-                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 35 }}
                           />
                         )}
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
               </div>
               {/* Desktop: grid */}
               <div className="hidden lg:grid grid-cols-5 gap-3">
-                {checkTypes.map((type, idx) => {
+                {checkTypes.map((type) => {
                   const isSelected = selectedType === type.id;
                   return (
-                    <motion.button
+                    <button
                       key={type.id}
                       onClick={() => {
                         setSelectedType(type.id);
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border transition-all duration-300 group depth-glow ${
+                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group depth-glow cursor-pointer hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 ease-out ${
                         isSelected
                           ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor} btn-3d btn-3d-selected ${type.btn3d}`
                           : 'bg-[#17171c] border-white/[0.06] hover:bg-[#1c1c22] hover:border-white/15'
                       }`}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                      whileTap={{ scale: 0.97 }}
-                      transition={{ delay: idx * 0.04, duration: 0.35, type: "spring", stiffness: 260, damping: 20 }}
                       data-testid={`button-check-type-desktop-${type.id}`}
                     >
-                      <motion.div
-                        className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                      <div
+                        className={`w-11 h-11 rounded-lg flex items-center justify-center transition-colors duration-200 ${
                           isSelected
                             ? `${type.iconColor} bg-white/10 border border-white/15`
                             : 'text-muted-foreground bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.07] group-hover:border-white/10'
                         }`}
-                        animate={isSelected ? { scale: [1, 1.08, 1] } : {}}
-                        transition={{ duration: 0.3 }}
                       >
                         <type.icon className="w-5 h-5" />
-                      </motion.div>
-                      <span className={`text-xs font-medium text-center leading-tight line-clamp-2 transition-colors duration-300 ${
+                      </div>
+                      <span className={`text-xs font-medium text-center leading-tight line-clamp-2 transition-colors duration-200 ${
                         isSelected ? `${type.iconColor}` : 'text-muted-foreground group-hover:text-foreground/70'
                       }`}>
                         {type.label}
@@ -1465,10 +1503,10 @@ Sources: ${result.sources.join(', ')}`;
                           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 rounded-full"
                           style={{ background: `var(--color-primary)` }}
                           layoutId="activeIndicator"
-                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 35 }}
                         />
                       )}
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>

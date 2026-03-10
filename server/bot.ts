@@ -4544,46 +4544,87 @@ ${allTypesText}
 
   bot.on("inline_query", async (ctx) => {
     const query = ctx.inlineQuery.query.trim();
-    if (!query || query.length < 3) {
-      return ctx.answerInlineQuery([{
-        type: "article",
-        id: "help",
-        title: "🔍 DARKSHARE Quick Check",
-        description: "Type: ip 8.8.8.8 / email test@mail.com / domain google.com",
-        input_message_content: { message_text: "🛡 *DARKSHARE OSINT*\n\nUse inline: `@DarkShare1Bot ip 8.8.8.8`\n\nSupported: ip, wallet, email, phone, domain, url, cve, hash, username, card", parse_mode: "Markdown" },
-      }], { cache_time: 10 });
+
+    const validTypes: Record<string, { label: string; emoji: string; example: string; desc: string }> = {
+      ip: { label: "IP Analysis", emoji: "🌐", example: "8.8.8.8", desc: "GEO, ISP, proxy/VPN, blacklists" },
+      wallet: { label: "Crypto Wallet", emoji: "💰", example: "bc1q...", desc: "Chain analysis, mixer detection" },
+      email: { label: "Email OSINT", emoji: "📧", example: "user@mail.com", desc: "Breaches, disposable, domain check" },
+      phone: { label: "Phone OSINT", emoji: "📱", example: "+380...", desc: "Carrier, country, format validation" },
+      domain: { label: "Domain WHOIS", emoji: "🏢", example: "google.com", desc: "WHOIS, DNS, typosquatting" },
+      url: { label: "URL Scanner", emoji: "🔗", example: "https://example.com", desc: "Phishing, redirects, reputation" },
+      cve: { label: "CVE Lookup", emoji: "🔓", example: "CVE-2024-1234", desc: "CVSS score, CISA KEV, patches" },
+      hash: { label: "Hash Analysis", emoji: "🔢", example: "d41d8cd9...", desc: "Malware check, VirusTotal, signatures" },
+      username: { label: "Username OSINT", emoji: "👤", example: "johndoe", desc: "Social media, forums, breaches" },
+      card: { label: "BIN Lookup", emoji: "💳", example: "424242", desc: "Bank, card type, country" },
+    };
+
+    if (!query) {
+      const items = Object.entries(validTypes).map(([key, info]) => ({
+        type: "article" as const,
+        id: `type-${key}`,
+        title: `${info.emoji} ${info.label}`,
+        description: `${info.desc}  •  Example: ${key} ${info.example}`,
+        input_message_content: { 
+          message_text: `🛡 DARKSHARE ${info.emoji} ${info.label}\n\n${info.desc}\n\nUse: @DarkShare1Bot ${key} ${info.example}` 
+        },
+        thumb_url: undefined,
+      }));
+      return ctx.answerInlineQuery(items, { 
+        cache_time: 300,
+        switch_pm_text: "Open DarkShare Bot",
+        switch_pm_parameter: "inline"
+      });
     }
 
     const parts = query.split(/\s+/);
     const moduleType = parts[0]?.toLowerCase();
     const inputValue = parts.slice(1).join(" ");
 
-    const validTypes: Record<string, string> = {
-      ip: "🌐 IP Analysis", wallet: "💰 Crypto Wallet", email: "📧 Email OSINT",
-      phone: "📱 Phone OSINT", domain: "🏢 Domain WHOIS", url: "🔗 URL Scanner",
-      cve: "🔓 CVE Lookup", hash: "🔢 Hash Analysis", username: "👤 Username OSINT",
-      card: "💳 BIN Lookup",
-    };
-
     if (!validTypes[moduleType]) {
-      const suggestions = Object.entries(validTypes).map(([key, label], i) => ({
+      const filtered = Object.entries(validTypes)
+        .filter(([key, info]) => key.startsWith(moduleType) || info.label.toLowerCase().includes(moduleType))
+        .slice(0, 10);
+      
+      if (filtered.length === 0) {
+        const all = Object.entries(validTypes).map(([key, info]) => ({
+          type: "article" as const,
+          id: `suggest-${key}`,
+          title: `${info.emoji} ${info.label}`,
+          description: `Type: ${key} ${info.example}`,
+          input_message_content: { message_text: `🛡 DARKSHARE ${info.emoji} ${info.label}\n\nUse: @DarkShare1Bot ${key} ${info.example}` },
+        }));
+        return ctx.answerInlineQuery(all, { cache_time: 60 });
+      }
+      
+      const suggestions = filtered.map(([key, info]) => ({
         type: "article" as const,
         id: `suggest-${key}`,
-        title: label,
-        description: `Type: ${key} <value>`,
-        input_message_content: { message_text: `🔍 Use: \`@DarkShare1Bot ${key} <value>\``, parse_mode: "Markdown" as const },
+        title: `${info.emoji} ${info.label}`,
+        description: `${info.desc}  •  ${key} ${info.example}`,
+        input_message_content: { message_text: `🛡 DARKSHARE ${info.emoji} ${info.label}\n\n${info.desc}\n\nUse: @DarkShare1Bot ${key} ${info.example}` },
       }));
-      return ctx.answerInlineQuery(suggestions, { cache_time: 10 });
+      return ctx.answerInlineQuery(suggestions, { cache_time: 30 });
     }
 
+    const typeInfo = validTypes[moduleType];
+
     if (!inputValue) {
-      return ctx.answerInlineQuery([{
-        type: "article",
-        id: "need-value",
-        title: `${validTypes[moduleType]}`,
-        description: `Enter value after "${moduleType}"`,
-        input_message_content: { message_text: `🔍 Enter: \`@DarkShare1Bot ${moduleType} <value>\``, parse_mode: "Markdown" },
-      }], { cache_time: 5 });
+      return ctx.answerInlineQuery([
+        {
+          type: "article",
+          id: "need-value",
+          title: `${typeInfo.emoji} ${typeInfo.label}`,
+          description: `Enter value: ${moduleType} ${typeInfo.example}`,
+          input_message_content: { message_text: `${typeInfo.emoji} ${typeInfo.label}\n\n${typeInfo.desc}\n\nType: @DarkShare1Bot ${moduleType} ${typeInfo.example}` },
+        },
+        {
+          type: "article",
+          id: "example",
+          title: `📝 Example: ${moduleType} ${typeInfo.example}`,
+          description: "Tap to use this example",
+          input_message_content: { message_text: `🔍 @DarkShare1Bot ${moduleType} ${typeInfo.example}` },
+        }
+      ], { cache_time: 10 });
     }
 
     const validation = validateInput(moduleType, inputValue);
@@ -4639,7 +4680,7 @@ ${allTypesText}
         i === arr.length - 1 ? `└ ${f}` : `├ ${f}`
       ).join("\n");
 
-      const resultText = `🛡 DARKSHARE ${validTypes[moduleType]}\n\n` +
+      const resultText = `🛡 DARKSHARE ${typeInfo.emoji} ${typeInfo.label}\n\n` +
         `🎯 Target: ${checkResult.target}\n` +
         `${riskEmoji} Risk: ${checkResult.riskScore}% ${checkResult.riskLevel.toUpperCase()}\n` +
         `${riskBar}\n\n` +
