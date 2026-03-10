@@ -1491,10 +1491,10 @@ export async function registerRoutes(
         if (coupon && coupon.isActive && (coupon.usedCount ?? 0) < (coupon.maxUses ?? 0) &&
             (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
             (!coupon.tier || coupon.tier === normalizedTier)) {
-          const used = await storage.hasUserUsedCoupon(authReq.user!.id, coupon.id);
+          const used = await storage.hasUserUsedCoupon(coupon.id, authReq.user!.id);
           if (!used) {
             await storage.useCoupon(coupon.id, authReq.user!.id);
-            amount = Math.round(amount * (1 - (coupon.discount || 0) / 100) * 100) / 100;
+            amount = Math.round(amount * (1 - (coupon.discountPct || 0) / 100) * 100) / 100;
             promoValid = true;
           }
         }

@@ -65,9 +65,6 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS card_token TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS auto_renew BOOLEAN DEFAULT false`);
     
-    await pool.query(`ALTER TABLE ds_payments ADD COLUMN IF NOT EXISTS period TEXT`);
-    await pool.query(`ALTER TABLE ds_payments ADD COLUMN IF NOT EXISTS invoice_id TEXT`);
-    
     // Create dependent tables with ds_ prefix
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_reports (
@@ -111,6 +108,9 @@ async function ensureTablesExist() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    
+    await pool.query(`ALTER TABLE ds_payments ADD COLUMN IF NOT EXISTS period TEXT`);
+    await pool.query(`ALTER TABLE ds_payments ADD COLUMN IF NOT EXISTS invoice_id TEXT`);
     
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_referrals (

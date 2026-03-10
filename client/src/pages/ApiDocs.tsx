@@ -249,7 +249,7 @@ export default function ApiDocs() {
 
   const tryMutation = useMutation({
     mutationFn: async ({ type, target }: { type: string; target: string }) => {
-      const res = await apiRequest("POST", "/api/check", { type, target });
+      const res = await apiRequest("POST", "/api/check", { type, value: target });
       return res.json();
     },
     onSuccess: (data) => {
