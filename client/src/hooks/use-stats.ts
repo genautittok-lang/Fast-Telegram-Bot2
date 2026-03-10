@@ -12,6 +12,7 @@ interface Stats {
 export function useStats() {
   return useQuery<Stats>({
     queryKey: ["/api/stats"],
-    refetchInterval: 10000,
+    refetchInterval: 30000,
+    staleTime: 15000,
   });
 }

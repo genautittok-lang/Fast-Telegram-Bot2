@@ -116,6 +116,8 @@ function AppSplashLogin() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [twoFactorLoading, setTwoFactorLoading] = useState(false);
+  const [hackerLines, setHackerLines] = useState<string[]>([]);
+  const [splashPhase, setSplashPhase] = useState(0);
   const telegramRef = useRef<HTMLDivElement>(null);
   const { login, requiresTwoFactor, verifyTwoFactor } = useAuth();
   const { t } = useTranslation();
@@ -168,14 +170,72 @@ function AppSplashLogin() {
     return () => { delete window.onTelegramAuth; };
   }, [showLogin, login, t]);
 
+  useEffect(() => {
+    if (showLogin) return;
+    const codeSnippets = [
+      "$ nmap -sV --script=vuln 192.168.1.0/24",
+      "[*] Scanning 256 hosts...",
+      "PORT   STATE SERVICE VERSION",
+      "22/tcp open  ssh     OpenSSH 8.9",
+      "80/tcp open  http    nginx 1.24.0",
+      "443/tcp open ssl     TLS 1.3",
+      "$ hashcat -m 0 -a 0 hashes.txt rockyou.txt",
+      "[!] Cracking MD5 hashes... 47% complete",
+      "$ sqlmap -u 'target.com/id=1' --dbs",
+      "[INFO] testing connection to target URL",
+      "[*] fetching database names",
+      "available databases [3]:",
+      "  information_schema",
+      "  darkshare_osint",
+      "  users_db",
+      "$ curl -s https://api.shodan.io/scan",
+      '{"ip":"45.33.32.156","vulns":["CVE-2024-1234"]}',
+      "$ whois blockchain.info | grep -i registrant",
+      "Registrant: REDACTED FOR PRIVACY",
+      "[+] Analyzing wallet 0x7a2d3f8...bc91",
+      "[+] 47 transactions found, risk: HIGH",
+      "$ gobuster dir -u https://target.com -w common.txt",
+      "/admin (Status: 403) [Size: 162]",
+      "/api (Status: 200) [Size: 4891]",
+      "$ john --wordlist=passwords.lst shadow.txt",
+      "[*] 2 password hashes cracked",
+      "$ nikto -h https://target.com -ssl",
+      "[+] Server: nginx/1.24.0",
+      "[+] X-Frame-Options header missing",
+      "$ python3 osint_scanner.py --deep",
+      "[*] Gathering intelligence data...",
+      "[+] Email breach detected: 3 databases",
+      "[+] Phone linked to 2 social accounts",
+      "$ darkshare --scan --all-modules",
+      "[✓] OSINT scan complete. Risk: 78/100",
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      setHackerLines(prev => {
+        const next = [...prev, codeSnippets[idx % codeSnippets.length]];
+        return next.length > 12 ? next.slice(-12) : next;
+      });
+      idx++;
+    }, 120);
+    const t1 = setTimeout(() => setSplashPhase(1), 600);
+    const t2 = setTimeout(() => setSplashPhase(2), 1200);
+    return () => { clearInterval(interval); clearTimeout(t1); clearTimeout(t2); };
+  }, [showLogin]);
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] h-[300px] rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(34,197,94,0.12) 0%, transparent 70%)" }}
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-[200px] h-[200px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
       </div>
 
@@ -183,42 +243,106 @@ function AppSplashLogin() {
         {!showLogin ? (
           <motion.div
             key="splash"
-            className="flex flex-col items-center gap-6 relative z-10"
+            className="flex flex-col items-center relative z-10 w-full max-w-sm px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.9, y: -30 }}
-            transition={{ duration: 0.5 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20, filter: "blur(10px)" }}
+            transition={{ duration: 0.4 }}
           >
+            <div className="absolute inset-0 -mx-4 overflow-hidden rounded-2xl opacity-30 pointer-events-none">
+              <div className="font-mono text-[10px] leading-[14px] text-emerald-500/60 p-3 whitespace-pre select-none">
+                {hackerLines.map((line, i) => (
+                  <motion.div
+                    key={`${i}-${line.slice(0,10)}`}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: i === hackerLines.length - 1 ? 0.9 : 0.4, x: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className={line.startsWith("[") ? "text-cyan-400/50" : line.startsWith("$") ? "text-emerald-300/60" : ""}
+                  >
+                    {line}
+                  </motion.div>
+                ))}
+                <motion.span
+                  className="inline-block w-[6px] h-[12px] bg-emerald-400 ml-0.5"
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                />
+              </div>
+            </div>
+
             <motion.div
-              className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center relative"
+              className="relative mt-16 mb-4"
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.8, type: "spring", stiffness: 200 }}
-              style={{ boxShadow: "0 0 60px rgba(34,197,94,0.3)" }}
+              transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 15 }}
             >
-              <Shield className="w-12 h-12 text-black" />
+              <div className="w-28 h-28 rounded-[2.2rem] bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center relative"
+                style={{ boxShadow: "0 0 80px rgba(34,197,94,0.35), 0 0 30px rgba(34,197,94,0.2) inset" }}>
+                <Shield className="w-14 h-14 text-black" />
+                <motion.div
+                  className="absolute inset-0 rounded-[2.2rem] border-2 border-emerald-400/40"
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-[2.2rem] border border-cyan-400/30"
+                  animate={{ scale: [1, 1.25, 1], opacity: [0.4, 0, 0.4] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
+                />
+              </div>
             </motion.div>
+
             <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-center mb-6"
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
             >
-              <h1 className="text-3xl font-bold text-white tracking-tight">DARKSHARE</h1>
-              <p className="text-xs text-primary/70 font-mono mt-1">Security OSINT Platform</p>
+              <h1 className="text-4xl font-black text-white tracking-tight" style={{ textShadow: "0 0 30px rgba(34,197,94,0.3)" }}>
+                DARKSHARE
+              </h1>
+              <p className="text-[11px] text-emerald-400/80 font-mono mt-1.5 tracking-[0.25em] uppercase">
+                Security OSINT Platform
+              </p>
             </motion.div>
+
+            {splashPhase >= 1 && (
+              <motion.div
+                className="w-48 mb-4"
+                initial={{ opacity: 0, scaleX: 0 }}
+                animate={{ opacity: 1, scaleX: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500 rounded-full"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                  />
+                </div>
+                <motion.p 
+                  className="text-[9px] font-mono text-zinc-500 text-center mt-2"
+                  animate={{ opacity: [0.4, 0.8, 0.4] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  {splashPhase >= 2 ? "Initializing secure connection..." : "Loading modules..."}
+                </motion.p>
+              </motion.div>
+            )}
+
             <motion.div
-              className="flex gap-1.5 mt-4"
+              className="flex gap-1.5 mt-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.6 }}
             >
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="w-2 h-2 rounded-full bg-primary"
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                  className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                  animate={{ scale: [1, 1.8, 1], opacity: [0.2, 1, 0.2] }}
+                  transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
                 />
               ))}
             </motion.div>

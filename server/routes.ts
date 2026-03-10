@@ -158,22 +158,34 @@ export async function registerRoutes(
   });
 
   // API Routes for the landing page
+  let statsCache: { data: any; ts: number } | null = null;
+  const STATS_CACHE_MS = 15000;
+  
   app.get(api.stats.get.path, async (req, res) => {
     try {
-      const realUsers = await storage.getUsersCount();
-      const realReports = await storage.getReportsCount();
-      const realWatches = await storage.getWatchesCount();
-      const realToday = await storage.getReportsCountToday();
-      const realThreats = await storage.getHighRiskReportsCount();
+      const now = Date.now();
+      if (statsCache && now - statsCache.ts < STATS_CACHE_MS) {
+        return res.json(statsCache.data);
+      }
       
-      res.json({
+      const [realUsers, realReports, realWatches, realToday, realThreats] = await Promise.all([
+        storage.getUsersCount(),
+        storage.getReportsCount(),
+        storage.getWatchesCount(),
+        storage.getReportsCountToday(),
+        storage.getHighRiskReportsCount(),
+      ]);
+      
+      const data = {
         totalUsers: Math.max(Number(realUsers) || 0, 2847) + Math.floor(Math.random() * 20),
         activeWatches: Math.max(Number(realWatches) || 0, 156) + Math.floor(Math.random() * 5),
         totalReports: Math.max(Number(realReports) || 0, 18432) + Math.floor(Math.random() * 50),
         checksToday: Math.max(Number(realToday) || 0, 47) + Math.floor(Math.random() * 10),
         threatsBlocked: Math.max(Number(realThreats) || 0, 3891) + Math.floor(Math.random() * 15),
         uptime: 99.9,
-      });
+      };
+      statsCache = { data, ts: now };
+      res.json(data);
     } catch (error) {
       console.error("Stats error:", error);
       res.json({

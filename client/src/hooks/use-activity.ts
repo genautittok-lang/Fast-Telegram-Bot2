@@ -10,7 +10,8 @@ interface Activity {
 export function useActivity() {
   return useQuery<Activity[]>({
     queryKey: ["/api/activity"],
-    refetchInterval: 10000,
+    refetchInterval: 30000,
+    staleTime: 15000,
   });
 }
 
@@ -23,6 +24,7 @@ interface LeaderboardEntry {
 export function useLeaderboard() {
   return useQuery<LeaderboardEntry[]>({
     queryKey: ["/api/leaderboard"],
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 }

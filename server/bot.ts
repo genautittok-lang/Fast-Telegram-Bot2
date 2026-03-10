@@ -5359,7 +5359,10 @@ ${feature.desc}
   const maxRetries = 3;
   
   const startBot = () => {
-    bot.launch({ dropPendingUpdates: true })
+    bot.launch({ 
+        dropPendingUpdates: true,
+        allowedUpdates: ["message", "callback_query", "inline_query", "chosen_inline_result", "chat_member", "my_chat_member", "pre_checkout_query"]
+      })
       .catch((err: Error) => {
         console.error("Bot error:", err.message);
         if ((err.message.includes("409") || err.message.includes("Conflict")) && retryCount < maxRetries) {
