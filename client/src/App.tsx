@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +11,7 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import { InstallBanner } from "@/components/InstallBanner";
 import { NotificationManager } from "@/components/NotificationManager";
+import { motion, AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
@@ -33,31 +34,63 @@ import Chat from "@/pages/Chat";
 import Guide from "@/pages/Guide";
 import Download from "@/pages/Download";
 
-function Router() {
+const pageVariants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
+const pageTransition = {
+  duration: 0.2,
+  ease: [0.25, 0.1, 0.25, 1],
+};
+
+function AnimatedPage({ children }: { children: React.ReactNode }) {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/login" component={Login} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/history" component={History} />
-      <Route path="/monitoring" component={Monitoring} />
-      <Route path="/referral" component={Referral} />
-      <Route path="/r/:code" component={ReferralLanding} />
-      <Route path="/account" component={Account} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/pricing" component={Pricing} />
-      <Route path="/support" component={Support} />
-      <Route path="/api-docs" component={ApiDocs} />
-      <Route path="/teams/join/:code" component={JoinTeam} />
-      <Route path="/teams" component={Teams} />
-      <Route path="/widget" component={Widget} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/chat" component={Chat} />
-      <Route path="/guide" component={Guide} />
-      <Route path="/download" component={Download} />
-      <Route component={NotFound} />
-    </Switch>
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={pageTransition}
+      className="min-h-[100dvh]"
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Router() {
+  const [location] = useLocation();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <AnimatedPage key={location}>
+        <Switch location={location}>
+          <Route path="/" component={Home} />
+          <Route path="/login" component={Login} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/history" component={History} />
+          <Route path="/monitoring" component={Monitoring} />
+          <Route path="/referral" component={Referral} />
+          <Route path="/r/:code" component={ReferralLanding} />
+          <Route path="/account" component={Account} />
+          <Route path="/admin" component={Admin} />
+          <Route path="/pricing" component={Pricing} />
+          <Route path="/support" component={Support} />
+          <Route path="/api-docs" component={ApiDocs} />
+          <Route path="/teams/join/:code" component={JoinTeam} />
+          <Route path="/teams" component={Teams} />
+          <Route path="/widget" component={Widget} />
+          <Route path="/terms" component={Terms} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/chat" component={Chat} />
+          <Route path="/guide" component={Guide} />
+          <Route path="/download" component={Download} />
+          <Route component={NotFound} />
+        </Switch>
+      </AnimatedPage>
+    </AnimatePresence>
   );
 }
 
