@@ -458,6 +458,109 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
 }
 
 
+function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => void; onShowShortcuts: () => void }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isStandalone = useIsStandalone();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+
+  const triggerHaptic = () => {
+    if (navigator.vibrate) navigator.vibrate(10);
+  };
+
+  const actions = [
+    {
+      icon: Scan,
+      label: "New Scan",
+      color: "from-primary to-emerald-400",
+      onClick: () => { triggerHaptic(); onNewScan(); setIsExpanded(false); },
+    },
+    {
+      icon: History,
+      label: "History",
+      color: "from-blue-500 to-cyan-400",
+      href: "/history",
+    },
+    {
+      icon: Share2,
+      label: "Share",
+      color: "from-purple-500 to-pink-400",
+      onClick: async () => {
+        triggerHaptic();
+        if (navigator.share) {
+          try { await navigator.share({ title: "DARKSHARE", text: "Security OSINT Platform", url: window.location.origin }); } catch {}
+        }
+        setIsExpanded(false);
+      },
+    },
+    ...(!isMobile ? [{
+      icon: HelpCircle,
+      label: "Shortcuts",
+      color: "from-amber-500 to-orange-400",
+      onClick: () => { onShowShortcuts(); setIsExpanded(false); },
+    }] : []),
+  ];
+
+  return (
+    <div className="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-40" data-testid="fab-container">
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            className="absolute bottom-14 right-0 flex flex-col gap-2 items-end"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {actions.map((action, idx) => {
+              const content = (
+                <motion.div
+                  key={action.label}
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0, x: 20, scale: 0.8 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.8 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <span className="text-[10px] font-medium text-white/80 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md whitespace-nowrap">
+                    {action.label}
+                  </span>
+                  <motion.button
+                    whileTap={{ scale: 0.85 }}
+                    className={`w-10 h-10 rounded-full bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}
+                    onClick={action.onClick}
+                    data-testid={`fab-action-${action.label.toLowerCase().replace(' ', '-')}`}
+                  >
+                    <action.icon className="w-4.5 h-4.5 text-white" />
+                  </motion.button>
+                </motion.div>
+              );
+
+              if ('href' in action && action.href) {
+                return <Link key={action.label} href={action.href}>{content}</Link>;
+              }
+              return <div key={action.label}>{content}</div>;
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.button
+        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)] relative`}
+        onClick={() => {
+          triggerHaptic();
+          setIsExpanded(!isExpanded);
+        }}
+        whileTap={{ scale: 0.9 }}
+        animate={isExpanded ? { rotate: 45 } : { rotate: 0 }}
+        transition={{ duration: 0.2 }}
+        data-testid="button-fab-main"
+      >
+        <Zap className="w-5 h-5 text-black" />
+      </motion.button>
+    </div>
+  );
+}
+
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 
 interface BulkCheckResult extends CheckResult {
@@ -2395,16 +2498,16 @@ Sources: ${result.sources.join(', ')}`;
         </DialogContent>
       </Dialog>
 
-      <motion.button
-        className="fixed bottom-20 lg:bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-cyan-500/10 border border-primary/30 flex items-center justify-center text-primary hover:border-primary/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.3)] transition-all duration-300"
-        onClick={() => setShowShortcuts(true)}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        title={t('dashboard.keyboardShortcuts')}
-        data-testid="button-shortcuts-help"
-      >
-        <HelpCircle className="w-5 h-5" />
-      </motion.button>
+      <FloatingQuickAction
+        onNewScan={() => {
+          setResult(null);
+          setBulkResults([]);
+          setInputValue("");
+          inputRef.current?.focus();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onShowShortcuts={() => setShowShortcuts(true)}
+      />
 
     </PageLayout>
   );

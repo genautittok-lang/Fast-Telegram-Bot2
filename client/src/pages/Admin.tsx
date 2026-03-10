@@ -37,6 +37,10 @@ import {
   Clock,
   AlertCircle,
   ArrowUpRight,
+  Download,
+  LogIn,
+  UserPlus,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -152,7 +156,24 @@ interface Conversation {
   unreadCount: number;
 }
 
-type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages";
+interface ActivityLogEntry {
+  id: number;
+  eventType: string;
+  userId: number | null;
+  username: string | null;
+  details: string | null;
+  meta: any;
+  createdAt: string | null;
+}
+
+interface ActivityLogResponse {
+  events: ActivityLogEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages" | "activity";
 
 function generateCouponCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -256,6 +277,20 @@ export default function Admin() {
     queryKey: ["/api/admin/messages", selectedConversation],
     enabled: !!isAdmin && !!selectedConversation,
     refetchInterval: 5000,
+  });
+
+  const [activityPage, setActivityPage] = useState(0);
+  const ACTIVITY_PAGE_SIZE = 50;
+
+  const { data: activityData, isLoading: activityLoading } = useQuery<ActivityLogResponse>({
+    queryKey: ["/api/admin/activity", activityPage],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/activity?limit=${ACTIVITY_PAGE_SIZE}&offset=${activityPage * ACTIVITY_PAGE_SIZE}`);
+      if (!res.ok) throw new Error("Failed to fetch activity log");
+      return res.json();
+    },
+    enabled: !!isAdmin && activeTab === "activity",
+    refetchInterval: 15000,
   });
 
   useEffect(() => {
@@ -411,6 +446,7 @@ export default function Admin() {
 
   const tabs: { id: AdminTab; label: string; icon: any; count?: number }[] = [
     { id: "dashboard", label: "Огляд", icon: Activity },
+    { id: "activity", label: "Активність", icon: TrendingUp },
     { id: "messages", label: "Повідомлення", icon: MessagesSquare, count: totalUnread },
     { id: "tickets", label: "Звернення", icon: MessageSquare, count: openTickets },
     { id: "payments", label: "Платежі", icon: CreditCard, count: pendingPayments?.length },
@@ -543,6 +579,72 @@ export default function Admin() {
                       </motion.div>
                     ))}
               </div>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Download className="w-4 h-4 text-emerald-400" />
+                    Посилання на застосунок
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveTab("activity")}
+                    data-testid="button-view-activity"
+                  >
+                    Активність
+                    <ArrowUpRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                          <Download className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">PWA Web App</p>
+                          <p className="text-xs text-muted-foreground truncate">{window.location.origin}/download</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/download`);
+                          toast({ title: "Посилання скопійовано" });
+                        }}
+                        data-testid="button-copy-download-link"
+                      >
+                        Копіювати
+                      </Button>
+                    </div>
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                          <MessagesSquare className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">Telegram Bot</p>
+                          <p className="text-xs text-muted-foreground truncate">t.me/DarkShareBot</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText("https://t.me/DarkShareBot");
+                          toast({ title: "Посилання скопійовано" });
+                        }}
+                        data-testid="button-copy-bot-link"
+                      >
+                        Копіювати
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {tickets && tickets.filter(t => t.status === "open").length > 0 && (
@@ -1314,6 +1416,133 @@ export default function Admin() {
                           ))}
                         </TableBody>
                       </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {activeTab === "activity" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  Активність
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/activity", activityPage] })}
+                    className="gap-2"
+                    data-testid="button-refresh-activity"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Оновити
+                  </Button>
+                  <Badge variant="outline" className="bg-white/5 border-white/10">
+                    {activityData?.total ?? 0} подій
+                  </Badge>
+                </div>
+              </div>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardContent className="pt-6">
+                  {activityLoading ? (
+                    <div className="space-y-3">
+                      {Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+                    </div>
+                  ) : !activityData?.events?.length ? (
+                    <div className="text-center py-12">
+                      <Activity className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-40" />
+                      <p className="text-muted-foreground">Немає подій</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {activityData.events.map((event, idx) => {
+                        const eventConfig: Record<string, { icon: any; color: string; label: string }> = {
+                          registration: { icon: UserPlus, color: "text-green-400", label: "Реєстрація" },
+                          login: { icon: LogIn, color: "text-blue-400", label: "Вхід" },
+                          check: { icon: Shield, color: "text-cyan-400", label: "Перевірка" },
+                          payment: { icon: CreditCard, color: "text-orange-400", label: "Оплата" },
+                          tier_change: { icon: Crown, color: "text-purple-400", label: "Зміна тарифу" },
+                          app_download: { icon: Download, color: "text-emerald-400", label: "Завантаження" },
+                        };
+                        const config = eventConfig[event.eventType] || { icon: Activity, color: "text-muted-foreground", label: event.eventType };
+                        const EventIcon = config.icon;
+
+                        return (
+                          <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.02 }}
+                            className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+                            data-testid={`activity-event-${event.id}`}
+                          >
+                            <div className={`w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5 ${config.color}`}>
+                              <EventIcon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="outline" className={`text-[10px] ${config.color} border-current/30`}>
+                                  {config.label}
+                                </Badge>
+                                {event.username && (
+                                  <span className="text-sm font-medium truncate">@{event.username}</span>
+                                )}
+                                {event.userId && (
+                                  <span className="text-[10px] text-muted-foreground font-mono">#{event.userId}</span>
+                                )}
+                              </div>
+                              {event.details && (
+                                <p className="text-xs text-muted-foreground mt-1 truncate">{event.details}</p>
+                              )}
+                              {event.meta && typeof event.meta === 'object' && (
+                                <div className="flex gap-2 mt-1 flex-wrap">
+                                  {Object.entries(event.meta as Record<string, any>).slice(0, 4).map(([key, val]) => (
+                                    <span key={key} className="text-[10px] text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded">
+                                      {key}: {String(val)}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">
+                              {event.createdAt ? timeAgo(event.createdAt) : "—"}
+                            </span>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {activityData && activityData.total > ACTIVITY_PAGE_SIZE && (
+                    <div className="flex items-center justify-between gap-4 mt-4 pt-4 border-t border-white/10">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={activityPage === 0}
+                        onClick={() => setActivityPage(p => Math.max(0, p - 1))}
+                        data-testid="button-activity-prev"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                        Назад
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        {activityPage * ACTIVITY_PAGE_SIZE + 1}–{Math.min((activityPage + 1) * ACTIVITY_PAGE_SIZE, activityData.total)} з {activityData.total}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={(activityPage + 1) * ACTIVITY_PAGE_SIZE >= activityData.total}
+                        onClick={() => setActivityPage(p => p + 1)}
+                        data-testid="button-activity-next"
+                      >
+                        Далі
+                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                      </Button>
                     </div>
                   )}
                 </CardContent>

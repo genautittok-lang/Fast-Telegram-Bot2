@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
@@ -124,6 +124,10 @@ export interface IStorage {
   getConversationList(): Promise<Array<{ userId: number; username: string | null; lastMessage: string; lastAt: Date | null; unreadCount: number }>>;
   updateUserTier(userId: number, tier: string): Promise<User>;
   addChecksToUser(userId: number, amount: number): Promise<User>;
+
+  logActivity(entry: InsertActivityLog): Promise<ActivityLog>;
+  getActivityLog(limit: number, offset?: number): Promise<ActivityLog[]>;
+  getActivityLogCount(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -693,6 +697,23 @@ export class DatabaseStorage implements IStorage {
     }).where(eq(users.id, userId)).returning();
     return updated;
   }
+
+  async logActivity(entry: InsertActivityLog): Promise<ActivityLog> {
+    if (!db) throw new Error("Database not available");
+    const [created] = await db.insert(activityLog).values(entry).returning();
+    return created;
+  }
+
+  async getActivityLog(limit: number, offset: number = 0): Promise<ActivityLog[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(activityLog).orderBy(desc(activityLog.createdAt)).limit(limit).offset(offset);
+  }
+
+  async getActivityLogCount(): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const [result] = await db.select({ count: sql<number>`count(*)` }).from(activityLog);
+    return Number(result?.count || 0);
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -1172,6 +1193,24 @@ export class MemStorage implements IStorage {
     const updated = { ...user, requestsLeft: (user.requestsLeft || 0) + amount };
     this.users.set(userId, updated);
     return updated;
+  }
+
+  private memActivityLog: ActivityLog[] = [];
+  private nextActivityId = 1;
+
+  async logActivity(entry: InsertActivityLog): Promise<ActivityLog> {
+    const created: ActivityLog = { id: this.nextActivityId++, eventType: entry.eventType, userId: entry.userId ?? null, username: entry.username ?? null, details: entry.details ?? null, meta: entry.meta ?? null, createdAt: new Date() };
+    this.memActivityLog.unshift(created);
+    if (this.memActivityLog.length > 1000) this.memActivityLog.pop();
+    return created;
+  }
+
+  async getActivityLog(limit: number, offset: number = 0): Promise<ActivityLog[]> {
+    return this.memActivityLog.slice(offset, offset + limit);
+  }
+
+  async getActivityLogCount(): Promise<number> {
+    return this.memActivityLog.length;
   }
 }
 

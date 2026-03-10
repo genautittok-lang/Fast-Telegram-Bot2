@@ -1,7 +1,7 @@
 import { Telegraf, Markup, Context } from "telegraf";
 import { IStorage } from "./storage";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
-import { performCheck, CheckResult } from "./checkService";
+import { performCheck, CheckResult, validateInput } from "./checkService";
 import { t, Language, languageNames } from "./i18n";
 
 interface BotContext extends Context {}
@@ -4586,15 +4586,14 @@ ${allTypesText}
       }], { cache_time: 5 });
     }
 
-    const escapeMdInline = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
-    const validation = (await import("./checkService")).validateInput(moduleType, inputValue);
+    const validation = validateInput(moduleType, inputValue);
     if (!validation.valid) {
       return ctx.answerInlineQuery([{
         type: "article",
         id: "invalid",
         title: "❌ Invalid input",
         description: validation.error || "Check your input format",
-        input_message_content: { message_text: `❌ ${validation.error || "Invalid input"}`, parse_mode: "Markdown" },
+        input_message_content: { message_text: `❌ ${validation.error || "Invalid input"}` },
       }], { cache_time: 5 });
     }
 
@@ -4608,11 +4607,17 @@ ${allTypesText}
           id: "no-checks",
           title: "⚠️ No checks remaining",
           description: "Daily limit reached. Upgrade your plan!",
-          input_message_content: { message_text: "⚠️ Daily check limit reached.\n🚀 Upgrade at darkshare.store/pricing", parse_mode: "Markdown" },
+          input_message_content: { message_text: "⚠️ Daily check limit reached.\n🚀 Upgrade at darkshare.store/pricing" },
         }], { cache_time: 5 });
       }
 
-      const checkResult = await performCheck(moduleType, inputValue);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error("timeout")), 12000)
+      );
+      const checkResult = await Promise.race([
+        performCheck(moduleType, inputValue),
+        timeoutPromise
+      ]);
       
       await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 1) - 1) });
 
@@ -4630,18 +4635,16 @@ ${allTypesText}
       const filled = Math.round(checkResult.riskScore / 10);
       const riskBar = "▓".repeat(filled) + "░".repeat(10 - filled);
       
-      const safeTarget = escapeMdInline(checkResult.target);
-      const safeFindings = checkResult.findings.slice(0, 4).map((f, i, arr) => 
-        i === arr.length - 1 ? `└ ${escapeMdInline(f)}` : `├ ${escapeMdInline(f)}`
+      const findings = checkResult.findings.slice(0, 4).map((f: string, i: number, arr: string[]) => 
+        i === arr.length - 1 ? `└ ${f}` : `├ ${f}`
       ).join("\n");
-      const safeSummary = escapeMdInline(checkResult.summary);
 
-      const resultText = `🛡 *DARKSHARE ${validTypes[moduleType]}*\n\n` +
-        `🎯 Target: \`${safeTarget}\`\n` +
-        `${riskEmoji} Risk: *${checkResult.riskScore}%* ${checkResult.riskLevel.toUpperCase()}\n` +
-        `\`${riskBar}\`\n\n` +
-        `📋 *Findings:*\n${safeFindings}\n\n` +
-        `📝 ${safeSummary}\n\n` +
+      const resultText = `🛡 DARKSHARE ${validTypes[moduleType]}\n\n` +
+        `🎯 Target: ${checkResult.target}\n` +
+        `${riskEmoji} Risk: ${checkResult.riskScore}% ${checkResult.riskLevel.toUpperCase()}\n` +
+        `${riskBar}\n\n` +
+        `📋 Findings:\n${findings}\n\n` +
+        `📝 ${checkResult.summary}\n\n` +
         `🔗 Full report → darkshare.store`;
 
       return ctx.answerInlineQuery([{
@@ -4649,16 +4652,17 @@ ${allTypesText}
         id: `result-${Date.now()}`,
         title: `${riskEmoji} ${checkResult.riskLevel.toUpperCase()} — ${checkResult.riskScore}% risk`,
         description: checkResult.summary.slice(0, 100),
-        input_message_content: { message_text: resultText, parse_mode: "Markdown" },
+        input_message_content: { message_text: resultText },
       }], { cache_time: 0 });
 
     } catch (err: any) {
+      const isTimeout = err.message === "timeout";
       return ctx.answerInlineQuery([{
         type: "article",
         id: "error",
-        title: "❌ Check failed",
-        description: err.message || "Error performing check",
-        input_message_content: { message_text: `❌ Error: ${err.message || "Check failed"}`, parse_mode: "Markdown" },
+        title: isTimeout ? "⏳ Check took too long" : "❌ Check failed",
+        description: isTimeout ? "Try again or use the bot directly" : (err.message || "Error performing check"),
+        input_message_content: { message_text: isTimeout ? "⏳ Inline check timed out. Send /start to use the full bot interface." : `❌ Error: ${err.message || "Check failed"}` },
       }], { cache_time: 5 });
     }
   });

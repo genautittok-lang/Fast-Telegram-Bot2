@@ -258,6 +258,18 @@ async function ensureTablesExist() {
     `);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_activity_log (
+        id SERIAL PRIMARY KEY,
+        event_type TEXT NOT NULL,
+        user_id INTEGER REFERENCES ds_users(id),
+        username TEXT,
+        details TEXT,
+        meta JSONB,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS sessions (
         sid VARCHAR PRIMARY KEY,
         sess JSONB NOT NULL,

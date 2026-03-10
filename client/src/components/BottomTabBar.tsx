@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Clock, Scan, MessageCircle, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 const tabs = [
   { id: "dashboard", icon: LayoutDashboard, href: "/dashboard", label: "Home" },
@@ -10,8 +11,41 @@ const tabs = [
   { id: "account", icon: User, href: "/account", label: "Profile" },
 ];
 
+function NotificationDot({ count, color = "bg-red-500" }: { count: number; color?: string }) {
+  if (count <= 0) return null;
+  return (
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className={`absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full ${color} flex items-center justify-center px-1 z-10`}
+      data-testid="badge-notification-dot"
+    >
+      <span className="text-[9px] font-bold text-white leading-none">
+        {count > 99 ? "99+" : count}
+      </span>
+    </motion.div>
+  );
+}
+
 export function BottomTabBar() {
   const [location] = useLocation();
+
+  const { data: recentReports = [] } = useQuery<any[]>({
+    queryKey: ["/api/reports"],
+  });
+
+  const newReportsCount = (() => {
+    const lastSeen = localStorage.getItem("ds-last-seen-history");
+    if (!lastSeen) return recentReports.length > 0 ? Math.min(recentReports.length, 9) : 0;
+    const lastSeenDate = new Date(lastSeen);
+    return recentReports.filter((r: any) => new Date(r.createdAt) > lastSeenDate).length;
+  })();
+
+  const triggerHaptic = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  };
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50" data-testid="app-bottom-tab-bar">
@@ -31,6 +65,7 @@ export function BottomTabBar() {
                   <motion.button
                     className="relative -mt-7 flex flex-col items-center"
                     whileTap={{ scale: 0.88 }}
+                    onTapStart={triggerHaptic}
                     data-testid="tab-scan"
                   >
                     <motion.div
@@ -53,11 +88,14 @@ export function BottomTabBar() {
               );
             }
 
+            const badgeCount = tab.id === "history" ? newReportsCount : 0;
+
             return (
               <Link key={tab.id} href={tab.href}>
                 <motion.button
                   className="flex flex-col items-center gap-0.5 py-1.5 px-3 relative min-w-[3.5rem]"
                   whileTap={{ scale: 0.85 }}
+                  onTapStart={triggerHaptic}
                   data-testid={`tab-${tab.id}`}
                 >
                   <div className="relative">
@@ -67,6 +105,7 @@ export function BottomTabBar() {
                       }`}
                       strokeWidth={isActive ? 2.2 : 1.8}
                     />
+                    <NotificationDot count={badgeCount} />
                     {isActive && (
                       <motion.div
                         className="absolute -inset-2 rounded-xl bg-primary/8 -z-10"

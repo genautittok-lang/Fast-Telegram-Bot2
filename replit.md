@@ -4,7 +4,14 @@
 
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
-## Recent Changes (Feb 2026)
+## Recent Changes (Mar 2026)
+- Activity log system: `ds_activity_log` table tracks registrations, logins, checks, payments, tier changes, app downloads. Admin `/api/admin/activity` endpoint with pagination. Events auto-logged at registration, login, check, payment approval, tier change.
+- Admin "Активність" tab: real-time event feed with color-coded icons, pagination, refresh, download link display (PWA + Telegram bot links with copy buttons).
+- Bot inline mode fix: static import of validateInput, 12s timeout with Promise.race, plain text output (no Markdown escaping issues), proper error handling for timeouts.
+- Mobile UX: pull-to-refresh with haptic feedback, floating quick-action button (FAB) with radial menu, notification badges on bottom tabs, micro-animations (page-enter, touch-feedback, slide-up-fade, scale-pop, badge-pulse), iOS-like overscroll.
+- Bug fixes: coupon.discount → coupon.discountPct, hasUserUsedCoupon args order, ALTER TABLE before CREATE TABLE for ds_payments, ApiDocs target→value field.
+
+## Changes (Feb 2026)
 - Quick Check on landing page: public `/api/quick-check` endpoint (no auth, 3 checks/day per IP, limited response), QuickCheck widget in hero section with IP/Email/Domain/Wallet type selector
 - Telegram bot inline mode: `@DarkShare1Bot ip 8.8.8.8` works in any chat, shows risk score and findings inline, validates input before checking, escapes Markdown in results
 - Google OAuth via passport-google-oauth20: `/api/login` → Google consent → `/api/callback`, supports Railway (`WEB_DOMAIN` env var) and Replit (`REPLIT_DOMAINS`) deployments

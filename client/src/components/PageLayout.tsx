@@ -1,6 +1,6 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState, useCallback } from "react";
 import { Link, useLocation } from "wouter";
-import { Shield, Globe, Lock } from "lucide-react";
+import { Shield, Globe, Lock, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BottomTabBar } from "@/components/BottomTabBar";
@@ -10,12 +10,105 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PageLayoutProps {
   children: ReactNode;
   headerActions?: ReactNode;
   title?: string;
   appMode?: boolean;
+}
+
+function PullToRefresh({ scrollRef }: { scrollRef: React.RefObject<HTMLElement | null> }) {
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const startY = useRef(0);
+  const isPulling = useRef(false);
+  const queryClient = useQueryClient();
+  const threshold = 80;
+
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    const el = scrollRef.current;
+    if (el && el.scrollTop <= 0) {
+      startY.current = e.touches[0].clientY;
+      isPulling.current = true;
+    }
+  }, [scrollRef]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isPulling.current || isRefreshing) return;
+    const el = scrollRef.current;
+    if (!el || el.scrollTop > 0) {
+      isPulling.current = false;
+      setPullDistance(0);
+      return;
+    }
+    const diff = e.touches[0].clientY - startY.current;
+    if (diff > 0) {
+      setPullDistance(Math.min(diff * 0.5, 120));
+    }
+  }, [isRefreshing, scrollRef]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isPulling.current) return;
+    isPulling.current = false;
+    if (pullDistance >= threshold && !isRefreshing) {
+      setIsRefreshing(true);
+      if (navigator.vibrate) navigator.vibrate(15);
+      queryClient.invalidateQueries().then(() => {
+        setTimeout(() => {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        }, 600);
+      });
+    } else {
+      setPullDistance(0);
+    }
+  }, [pullDistance, isRefreshing, queryClient]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("touchstart", handleTouchStart, { passive: true });
+    el.addEventListener("touchmove", handleTouchMove, { passive: true });
+    el.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", handleTouchStart);
+      el.removeEventListener("touchmove", handleTouchMove);
+      el.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [scrollRef, handleTouchStart, handleTouchMove, handleTouchEnd]);
+
+  const progress = Math.min(pullDistance / threshold, 1);
+
+  if (pullDistance <= 0 && !isRefreshing) return null;
+
+  return (
+    <motion.div
+      className="flex items-center justify-center pointer-events-none"
+      style={{ height: pullDistance }}
+      animate={isRefreshing ? { height: 48 } : {}}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      data-testid="pull-to-refresh-indicator"
+    >
+      <motion.div
+        className="w-8 h-8 flex items-center justify-center"
+        style={{ opacity: progress }}
+      >
+        {isRefreshing ? (
+          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+        ) : (
+          <motion.div
+            className="w-5 h-5 rounded-full border-2 border-primary/60"
+            style={{
+              borderTopColor: progress >= 1 ? "hsl(var(--primary))" : "transparent",
+              transform: `rotate(${pullDistance * 3}deg)`,
+            }}
+          />
+        )}
+      </motion.div>
+    </motion.div>
+  );
 }
 
 function AppSplashLogin() {
@@ -240,6 +333,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { t } = useTranslation();
+  const mainScrollRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !appMode) {
@@ -297,7 +391,8 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
               <LanguageSwitcher variant="minimal" />
             </div>
           </div>
-          <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-[#0a0a0f]">
+          <main ref={mainScrollRef} className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-[#0a0a0f]">
+            <PullToRefresh scrollRef={mainScrollRef} />
             {children}
           </main>
           <BottomTabBar />

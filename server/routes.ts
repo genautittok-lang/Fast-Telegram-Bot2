@@ -130,8 +130,10 @@ export async function registerRoutes(
             streakDays: 1,
             refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           });
+          storage.logActivity({ eventType: "registration", userId: dsUser.id, username: dsUser.username || null, details: `New user registered via Google/Replit`, meta: { provider: "replit" } }).catch(() => {});
         } else {
           await storage.updateUserLogin(dsUser.id);
+          storage.logActivity({ eventType: "login", userId: dsUser.id, username: dsUser.username || null, details: `User logged in via Google/Replit` }).catch(() => {});
         }
         
         req.session.userId = dsUser.id;
@@ -456,8 +458,10 @@ export async function registerRoutes(
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
+        storage.logActivity({ eventType: "registration", userId: user.id, username: user.username || null, details: `New user registered via Telegram`, meta: { provider: "telegram" } }).catch(() => {});
       } else {
         await storage.updateUserLogin(user.id);
+        storage.logActivity({ eventType: "login", userId: user.id, username: user.username || null, details: `User logged in via Telegram` }).catch(() => {});
         const updates: any = {};
         if (user.username !== username && username !== "user") updates.username = username;
         if (photoUrl && user.photoUrl !== photoUrl) updates.photoUrl = photoUrl;
@@ -897,13 +901,11 @@ export async function registerRoutes(
     try {
       const result = await performCheck(type, value);
       
-      // Add to activity feed
       addActivity(type, value, result.riskLevel);
+      storage.logActivity({ eventType: "check", userId: authReq.user!.id, username: authReq.user!.username || null, details: `Check: ${type}`, meta: { type, riskLevel: result.riskLevel, riskScore: result.riskScore } }).catch(() => {});
 
-      // Generate unique verificationId for QR code verification
       const verificationId = generateVerificationId();
 
-      // Store report using authenticated user
       await storage.createReport({
         userId: authReq.user!.id,
         objectType: type,
@@ -2426,8 +2428,9 @@ export async function registerRoutes(
       const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
       await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
       
-      // Notify user via bot
       const user = await storage.getUserById(payment.userId);
+      storage.logActivity({ eventType: "payment", userId: payment.userId, username: user?.username || null, details: `Payment approved: ${tier}`, meta: { paymentId, tier, amount: payment.amountUsdt } }).catch(() => {});
+      
       if (user && botInstance) {
         try {
           await botInstance.telegram.sendMessage(user.tgId, 
@@ -2690,6 +2693,7 @@ export async function registerRoutes(
     if (!["FREE", "PRO", "ENTERPRISE"].includes(tier)) return res.status(400).json({ error: "Invalid tier" });
     try {
       const user = await storage.updateUserTier(parseInt(req.params.id), tier);
+      storage.logActivity({ eventType: "tier_change", userId: user.id, username: user.username || null, details: `Tier changed to ${tier}`, meta: { tier, adminId: authReq.user!.id } }).catch(() => {});
       res.json(user);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to update tier" });
@@ -2708,6 +2712,40 @@ export async function registerRoutes(
       res.json(user);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to add checks" });
+    }
+  });
+
+  app.get("/api/admin/activity", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+    const offset = parseInt(req.query.offset as string) || 0;
+    try {
+      const [events, total] = await Promise.all([
+        storage.getActivityLog(limit, offset),
+        storage.getActivityLogCount(),
+      ]);
+      res.json({ events, total, limit, offset });
+    } catch (err: any) {
+      console.error("Activity log error:", err.message);
+      res.json({ events: [], total: 0, limit, offset });
+    }
+  });
+
+  app.post("/api/admin/activity", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { eventType, userId, username, details, meta } = req.body;
+    if (!eventType) return res.status(400).json({ error: "eventType is required" });
+    try {
+      const entry = await storage.logActivity({ eventType, userId: userId || null, username: username || null, details: details || null, meta: meta || null });
+      res.json(entry);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Failed to log activity" });
     }
   });
 
