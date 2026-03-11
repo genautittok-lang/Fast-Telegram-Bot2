@@ -1539,7 +1539,7 @@ Sources: ${result.sources.join(', ')}`;
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <div className={`p-3.5 lg:p-8 rounded-2xl lg:rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} glass-strong shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
+                <div className={`p-3.5 lg:p-8 rounded-2xl lg:rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} glass-deep shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
                   <AnimatePresence mode="wait">
                     <motion.div 
                       key={selectedType}
@@ -1736,7 +1736,7 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden"
+                  className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden glass-deep"
                 >
                   <div className="absolute inset-0 overflow-hidden scan-beam">
                     <motion.div
@@ -1802,7 +1802,7 @@ Sources: ${result.sources.join(', ')}`;
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="space-y-3 lg:space-y-6"
                 >
-                  <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
+                  <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic result-card-3d" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
                     <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
                     <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/10">
@@ -1864,11 +1864,11 @@ Sources: ${result.sources.join(', ')}`;
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: idx * 0.05, duration: 0.3 }}
-                              className={`p-2.5 lg:p-4 rounded-xl text-[11px] lg:text-sm flex items-start gap-2 lg:gap-3 border ${
-                                isCritical ? "bg-red-500/10 border-red-500/30 text-red-300" :
-                                isWarning ? "bg-orange-500/10 border-orange-500/30 text-orange-300" :
-                                isSafe ? "bg-green-500/10 border-green-500/30 text-green-300" :
-                                "bg-yellow-500/10 border-yellow-500/30 text-yellow-300"
+                              className={`p-2.5 lg:p-4 rounded-xl text-[11px] lg:text-sm flex items-start gap-2 lg:gap-3 border backdrop-blur-sm transition-all duration-200 hover:scale-[1.01] ${
+                                isCritical ? "bg-red-500/10 border-red-500/30 text-red-300 hover:bg-red-500/15" :
+                                isWarning ? "bg-orange-500/10 border-orange-500/30 text-orange-300 hover:bg-orange-500/15" :
+                                isSafe ? "bg-green-500/10 border-green-500/30 text-green-300 hover:bg-green-500/15" :
+                                "bg-yellow-500/10 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/15"
                               }`}
                             >
                               <ChevronRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 mt-0.5 flex-shrink-0" />
@@ -1882,7 +1882,7 @@ Sources: ${result.sources.join(', ')}`;
                     {/* AI INSIGHTS SECTION */}
                     {result.aiInsights && (
                       <motion.div 
-                        className="mb-3 lg:mb-6 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/30"
+                        className="mb-3 lg:mb-6 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(34,197,94,0.08)]"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.4 }}
@@ -1929,7 +1929,7 @@ Sources: ${result.sources.join(', ')}`;
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.15 + idx * 0.03, duration: 0.3 }}
-                            className="p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-white/5 border border-white/5 active:border-white/20 transition-all duration-300"
+                            className="p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-white/5 border border-white/5 hover:bg-white/[0.07] hover:border-white/10 active:border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
                           >
                             <p className="text-[9px] lg:text-xs text-muted-foreground capitalize mb-0.5 lg:mb-1 truncate">
                               {key.replace(/([A-Z])/g, ' $1').trim()}
@@ -2427,8 +2427,8 @@ Sources: ${result.sources.join(', ')}`;
           <div className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-lg bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
-                <div className="text-[10px] text-muted-foreground mb-1">Telegram ID</div>
-                <div className="font-mono text-cyan-400 text-sm" data-testid="text-tg-id">{user?.tgId || "—"}</div>
+                <div className="text-[10px] text-muted-foreground mb-1">{user?.tgId?.startsWith('replit:') ? 'Account ID' : 'Telegram ID'}</div>
+                <div className="font-mono text-cyan-400 text-sm" data-testid="text-tg-id">{user?.tgId?.startsWith('replit:') ? (user?.username || 'Web User') : (user?.tgId || "—")}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
                 <div className="text-[10px] text-muted-foreground mb-1">Username</div>

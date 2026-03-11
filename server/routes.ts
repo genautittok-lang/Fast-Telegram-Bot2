@@ -2934,6 +2934,27 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/system-health", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const mem = process.memoryUsage();
+    const uptimeSec = process.uptime();
+    const hours = Math.floor(uptimeSec / 3600);
+    const mins = Math.floor((uptimeSec % 3600) / 60);
+    res.json({
+      uptime: `${hours}h ${mins}m`,
+      uptimeSeconds: Math.round(uptimeSec),
+      memoryUsedMB: Math.round(mem.rss / 1024 / 1024),
+      heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+      heapTotalMB: Math.round(mem.heapTotal / 1024 / 1024),
+      nodeVersion: process.version,
+      platform: process.platform,
+      dbConnected: !!process.env.DATABASE_URL,
+    });
+  });
+
   app.get("/api/admin/user-growth", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     if (!ADMIN_IDS.includes(authReq.user!.tgId)) {

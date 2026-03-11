@@ -495,9 +495,8 @@ export class DatabaseStorage implements IStorage {
     const result = await db.execute(sql`
       SELECT u.id, u.username, u.streak_days as "streakDays", COALESCE(r.cnt, 0) as "checksCount"
       FROM ds_users u
-      LEFT JOIN (SELECT user_id, COUNT(*) as cnt FROM ds_reports GROUP BY user_id) r ON r.user_id = u.id
-      ORDER BY COALESCE(r.cnt, 0) DESC
-      LIMIT ${limit}
+      INNER JOIN (SELECT user_id, COUNT(*) as cnt FROM ds_reports GROUP BY user_id ORDER BY cnt DESC LIMIT ${limit}) r ON r.user_id = u.id
+      ORDER BY r.cnt DESC
     `);
     return (result.rows as any[]).map(row => ({
       id: row.id,

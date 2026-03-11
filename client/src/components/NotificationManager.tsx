@@ -9,6 +9,7 @@ import {
   scheduleScanReminder,
   scheduleStreakReminder,
   clearAllScheduled,
+  subscribeToPush,
 } from "@/lib/notifications";
 
 export function NotificationManager() {
@@ -22,6 +23,7 @@ export function NotificationManager() {
     if (perm === 'granted') {
       scheduleScanReminder();
       scheduleStreakReminder();
+      subscribeToPush().catch(() => {});
     } else if (perm === 'default' && !hasAskedPermission() && isNotificationSupported()) {
       const timer = setTimeout(() => setShowBanner(true), 5000);
       return () => clearTimeout(timer);
@@ -37,6 +39,7 @@ export function NotificationManager() {
     if (result === 'granted') {
       scheduleScanReminder();
       scheduleStreakReminder();
+      subscribeToPush().catch(() => {});
     }
   }, []);
 

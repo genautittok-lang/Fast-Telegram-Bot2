@@ -265,6 +265,21 @@ export default function Admin() {
     enabled: !!isAdmin && activeTab === "dashboard",
   });
 
+  const { data: systemHealth } = useQuery<{
+    uptime: string;
+    uptimeSeconds: number;
+    memoryUsedMB: number;
+    heapUsedMB: number;
+    heapTotalMB: number;
+    nodeVersion: string;
+    platform: string;
+    dbConnected: boolean;
+  }>({
+    queryKey: ["/api/admin/system-health"],
+    enabled: !!isAdmin && activeTab === "dashboard",
+    refetchInterval: 30000,
+  });
+
   const [pushTitle, setPushTitle] = useState("");
   const [pushBody, setPushBody] = useState("");
 
@@ -748,22 +763,47 @@ export default function Admin() {
                           <Database className="w-3.5 h-3.5 text-blue-400" />
                           <span className="text-sm">PostgreSQL</span>
                         </div>
-                        <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Connected</Badge>
+                        <Badge variant="outline" className={`text-[10px] ${systemHealth?.dbConnected !== false ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                          {systemHealth?.dbConnected !== false ? 'Connected' : 'Disconnected'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                          <span className="text-sm">Uptime</span>
+                        </div>
+                        <span className="text-sm font-mono text-cyan-400">{systemHealth?.uptime || '...'}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <Activity className="w-3.5 h-3.5 text-orange-400" />
+                          <span className="text-sm">Memory</span>
+                        </div>
+                        <span className="text-sm font-mono text-orange-400">{systemHealth?.memoryUsedMB || '...'} MB</span>
                       </div>
                       <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
                         <div className="flex items-center gap-2">
                           <Globe className="w-3.5 h-3.5 text-purple-400" />
-                          <span className="text-sm">Web Server</span>
+                          <span className="text-sm">Node {systemHealth?.nodeVersion || ''}</span>
                         </div>
                         <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Port 5000</Badge>
                       </div>
-                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
-                        <div className="flex items-center gap-2">
-                          <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                          <span className="text-sm">Uptime</span>
+                      {systemHealth && (
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                            <span>Heap Usage</span>
+                            <span>{systemHealth.heapUsedMB} / {systemHealth.heapTotalMB} MB</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min((systemHealth.heapUsedMB / systemHealth.heapTotalMB) * 100, 100)}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
+                            />
+                          </div>
                         </div>
-                        <span className="text-sm font-mono text-cyan-400">99.9%</span>
-                      </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1364,7 +1404,7 @@ export default function Admin() {
                             <TableRow key={user.id} className="border-white/10 group" data-testid={`user-row-${user.id}`}>
                               <TableCell className="font-mono text-xs">#{user.id}</TableCell>
                               <TableCell className="font-medium">{user.username || "—"}</TableCell>
-                              <TableCell className="font-mono text-xs text-muted-foreground">{user.tgId}</TableCell>
+                              <TableCell className="font-mono text-xs text-muted-foreground">{user.tgId?.startsWith('replit:') ? (user.username || 'Web User') : user.tgId}</TableCell>
                               <TableCell>
                                 <Badge variant="outline" className={
                                   user.tier === "ENTERPRISE" ? "bg-purple-500/10 text-purple-400 border-purple-500/30"
