@@ -1,6 +1,7 @@
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
+import crypto from "crypto";
 import { storage } from "./storage";
 
 declare module "express-session" {
@@ -22,15 +23,21 @@ export function getSession() {
       tableName: "session",
     });
     
+    const isProduction = process.env.NODE_ENV === "production";
+    const sessionSecret = process.env.SESSION_SECRET;
+    if (!sessionSecret) {
+      console.warn("WARNING: SESSION_SECRET not set. Using random secret (sessions will not persist across restarts).");
+    }
+    
     return session({
-      secret: process.env.SESSION_SECRET || "darkshare-secret-key",
+      secret: sessionSecret || crypto.randomBytes(32).toString("hex"),
       store: sessionStore,
       resave: true,
       saveUninitialized: false,
       rolling: true,
       cookie: {
         httpOnly: true,
-        secure: false,
+        secure: isProduction,
         sameSite: "lax",
         maxAge: sessionTtl,
         path: "/",
@@ -38,14 +45,20 @@ export function getSession() {
     });
   }
   
+  const isProduction = process.env.NODE_ENV === "production";
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    console.warn("WARNING: SESSION_SECRET not set. Using random secret (sessions will not persist across restarts).");
+  }
+  
   return session({
-    secret: process.env.SESSION_SECRET || "darkshare-secret-key",
+    secret: sessionSecret || crypto.randomBytes(32).toString("hex"),
     resave: true,
     saveUninitialized: false,
     rolling: true,
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: isProduction,
       sameSite: "lax",
       maxAge: sessionTtl,
       path: "/",

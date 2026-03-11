@@ -27,11 +27,11 @@ export class WebhookHandlers {
     
     let event: Stripe.Event;
     try {
-      if (webhookSecret) {
-        event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-      } else {
-        event = JSON.parse(payload.toString()) as Stripe.Event;
+      if (!webhookSecret) {
+        console.error('STRIPE_WEBHOOK_SECRET not set. Rejecting webhook for security.');
+        throw new Error('Webhook secret not configured');
       }
+      event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
       return;

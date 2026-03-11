@@ -115,7 +115,16 @@ export async function registerRoutes(
       if (passportUser?.claims?.sub && !req.session?.userId) {
         const claims = passportUser.claims;
         const email = claims.email || claims.sub;
-        const username = 'Dark' + Math.floor(1000000 + Math.random() * 9000000);
+        const firstName = claims.first_name || claims.given_name || '';
+        const lastName = claims.last_name || claims.family_name || '';
+        let username = '';
+        if (firstName) {
+          username = lastName ? `${firstName} ${lastName}` : firstName;
+        } else if (email && email.includes('@')) {
+          username = email.split('@')[0];
+        } else {
+          username = 'Agent_' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
         const photoUrl = claims.profile_image_url || '';
         
         let dsUser = await storage.getUserByTgId(`replit:${claims.sub}`);
@@ -132,6 +141,15 @@ export async function registerRoutes(
           });
           storage.logActivity({ eventType: "registration", userId: dsUser.id, username: dsUser.username || null, details: `New user registered via Google/Replit`, meta: { provider: "replit" } }).catch(() => {});
         } else {
+          const updates: any = {};
+          if (photoUrl && !dsUser.photoUrl) updates.photoUrl = photoUrl;
+          if (firstName && dsUser.username?.startsWith('Dark') && /^Dark\d+$/.test(dsUser.username)) {
+            updates.username = username;
+          }
+          if (Object.keys(updates).length > 0) {
+            await storage.updateUser(dsUser.id, updates);
+            dsUser = { ...dsUser, ...updates };
+          }
           await storage.updateUserLogin(dsUser.id);
           storage.logActivity({ eventType: "login", userId: dsUser.id, username: dsUser.username || null, details: `User logged in via Google/Replit` }).catch(() => {});
         }
@@ -2758,6 +2776,108 @@ export async function registerRoutes(
       res.json(entry);
     } catch (err: any) {
       res.status(500).json({ error: err.message || "Failed to log activity" });
+    }
+  });
+
+  // ============ Push Notifications ============
+
+  app.post("/api/push/subscribe", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { endpoint, keys } = req.body;
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ error: "Invalid subscription" });
+    }
+    try {
+      await storage.savePushSubscription(authReq.user!.id, endpoint, keys.p256dh, keys.auth);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post("/api/push/unsubscribe", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ error: "Missing endpoint" });
+    try {
+      await storage.removePushSubscription(endpoint, authReq.user!.id);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/push/vapid-key", (_req, res) => {
+    const vapidKey = process.env.VAPID_PUBLIC_KEY;
+    if (!vapidKey) return res.status(404).json({ error: "VAPID key not configured" });
+    res.json({ publicKey: vapidKey });
+  });
+
+  app.post("/api/admin/push-broadcast", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    const { title, body: msgBody } = req.body;
+    if (!title || !msgBody) return res.status(400).json({ error: "title and body required" });
+
+    try {
+      const webPush = await import("web-push");
+      const vapidPublic = process.env.VAPID_PUBLIC_KEY;
+      const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+      if (!vapidPublic || !vapidPrivate) {
+        return res.status(500).json({ error: "VAPID keys not configured" });
+      }
+      webPush.default.setVapidDetails("mailto:darkshare.store@gmail.com", vapidPublic, vapidPrivate);
+      
+      const subs = await storage.getPushSubscriptions();
+      let sent = 0;
+      let failed = 0;
+      const payload = JSON.stringify({ title, body: msgBody, icon: "/favicon.png", badge: "/favicon.png", tag: "broadcast" });
+      
+      for (const sub of subs) {
+        try {
+          await webPush.default.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload);
+          sent++;
+        } catch (err: any) {
+          failed++;
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            await storage.removePushSubscription(sub.endpoint);
+          }
+        }
+      }
+      
+      res.json({ sent, failed, total: subs.length });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============ Admin Analytics ============
+
+  app.get("/api/admin/revenue", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    try {
+      const revenueStats = await storage.getRevenueStats();
+      res.json(revenueStats);
+    } catch (err: any) {
+      res.json({ totalRevenue: 0, monthlyRevenue: 0, paymentsByTier: {} });
+    }
+  });
+
+  app.get("/api/admin/user-growth", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    try {
+      const growth = await storage.getUserGrowthStats();
+      res.json(growth);
+    } catch (err: any) {
+      res.json([]);
     }
   });
 

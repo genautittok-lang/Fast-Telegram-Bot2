@@ -279,6 +279,33 @@ async function ensureTablesExist() {
     await pool.query(`CREATE INDEX IF NOT EXISTS "IDX_sessions_expire" ON sessions (expire)`);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_push_subscriptions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES ds_users(id) NOT NULL,
+        endpoint TEXT NOT NULL,
+        p256dh TEXT NOT NULL,
+        auth TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_reports_user_id ON ds_reports(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_watches_user_id ON ds_watches(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_user_id ON ds_payments(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_status ON ds_payments(status)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON ds_referrals(referrer_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referred_id ON ds_referrals(referred_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON ds_team_members(team_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON ds_team_members(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON ds_favorites(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_messages_team_id ON ds_chat_messages(team_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_messages_user_id ON ds_chat_messages(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_log_user_id ON ds_activity_log(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_log_event_type ON ds_activity_log(event_type)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_reactions_message_id ON ds_chat_reactions(message_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON ds_push_subscriptions(user_id)`);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS auth_users (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::VARCHAR,
         email VARCHAR UNIQUE,

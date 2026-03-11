@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -36,7 +36,9 @@ export const reports = pgTable("ds_reports", {
   pdfPath: text("pdf_path"),
   verificationId: text("verification_id"),
   generatedAt: timestamp("generated_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_reports_user_id").on(table.userId),
+]);
 
 export const watches = pgTable("ds_watches", {
   id: serial("id").primaryKey(),
@@ -47,7 +49,9 @@ export const watches = pgTable("ds_watches", {
   status: text("status").default("low"),
   lastCheck: timestamp("last_check"),
   alertsOn: boolean("alerts_on").default(true),
-});
+}, (table) => [
+  index("idx_watches_user_id").on(table.userId),
+]);
 
 export const payments = pgTable("ds_payments", {
   id: serial("id").primaryKey(),
@@ -60,7 +64,10 @@ export const payments = pgTable("ds_payments", {
   period: text("period"),
   status: text("status").default("pending"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_payments_user_id").on(table.userId),
+  index("idx_payments_status").on(table.status),
+]);
 
 export const referrals = pgTable("ds_referrals", {
   id: serial("id").primaryKey(),
@@ -68,7 +75,10 @@ export const referrals = pgTable("ds_referrals", {
   referredId: integer("referred_id").references(() => users.id),
   paid: boolean("paid").default(false),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_referrals_referrer_id").on(table.referrerId),
+  index("idx_referrals_referred_id").on(table.referredId),
+]);
 
 export const achievements = pgTable("ds_achievements", {
   id: serial("id").primaryKey(),
@@ -134,7 +144,10 @@ export const teamMembers = pgTable("ds_team_members", {
   userId: integer("user_id").references(() => users.id).notNull(),
   role: text("role").default("member"),
   joinedAt: timestamp("joined_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_team_members_team_id").on(table.teamId),
+  index("idx_team_members_user_id").on(table.userId),
+]);
 
 export const favorites = pgTable("ds_favorites", {
   id: serial("id").primaryKey(),
@@ -143,7 +156,9 @@ export const favorites = pgTable("ds_favorites", {
   value: text("value").notNull(),
   label: text("label"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_favorites_user_id").on(table.userId),
+]);
 
 export const chatMessages = pgTable("ds_chat_messages", {
   id: serial("id").primaryKey(),
@@ -155,7 +170,10 @@ export const chatMessages = pgTable("ds_chat_messages", {
   fileUrl: text("file_url"),
   teamId: integer("team_id"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_chat_messages_team_id").on(table.teamId),
+  index("idx_chat_messages_user_id").on(table.userId),
+]);
 
 export const adminMessages = pgTable("ds_admin_messages", {
   id: serial("id").primaryKey(),
@@ -174,7 +192,31 @@ export const activityLog = pgTable("ds_activity_log", {
   details: text("details"),
   meta: jsonb("meta"),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_activity_log_user_id").on(table.userId),
+  index("idx_activity_log_event_type").on(table.eventType),
+]);
+
+export const chatReactions = pgTable("ds_chat_reactions", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => chatMessages.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  emoji: text("emoji").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_chat_reactions_message_id").on(table.messageId),
+]);
+
+export const pushSubscriptions = pgTable("ds_push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_push_subscriptions_user_id").on(table.userId),
+]);
 
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastReminderSent: true });

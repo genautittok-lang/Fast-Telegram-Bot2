@@ -5,6 +5,14 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Mar 2026)
+- **Security hardening**: cookie.secure based on NODE_ENV, removed hardcoded session secret fallback (uses crypto.randomBytes), Stripe webhook rejects when secret not configured.
+- **DB performance**: searchUsers uses SQL ILIKE, getHighRiskReportsCount uses SQL filter, getTopUsers/getReferralStats use single JOIN queries (eliminated N+1), indexes added on all FK columns.
+- **User ID fix**: Replit/Google auth now extracts real name from claims, updates old "Dark..." usernames.
+- **Error Boundary**: Global ErrorBoundary component wrapping entire App.
+- **Push notifications**: Web Push API via `web-push` package, `push_subscriptions` DB table, VAPID key generation, auto-subscribe on Dashboard login, admin broadcast to all subscribers from `/api/admin/push-broadcast`.
+- **Enhanced Admin panel**: Revenue analytics (total/monthly with tier breakdown), user growth chart (30-day bar chart), push broadcast form, system health monitor, improved card layouts with glassmorphism.
+- **Glassmorphism CSS**: `.glass`, `.glass-card`, `.glass-strong` classes with backdrop-filter blur, `.surface-1/2/3` elevation system, `.inner-glow-*` utilities for depth effects.
+- **Dashboard 3D enhancements**: Hero card uses glass-strong, check type grid uses glass-card, input area uses glass-strong. Auto push-subscribe when notification permission granted.
 - Activity log system: `ds_activity_log` table tracks registrations, logins, checks, payments, tier changes, app downloads. Admin `/api/admin/activity` endpoint with pagination. Events auto-logged at registration, login, check, payment approval, tier change.
 - Admin "Активність" tab: real-time event feed with color-coded icons, pagination, refresh, download link display (PWA + Telegram bot links with copy buttons).
 - Bot inline mode fix: static import of validateInput, 12s timeout with Promise.race, plain text output (no Markdown escaping issues), proper error handling for timeouts.

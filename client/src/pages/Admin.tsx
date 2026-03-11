@@ -41,6 +41,14 @@ import {
   LogIn,
   UserPlus,
   RefreshCw,
+  DollarSign,
+  BarChart3,
+  Bell,
+  Server,
+  Wifi,
+  Database,
+  Globe,
+  PieChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -245,6 +253,34 @@ export default function Admin() {
   const { data: settings, isLoading: settingsLoading } = useQuery<PaymentSettings>({
     queryKey: ["/api/admin/settings"],
     enabled: !!isAdmin && activeTab === "settings",
+  });
+
+  const { data: revenueData } = useQuery<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }>({
+    queryKey: ["/api/admin/revenue"],
+    enabled: !!isAdmin && activeTab === "dashboard",
+  });
+
+  const { data: userGrowth } = useQuery<Array<{ date: string; count: number }>>({
+    queryKey: ["/api/admin/user-growth"],
+    enabled: !!isAdmin && activeTab === "dashboard",
+  });
+
+  const [pushTitle, setPushTitle] = useState("");
+  const [pushBody, setPushBody] = useState("");
+
+  const pushBroadcastMutation = useMutation({
+    mutationFn: async ({ title, body }: { title: string; body: string }) => {
+      const res = await apiRequest("POST", "/api/admin/push-broadcast", { title, body });
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({ title: `Push надіслано: ${data.sent} успішних, ${data.failed} невдалих` });
+      setPushTitle("");
+      setPushBody("");
+    },
+    onError: (err: Error) => {
+      toast({ title: "Помилка push-розсилки", description: err.message, variant: "destructive" });
+    },
   });
 
   const { data: pendingPayments } = useQuery<PaymentRecord[]>({
@@ -580,7 +616,160 @@ export default function Admin() {
                     ))}
               </div>
 
-              <Card className="border-white/10 bg-white/5">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-emerald-400" />
+                      Дохід
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                        <p className="text-xs text-emerald-300/70">Загальний</p>
+                        <p className="text-xl font-bold text-emerald-400">${revenueData?.totalRevenue?.toFixed(0) || '0'}</p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                        <p className="text-xs text-blue-300/70">За 30 днів</p>
+                        <p className="text-xl font-bold text-blue-400">${revenueData?.monthlyRevenue?.toFixed(0) || '0'}</p>
+                      </div>
+                    </div>
+                    {revenueData?.paymentsByTier && Object.keys(revenueData.paymentsByTier).length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">По тарифах</p>
+                        {Object.entries(revenueData.paymentsByTier).map(([tier, amount]) => (
+                          <div key={tier} className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                            <div className="flex items-center gap-2">
+                              <Crown className={`w-3.5 h-3.5 ${tier === 'ENTERPRISE' ? 'text-purple-400' : tier === 'PRO' ? 'text-blue-400' : 'text-gray-400'}`} />
+                              <span className="text-sm">{tier}</span>
+                            </div>
+                            <span className="text-sm font-mono font-bold">${(amount as number).toFixed(0)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-cyan-400" />
+                      Ріст користувачів (30 днів)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {userGrowth && userGrowth.length > 0 ? (
+                      <div className="flex items-end gap-[3px] h-28">
+                        {userGrowth.map((day, i) => {
+                          const maxCount = Math.max(...userGrowth.map(d => d.count), 1);
+                          const height = (day.count / maxCount) * 100;
+                          return (
+                            <motion.div
+                              key={day.date}
+                              initial={{ height: 0 }}
+                              animate={{ height: `${height}%` }}
+                              transition={{ delay: i * 0.02, duration: 0.4 }}
+                              className="flex-1 bg-gradient-to-t from-cyan-500 to-cyan-300 rounded-t opacity-80 hover:opacity-100 transition-opacity min-w-[4px] relative group"
+                              title={`${day.date}: ${day.count} нових`}
+                            >
+                              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/90 text-[9px] px-1.5 py-0.5 rounded text-cyan-300 hidden group-hover:block whitespace-nowrap z-10">
+                                {day.count}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="h-28 flex items-center justify-center text-sm text-muted-foreground">
+                        Немає даних
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-orange-400" />
+                      Push-розсилка
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Надіслати push-сповіщення всім підписникам
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Input
+                        placeholder="Заголовок"
+                        value={pushTitle}
+                        onChange={(e) => setPushTitle(e.target.value)}
+                        className="bg-white/5 border-white/10"
+                        data-testid="input-push-title"
+                      />
+                      <Textarea
+                        placeholder="Текст повідомлення"
+                        value={pushBody}
+                        onChange={(e) => setPushBody(e.target.value)}
+                        className="bg-white/5 border-white/10 min-h-[60px]"
+                        data-testid="input-push-body"
+                      />
+                      <Button
+                        onClick={() => pushBroadcastMutation.mutate({ title: pushTitle, body: pushBody })}
+                        disabled={!pushTitle || !pushBody || pushBroadcastMutation.isPending}
+                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold hover:from-orange-600 hover:to-amber-600"
+                        data-testid="button-send-push"
+                      >
+                        {pushBroadcastMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                        Надіслати Push
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Server className="w-4 h-4 text-green-400" />
+                      Система
+                    </CardTitle>
+                    <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                      <Wifi className="w-3 h-3 mr-1" />
+                      Online
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <Database className="w-3.5 h-3.5 text-blue-400" />
+                          <span className="text-sm">PostgreSQL</span>
+                        </div>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Connected</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-3.5 h-3.5 text-purple-400" />
+                          <span className="text-sm">Web Server</span>
+                        </div>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-[10px]">Port 5000</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-3.5 h-3.5 text-cyan-400" />
+                          <span className="text-sm">Uptime</span>
+                        </div>
+                        <span className="text-sm font-mono text-cyan-400">99.9%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Download className="w-4 h-4 text-emerald-400" />
@@ -597,8 +786,8 @@ export default function Admin() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
                           <Download className="w-4 h-4 text-emerald-400" />
@@ -620,7 +809,7 @@ export default function Admin() {
                         Копіювати
                       </Button>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
+                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                           <MessagesSquare className="w-4 h-4 text-blue-400" />

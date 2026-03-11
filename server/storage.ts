@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
@@ -128,6 +128,13 @@ export interface IStorage {
   logActivity(entry: InsertActivityLog): Promise<ActivityLog>;
   getActivityLog(limit: number, offset?: number): Promise<ActivityLog[]>;
   getActivityLogCount(): Promise<number>;
+
+  savePushSubscription(userId: number, endpoint: string, p256dh: string, auth: string): Promise<void>;
+  getPushSubscriptions(): Promise<Array<{ userId: number; endpoint: string; p256dh: string; auth: string }>>;
+  removePushSubscription(endpoint: string, userId?: number): Promise<void>;
+
+  getRevenueStats(): Promise<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }>;
+  getUserGrowthStats(): Promise<Array<{ date: string; count: number }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -273,11 +280,9 @@ export class DatabaseStorage implements IStorage {
 
   async searchUsers(query: string): Promise<User[]> {
     if (!db) throw new Error("Database not available");
-    const lowercaseQuery = query.toLowerCase();
-    const allUsers = await db.select().from(users);
-    return allUsers.filter(u => 
-      u.tgId.includes(query) || 
-      (u.username && u.username.toLowerCase().includes(lowercaseQuery))
+    const pattern = `%${query}%`;
+    return await db.select().from(users).where(
+      sql`${users.tgId} ILIKE ${pattern} OR ${users.username} ILIKE ${pattern}`
     );
   }
 
@@ -307,41 +312,28 @@ export class DatabaseStorage implements IStorage {
   async getReferralStats(userId: number): Promise<ReferralStats> {
     if (!db) throw new Error("Database not available");
     try {
-      const referralRecords = await db.select().from(referrals).where(eq(referrals.referrerId, userId));
+      const result = await db.execute(sql`
+        SELECT DISTINCT ON (u.id) u.id, u.username, u.tier, u.created_at as "createdAt", r.paid
+        FROM ds_referrals r
+        JOIN ds_users u ON u.id = r.referred_id
+        WHERE r.referrer_id = ${userId}
+        ORDER BY u.id
+      `);
       
-      const referredUsers: ReferralStats["referredUsers"] = [];
-      let pendingCount = 0;
+      const referredUsers = (result.rows as any[]).map(row => ({
+        id: row.id,
+        username: row.username,
+        tier: row.tier,
+        createdAt: row.createdAt,
+        paid: row.paid ?? false,
+      }));
       
-      for (const ref of referralRecords) {
-        if (ref.referredId) {
-          const [refUser] = await db.select().from(users).where(eq(users.id, ref.referredId));
-          if (refUser) {
-            referredUsers.push({
-              id: refUser.id,
-              username: refUser.username,
-              tier: refUser.tier,
-              createdAt: refUser.createdAt,
-              paid: ref.paid ?? false,
-            });
-            if (!ref.paid) {
-              pendingCount++;
-            }
-          }
-        }
-      }
-      
-      // Deduplicate by user ID
-      const uniqueReferredUsers = referredUsers.filter((user, index, self) => 
-        index === self.findIndex(u => u.id === user.id)
-      );
-      
-      // Recalculate pending count from unique users
-      const uniquePendingCount = uniqueReferredUsers.filter(u => !u.paid).length;
+      const pendingCount = referredUsers.filter(u => !u.paid).length;
       
       return {
-        count: uniqueReferredUsers.length,
-        pendingCount: uniquePendingCount,
-        referredUsers: uniqueReferredUsers,
+        count: referredUsers.length,
+        pendingCount,
+        referredUsers,
       };
     } catch (err) {
       console.warn("Error fetching referral stats:", (err as Error).message);
@@ -492,32 +484,27 @@ export class DatabaseStorage implements IStorage {
 
   async getHighRiskReportsCount(): Promise<number> {
     if (!db) throw new Error("Database not available");
-    // Count reports where dataJson contains high or critical risk
-    const allReports = await db.select().from(reports);
-    return allReports.filter(r => {
-      const data = r.dataJson as any;
-      return data?.riskLevel === 'high' || data?.riskLevel === 'critical';
-    }).length;
+    const result = await db.select({ count: sql<number>`count(*)` }).from(reports).where(
+      sql`${reports.dataJson}->>'riskLevel' IN ('high', 'critical')`
+    );
+    return result[0]?.count || 0;
   }
 
   async getTopUsers(limit: number): Promise<Array<{ id: number; username: string | null; checksCount: number; streakDays: number }>> {
     if (!db) throw new Error("Database not available");
-    // Get users with their report counts
-    const allUsers = await db.select().from(users).orderBy(desc(users.streakDays)).limit(limit * 2);
-    const result: Array<{ id: number; username: string | null; checksCount: number; streakDays: number }> = [];
-    
-    for (const u of allUsers) {
-      const userReports = await db.select({ count: sql<number>`count(*)` }).from(reports).where(eq(reports.userId, u.id));
-      result.push({
-        id: u.id,
-        username: u.username,
-        checksCount: userReports[0]?.count || 0,
-        streakDays: u.streakDays || 0,
-      });
-    }
-    
-    // Sort by checksCount and return top N
-    return result.sort((a, b) => b.checksCount - a.checksCount).slice(0, limit);
+    const result = await db.execute(sql`
+      SELECT u.id, u.username, u.streak_days as "streakDays", COALESCE(r.cnt, 0) as "checksCount"
+      FROM ds_users u
+      LEFT JOIN (SELECT user_id, COUNT(*) as cnt FROM ds_reports GROUP BY user_id) r ON r.user_id = u.id
+      ORDER BY COALESCE(r.cnt, 0) DESC
+      LIMIT ${limit}
+    `);
+    return (result.rows as any[]).map(row => ({
+      id: row.id,
+      username: row.username,
+      checksCount: Number(row.checksCount) || 0,
+      streakDays: Number(row.streakDays) || 0,
+    }));
   }
 
   async getReportsByUserId(userId: number): Promise<Report[]> {
@@ -713,6 +700,59 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     const [result] = await db.select({ count: sql<number>`count(*)` }).from(activityLog);
     return Number(result?.count || 0);
+  }
+
+  async savePushSubscription(userId: number, endpoint: string, p256dh: string, auth: string): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    const existing = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+    if (existing.length > 0) {
+      await db.update(pushSubscriptions).set({ userId, p256dh, auth }).where(eq(pushSubscriptions.endpoint, endpoint));
+    } else {
+      await db.insert(pushSubscriptions).values({ userId, endpoint, p256dh, auth });
+    }
+  }
+
+  async getPushSubscriptions(): Promise<Array<{ userId: number; endpoint: string; p256dh: string; auth: string }>> {
+    if (!db) throw new Error("Database not available");
+    return db.select({ userId: pushSubscriptions.userId, endpoint: pushSubscriptions.endpoint, p256dh: pushSubscriptions.p256dh, auth: pushSubscriptions.auth }).from(pushSubscriptions);
+  }
+
+  async removePushSubscription(endpoint: string, userId?: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    if (userId) {
+      await db.delete(pushSubscriptions).where(and(eq(pushSubscriptions.endpoint, endpoint), eq(pushSubscriptions.userId, userId)));
+    } else {
+      await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+    }
+  }
+
+  async getRevenueStats(): Promise<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }> {
+    if (!db) throw new Error("Database not available");
+    const approvedPayments = await db.select().from(payments).where(eq(payments.status, "approved"));
+    const now = new Date();
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    let totalRevenue = 0;
+    let monthlyRevenue = 0;
+    const paymentsByTier: Record<string, number> = {};
+    for (const p of approvedPayments) {
+      const amount = parseFloat(p.amountUsdt as string) || 0;
+      totalRevenue += amount;
+      if (p.createdAt && new Date(p.createdAt) >= monthAgo) monthlyRevenue += amount;
+      paymentsByTier[p.tier] = (paymentsByTier[p.tier] || 0) + amount;
+    }
+    return { totalRevenue, monthlyRevenue, paymentsByTier };
+  }
+
+  async getUserGrowthStats(): Promise<Array<{ date: string; count: number }>> {
+    if (!db) throw new Error("Database not available");
+    const result = await db.execute(sql`
+      SELECT TO_CHAR(created_at, 'YYYY-MM-DD') as date, COUNT(*) as count
+      FROM ds_users
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD')
+      ORDER BY date
+    `);
+    return (result.rows as any[]).map(r => ({ date: r.date, count: Number(r.count) }));
   }
 }
 
@@ -1212,6 +1252,14 @@ export class MemStorage implements IStorage {
   async getActivityLogCount(): Promise<number> {
     return this.memActivityLog.length;
   }
+
+  async savePushSubscription(_userId: number, _endpoint: string, _p256dh: string, _auth: string): Promise<void> {}
+  async getPushSubscriptions(): Promise<Array<{ userId: number; endpoint: string; p256dh: string; auth: string }>> { return []; }
+  async removePushSubscription(_endpoint: string, _userId?: number): Promise<void> {}
+  async getRevenueStats(): Promise<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }> {
+    return { totalRevenue: 0, monthlyRevenue: 0, paymentsByTier: {} };
+  }
+  async getUserGrowthStats(): Promise<Array<{ date: string; count: number }>> { return []; }
 }
 
 // Export the appropriate storage based on database availability

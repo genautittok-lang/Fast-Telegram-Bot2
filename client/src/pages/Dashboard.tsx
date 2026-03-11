@@ -228,7 +228,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative rounded-[1.5rem] overflow-hidden"
+      className="relative rounded-[1.5rem] overflow-hidden glass-strong"
       data-testid="widget-status-bar"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-emerald-500/10 to-cyan-500/15" />
@@ -690,6 +690,16 @@ export default function Dashboard() {
   useEffect(() => {
     dismiss();
   }, [location]);
+
+  useEffect(() => {
+    if (user) {
+      import('@/lib/notifications').then(({ subscribeToPush, getNotificationPermission }) => {
+        if (getNotificationPermission() === 'granted') {
+          subscribeToPush().catch(() => {});
+        }
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1477,10 +1487,10 @@ Sources: ${result.sources.join(', ')}`;
                         setInputValue("");
                         setResult(null);
                       }}
-                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group depth-glow cursor-pointer hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-200 ease-out ${
+                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group cursor-pointer hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 ease-out ${
                         isSelected
                           ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor} btn-3d btn-3d-selected ${type.btn3d}`
-                          : 'bg-[#17171c] border-white/[0.06] hover:bg-[#1c1c22] hover:border-white/15'
+                          : 'glass-card hover:border-white/15'
                       }`}
                       data-testid={`button-check-type-desktop-${type.id}`}
                     >
@@ -1517,7 +1527,7 @@ Sources: ${result.sources.join(', ')}`;
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <div className={`p-3.5 lg:p-8 rounded-2xl lg:rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
+                <div className={`p-3.5 lg:p-8 rounded-2xl lg:rounded-2xl border ${selectedCheck?.borderColor} bg-gradient-to-br ${selectedCheck?.gradient} glass-strong shadow-[0_0_40px_rgba(0,0,0,0.2)]`}>
                   <AnimatePresence mode="wait">
                     <motion.div 
                       key={selectedType}

@@ -44,3 +44,5 @@ integrations = ["javascript_log_in_with_replit:2.0.0", "javascript_openai_ai_int
 [userenv]
 
 [userenv.shared]
+VAPID_PUBLIC_KEY = "BJtpL8ETJOEVXQUb7pBU6snhAeLh93zxXQts85pQ69B05PmO1mo0UwO4epfg6MEXxs9A39UQbyV5uSg8oV7Tq2Q"
+VAPID_PRIVATE_KEY = "CR1OIvHKs-_A5a2Ed2xjOHQ52ecP_vN3xysPxBBkKUU"
