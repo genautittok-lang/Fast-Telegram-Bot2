@@ -1,6 +1,42 @@
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 
+function sanitizePdfText(text: string): string {
+  if (!text) return '';
+  const cyrillicMap: Record<string, string> = {
+    '\u0410':'A','\u0411':'B','\u0412':'V','\u0413':'G','\u0414':'D','\u0415':'E','\u0401':'Yo',
+    '\u0404':'Ye','\u0416':'Zh','\u0417':'Z','\u0418':'I','\u0406':'I','\u0407':'Yi','\u0419':'Y',
+    '\u041A':'K','\u041B':'L','\u041C':'M','\u041D':'N','\u041E':'O','\u041F':'P','\u0420':'R',
+    '\u0421':'S','\u0422':'T','\u0423':'U','\u0424':'F','\u0425':'Kh','\u0426':'Ts','\u0427':'Ch',
+    '\u0428':'Sh','\u0429':'Shch','\u042A':'','\u042B':'Y','\u042C':'','\u042D':'E','\u042E':'Yu','\u042F':'Ya',
+    '\u0430':'a','\u0431':'b','\u0432':'v','\u0433':'g','\u0434':'d','\u0435':'e','\u0451':'yo',
+    '\u0454':'ye','\u0436':'zh','\u0437':'z','\u0438':'i','\u0456':'i','\u0457':'yi','\u0439':'y',
+    '\u043A':'k','\u043B':'l','\u043C':'m','\u043D':'n','\u043E':'o','\u043F':'p','\u0440':'r',
+    '\u0441':'s','\u0442':'t','\u0443':'u','\u0444':'f','\u0445':'kh','\u0446':'ts','\u0447':'ch',
+    '\u0448':'sh','\u0449':'shch','\u044A':'','\u044B':'y','\u044C':'','\u044D':'e','\u044E':'yu','\u044F':'ya',
+    '\u0491':'g','\u0490':'G',
+  };
+  const symbolMap: Record<string, string> = {
+    '\u2139':'[i]','\u2139\uFE0F':'[i]',
+    '\u26A0':'[!]','\u26A0\uFE0F':'[!]',
+    '\u2713':'[OK]','\u2714':'[OK]','\u2705':'[OK]',
+    '\u2715':'[X]','\u274C':'[X]','\u2717':'[X]',
+    '\u26A1':'[!]','\u2022':'-','\u2023':'-','\u25CF':'-',
+    '\u2B50':'*','\u2764':'^','\uFE0F':'',
+  };
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (symbolMap[ch] !== undefined) { result += symbolMap[ch]; continue; }
+    if (cyrillicMap[ch] !== undefined) { result += cyrillicMap[ch]; continue; }
+    const code = ch.charCodeAt(0);
+    if (code <= 0xFF) { result += ch; } else { result += '?'; }
+  }
+  return result;
+}
+
+const sp = (s: string) => sanitizePdfText(s);
+
 interface AIInsights {
   summary: string;
   recommendations: string[];
@@ -187,9 +223,9 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     y += 14;
     doc.roundedRect(M, y, CW, 50, 6).fill(C.surface);
     doc.rect(M, y, 4, 50).fill(C.primary);
-    const displayTarget = data.targetValue.length > 70
+    const displayTarget = sp(data.targetValue.length > 70
       ? data.targetValue.substring(0, 67) + "..."
-      : data.targetValue;
+      : data.targetValue);
     doc.fillColor(C.white).fontSize(18).font("Helvetica-Bold");
     doc.text(displayTarget, M + 18, y + 14, { width: CW - 30 });
     y += 70;
@@ -203,7 +239,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     const metaFields = [
       { label: "REPORT ID", value: reportId },
       { label: "MODULE", value: moduleLabel },
-      { label: "ANALYST", value: data.userId },
+      { label: "ANALYST", value: sp(data.userId) },
       { label: "DATE", value: data.timestamp.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) },
       { label: "TIME (UTC)", value: data.timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
       { label: "RISK SCORE", value: `${data.riskScore}/100` },
@@ -313,7 +349,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
 
       const fColor = { info: C.info, warning: C.warning, danger: C.danger, success: C.success }[f.type];
       const fBg = { info: C.infoBg, warning: C.warningBg, danger: C.dangerBg, success: C.successBg }[f.type];
-      const fIcon = { info: "ℹ", warning: "⚠", danger: "✕", success: "✓" }[f.type];
+      const fIcon = { info: "[i]", warning: "[!]", danger: "[X]", success: "[OK]" }[f.type];
       const fLabel = { info: "INFO", warning: "WARNING", danger: "CRITICAL", success: "SAFE" }[f.type];
 
       doc.roundedRect(M, y, CW, 42, 5).fill(C.surface);
@@ -330,13 +366,15 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       doc.text(`${fIcon} ${fLabel}`, M + 48, y + 15, { width: 52, align: "center" });
 
       // Title
-      const titleText = f.title.length > 65 ? f.title.substring(0, 62) + "..." : f.title;
+      const rawTitle = sp(f.title);
+      const titleText = rawTitle.length > 65 ? rawTitle.substring(0, 62) + "..." : rawTitle;
       doc.fillColor(C.white).fontSize(10).font("Helvetica-Bold");
       doc.text(titleText, M + 115, y + 10, { width: CW - 135 });
 
       // Description
       if (f.description) {
-        const desc = f.description.length > 85 ? f.description.substring(0, 82) + "..." : f.description;
+        const rawDesc = sp(f.description);
+        const desc = rawDesc.length > 85 ? rawDesc.substring(0, 82) + "..." : rawDesc;
         doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
         doc.text(desc, M + 115, y + 25, { width: CW - 135 });
       }
@@ -373,18 +411,19 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     });
 
     // ═══════════════ PAGE 3: DETAILS & AI ═══════════════
-    if (data.metadata || data.aiInsights) {
+    const hasMetadata = data.metadata && Object.keys(data.metadata).length > 0;
+    if (hasMetadata || data.aiInsights) {
       doc.addPage();
       drawPageBg(doc, W, H);
       drawPageHeader(doc, W, M);
       y = 60;
 
-      if (data.metadata && Object.keys(data.metadata).length > 0) {
+      if (hasMetadata) {
         doc.fillColor(C.white).fontSize(16).font("Helvetica-Bold");
         doc.text("ANALYSIS DETAILS", M, y);
         y += 25;
 
-        const entries = Object.entries(data.metadata).slice(0, 12);
+        const entries = Object.entries(data.metadata!).slice(0, 12);
         const detCols = 2;
         const detColW = (CW - 20) / detCols;
         const detRows = Math.ceil(entries.length / detCols);
@@ -399,9 +438,9 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
           const yP = y + 15 + row * 38;
 
           doc.fillColor(C.textDark).fontSize(7).font("Helvetica");
-          doc.text(key.toUpperCase().replace(/_/g, ' '), xP, yP);
+          doc.text(sp(key.toUpperCase().replace(/_/g, ' ')), xP, yP);
           doc.fillColor(C.textLight).fontSize(11).font("Helvetica-Bold");
-          const v = String(value);
+          const v = sp(String(value));
           doc.text(v.length > 45 ? v.substring(0, 42) + "..." : v, xP, yP + 12, { width: detColW - 20 });
 
           if (col === 0 && detCols === 2) {
@@ -423,12 +462,13 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
 
         // Threat level card
         const threatColors: Record<string, string> = {
-          "БЕЗПЕЧНО": C.success, "SAFE": C.success,
-          "УВАГА": C.warning, "CAUTION": C.warning,
-          "НЕБЕЗПЕЧНО": C.high, "DANGEROUS": C.high,
-          "КРИТИЧНО": C.danger, "CRITICAL": C.danger,
+          "\u0411\u0415\u0417\u041F\u0415\u0427\u041D\u041E": C.success, "SAFE": C.success,
+          "\u0423\u0412\u0410\u0413\u0410": C.warning, "CAUTION": C.warning,
+          "\u041D\u0415\u0411\u0415\u0417\u041F\u0415\u0427\u041D\u041E": C.high, "DANGEROUS": C.high,
+          "\u041A\u0420\u0418\u0422\u0418\u0427\u041D\u041E": C.danger, "CRITICAL": C.danger,
         };
         const threatColor = threatColors[data.aiInsights.threatLevel] || C.warning;
+        const threatLevelDisplay = sp(data.aiInsights.threatLevel);
 
         doc.roundedRect(M, y, CW, 80, 6).fill(C.surface);
         doc.rect(M, y, 4, 80).fill(threatColor);
@@ -436,16 +476,17 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
         // Threat badge
         doc.roundedRect(M + 15, y + 12, 100, 24, 5).fill(threatColor);
         doc.fillColor(C.bgDark).fontSize(10).font("Helvetica-Bold");
-        doc.text(data.aiInsights.threatLevel, M + 20, y + 17, { width: 90, align: "center" });
+        doc.text(threatLevelDisplay, M + 20, y + 17, { width: 90, align: "center" });
 
         // Verdict
         doc.fillColor(C.white).fontSize(12).font("Helvetica-Bold");
-        doc.text(data.aiInsights.verdict, M + 125, y + 15, { width: CW - 145 });
+        doc.text(sp(data.aiInsights.verdict), M + 125, y + 15, { width: CW - 145 });
 
         // Summary
-        const summary = data.aiInsights.summary.length > 200
-          ? data.aiInsights.summary.substring(0, 197) + "..."
-          : data.aiInsights.summary;
+        const rawSummary = sp(data.aiInsights.summary);
+        const summary = rawSummary.length > 200
+          ? rawSummary.substring(0, 197) + "..."
+          : rawSummary;
         doc.fillColor(C.textMuted).fontSize(9).font("Helvetica");
         doc.text(summary, M + 15, y + 48, { width: CW - 30 });
 
@@ -465,7 +506,8 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
             doc.roundedRect(M + 12, y + 6, 20, 16, 8).fill(C.primaryMuted);
             doc.fillColor(C.accent).fontSize(8).font("Helvetica-Bold");
             doc.text(String(i + 1), M + 14, y + 10, { width: 16, align: "center" });
-            const recText = recs[i].length > 90 ? recs[i].substring(0, 87) + "..." : recs[i];
+            const rawRec = sp(recs[i]);
+            const recText = rawRec.length > 90 ? rawRec.substring(0, 87) + "..." : rawRec;
             doc.fillColor(C.textLight).fontSize(9).font("Helvetica");
             doc.text(recText, M + 40, y + 8, { width: CW - 55 });
             y += 34;
@@ -495,9 +537,9 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       doc.roundedRect(M, y, CW, 24, 4).fill(i % 2 === 0 ? C.surface : C.surfaceAlt);
       doc.circle(M + 18, y + 12, 4).fill(C.primary);
       doc.fillColor(C.bgDark).fontSize(6).font("Helvetica-Bold");
-      doc.text("✓", M + 15, y + 9, { width: 6, align: "center" });
+      doc.text("v", M + 15, y + 9, { width: 6, align: "center" });
       doc.fillColor(C.textLight).fontSize(9).font("Helvetica-Bold");
-      doc.text(srcs[i], M + 30, y + 7);
+      doc.text(sp(srcs[i]), M + 30, y + 7);
       y += 28;
     }
 
@@ -543,7 +585,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       { l: "Target", v: displayTarget.substring(0, 35) },
       { l: "Risk Level", v: `${data.riskLevel.toUpperCase()} (${data.riskScore}/100)` },
       { l: "Date", v: data.timestamp.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) },
-      { l: "Analyst", v: data.userId },
+      { l: "Analyst", v: sp(data.userId) },
     ];
     let cY = y + 40;
     certFields.forEach(cf => {
