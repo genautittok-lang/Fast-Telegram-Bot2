@@ -7,19 +7,19 @@ interface FloatingParticlesProps {
 }
 
 export function FloatingParticles({ 
-  count = 30, 
-  colors = ["#22c55e", "#14b8a6", "#06b6d4", "#3b82f6"] 
+  count = 20, 
+  colors = ["#22c55e", "#14b8a6", "#06b6d4", "#8b5cf6"] 
 }: FloatingParticlesProps) {
   const particles = useMemo(() => 
     Array.from({ length: count }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: 2 + Math.random() * 4,
-      duration: 15 + Math.random() * 20,
-      delay: Math.random() * 10,
+      size: 1.5 + Math.random() * 3,
+      duration: 20 + Math.random() * 25,
+      delay: Math.random() * 15,
       color: colors[Math.floor(Math.random() * colors.length)],
-      opacity: 0.1 + Math.random() * 0.2,
+      opacity: 0.05 + Math.random() * 0.15,
     })),
     [count, colors]
   );
@@ -37,13 +37,13 @@ export function FloatingParticles({
             height: particle.size,
             backgroundColor: particle.color,
             opacity: particle.opacity,
-            filter: `blur(${particle.size / 3}px)`,
+            filter: `blur(${particle.size / 2}px)`,
           }}
           animate={{
-            y: [0, -100, 0],
-            x: [0, Math.sin(particle.id) * 50, 0],
-            scale: [1, 1.5, 1],
-            opacity: [particle.opacity, particle.opacity * 1.5, particle.opacity],
+            y: [0, -80, 0],
+            x: [0, Math.sin(particle.id) * 40, 0],
+            scale: [1, 1.3, 1],
+            opacity: [particle.opacity, particle.opacity * 1.4, particle.opacity],
           }}
           transition={{
             duration: particle.duration,

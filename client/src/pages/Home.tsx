@@ -183,7 +183,7 @@ function QuickCheck({ lang }: { lang: string }) {
       transition={{ delay: 0.5, duration: 0.6 }}
       className="mt-6 sm:mt-8"
     >
-      <Card className="bg-card/60 backdrop-blur-sm border-white/10 p-4 sm:p-5">
+      <Card className="bg-gradient-to-b from-[#0d1117] to-[#080c12] backdrop-blur-sm border-white/10 p-4 sm:p-5 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <Zap className="w-4 h-4 text-primary" />
@@ -388,23 +388,23 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden overflow-y-auto flex flex-col bg-background max-w-[100vw]">
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
-        <div className="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-primary/20 rounded-full blur-[128px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 sm:w-64 h-48 sm:h-64 bg-primary/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 right-1/3 w-32 sm:w-48 h-32 sm:h-48 bg-blue-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(34,197,94,0.15),transparent_60%)]" />
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/15 rounded-full blur-[180px]" />
+        <div className="absolute top-[30%] right-[10%] w-[400px] h-[400px] bg-cyan-500/8 rounded-full blur-[150px]" />
+        <div className="absolute top-[60%] left-[5%] w-[300px] h-[300px] bg-violet-500/6 rounded-full blur-[120px]" />
       </div>
-      <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-      <FloatingParticles count={25} />
+      <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none opacity-60" />
+      <FloatingParticles count={20} />
 
-      <nav className="relative z-50 w-full border-b border-white/[0.06] bg-background/60 backdrop-blur-2xl sticky top-0">
+      <nav className="relative z-50 w-full border-b border-white/[0.08] bg-[rgba(5,5,8,0.75)] backdrop-blur-2xl backdrop-saturate-150 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_25px_rgba(34,197,94,0.25)] flex-shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.3)] flex-shrink-0 ring-1 ring-primary/10">
               <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-base sm:text-lg tracking-tight text-white">DARKSHARE</span>
-              <span className="text-[10px] text-primary/80 font-mono -mt-0.5 hidden sm:block tracking-wider">v4.4 OSINT Platform</span>
+              <span className="text-[10px] text-primary font-mono -mt-0.5 hidden sm:block tracking-wider uppercase">v4.4 OSINT Platform</span>
             </div>
           </div>
           
@@ -449,7 +449,7 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 className="space-y-4 sm:space-y-5 md:space-y-6"
               >
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 border border-primary/20 text-xs sm:text-sm font-medium text-primary">
+                <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-primary/15 to-emerald-500/10 border border-primary/30 text-xs sm:text-sm font-semibold text-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]">
                   <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{t("landing.hero.badge")}</span>
                 </div>
@@ -465,11 +465,11 @@ export default function Home() {
                   {t("landing.hero.description")}
                 </p>
 
-                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-3">
                   <Link href="/login">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group animate-glow-pulse hover:scale-[1.02] transition-transform duration-300"
+                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-primary to-emerald-400 text-black font-bold shadow-[0_0_30px_rgba(34,197,94,0.35)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl"
                       data-testid="button-web-dashboard"
                     >
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -485,10 +485,10 @@ export default function Home() {
                     <Button 
                       variant="outline"
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:scale-[1.02] transition-all duration-300"
+                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-primary/40 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:scale-[1.03] transition-all duration-300 rounded-xl"
                       data-testid="button-launch-bot"
                     >
-                      <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#229ED9]" />
                       {t("landing.cta.telegramBot")}
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
@@ -496,7 +496,7 @@ export default function Home() {
                   <Link href="/download">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-5 sm:px-6 h-12 sm:h-14 group bg-gradient-to-r from-emerald-600 to-green-500 border-emerald-500/30 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.25)]"
+                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-emerald-600 to-green-500 text-white font-bold border-none hover:scale-[1.03] transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.3)] rounded-xl"
                       data-testid="button-download-apk"
                     >
                       <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -527,7 +527,7 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                <Card className="premium-card backdrop-blur-sm p-4">
+                <Card className="premium-card backdrop-blur-sm p-4 sm:p-5">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
                       <Activity className="w-4 h-4 text-primary" />
@@ -545,7 +545,7 @@ export default function Home() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-white/5 border border-white/5"
+                        className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-primary">{getTypeIcon(item.type)}</span>
@@ -569,7 +569,7 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
               >
-                <Card className="premium-card backdrop-blur-sm p-4">
+                <Card className="premium-card backdrop-blur-sm p-4 sm:p-5">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
                       <Flame className="w-4 h-4 text-orange-500" />
@@ -583,7 +583,7 @@ export default function Home() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-white/5 border border-white/5"
+                        className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
@@ -609,7 +609,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-6 sm:py-8 md:py-10 border-t border-white/5 overflow-hidden">
+        <section className="py-8 sm:py-10 md:py-14 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -696,9 +696,10 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-6 sm:py-8 md:py-10 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <section className="py-10 sm:py-14 md:py-16 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-transparent to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden relative">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {[
                 { icon: <Users className="w-4 h-4 text-primary" />, value: stats?.totalUsers ?? 14582, label: t("landing.stats.users"), loading: statsLoading },
                 { icon: <Eye className="w-4 h-4 text-cyan-400" />, value: stats?.activeWatches ?? 3841, label: t("landing.stats.monitors"), loading: statsLoading },
@@ -735,8 +736,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5" data-testid="section-when-to-use">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <section className="py-10 sm:py-14 md:py-16 relative" data-testid="section-when-to-use">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -844,7 +846,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5" data-testid="section-demo-result">
+        <section className="py-10 sm:py-14 md:py-16 relative" data-testid="section-demo-result">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1052,8 +1054,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <section className="py-10 sm:py-14 md:py-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-500/[0.02] to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1132,8 +1135,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <section className="py-10 sm:py-14 md:py-16 relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1192,8 +1195,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <section className="py-10 sm:py-14 md:py-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1251,8 +1255,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <section className="py-10 sm:py-14 md:py-16 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-500/[0.015] to-transparent pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full relative">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1380,7 +1385,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 bg-card/30 border-y border-white/5">
+        <section className="py-10 sm:py-14 md:py-16 relative bg-gradient-to-b from-white/[0.015] via-transparent to-transparent">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -1691,18 +1696,19 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-10 sm:py-14 md:py-16 cta-glow section-divider">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full">
+        <section className="py-14 sm:py-18 md:py-24 relative">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(34,197,94,0.08),transparent_70%)] pointer-events-none" />
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-4 sm:space-y-6"
+              className="space-y-5 sm:space-y-8"
             >
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2 gradient-text-animated">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold px-2 gradient-text-animated">
                 {lang === "uk" ? "Готові почати?" : lang === "ru" ? "Готовы начать?" : lang === "es" ? "¿Listo para empezar?" : lang === "de" ? "Bereit loszulegen?" : "Ready to Start?"}
               </h2>
-              <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto px-2">
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto px-2">
                 {lang === "uk" 
                   ? "Приєднуйтесь до тисяч користувачів, які довіряють DARKSHARE для своєї кібербезпеки"
                   : lang === "ru"
@@ -1715,21 +1721,15 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
                 <Link href="/login">
-                  <Button size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base" data-testid="button-dashboard-cta">
+                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-primary to-emerald-400 text-black font-bold shadow-[0_0_40px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-dashboard-cta">
                     <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {t("landing.cta.webDashboard")}
                   </Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button variant="secondary" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="button-pricing-cta">
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <Button variant="secondary" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-white/[0.06] hover:bg-white/[0.1] border border-white/15 text-white hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-pricing-cta">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
                     {t("nav.pricing")}
-                  </Button>
-                </Link>
-                <Link href="/chat">
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base border-blue-500/30 text-blue-400 hover:bg-blue-500/10" data-testid="button-chat-cta">
-                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    {lang === "uk" ? "Обговорити ризики в чаті" : lang === "ru" ? "Обсудить риски в чате" : lang === "es" ? "Discutir riesgos en chat" : lang === "de" ? "Risiken im Chat besprechen" : "Discuss Risks in Chat"}
                   </Button>
                 </Link>
                 <a 
@@ -1737,7 +1737,7 @@ export default function Home() {
                   target="_blank" 
                   rel="noreferrer"
                 >
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base border-primary/30" data-testid="button-launch-bot-cta">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base border-[#229ED9]/30 text-[#229ED9] hover:bg-[#229ED9]/10 hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-launch-bot-cta">
                     <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {lang === "uk" ? "Telegram Бот" : lang === "ru" ? "Telegram Бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram Bot" : "Telegram Bot"}
                     <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
