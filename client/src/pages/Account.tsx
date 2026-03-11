@@ -424,7 +424,7 @@ export default function Account() {
 
   return (
     <PageLayout title="Account" appMode={isStandalone}>
-      <main className="flex-1 overflow-y-auto bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
+      <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
         <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
             className="relative p-4 lg:p-8 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 overflow-hidden glass-deep"

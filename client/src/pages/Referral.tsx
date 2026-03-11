@@ -229,7 +229,7 @@ export default function Referral() {
   return (
     <PageLayout title="Referral" appMode={isStandalone}>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full">
+        <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full pb-28 lg:pb-8">
           <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
             <div className="hidden lg:block relative">
               <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />

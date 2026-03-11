@@ -944,7 +944,7 @@ export default function Chat() {
 
   return (
     <PageLayout title="Chat" appMode={isStandalone}>
-      <div className="flex-1 flex flex-col h-full lg:h-auto lg:min-h-screen max-w-full overflow-hidden relative">
+      <div className="flex-1 flex flex-col h-full lg:h-auto lg:min-h-screen max-w-full overflow-hidden relative pb-16 lg:pb-0">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(142_71%_45%/0.03)_0%,transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(200_80%_50%/0.02)_0%,transparent_50%)]" />

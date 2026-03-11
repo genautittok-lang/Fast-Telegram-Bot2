@@ -1051,7 +1051,7 @@ Sources: ${result.sources.join(', ')}`;
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full lg:pb-8">
+        <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full pb-28 lg:pb-8">
           <div className="max-w-6xl mx-auto lg:space-y-6">
             <div className="px-4 pt-3 pb-2 lg:px-0 lg:pt-0 space-y-3">
               {user && (

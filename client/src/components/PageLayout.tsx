@@ -514,7 +514,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
               <LanguageSwitcher variant="minimal" />
             </div>
           </div>
-          <main ref={mainScrollRef} className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-[#0a0a0f]">
+          <main ref={mainScrollRef} className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0a0a0f]">
             <PullToRefresh scrollRef={mainScrollRef} />
             {children}
           </main>
@@ -540,7 +540,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
             <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
           </div>
         </div>
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
           {children}
         </main>
       </div>
