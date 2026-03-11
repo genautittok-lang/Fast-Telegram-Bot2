@@ -874,7 +874,7 @@ export async function registerRoutes(
           id: r.id,
           username: r.username || "user",
           tier: r.tier || "FREE",
-          joinedAt: r.createdAt?.toISOString() || new Date().toISOString(),
+          joinedAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
           paid: r.paid,
         })),
       });

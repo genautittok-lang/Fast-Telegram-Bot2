@@ -6,6 +6,10 @@ import { t, Language, languageNames } from "./i18n";
 
 interface BotContext extends Context {}
 
+function escMd(text: string): string {
+  return String(text).replace(/[_*`[\]]/g, "\\$&");
+}
+
 type BtnStyle = "primary" | "success" | "danger";
 function cb(text: string, data: string, style?: BtnStyle, emoji?: string) {
   const btn = Markup.button.callback(text, data) as any;
@@ -813,7 +817,7 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
 
 👤 ${t(lang, "common.profile")}:
 • ID: ${user.tgId}
-• Username: @${user.username ? user.username.replace(/_/g, "\\_") : "—"}
+• Username: @${user.username ? escMd(user.username) : "—"}
 • ${tierEmoji} ${t(lang, "common.tier")}: ${user.tier || "FREE"}
 • 📅 ${joinDate}
 
@@ -1163,7 +1167,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       foundUsers.slice(0, 10).forEach((u, i) => {
         const statusEmoji = u.blocked ? "🔴" : "🟢";
         const tierEmoji = u.tier === "ENTERPRISE" ? "👑" : u.tier === "PRO" ? "⭐" : "🆓";
-        resultText += `${i + 1}. ${statusEmoji} ${tierEmoji} ${u.username ? `@${u.username}` : "—"}\n`;
+        resultText += `${i + 1}. ${statusEmoji} ${tierEmoji} ${u.username ? `@${escMd(u.username)}` : "—"}\n`;
         resultText += `   ID: \`${u.tgId}\`\n`;
       });
       
@@ -2773,7 +2777,7 @@ ${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : "—";
+    const escapedUsername = user.username ? escMd(user.username) : "—";
     
     const text = `📊 ${lang === "uk" ? "ДЕТАЛЬНА СТАТИСТИКА" : lang === "ru" ? "ПОДРОБНАЯ СТАТИСТИКА" : "DETAILED STATISTICS"}
 ━━━━━━━━━━━━━━━━━━━━
@@ -3086,7 +3090,7 @@ ${allTypesText}
       text += t(lang, "admin.noUsersYet");
     } else {
       latestUsers.forEach((u, i) => {
-        const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : "";
+        const escapedUsername = u.username ? escMd(u.username) : "";
         const username = u.username ? `@${escapedUsername}` : "—";
         const blockedIcon = u.blocked ? "🔴" : "🟢";
         const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
@@ -3129,7 +3133,7 @@ ${allTypesText}
     } else {
       for (const p of pendingPayments) {
         const user = await storage.getUserById(p.userId!);
-        const escapedUsername = user?.username ? user.username.replace(/_/g, "\\_") : "";
+        const escapedUsername = user?.username ? escMd(user.username) : "";
         const username = user?.username ? `@${escapedUsername}` : user?.tgId || "—";
         const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
         const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString(dateLocale) : "—";
@@ -3555,7 +3559,7 @@ ${allTypesText}
       console.log("Failed to notify user about tier change:", e);
     }
     
-    const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : user.tgId;
+    const escapedUsername = user.username ? escMd(user.username) : user.tgId;
     const text = `${t(lang, "admin.tierChangedSuccess")}\n\n` +
       `${t(lang, "admin.userLabel")} @${escapedUsername}\n` +
       `${t(lang, "admin.newTierLabel")} ${newTier}`;
@@ -3670,7 +3674,7 @@ ${allTypesText}
     if (onlineNow.length > 0) {
       text += `🟢 *${lang === "uk" ? "Зараз онлайн:" : lang === "ru" ? "Сейчас онлайн:" : "Currently online:"}*\n`;
       onlineNow.slice(0, 15).forEach((u, i) => {
-        const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : u.tgId;
+        const escapedUsername = u.username ? escMd(u.username) : u.tgId;
         const tierEmoji = u.tier === "ENTERPRISE" ? "👑" : u.tier === "PRO" ? "⭐" : "🆓";
         text += `${i + 1}. ${tierEmoji} @${escapedUsername}\n`;
       });
@@ -3679,7 +3683,7 @@ ${allTypesText}
     if (recentUsers.length > onlineNow.length) {
       text += `\n📋 *${lang === "uk" ? "Нещодавно активні:" : lang === "ru" ? "Недавно активные:" : "Recently active:"}*\n`;
       recentUsers.filter(u => !onlineNow.includes(u)).slice(0, 10).forEach((u, i) => {
-        const escapedUsername = u.username ? u.username.replace(/_/g, "\\_") : u.tgId;
+        const escapedUsername = u.username ? escMd(u.username) : u.tgId;
         const tierEmoji = u.tier === "ENTERPRISE" ? "👑" : u.tier === "PRO" ? "⭐" : "🆓";
         const lastTime = u.lastLogin ? new Date(u.lastLogin).toLocaleTimeString() : "?";
         text += `${i + 1}. ${tierEmoji} @${escapedUsername} (${lastTime})\n`;
@@ -3717,7 +3721,7 @@ ${allTypesText}
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
     const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
     
-    const escapedUsername = user.username ? user.username.replace(/_/g, "\\_") : null;
+    const escapedUsername = user.username ? escMd(user.username) : null;
     const text = `${t(lang, "admin.userInfoTitle")}\n\n` +
       `${statusEmoji} *${t(lang, "admin.statusLabel")}* ${user.blocked ? t(lang, "admin.blocked") : t(lang, "admin.active")}\n` +
       `${tierEmoji} *${t(lang, "admin.tierLabel")}* ${user.tier}\n\n` +
@@ -3807,7 +3811,7 @@ ${allTypesText}
       const statusEmoji = updatedUser.blocked ? "🔴" : "🟢";
       const tierEmoji = updatedUser.tier === "ENTERPRISE" ? "👑" : updatedUser.tier === "PRO" ? "⭐" : "🆓";
       const dateLocale = lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "ru" ? "ru-RU" : "uk-UA";
-      const escapedUsername = updatedUser.username ? updatedUser.username.replace(/_/g, "\\_") : null;
+      const escapedUsername = updatedUser.username ? escMd(updatedUser.username) : null;
       
       const text = `${t(lang, "admin.userInfoTitle")}\n\n` +
         `${statusEmoji} *${t(lang, "admin.statusLabel")}* ${updatedUser.blocked ? t(lang, "admin.blocked") : t(lang, "admin.active")}\n` +
@@ -4098,7 +4102,7 @@ ${allTypesText}
     if (topUsers && topUsers.length > 0) {
       text += `\n${t(lang, "admin.mostActiveUsers")}\n`;
       topUsers.forEach((u, i) => {
-        text += `${i + 1}. ${u.username || "?"} - ${u.checksCount} checks\n`;
+        text += `${i + 1}. ${escMd(u.username || "?")} - ${u.checksCount} checks\n`;
       });
     }
     
@@ -5397,7 +5401,7 @@ ${feature.desc}
   console.log("Starting bot polling...");
   
   let retryCount = 0;
-  const maxRetries = 3;
+  const maxRetries = 5;
   
   const startBot = () => {
     bot.launch({ 
@@ -5408,7 +5412,7 @@ ${feature.desc}
         console.error("Bot error:", err.message);
         if ((err.message.includes("409") || err.message.includes("Conflict")) && retryCount < maxRetries) {
           retryCount++;
-          const delay = 5000 * Math.pow(2, retryCount - 1);
+          const delay = 10000 * Math.pow(2, retryCount - 1);
           console.log(`Bot conflict detected, retry ${retryCount}/${maxRetries} in ${delay / 1000}s...`);
           setTimeout(startBot, delay);
         } else if (retryCount >= maxRetries) {
@@ -5417,7 +5421,8 @@ ${feature.desc}
       });
   };
   
-  startBot();
+  console.log("Waiting 8s before starting bot polling to avoid conflicts...");
+  setTimeout(startBot, 8000);
 
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
