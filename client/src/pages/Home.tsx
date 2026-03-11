@@ -107,19 +107,19 @@ function ModuleCard({ icon, title, description, apis, delay = 0, onClick }: {
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
       whileHover={{ 
-        y: -3, 
-        transition: { duration: 0.2, ease: "easeOut" }
+        y: -4, 
+        transition: { duration: 0.25, ease: "easeOut" }
       }}
       onClick={onClick}
-      className="group relative flex flex-col items-center justify-center gap-3 p-5 sm:p-6 rounded-xl bg-[#141418] border border-white/10 hover:border-primary/40 transition-all duration-300 cursor-pointer min-h-[110px] sm:min-h-[130px]"
+      className="group relative flex flex-col items-center justify-center gap-3 p-5 sm:p-6 rounded-xl premium-card cursor-pointer min-h-[110px] sm:min-h-[130px]"
       data-testid={`card-module-${title}`}
     >
-      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-all duration-300">
+      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] transition-all duration-300">
         <div className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center">
           {icon}
         </div>
       </div>
-      <h3 className="text-xs sm:text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors leading-tight text-center line-clamp-2">
+      <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground group-hover:text-white transition-colors leading-tight text-center line-clamp-2">
         {title}
       </h3>
     </motion.div>
@@ -396,15 +396,15 @@ export default function Home() {
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
       <FloatingParticles count={25} />
 
-      <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
+      <nav className="relative z-50 w-full border-b border-white/[0.06] bg-background/60 backdrop-blur-2xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_20px_rgba(var(--primary),0.3)] flex-shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_25px_rgba(34,197,94,0.25)] flex-shrink-0">
               <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-base sm:text-lg tracking-tight text-white">DARKSHARE</span>
-              <span className="text-[10px] text-primary font-mono -mt-0.5 hidden sm:block">v4.4 OSINT Platform</span>
+              <span className="text-[10px] text-primary/80 font-mono -mt-0.5 hidden sm:block tracking-wider">v4.4 OSINT Platform</span>
             </div>
           </div>
           
@@ -456,7 +456,7 @@ export default function Home() {
 
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1] overflow-hidden">
                   {t("landing.hero.title")} <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-blue-400 overflow-hidden">
+                  <span className="gradient-text-animated overflow-hidden">
                     {t("landing.hero.titleHighlight")}
                   </span>
                 </h1>
@@ -527,14 +527,14 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                <Card className="bg-card/50 backdrop-blur-sm border-white/10 p-4">
+                <Card className="premium-card backdrop-blur-sm p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
                       <Activity className="w-4 h-4 text-primary" />
                       {t("landing.activity")}
                     </h3>
-                    <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1.5">
+                      <span className="glow-dot animate-pulse" />
                       {lang === "uk" ? "Реал-тайм" : lang === "ru" ? "Реал-тайм" : lang === "es" ? "Tiempo Real" : lang === "de" ? "Echtzeit" : "Real-time"}
                     </span>
                   </div>
@@ -569,7 +569,7 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
               >
-                <Card className="bg-card/50 backdrop-blur-sm border-white/10 p-4">
+                <Card className="premium-card backdrop-blur-sm p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2">
                       <Flame className="w-4 h-4 text-orange-500" />
@@ -617,8 +617,8 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="relative bg-[#1a1012] border-red-500/20 p-5 sm:p-6 md:p-8 overflow-visible">
-                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-red-500/5 via-orange-500/5 to-red-500/5 pointer-events-none" />
+              <Card className="relative bg-gradient-to-br from-[#1a1012] to-[#120a0c] border-red-500/15 p-5 sm:p-6 md:p-8 overflow-visible rounded-2xl shadow-2xl shadow-red-500/5">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-500/5 via-orange-500/5 to-red-500/5 pointer-events-none" />
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
 
                 <div className="relative z-10">
@@ -698,85 +698,40 @@ export default function Home() {
 
         <section className="py-6 sm:py-8 md:py-10 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
-            >
-              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                {statsLoading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
-                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                      <AnimatedNumber value={stats?.totalUsers ?? 14582} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              {[
+                { icon: <Users className="w-4 h-4 text-primary" />, value: stats?.totalUsers ?? 14582, label: t("landing.stats.users"), loading: statsLoading },
+                { icon: <Eye className="w-4 h-4 text-cyan-400" />, value: stats?.activeWatches ?? 3841, label: t("landing.stats.monitors"), loading: statsLoading },
+                { icon: <AlertTriangle className="w-4 h-4 text-orange-400" />, value: stats?.threatsBlocked ?? 12459, label: t("landing.stats.threats"), loading: statsLoading },
+                { icon: <TrendingUp className="w-4 h-4 text-emerald-400" />, value: stats?.checksToday ?? 842, label: t("landing.stats.today"), loading: statsLoading }
+              ].map((stat, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.5 }}
+                  className="stats-card text-center space-y-2"
+                >
+                  {stat.loading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
+                      <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
                     </div>
-                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                      <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                      {t("landing.stats.users")}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                {statsLoading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
-                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                      <AnimatedNumber value={stats?.activeWatches ?? 3841} />
-                    </div>
-                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                      <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                      {t("landing.stats.monitors")}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                {statsLoading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
-                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                      <AnimatedNumber value={stats?.threatsBlocked ?? 12459} />
-                    </div>
-                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                      <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                      {t("landing.stats.threats")}
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="text-center p-4 sm:p-0 rounded-xl sm:rounded-none bg-white/5 sm:bg-transparent border border-white/10 sm:border-0 space-y-1">
-                {statsLoading ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Skeleton className="h-8 sm:h-10 md:h-12 w-24 sm:w-28 skeleton-shimmer" />
-                    <Skeleton className="h-3 sm:h-4 w-16 skeleton-shimmer" />
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                      <AnimatedNumber value={stats?.checksToday ?? 842} />
-                    </div>
-                    <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                      <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                      {t("landing.stats.today")}
-                    </div>
-                  </>
-                )}
-              </div>
-            </motion.div>
+                  ) : (
+                    <>
+                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+                        <AnimatedNumber value={stat.value} />
+                      </div>
+                      <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
+                        {stat.icon}
+                        {stat.label}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -872,14 +827,15 @@ export default function Home() {
                   transition={{ delay: idx * 0.1, duration: 0.4 }}
                   data-testid={`card-use-case-${idx}`}
                 >
-                  <Card className={`h-full bg-gradient-to-b ${item.color} backdrop-blur-sm p-5 sm:p-6 flex flex-col`}>
-                    <div className={`w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 ${item.iconColor}`}>
+                  <Card className={`h-full bg-gradient-to-b ${item.color} backdrop-blur-sm p-5 sm:p-6 flex flex-col hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
+                    <div className={`w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 ${item.iconColor} shadow-lg`}>
                       {item.icon}
                     </div>
                     <h3 className="font-bold text-base mb-2">{item.title}</h3>
                     <p className="text-sm text-muted-foreground mb-4 flex-1">{item.desc}</p>
-                    <div className="text-xs font-mono text-primary/80 bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
-                      → {item.cta}
+                    <div className="text-xs font-mono text-primary bg-primary/5 rounded-lg px-3 py-2.5 border border-primary/15 flex items-center gap-1.5">
+                      <ChevronRight className="w-3 h-3 flex-shrink-0" />
+                      {item.cta}
                     </div>
                   </Card>
                 </motion.div>
@@ -923,11 +879,11 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="max-w-2xl mx-auto"
             >
-              <Card className="bg-card/60 backdrop-blur-sm border-white/10 overflow-visible">
+              <Card className="premium-card backdrop-blur-sm overflow-visible">
                 <div className="p-4 sm:p-6 space-y-5">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 flex-shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/25 flex-shrink-0 shadow-lg shadow-orange-500/10">
                         <Wallet className="w-5 h-5 text-orange-400" />
                       </div>
                       <div className="min-w-0">
@@ -1034,7 +990,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
+        <section className="py-8 sm:py-10 md:py-12 section-divider">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1080,13 +1036,13 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.15, duration: 0.5 }}
-                  className="relative z-10 p-4 sm:p-5 md:p-6 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
+                  className="relative z-10 p-4 sm:p-5 md:p-6 rounded-xl premium-card"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                       {step.icon}
                     </div>
-                    <span className="text-2xl font-bold text-primary/30 font-mono">{step.num}</span>
+                    <div className="step-badge">{step.num}</div>
                   </div>
                   <h3 className="text-sm sm:text-base font-bold mb-1.5">{step.title}</h3>
                   <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
@@ -1159,9 +1115,9 @@ export default function Home() {
                   transition={{ delay: idx * 0.1, duration: 0.5 }}
                   data-testid={`card-when-to-use-${idx}`}
                 >
-                  <Card className="p-4 sm:p-5 md:p-6 bg-card/50 border-white/5 hover:border-primary/30 transition-all duration-300 h-full">
+                  <Card className="p-4 sm:p-5 md:p-6 premium-card h-full">
                     <div className="flex items-start gap-3 sm:gap-4">
-                      <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center ${card.accent} border ${card.border} flex-shrink-0`}>
+                      <div className={`w-11 h-11 rounded-xl ${card.bg} flex items-center justify-center ${card.accent} border ${card.border} flex-shrink-0 shadow-lg`}>
                         {card.icon}
                       </div>
                       <div className="min-w-0">
@@ -1223,8 +1179,8 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1, duration: 0.5 }}
                 >
-                  <Card className="p-4 sm:p-5 md:p-6 bg-card/50 border-white/5 hover:border-primary/30 transition-all duration-300 h-full">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 mb-3">
+                  <Card className="p-4 sm:p-5 md:p-6 premium-card h-full">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center text-primary border border-primary/25 mb-3 shadow-lg shadow-primary/5">
                       {card.icon}
                     </div>
                     <h3 className="text-sm sm:text-base font-bold mb-1.5">{card.title}</h3>
@@ -1282,9 +1238,9 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1, duration: 0.5 }}
-                  className="text-center p-4 sm:p-5 md:p-6 rounded-xl bg-card/50 border border-white/5 hover:border-primary/30 transition-all duration-300"
+                  className="text-center p-4 sm:p-5 md:p-6 premium-card"
                 >
-                  <div className="w-10 h-10 mx-auto rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20 mb-3">
+                  <div className="w-11 h-11 mx-auto rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center text-primary border border-primary/25 mb-3 shadow-lg shadow-primary/5">
                     {item.icon}
                   </div>
                   <h3 className="text-xs sm:text-sm font-bold mb-1.5">{item.title}</h3>
@@ -1335,7 +1291,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-14 lg:py-16">
+        <section className="py-8 sm:py-10 md:py-14 lg:py-16 section-divider">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -1460,9 +1416,9 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.05 }}
-                  className="group p-2 sm:p-4 md:p-5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all duration-300 text-center"
+                  className="group p-3 sm:p-4 md:p-5 rounded-xl premium-card text-center"
                 >
-                  <div className="w-7 h-7 sm:w-10 sm:h-10 mx-auto mb-1 sm:mb-3 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-1.5 sm:mb-3 rounded-xl bg-gradient-to-br from-primary/10 to-cyan-500/5 flex items-center justify-center text-primary/70 border border-primary/15 group-hover:text-primary group-hover:border-primary/30 transition-all duration-300">
                     <Database className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                   </div>
                   <h3 className="font-bold text-[10px] sm:text-sm mb-0 sm:mb-1 group-hover:text-primary transition-colors line-clamp-1">{source.name}</h3>
@@ -1474,14 +1430,14 @@ export default function Home() {
         </section>
 
         <section className="py-6 sm:py-8 md:py-10 max-w-5xl mx-auto px-3 sm:px-4 w-full">
-          <div className="rounded-xl overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-2xl shadow-primary/5">
-            <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border-b border-white/10">
+          <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-[#080810] shadow-2xl shadow-primary/10">
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/[0.03] border-b border-white/[0.06]">
               <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                <div className="w-3 h-3 rounded-full bg-red-500/70 shadow-sm shadow-red-500/30" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/70 shadow-sm shadow-yellow-500/30" />
+                <div className="w-3 h-3 rounded-full bg-green-500/70 shadow-sm shadow-green-500/30" />
               </div>
-              <div className="flex-1 text-center font-mono text-xs text-muted-foreground">darkshare_cli — v4.4</div>
+              <div className="flex-1 text-center font-mono text-xs text-muted-foreground/70">darkshare_cli — v4.4</div>
             </div>
             <div className="p-3 sm:p-4 md:p-6 font-mono text-[10px] sm:text-xs md:text-sm space-y-2 sm:space-y-3 h-[240px] sm:h-[280px] md:h-[320px] overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a] z-10 pointer-events-none" />
@@ -1506,7 +1462,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5 bg-gradient-to-b from-transparent to-primary/5">
+        <section className="py-8 sm:py-10 md:py-12 section-divider bg-gradient-to-b from-transparent to-primary/5">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1599,9 +1555,9 @@ export default function Home() {
                   transition={{ delay: idx * 0.15, duration: 0.5 }}
                   data-testid={`card-case-study-${idx}`}
                 >
-                  <Card className="bg-card/50 backdrop-blur-sm border-white/10 p-5 sm:p-6 h-full flex flex-col">
+                  <Card className="premium-card p-5 sm:p-6 h-full flex flex-col backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className={`w-10 h-10 rounded-lg border flex items-center justify-center ${study.iconBg}`}>
+                      <div className={`w-11 h-11 rounded-xl border flex items-center justify-center ${study.iconBg} shadow-lg`}>
                         {study.icon}
                       </div>
                       <div className="min-w-0">
@@ -1649,7 +1605,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 border-t border-white/5">
+        <section className="py-8 sm:py-10 md:py-12 section-divider">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1709,19 +1665,19 @@ export default function Home() {
                   >
                     <button
                       type="button"
-                      className="w-full rounded-xl bg-card/50 border border-white/5 hover:border-primary/20 transition-all duration-300 text-left"
+                      className="w-full rounded-xl premium-card text-left"
                       onClick={toggleFaq}
                       aria-expanded={isOpen}
                       data-testid={`faq-item-${idx}`}
                     >
                       <div className="flex items-center justify-between p-4 sm:p-5 gap-3">
                         <h3 className="text-xs sm:text-sm font-semibold text-white leading-snug">{item.q}</h3>
-                        <ChevronDown className={`w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown className={`w-4 h-4 text-primary/60 flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
                       </div>
                     </button>
                     <div
                       role="region"
-                      className={`overflow-hidden transition-all duration-300 ease-in-out rounded-b-xl bg-card/30 border border-t-0 border-white/5 ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+                      className={`overflow-hidden transition-all duration-300 ease-in-out rounded-b-xl bg-card/30 border border-t-0 border-white/[0.04] ${isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
                       aria-hidden={!isOpen}
                     >
                       <p className="px-4 sm:px-5 pb-4 sm:pb-5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
@@ -1735,7 +1691,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-8 sm:py-10 md:py-12 bg-gradient-to-b from-primary/10 to-transparent border-t border-primary/20">
+        <section className="py-10 sm:py-14 md:py-16 cta-glow section-divider">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1743,7 +1699,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="space-y-4 sm:space-y-6"
             >
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2 gradient-text-animated">
                 {lang === "uk" ? "Готові почати?" : lang === "ru" ? "Готовы начать?" : lang === "es" ? "¿Listo para empezar?" : lang === "de" ? "Bereit loszulegen?" : "Ready to Start?"}
               </h2>
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto px-2">
