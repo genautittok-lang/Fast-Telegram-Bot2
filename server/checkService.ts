@@ -106,10 +106,32 @@ export function validateInput(type: string, value: string): { valid: boolean; er
       }
       break;
     case "card":
-      // Accept full card numbers (13-19 digits), BIN only (6-8 digits), or with spaces/dashes
       const cardDigits = cleanValue.replace(/[\s\-]/g, '');
       if (!/^\d{6,19}$/.test(cardDigits)) {
         return { valid: false, error: "Введіть номер картки (6-19 цифр) або BIN" };
+      }
+      break;
+    case "password":
+      if (cleanValue.length < 1) {
+        return { valid: false, error: "Введіть пароль для перевірки" };
+      }
+      break;
+    case "dns":
+      const dnsDomain = cleanValue.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+      if (!/^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/.test(dnsDomain) && dnsDomain.length < 4) {
+        return { valid: false, error: "Невірний домен. Приклад: example.com" };
+      }
+      break;
+    case "ssl":
+      const sslDomain = cleanValue.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+      if (!/^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/.test(sslDomain) && sslDomain.length < 4) {
+        return { valid: false, error: "Невірний домен. Приклад: example.com" };
+      }
+      break;
+    case "mac":
+      const macClean = cleanValue.replace(/[\s\-:\.]/g, '');
+      if (!/^[0-9a-fA-F]{6,12}$/.test(macClean)) {
+        return { valid: false, error: "Невірний MAC. Приклад: AA:BB:CC:DD:EE:FF" };
       }
       break;
   }
@@ -154,6 +176,18 @@ export async function performCheck(type: string, value: string): Promise<CheckRe
       break;
     case "card":
       result = await checkCard(value, timestamp);
+      break;
+    case "password":
+      result = await checkPassword(value, timestamp);
+      break;
+    case "dns":
+      result = await checkDNS(value, timestamp);
+      break;
+    case "ssl":
+      result = await checkSSL(value, timestamp);
+      break;
+    case "mac":
+      result = await checkMAC(value, timestamp);
       break;
     default:
       throw new Error(`Unknown check type: ${type}`);
@@ -2361,6 +2395,590 @@ async function checkCard(value: string, timestamp: Date): Promise<CheckResult> {
     riskLevel,
     summary: `BIN ${bin} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
     details: cardData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+// ==================== PASSWORD STRENGTH CHECK ====================
+async function checkPassword(value: string, timestamp: Date): Promise<CheckResult> {
+  let riskScore = 0;
+  const findings: string[] = [];
+  const sources: string[] = ["Локальний аналіз", "HIBP (k-Anonymity)"];
+  const passwordData: any = {};
+
+  passwordData.length = value.length;
+  const hasUpper = /[A-Z]/.test(value);
+  const hasLower = /[a-z]/.test(value);
+  const hasDigit = /\d/.test(value);
+  const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(value);
+  const hasUnicode = /[^\x00-\x7F]/.test(value);
+
+  passwordData.hasUppercase = hasUpper;
+  passwordData.hasLowercase = hasLower;
+  passwordData.hasDigits = hasDigit;
+  passwordData.hasSpecial = hasSpecial;
+  passwordData.hasUnicode = hasUnicode;
+
+  let charsetSize = 0;
+  if (hasLower) charsetSize += 26;
+  if (hasUpper) charsetSize += 26;
+  if (hasDigit) charsetSize += 10;
+  if (hasSpecial) charsetSize += 32;
+  if (hasUnicode) charsetSize += 100;
+
+  const entropy = value.length * Math.log2(charsetSize || 1);
+  passwordData.entropy = Math.round(entropy * 10) / 10;
+
+  if (entropy < 28) {
+    riskScore += 80;
+    findings.push("🔴 Дуже слабкий пароль");
+    passwordData.strength = "Дуже слабкий";
+  } else if (entropy < 36) {
+    riskScore += 60;
+    findings.push("🟠 Слабкий пароль");
+    passwordData.strength = "Слабкий";
+  } else if (entropy < 60) {
+    riskScore += 35;
+    findings.push("🟡 Середній пароль");
+    passwordData.strength = "Середній";
+  } else if (entropy < 80) {
+    riskScore += 15;
+    findings.push("🟢 Надійний пароль");
+    passwordData.strength = "Надійний";
+  } else {
+    riskScore += 5;
+    findings.push("✅ Дуже надійний пароль");
+    passwordData.strength = "Дуже надійний";
+  }
+
+  findings.push(`📏 Довжина: ${value.length} символів`);
+  findings.push(`🔢 Ентропія: ${passwordData.entropy} біт`);
+  findings.push(`📊 Charset: ${charsetSize} символів`);
+
+  if (value.length < 8) {
+    riskScore += 20;
+    findings.push("🔴 Менше 8 символів");
+  } else if (value.length >= 16) {
+    findings.push("✅ 16+ символів — відмінна довжина");
+  }
+
+  if (!hasUpper) { riskScore += 5; findings.push("⚠️ Немає великих літер"); }
+  if (!hasLower) { riskScore += 5; findings.push("⚠️ Немає малих літер"); }
+  if (!hasDigit) { riskScore += 5; findings.push("⚠️ Немає цифр"); }
+  if (!hasSpecial) { riskScore += 5; findings.push("⚠️ Немає спецсимволів"); }
+
+  const commonPasswords = [
+    "password", "123456", "12345678", "qwerty", "abc123", "monkey", "1234567",
+    "letmein", "trustno1", "dragon", "baseball", "iloveyou", "master", "sunshine",
+    "ashley", "bailey", "shadow", "123123", "654321", "superman", "qazwsx",
+    "michael", "football", "password1", "password123", "admin", "welcome",
+    "hello", "charlie", "donald", "login", "starwars", "solo", "princess"
+  ];
+  if (commonPasswords.includes(value.toLowerCase())) {
+    riskScore += 50;
+    findings.push("🔴 Пароль у топ-100 найпоширеніших!");
+    passwordData.isCommon = true;
+  }
+
+  const patterns = [
+    { regex: /^(.)\1+$/, name: "повторення одного символу" },
+    { regex: /^(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|qwe|wer|ert|rty|asd|sdf|dfg|zxc|xcv|cvb)/i, name: "послідовність клавіш" },
+    { regex: /^(\d)\1{3,}/, name: "повторення цифр" },
+    { regex: /^(19|20)\d{2}(0[1-9]|1[0-2])/, name: "дата (YYYYMM)" },
+  ];
+  for (const p of patterns) {
+    if (p.regex.test(value)) {
+      riskScore += 15;
+      findings.push(`⚠️ Виявлено: ${p.name}`);
+      passwordData.patternDetected = p.name;
+    }
+  }
+
+  const crackTimes: Record<string, string> = {};
+  const attemptsPerSecond = {
+    "Online (100/s)": 100,
+    "Offline Fast (10B/s)": 10_000_000_000,
+    "Offline Slow (1M/s)": 1_000_000,
+  };
+  const totalCombinations = Math.pow(charsetSize || 1, value.length);
+  for (const [name, speed] of Object.entries(attemptsPerSecond)) {
+    const seconds = totalCombinations / speed / 2;
+    if (seconds < 1) crackTimes[name] = "Миттєво";
+    else if (seconds < 60) crackTimes[name] = `${Math.round(seconds)} секунд`;
+    else if (seconds < 3600) crackTimes[name] = `${Math.round(seconds / 60)} хвилин`;
+    else if (seconds < 86400) crackTimes[name] = `${Math.round(seconds / 3600)} годин`;
+    else if (seconds < 31536000) crackTimes[name] = `${Math.round(seconds / 86400)} днів`;
+    else if (seconds < 31536000 * 1000) crackTimes[name] = `${Math.round(seconds / 31536000)} років`;
+    else crackTimes[name] = "1000+ років";
+  }
+  passwordData.crackTimes = crackTimes;
+  findings.push(`⏱️ Онлайн-злам: ${crackTimes["Online (100/s)"]}`);
+  findings.push(`💻 Офлайн-злам: ${crackTimes["Offline Slow (1M/s)"]}`);
+
+  // HIBP k-Anonymity check
+  try {
+    const sha1 = await hashString(value);
+    const prefix = sha1.substring(0, 5).toUpperCase();
+    const suffix = sha1.substring(5).toUpperCase();
+
+    const response = await fetchWithTimeout(`https://api.pwnedpasswords.com/range/${prefix}`, 4000);
+    if (response.ok) {
+      const text = await response.text();
+      const lines = text.split('\n');
+      const match = lines.find(line => line.startsWith(suffix));
+      if (match) {
+        const count = parseInt(match.split(':')[1].trim());
+        riskScore += 40;
+        passwordData.breachCount = count;
+        findings.push(`🔴 Знайдено в ${count.toLocaleString()} витоках даних!`);
+      } else {
+        findings.push("✅ Не знайдено в витоках (HIBP)");
+        passwordData.breachCount = 0;
+      }
+    }
+  } catch {}
+
+  const riskLevel = getRiskLevel(riskScore);
+
+  return {
+    type: "password",
+    target: "●".repeat(Math.min(value.length, 20)),
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: `Пароль — ${passwordData.strength} (${Math.min(riskScore, 100)}/100)`,
+    details: passwordData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+// ==================== DNS RECORDS CHECK ====================
+async function checkDNS(value: string, timestamp: Date): Promise<CheckResult> {
+  let riskScore = 10;
+  const findings: string[] = [];
+  const sources: string[] = [];
+  const dnsData: any = {};
+
+  const domain = value.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0].split('?')[0];
+  dnsData.domain = domain;
+
+  const recordTypes = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME', 'SOA', 'CAA'];
+
+  for (const type of recordTypes) {
+    try {
+      const response = await fetchWithTimeout(`https://dns.google/resolve?name=${domain}&type=${type}`, 3000);
+      if (response.ok) {
+        const data = await response.json();
+        if (!sources.includes("dns.google")) sources.push("dns.google");
+
+        if (data.Answer && data.Answer.length > 0) {
+          const records = data.Answer.map((a: any) => a.data).filter(Boolean);
+          dnsData[`${type}_records`] = records;
+
+          switch (type) {
+            case 'A':
+              findings.push(`📍 A записи: ${records.slice(0, 3).join(", ")}${records.length > 3 ? "..." : ""}`);
+              dnsData.ipCount = records.length;
+              if (records.length > 5) {
+                findings.push("⚡ CDN/Load Balancer (багато A записів)");
+              }
+              break;
+            case 'AAAA':
+              findings.push(`🌐 IPv6: ${records.length} записів`);
+              dnsData.hasIPv6 = true;
+              break;
+            case 'MX':
+              findings.push(`📧 MX: ${records.slice(0, 2).map((r: string) => r.split(' ').pop()).join(", ")}`);
+              dnsData.hasMX = true;
+              const mxProviders: Record<string, string> = {
+                "google": "Google Workspace",
+                "outlook": "Microsoft 365",
+                "protonmail": "ProtonMail",
+                "zoho": "Zoho Mail",
+                "yandex": "Yandex Mail"
+              };
+              for (const [key, provider] of Object.entries(mxProviders)) {
+                if (records.some((r: string) => r.toLowerCase().includes(key))) {
+                  findings.push(`📬 Пошта: ${provider}`);
+                  dnsData.mailProvider = provider;
+                  break;
+                }
+              }
+              break;
+            case 'NS':
+              findings.push(`🔧 NS: ${records.slice(0, 3).map((r: string) => r.replace(/\.$/, '')).join(", ")}`);
+              const nsProviders: Record<string, string> = {
+                "cloudflare": "Cloudflare",
+                "awsdns": "AWS Route53",
+                "azure": "Azure DNS",
+                "google": "Google DNS",
+                "digitalocean": "DigitalOcean"
+              };
+              for (const [key, provider] of Object.entries(nsProviders)) {
+                if (records.some((r: string) => r.toLowerCase().includes(key))) {
+                  findings.push(`☁️ DNS-провайдер: ${provider}`);
+                  dnsData.dnsProvider = provider;
+                  break;
+                }
+              }
+              break;
+            case 'TXT':
+              dnsData.txtCount = records.length;
+              const spfRecord = records.find((r: string) => r.includes('v=spf'));
+              const dmarcCheck = records.find((r: string) => r.includes('v=DMARC'));
+              const dkimHint = records.find((r: string) => r.includes('v=DKIM'));
+              const googleVerify = records.find((r: string) => r.includes('google-site-verification'));
+
+              if (spfRecord) {
+                findings.push("✅ SPF запис знайдено");
+                dnsData.hasSPF = true;
+                if (spfRecord.includes('-all')) {
+                  findings.push("🔒 Strict SPF (-all)");
+                } else if (spfRecord.includes('~all')) {
+                  findings.push("⚠️ Soft-fail SPF (~all)");
+                  riskScore += 5;
+                }
+              } else {
+                riskScore += 15;
+                findings.push("🔴 Немає SPF (спам-ризик)");
+                dnsData.hasSPF = false;
+              }
+
+              if (googleVerify) findings.push("🔍 Google Site Verification");
+              findings.push(`📝 TXT записів: ${records.length}`);
+              break;
+            case 'CNAME':
+              findings.push(`🔗 CNAME: ${records[0]}`);
+              break;
+            case 'SOA':
+              const soaParts = records[0]?.split(' ');
+              if (soaParts && soaParts.length >= 2) {
+                dnsData.primaryNS = soaParts[0];
+                dnsData.adminEmail = soaParts[1]?.replace(/\.$/, '').replace('.', '@');
+              }
+              break;
+            case 'CAA':
+              findings.push(`🔐 CAA: ${records.slice(0, 2).join(", ")}`);
+              dnsData.hasCAA = true;
+              break;
+          }
+        } else if (type === 'A') {
+          riskScore += 20;
+          findings.push("⚠️ Немає A записів!");
+          dnsData.hasARecord = false;
+        }
+      }
+    } catch {}
+  }
+
+  // DMARC check (separate _dmarc subdomain)
+  try {
+    const response = await fetchWithTimeout(`https://dns.google/resolve?name=_dmarc.${domain}&type=TXT`, 3000);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.Answer && data.Answer.length > 0) {
+        const dmarcRecord = data.Answer.find((a: any) => a.data?.includes('v=DMARC'));
+        if (dmarcRecord) {
+          findings.push("✅ DMARC знайдено");
+          dnsData.hasDMARC = true;
+          const policy = dmarcRecord.data.match(/p=(\w+)/);
+          if (policy) {
+            dnsData.dmarcPolicy = policy[1];
+            if (policy[1] === 'reject') findings.push("🔒 DMARC: reject (максимальний захист)");
+            else if (policy[1] === 'quarantine') findings.push("🟡 DMARC: quarantine");
+            else {
+              riskScore += 10;
+              findings.push("⚠️ DMARC: none (без дій)");
+            }
+          }
+        }
+      } else {
+        riskScore += 10;
+        findings.push("🔴 Немає DMARC");
+        dnsData.hasDMARC = false;
+      }
+    }
+  } catch {}
+
+  // DNSSEC check
+  try {
+    const response = await fetchWithTimeout(`https://dns.google/resolve?name=${domain}&type=DNSKEY`, 3000);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.Answer && data.Answer.length > 0) {
+        findings.push("✅ DNSSEC активний");
+        dnsData.hasDNSSEC = true;
+      } else {
+        riskScore += 5;
+        findings.push("⚠️ DNSSEC не налаштований");
+        dnsData.hasDNSSEC = false;
+      }
+    }
+  } catch {}
+
+  dnsData.totalRecords = recordTypes.reduce((sum, type) => {
+    const records = dnsData[`${type}_records`];
+    return sum + (records ? records.length : 0);
+  }, 0);
+
+  findings.push(`📊 Всього записів: ${dnsData.totalRecords}`);
+
+  const riskLevel = getRiskLevel(riskScore);
+
+  return {
+    type: "dns",
+    target: domain,
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: `DNS ${domain} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    details: dnsData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+// ==================== SSL CERTIFICATE CHECK (STANDALONE) ====================
+async function checkSSL(value: string, timestamp: Date): Promise<CheckResult> {
+  let riskScore = 10;
+  const findings: string[] = [];
+  const sources: string[] = [];
+  const sslData: any = {};
+
+  const domain = value.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0].split('?')[0];
+  sslData.domain = domain;
+
+  const { certificateInfo, findings: sslFindings } = await checkSSLCertificate(domain, sources);
+
+  if (certificateInfo.valid) {
+    sslData.certificate = certificateInfo;
+
+    if (certificateInfo.isExpired) {
+      riskScore += 60;
+      findings.push("🔴 Сертифікат ПРОСТРОЧЕНИЙ!");
+    } else if (certificateInfo.daysUntilExpiry !== undefined) {
+      if (certificateInfo.daysUntilExpiry < 7) {
+        riskScore += 40;
+        findings.push(`🔴 Експайрує за ${certificateInfo.daysUntilExpiry} днів!`);
+      } else if (certificateInfo.daysUntilExpiry < 30) {
+        riskScore += 25;
+        findings.push(`⚠️ Експайрує за ${certificateInfo.daysUntilExpiry} днів`);
+      } else if (certificateInfo.daysUntilExpiry < 90) {
+        riskScore += 10;
+        findings.push(`🟡 Експайрує за ${certificateInfo.daysUntilExpiry} днів`);
+      } else {
+        findings.push(`✅ Дійсний ще ${certificateInfo.daysUntilExpiry} днів`);
+      }
+    }
+
+    if (certificateInfo.issuer) {
+      findings.push(`🏢 Видавець: ${certificateInfo.issuer}`);
+      const trustedIssuers = ["Let's Encrypt", "DigiCert", "Sectigo", "GlobalSign", "Comodo", "GeoTrust", "Thawte"];
+      if (trustedIssuers.some(i => certificateInfo.issuer!.includes(i))) {
+        findings.push("✅ Довірений CA");
+        sslData.trustedIssuer = true;
+      }
+    }
+
+    if (certificateInfo.commonName) {
+      findings.push(`📛 CN: ${certificateInfo.commonName}`);
+      sslData.commonName = certificateInfo.commonName;
+      if (certificateInfo.commonName !== domain && !certificateInfo.commonName.startsWith('*.')) {
+        riskScore += 15;
+        findings.push("⚠️ CN не збігається з доменом");
+      }
+    }
+
+    if (certificateInfo.subjectAltNames) {
+      sslData.sanCount = certificateInfo.subjectAltNames.length;
+      findings.push(`🔗 SAN доменів: ${certificateInfo.subjectAltNames.length}`);
+      if (certificateInfo.subjectAltNames.length > 20) {
+        findings.push("⚠️ Багато SAN — можливо shared hosting");
+        riskScore += 5;
+      }
+    }
+
+    if (certificateInfo.signatureAlgorithm) {
+      sslData.algorithm = certificateInfo.signatureAlgorithm;
+      if (certificateInfo.signatureAlgorithm.includes('sha1') || certificateInfo.signatureAlgorithm.includes('SHA1')) {
+        riskScore += 30;
+        findings.push("🔴 Застарілий SHA-1 алгоритм!");
+      } else if (certificateInfo.signatureAlgorithm.includes('sha256') || certificateInfo.signatureAlgorithm.includes('SHA256')) {
+        findings.push("✅ SHA-256 алгоритм");
+      } else if (certificateInfo.signatureAlgorithm.includes('sha384') || certificateInfo.signatureAlgorithm.includes('SHA384')) {
+        findings.push("✅ SHA-384 алгоритм (високий рівень)");
+      }
+    }
+
+    if (certificateInfo.issuedDate) findings.push(`📅 Виданий: ${certificateInfo.issuedDate}`);
+    if (certificateInfo.expiryDate) findings.push(`📅 Дійсний до: ${certificateInfo.expiryDate}`);
+    if (certificateInfo.certificateCount) {
+      sslData.totalCerts = certificateInfo.certificateCount;
+      findings.push(`📜 Сертифікатів в ланцюжку: ${certificateInfo.certificateCount}`);
+    }
+
+    findings.push(...sslFindings.filter(f => !findings.includes(f)));
+  } else {
+    riskScore += 50;
+    findings.push("🔴 SSL сертифікат не знайдено!");
+    findings.push(...sslFindings);
+  }
+
+  // Additional: Check HTTP headers for security
+  try {
+    const response = await fetchWithTimeout(`https://${domain}`, 5000);
+    if (response.ok || response.status < 500) {
+      sources.push(`${domain} (HTTP)`);
+      const hsts = response.headers.get('strict-transport-security');
+      if (hsts) {
+        findings.push("✅ HSTS активний");
+        sslData.hasHSTS = true;
+        if (hsts.includes('includeSubDomains')) findings.push("🔒 HSTS includeSubDomains");
+        if (hsts.includes('preload')) findings.push("🔒 HSTS preload");
+      } else {
+        riskScore += 10;
+        findings.push("⚠️ Немає HSTS");
+        sslData.hasHSTS = false;
+      }
+    }
+  } catch {}
+
+  const riskLevel = getRiskLevel(riskScore);
+
+  return {
+    type: "ssl",
+    target: domain,
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: `SSL ${domain} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    details: sslData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+// ==================== MAC ADDRESS CHECK ====================
+async function checkMAC(value: string, timestamp: Date): Promise<CheckResult> {
+  let riskScore = 10;
+  const findings: string[] = [];
+  const sources: string[] = ["Локальний аналіз"];
+  const macData: any = {};
+
+  const cleanMac = value.replace(/[\s\-:\.]/g, '').toUpperCase();
+  macData.rawInput = value;
+  macData.normalized = cleanMac.match(/.{1,2}/g)?.join(':') || cleanMac;
+  macData.oui = cleanMac.substring(0, 6);
+
+  const isMulticast = (parseInt(cleanMac.substring(0, 2), 16) & 1) === 1;
+  const isLocallyAdmin = (parseInt(cleanMac.substring(0, 2), 16) & 2) === 2;
+
+  macData.isMulticast = isMulticast;
+  macData.isLocallyAdministered = isLocallyAdmin;
+
+  if (isMulticast) {
+    riskScore += 15;
+    findings.push("📡 Multicast адреса");
+  } else {
+    findings.push("📍 Unicast адреса");
+  }
+
+  if (isLocallyAdmin) {
+    riskScore += 10;
+    findings.push("⚠️ Locally Administered (можливо змінена)");
+  } else {
+    findings.push("✅ Globally Unique (заводська)");
+  }
+
+  const specialMacs: Record<string, string> = {
+    "FF:FF:FF:FF:FF:FF": "Broadcast адреса",
+    "00:00:00:00:00:00": "Нульова адреса",
+    "01:00:5E": "IPv4 Multicast (IANA)",
+    "33:33": "IPv6 Multicast",
+    "01:80:C2": "IEEE 802.1 Spanning Tree",
+  };
+
+  for (const [mac, desc] of Object.entries(specialMacs)) {
+    const cleanSpecial = mac.replace(/:/g, '');
+    if (cleanMac.startsWith(cleanSpecial)) {
+      riskScore += 20;
+      findings.push(`⚠️ Спеціальна: ${desc}`);
+      macData.specialType = desc;
+      break;
+    }
+  }
+
+  // API: macvendors.co (free)
+  try {
+    const response = await fetchWithTimeout(`https://api.macvendors.com/${cleanMac.substring(0, 6)}`, 4000);
+    if (response.ok) {
+      const vendor = await response.text();
+      sources.push("macvendors.com");
+      macData.vendor = vendor;
+      findings.push(`🏭 Виробник: ${vendor}`);
+
+      const knownVendors: Record<string, { type: string; risk: number }> = {
+        "apple": { type: "Apple Device", risk: 0 },
+        "samsung": { type: "Samsung Device", risk: 0 },
+        "intel": { type: "Intel Network", risk: 0 },
+        "cisco": { type: "Cisco Networking", risk: 0 },
+        "huawei": { type: "Huawei Device", risk: 5 },
+        "tp-link": { type: "TP-Link Device", risk: 0 },
+        "realtek": { type: "Realtek (часто VM/вбудований)", risk: 5 },
+        "vmware": { type: "VMware Virtual", risk: 15 },
+        "microsoft": { type: "Microsoft/Hyper-V", risk: 10 },
+        "oracle": { type: "Oracle VirtualBox", risk: 15 },
+        "xen": { type: "Xen Virtual", risk: 15 },
+        "qemu": { type: "QEMU Virtual", risk: 15 },
+      };
+
+      const vendorLower = vendor.toLowerCase();
+      for (const [key, info] of Object.entries(knownVendors)) {
+        if (vendorLower.includes(key)) {
+          findings.push(`📱 Тип: ${info.type}`);
+          macData.deviceType = info.type;
+          riskScore += info.risk;
+          if (info.risk > 0) {
+            findings.push("⚠️ Можливо віртуальна машина");
+            macData.possibleVM = true;
+          }
+          break;
+        }
+      }
+    } else if (response.status === 404) {
+      riskScore += 15;
+      findings.push("❌ OUI не знайдено (невідомий виробник)");
+      macData.vendorFound = false;
+    }
+  } catch {
+    findings.push("⚠️ API виробника недоступний");
+  }
+
+  // EUI type
+  if (cleanMac.length === 12) {
+    findings.push("📋 EUI-48 (стандартний MAC)");
+    macData.type = "EUI-48";
+  } else if (cleanMac.length === 16) {
+    findings.push("📋 EUI-64 (розширений MAC)");
+    macData.type = "EUI-64";
+  }
+
+  if (findings.length <= 2) {
+    findings.push("✅ Базова перевірка пройшла");
+  }
+
+  const riskLevel = getRiskLevel(riskScore);
+
+  return {
+    type: "mac",
+    target: macData.normalized,
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: `MAC ${macData.normalized} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    details: macData,
     findings,
     sources,
     timestamp,

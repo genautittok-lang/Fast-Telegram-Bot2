@@ -1263,6 +1263,72 @@ export async function registerRoutes(
     }
   });
 
+  // Direct PDF generation from check result data (no saved report needed)
+  app.post("/api/check/generate-pdf", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+
+    const validTypes = ["ip", "wallet", "email", "phone", "domain", "url", "bot", "cve", "hash", "username", "card", "password", "dns", "ssl", "mac"];
+    const validRiskLevels = ["low", "medium", "high", "critical"];
+
+    const type = typeof req.body.type === "string" ? req.body.type.trim() : "";
+    const target = typeof req.body.target === "string" ? req.body.target.trim().substring(0, 200) : "";
+
+    if (!type || !target || !validTypes.includes(type)) {
+      return res.status(400).json({ error: "Invalid or missing type/target" });
+    }
+
+    const riskLevel = validRiskLevels.includes(req.body.riskLevel) ? req.body.riskLevel : "medium";
+    const riskScore = typeof req.body.riskScore === "number" ? Math.min(100, Math.max(0, Math.round(req.body.riskScore))) : 50;
+
+    const rawFindings = Array.isArray(req.body.findings) ? req.body.findings.filter((f: unknown) => typeof f === "string").slice(0, 20) : [];
+    const rawSources = Array.isArray(req.body.sources) ? req.body.sources.filter((s: unknown) => typeof s === "string").slice(0, 10) : ["DARKSHARE Intel"];
+
+    try {
+      const parsedFindings = rawFindings.map((f: string) => {
+        const clean = f.substring(0, 200);
+        const isWarning = clean.includes("⚠") || clean.includes("WARNING");
+        const isDanger = clean.includes("CRITICAL") || clean.includes("КРИТИЧНО") || clean.includes("DANGER");
+        const isSuccess = clean.includes("✅") || clean.includes("SAFE") || clean.includes("✓");
+        return {
+          type: isDanger ? "danger" as const : isWarning ? "warning" as const : isSuccess ? "success" as const : "info" as const,
+          title: clean.replace(/^[^\w\u0400-\u04FF]+/, '').substring(0, 100),
+          description: "",
+        };
+      });
+
+      let sanitizedMeta: Record<string, string | number> | undefined;
+      if (req.body.details && typeof req.body.details === "object" && !Array.isArray(req.body.details)) {
+        sanitizedMeta = Object.fromEntries(
+          Object.entries(req.body.details)
+            .slice(0, 8)
+            .filter(([k, v]) => typeof k === "string" && (typeof v === "string" || typeof v === "number"))
+            .map(([k, v]) => [k.substring(0, 30), typeof v === "string" ? (v as string).substring(0, 100) : v])
+        );
+      }
+
+      const pdfBuffer = await generateDetailedPDF({
+        moduleType: type,
+        targetValue: target,
+        riskLevel: riskLevel as "low" | "medium" | "high" | "critical",
+        riskScore,
+        timestamp: new Date(),
+        userId: authReq.user!.username || 'user',
+        findings: parsedFindings.length > 0 ? parsedFindings : generateFindings(type, riskLevel),
+        sources: rawSources.map((s: string) => s.substring(0, 50)),
+        metadata: sanitizedMeta || generateMetadata(type),
+        verificationId: `DRAFT-${Date.now().toString(36)}`,
+        aiInsights: undefined,
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=DARKSHARE_${type}_report.pdf`);
+      res.send(pdfBuffer);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      res.status(500).json({ error: "Failed to generate PDF" });
+    }
+  });
+
   // Public verification endpoint (no auth required)
   app.get("/api/verify/:verificationId", async (req, res) => {
     const { verificationId } = req.params;

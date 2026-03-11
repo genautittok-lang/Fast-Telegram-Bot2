@@ -2,7 +2,7 @@
 
 ## Overview
 
-DARKSHARE is a professional security OSINT platform designed for analyzing various data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, and bank card BINs. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
+DARKSHARE is a professional security OSINT platform designed for analyzing 15 data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, bank card BINs, passwords, DNS records, SSL/TLS certificates, and MAC addresses. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable multi-page PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Mar 2026)
 - **Security hardening**: cookie.secure based on NODE_ENV, removed hardcoded session secret fallback (uses crypto.randomBytes), Stripe webhook rejects when secret not configured.
@@ -11,6 +11,9 @@ DARKSHARE is a professional security OSINT platform designed for analyzing vario
 - **Error Boundary**: Global ErrorBoundary component wrapping entire App.
 - **Push notifications**: Web Push API via `web-push` package, `push_subscriptions` DB table, VAPID key generation, auto-subscribe on Dashboard login, admin broadcast to all subscribers from `/api/admin/push-broadcast`.
 - **Enhanced Admin panel**: Revenue analytics (total/monthly with tier breakdown), user growth chart (30-day bar chart), push broadcast form, system health monitor, improved card layouts with glassmorphism.
+- **4 new check types**: Password (entropy/HIBP/patterns/crack time), DNS (A/MX/NS/TXT/SPF/DMARC/DNSSEC via Google DNS), SSL/TLS (cert validity/issuer/HSTS/SAN), MAC (OUI vendor/VM detection/unicast-multicast). All use free public APIs.
+- **Multi-page PDF reports**: Cover page with risk gauge, classification banner, metadata grid; findings page with numbered color-coded cards and summary; details + AI analysis page; sources + certification page with verification stamp, QR code, legal disclaimer. Download directly from Dashboard via `/api/check/generate-pdf` POST endpoint.
+- **i18n for new types**: Full translations for password/dns/ssl/mac across EN/UK/RU/ES/DE including checkTypes, checkDescriptions, checkShortDescs, services, placeholders, and checkLabels.
 - **Glassmorphism CSS**: `.glass`, `.glass-card`, `.glass-strong` classes with backdrop-filter blur, `.surface-1/2/3` elevation system, `.inner-glow-*` utilities for depth effects.
 - **Dashboard 3D enhancements**: Hero card uses glass-strong, check type grid uses glass-card, input area uses glass-strong. Auto push-subscribe when notification permission granted.
 - Activity log system: `ds_activity_log` table tracks registrations, logins, checks, payments, tier changes, app downloads. Admin `/api/admin/activity` endpoint with pagination. Events auto-logged at registration, login, check, payment approval, tier change.

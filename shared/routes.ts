@@ -82,7 +82,7 @@ export const api = {
       method: 'POST' as const,
       path: '/api/check',
       input: z.object({
-        type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url', 'bot', 'cve', 'hash', 'username']),
+        type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url', 'bot', 'cve', 'hash', 'username', 'card', 'password', 'dns', 'ssl', 'mac']),
         value: z.string().min(1),
       }),
       responses: {
@@ -107,7 +107,7 @@ export const api = {
       path: '/api/bulk-check',
       input: z.object({
         checks: z.array(z.object({
-          type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url', 'bot', 'cve', 'hash', 'username']),
+          type: z.enum(['ip', 'wallet', 'email', 'phone', 'domain', 'url', 'bot', 'cve', 'hash', 'username', 'card', 'password', 'dns', 'ssl', 'mac']),
           value: z.string().min(1),
         })),
       }),

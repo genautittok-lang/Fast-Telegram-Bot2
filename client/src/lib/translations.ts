@@ -161,6 +161,10 @@ export interface TranslationSchema {
       username: string;
       bot: string;
       card: string;
+      password: string;
+      dns: string;
+      ssl: string;
+      mac: string;
     };
     riskLevels: {
       low: string;
@@ -192,6 +196,10 @@ export interface TranslationSchema {
       hash: string;
       username: string;
       card: string;
+      password: string;
+      dns: string;
+      ssl: string;
+      mac: string;
     };
     checkShortDescs: {
       ip: string;
@@ -205,6 +213,10 @@ export interface TranslationSchema {
       hash: string;
       username: string;
       card: string;
+      password: string;
+      dns: string;
+      ssl: string;
+      mac: string;
     };
     services: {
       ip: {
@@ -317,6 +329,46 @@ export interface TranslationSchema {
         country: string;
         countryDesc: string;
       };
+      password: {
+        entropyCalc: string;
+        entropyCalcDesc: string;
+        breachCheck: string;
+        breachCheckDesc: string;
+        patternDetect: string;
+        patternDetectDesc: string;
+        crackTime: string;
+        crackTimeDesc: string;
+      };
+      dns: {
+        aRecords: string;
+        aRecordsDesc: string;
+        mxRecords: string;
+        mxRecordsDesc: string;
+        spfDmarc: string;
+        spfDmarcDesc: string;
+        dnssec: string;
+        dnssecDesc: string;
+      };
+      ssl: {
+        certValidity: string;
+        certValidityDesc: string;
+        issuerCheck: string;
+        issuerCheckDesc: string;
+        hstsCheck: string;
+        hstsCheckDesc: string;
+        sanAnalysis: string;
+        sanAnalysisDesc: string;
+      };
+      mac: {
+        ouiLookup: string;
+        ouiLookupDesc: string;
+        vendorId: string;
+        vendorIdDesc: string;
+        vmDetect: string;
+        vmDetectDesc: string;
+        typeAnalysis: string;
+        typeAnalysisDesc: string;
+      };
     };
     bulkMode: string;
     singleMode: string;
@@ -378,6 +430,10 @@ export interface TranslationSchema {
       hash: string;
       username: string;
       card: string;
+      password: string;
+      dns: string;
+      ssl: string;
+      mac: string;
     };
     checkLabels: {
       ip: string;
@@ -391,6 +447,10 @@ export interface TranslationSchema {
       hash: string;
       username: string;
       card: string;
+      password: string;
+      dns: string;
+      ssl: string;
+      mac: string;
     };
   };
   account: {
@@ -942,6 +1002,10 @@ export const translations: Record<Language, TranslationSchema> = {
         username: "Username",
         bot: "Bot Token",
         card: "Card BIN",
+        password: "Password",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
       riskLevels: {
         low: "Low",
@@ -973,6 +1037,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "MD5/SHA1/SHA256 file hash check for malware via MalwareBazaar, URLhaus, VirusTotal",
         username: "OSINT username search across platforms: GitHub, social media, forums",
         card: "Bank card BIN number validation: issuing bank, card type, country, and risk identification",
+        password: "Password strength analysis: entropy calculation, breach database check via HIBP, pattern detection, crack time estimation",
+        dns: "DNS records analysis: A, AAAA, MX, NS, TXT, SPF, DMARC, DNSSEC check via Google DNS",
+        ssl: "SSL/TLS certificate analysis: validity, issuer verification, HSTS, SAN domains, algorithm check",
+        mac: "MAC address lookup: OUI vendor identification, VM detection, multicast/unicast classification",
       },
       checkShortDescs: {
         ip: "Geolocation, provider, blacklists",
@@ -986,6 +1054,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Malware, signatures, reputation",
         username: "Profiles, social media, leaks",
         card: "Bank, card type, country",
+        password: "Strength, breaches, crack time",
+        dns: "Records, SPF, DMARC, DNSSEC",
+        ssl: "Certificate, issuer, HSTS",
+        mac: "Vendor, device type, VM check",
       },
       services: {
         ip: {
@@ -1098,6 +1170,46 @@ export const translations: Record<Language, TranslationSchema> = {
           country: "Country",
           countryDesc: "Issuing country",
         },
+        password: {
+          entropyCalc: "Entropy",
+          entropyCalcDesc: "Bit strength calculation",
+          breachCheck: "Breach Check",
+          breachCheckDesc: "HIBP database lookup",
+          patternDetect: "Patterns",
+          patternDetectDesc: "Keyboard sequences, repeats",
+          crackTime: "Crack Time",
+          crackTimeDesc: "Online/offline estimation",
+        },
+        dns: {
+          aRecords: "A/AAAA Records",
+          aRecordsDesc: "IP address resolution",
+          mxRecords: "MX Records",
+          mxRecordsDesc: "Mail server configuration",
+          spfDmarc: "SPF/DMARC",
+          spfDmarcDesc: "Email authentication",
+          dnssec: "DNSSEC",
+          dnssecDesc: "DNS security extensions",
+        },
+        ssl: {
+          certValidity: "Certificate",
+          certValidityDesc: "Validity and expiry check",
+          issuerCheck: "Issuer",
+          issuerCheckDesc: "Certificate authority",
+          hstsCheck: "HSTS",
+          hstsCheckDesc: "Transport security policy",
+          sanAnalysis: "SAN Domains",
+          sanAnalysisDesc: "Subject alternative names",
+        },
+        mac: {
+          ouiLookup: "OUI Lookup",
+          ouiLookupDesc: "Manufacturer identifier",
+          vendorId: "Vendor",
+          vendorIdDesc: "Device manufacturer",
+          vmDetect: "VM Detection",
+          vmDetectDesc: "Virtual machine check",
+          typeAnalysis: "Type",
+          typeAnalysisDesc: "Unicast/multicast analysis",
+        },
       },
       bulkMode: "Bulk Mode",
       singleMode: "Single Mode",
@@ -1159,6 +1271,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "d41d8cd98f00b204e9800998ecf8427e",
         username: "johndoe",
         card: "411111",
+        password: "MyP@ssw0rd!",
+        dns: "example.com",
+        ssl: "example.com",
+        mac: "AA:BB:CC:DD:EE:FF",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -1172,6 +1288,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Hash Check",
         username: "Username OSINT",
         card: "Card BIN",
+        password: "Password Check",
+        dns: "DNS Lookup",
+        ssl: "SSL/TLS Check",
+        mac: "MAC Lookup",
       },
     },
     account: {
@@ -1721,6 +1841,10 @@ export const translations: Record<Language, TranslationSchema> = {
         username: "Username",
         bot: "Bot Token",
         card: "Card BIN",
+        password: "Пароль",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
       riskLevels: {
         low: "Низький",
@@ -1752,6 +1876,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Перевірка MD5/SHA1/SHA256 хешів файлів на malware через MalwareBazaar, URLhaus, VirusTotal",
         username: "OSINT пошук по username на різних платформах: GitHub, соціальні мережі, форуми",
         card: "Валідація BIN номера банківської картки: виявлення банку-емітента, типу картки, країни та можливих ризиків",
+        password: "Аналіз стійкості пароля: обчислення ентропії, перевірка через HIBP, детекція патернів, оцінка часу злому",
+        dns: "Аналіз DNS записів: A, AAAA, MX, NS, TXT, SPF, DMARC, перевірка DNSSEC через Google DNS",
+        ssl: "Аналіз SSL/TLS сертифіката: валідність, перевірка видавця, HSTS, SAN домени, алгоритм",
+        mac: "Пошук MAC-адреси: OUI ідентифікація виробника, виявлення VM, класифікація unicast/multicast",
       },
       checkShortDescs: {
         ip: "Геолокація, провайдер, чорні списки",
@@ -1765,6 +1893,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Malware, сигнатури, репутація",
         username: "Профілі, соцмережі, витоки",
         card: "Банк, тип картки, країна",
+        password: "Стійкість, витоки, час злому",
+        dns: "Записи, SPF, DMARC, DNSSEC",
+        ssl: "Сертифікат, видавець, HSTS",
+        mac: "Виробник, тип пристрою, VM",
       },
       services: {
         ip: {
@@ -1877,6 +2009,46 @@ export const translations: Record<Language, TranslationSchema> = {
           country: "Country",
           countryDesc: "Країна випуску",
         },
+        password: {
+          entropyCalc: "Ентропія",
+          entropyCalcDesc: "Обчислення бітової стійкості",
+          breachCheck: "Перевірка витоків",
+          breachCheckDesc: "Пошук в базі HIBP",
+          patternDetect: "Патерни",
+          patternDetectDesc: "Клавіатурні послідовності",
+          crackTime: "Час злому",
+          crackTimeDesc: "Оцінка online/offline",
+        },
+        dns: {
+          aRecords: "A/AAAA записи",
+          aRecordsDesc: "Резолюція IP-адрес",
+          mxRecords: "MX записи",
+          mxRecordsDesc: "Конфігурація поштових серверів",
+          spfDmarc: "SPF/DMARC",
+          spfDmarcDesc: "Автентифікація пошти",
+          dnssec: "DNSSEC",
+          dnssecDesc: "Розширення безпеки DNS",
+        },
+        ssl: {
+          certValidity: "Сертифікат",
+          certValidityDesc: "Перевірка валідності",
+          issuerCheck: "Видавець",
+          issuerCheckDesc: "Центр сертифікації",
+          hstsCheck: "HSTS",
+          hstsCheckDesc: "Політика транспортної безпеки",
+          sanAnalysis: "SAN домени",
+          sanAnalysisDesc: "Альтернативні імена",
+        },
+        mac: {
+          ouiLookup: "OUI пошук",
+          ouiLookupDesc: "Ідентифікатор виробника",
+          vendorId: "Виробник",
+          vendorIdDesc: "Виробник пристрою",
+          vmDetect: "VM виявлення",
+          vmDetectDesc: "Перевірка віртуальної машини",
+          typeAnalysis: "Тип",
+          typeAnalysisDesc: "Аналіз unicast/multicast",
+        },
       },
       bulkMode: "Bulk Mode",
       singleMode: "Одиночний режим",
@@ -1938,6 +2110,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "d41d8cd98f00b204e9800998ecf8427e",
         username: "johndoe",
         card: "411111",
+        password: "MyP@ssw0rd!",
+        dns: "example.com",
+        ssl: "example.com",
+        mac: "AA:BB:CC:DD:EE:FF",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -1951,6 +2127,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Перевірка Хешу",
         username: "OSINT Юзернейм",
         card: "BIN Картки",
+        password: "Перевірка Паролю",
+        dns: "DNS Пошук",
+        ssl: "SSL/TLS Перевірка",
+        mac: "MAC Пошук",
       },
     },
     account: {
@@ -2500,6 +2680,10 @@ export const translations: Record<Language, TranslationSchema> = {
         username: "Username",
         bot: "Bot Token",
         card: "Card BIN",
+        password: "Пароль",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
       riskLevels: {
         low: "Низкий",
@@ -2531,6 +2715,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Проверка MD5/SHA1/SHA256 хешей файлов на malware через MalwareBazaar, URLhaus, VirusTotal",
         username: "OSINT поиск по username на различных платформах: GitHub, социальные сети, форумы",
         card: "Валидация BIN номера банковской карты: определение банка-эмитента, типа карты, страны и возможных рисков",
+        password: "Анализ стойкости пароля: вычисление энтропии, проверка через HIBP, детекция паттернов, оценка времени взлома",
+        dns: "Анализ DNS записей: A, AAAA, MX, NS, TXT, SPF, DMARC, проверка DNSSEC через Google DNS",
+        ssl: "Анализ SSL/TLS сертификата: валидность, проверка издателя, HSTS, SAN домены, алгоритм",
+        mac: "Поиск MAC-адреса: OUI идентификация производителя, обнаружение VM, классификация unicast/multicast",
       },
       checkShortDescs: {
         ip: "Геолокация, провайдер, чёрные списки",
@@ -2544,6 +2732,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Malware, сигнатуры, репутация",
         username: "Профили, соцсети, утечки",
         card: "Банк, тип карты, страна",
+        password: "Стойкость, утечки, время взлома",
+        dns: "Записи, SPF, DMARC, DNSSEC",
+        ssl: "Сертификат, издатель, HSTS",
+        mac: "Производитель, тип устройства, VM",
       },
       services: {
         ip: {
@@ -2656,6 +2848,46 @@ export const translations: Record<Language, TranslationSchema> = {
           country: "Country",
           countryDesc: "Страна выпуска",
         },
+        password: {
+          entropyCalc: "Энтропия",
+          entropyCalcDesc: "Вычисление битовой стойкости",
+          breachCheck: "Проверка утечек",
+          breachCheckDesc: "Поиск в базе HIBP",
+          patternDetect: "Паттерны",
+          patternDetectDesc: "Клавиатурные последовательности",
+          crackTime: "Время взлома",
+          crackTimeDesc: "Оценка online/offline",
+        },
+        dns: {
+          aRecords: "A/AAAA записи",
+          aRecordsDesc: "Резолюция IP-адресов",
+          mxRecords: "MX записи",
+          mxRecordsDesc: "Конфигурация почтовых серверов",
+          spfDmarc: "SPF/DMARC",
+          spfDmarcDesc: "Аутентификация почты",
+          dnssec: "DNSSEC",
+          dnssecDesc: "Расширения безопасности DNS",
+        },
+        ssl: {
+          certValidity: "Сертификат",
+          certValidityDesc: "Проверка валидности",
+          issuerCheck: "Издатель",
+          issuerCheckDesc: "Центр сертификации",
+          hstsCheck: "HSTS",
+          hstsCheckDesc: "Политика транспортной безопасности",
+          sanAnalysis: "SAN домены",
+          sanAnalysisDesc: "Альтернативные имена",
+        },
+        mac: {
+          ouiLookup: "OUI поиск",
+          ouiLookupDesc: "Идентификатор производителя",
+          vendorId: "Производитель",
+          vendorIdDesc: "Производитель устройства",
+          vmDetect: "VM обнаружение",
+          vmDetectDesc: "Проверка виртуальной машины",
+          typeAnalysis: "Тип",
+          typeAnalysisDesc: "Анализ unicast/multicast",
+        },
       },
       bulkMode: "Bulk Mode",
       singleMode: "Одиночный режим",
@@ -2717,6 +2949,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "d41d8cd98f00b204e9800998ecf8427e",
         username: "johndoe",
         card: "411111",
+        password: "MyP@ssw0rd!",
+        dns: "example.com",
+        ssl: "example.com",
+        mac: "AA:BB:CC:DD:EE:FF",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -2730,6 +2966,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Проверка Хеша",
         username: "OSINT Юзернейм",
         card: "BIN Карты",
+        password: "Проверка Пароля",
+        dns: "DNS Поиск",
+        ssl: "SSL/TLS Проверка",
+        mac: "MAC Поиск",
       },
     },
     account: {
@@ -3279,6 +3519,10 @@ export const translations: Record<Language, TranslationSchema> = {
         username: "Usuario",
         bot: "Bot Token",
         card: "Card BIN",
+        password: "Contraseña",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
       riskLevels: {
         low: "Bajo",
@@ -3310,6 +3554,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Verificación de hashes MD5/SHA1/SHA256 para malware vía MalwareBazaar, URLhaus, VirusTotal",
         username: "Búsqueda OSINT de usuario en plataformas: GitHub, redes sociales, foros",
         card: "Validación de BIN de tarjeta bancaria: banco emisor, tipo de tarjeta, país e identificación de riesgos",
+        password: "Análisis de fortaleza de contraseña: cálculo de entropía, verificación HIBP, detección de patrones, estimación de tiempo de descifrado",
+        dns: "Análisis de registros DNS: A, AAAA, MX, NS, TXT, SPF, DMARC, verificación DNSSEC vía Google DNS",
+        ssl: "Análisis de certificado SSL/TLS: validez, verificación de emisor, HSTS, dominios SAN, algoritmo",
+        mac: "Búsqueda de dirección MAC: identificación de fabricante OUI, detección de VM, clasificación unicast/multicast",
       },
       checkShortDescs: {
         ip: "Geolocalización, proveedor, listas negras",
@@ -3323,6 +3571,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Malware, firmas, reputación",
         username: "Perfiles, redes sociales, filtraciones",
         card: "Banco, tipo de tarjeta, país",
+        password: "Fortaleza, filtraciones, tiempo de descifrado",
+        dns: "Registros, SPF, DMARC, DNSSEC",
+        ssl: "Certificado, emisor, HSTS",
+        mac: "Fabricante, tipo de dispositivo, VM",
       },
       services: {
         ip: {
@@ -3435,6 +3687,46 @@ export const translations: Record<Language, TranslationSchema> = {
           country: "País",
           countryDesc: "País de emisión",
         },
+        password: {
+          entropyCalc: "Entropía",
+          entropyCalcDesc: "Cálculo de fortaleza en bits",
+          breachCheck: "Verificación de filtraciones",
+          breachCheckDesc: "Búsqueda en base HIBP",
+          patternDetect: "Patrones",
+          patternDetectDesc: "Secuencias de teclado, repeticiones",
+          crackTime: "Tiempo de descifrado",
+          crackTimeDesc: "Estimación online/offline",
+        },
+        dns: {
+          aRecords: "Registros A/AAAA",
+          aRecordsDesc: "Resolución de direcciones IP",
+          mxRecords: "Registros MX",
+          mxRecordsDesc: "Configuración de servidores de correo",
+          spfDmarc: "SPF/DMARC",
+          spfDmarcDesc: "Autenticación de correo",
+          dnssec: "DNSSEC",
+          dnssecDesc: "Extensiones de seguridad DNS",
+        },
+        ssl: {
+          certValidity: "Certificado",
+          certValidityDesc: "Verificación de validez",
+          issuerCheck: "Emisor",
+          issuerCheckDesc: "Autoridad de certificación",
+          hstsCheck: "HSTS",
+          hstsCheckDesc: "Política de seguridad de transporte",
+          sanAnalysis: "Dominios SAN",
+          sanAnalysisDesc: "Nombres alternativos del sujeto",
+        },
+        mac: {
+          ouiLookup: "Búsqueda OUI",
+          ouiLookupDesc: "Identificador de fabricante",
+          vendorId: "Fabricante",
+          vendorIdDesc: "Fabricante del dispositivo",
+          vmDetect: "Detección VM",
+          vmDetectDesc: "Verificación de máquina virtual",
+          typeAnalysis: "Tipo",
+          typeAnalysisDesc: "Análisis unicast/multicast",
+        },
       },
       bulkMode: "Modo masivo",
       singleMode: "Modo individual",
@@ -3496,6 +3788,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "d41d8cd98f00b204e9800998ecf8427e",
         username: "johndoe",
         card: "411111",
+        password: "MyP@ssw0rd!",
+        dns: "example.com",
+        ssl: "example.com",
+        mac: "AA:BB:CC:DD:EE:FF",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -3509,6 +3805,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Verificar Hash",
         username: "OSINT Usuario",
         card: "BIN Tarjeta",
+        password: "Contraseña",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
     },
     account: {
@@ -4058,6 +4358,10 @@ export const translations: Record<Language, TranslationSchema> = {
         username: "Benutzername",
         bot: "Bot Token",
         card: "Card BIN",
+        password: "Passwort",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
       riskLevels: {
         low: "Niedrig",
@@ -4089,6 +4393,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "MD5/SHA1/SHA256-Datei-Hash-Prüfung auf Malware über MalwareBazaar, URLhaus, VirusTotal",
         username: "OSINT-Benutzernamen-Suche auf Plattformen: GitHub, soziale Medien, Foren",
         card: "BIN-Validierung der Bankkarte: Ausstellerbank, Kartentyp, Land und Risikoidentifikation",
+        password: "Passwortstärke-Analyse: Entropieberechnung, HIBP-Datenbankprüfung, Mustererkennung, Knackzeit-Schätzung",
+        dns: "DNS-Eintragsanalyse: A, AAAA, MX, NS, TXT, SPF, DMARC, DNSSEC-Prüfung über Google DNS",
+        ssl: "SSL/TLS-Zertifikatsanalyse: Gültigkeit, Aussteller-Prüfung, HSTS, SAN-Domains, Algorithmus",
+        mac: "MAC-Adress-Suche: OUI-Hersteller-Identifikation, VM-Erkennung, Unicast/Multicast-Klassifikation",
       },
       checkShortDescs: {
         ip: "Geolokalisierung, Anbieter, Blacklists",
@@ -4102,6 +4410,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Malware, Signaturen, Reputation",
         username: "Profile, soziale Medien, Lecks",
         card: "Bank, Kartentyp, Land",
+        password: "Stärke, Lecks, Knackzeit",
+        dns: "Einträge, SPF, DMARC, DNSSEC",
+        ssl: "Zertifikat, Aussteller, HSTS",
+        mac: "Hersteller, Gerätetyp, VM",
       },
       services: {
         ip: {
@@ -4214,6 +4526,46 @@ export const translations: Record<Language, TranslationSchema> = {
           country: "Land",
           countryDesc: "Ausstellungsland",
         },
+        password: {
+          entropyCalc: "Entropie",
+          entropyCalcDesc: "Berechnung der Bitstärke",
+          breachCheck: "Leck-Prüfung",
+          breachCheckDesc: "HIBP-Datenbanksuche",
+          patternDetect: "Muster",
+          patternDetectDesc: "Tastatursequenzen, Wiederholungen",
+          crackTime: "Knackzeit",
+          crackTimeDesc: "Online/Offline-Schätzung",
+        },
+        dns: {
+          aRecords: "A/AAAA-Einträge",
+          aRecordsDesc: "IP-Adressauflösung",
+          mxRecords: "MX-Einträge",
+          mxRecordsDesc: "Mailserver-Konfiguration",
+          spfDmarc: "SPF/DMARC",
+          spfDmarcDesc: "E-Mail-Authentifizierung",
+          dnssec: "DNSSEC",
+          dnssecDesc: "DNS-Sicherheitserweiterungen",
+        },
+        ssl: {
+          certValidity: "Zertifikat",
+          certValidityDesc: "Gültigkeitsprüfung",
+          issuerCheck: "Aussteller",
+          issuerCheckDesc: "Zertifizierungsstelle",
+          hstsCheck: "HSTS",
+          hstsCheckDesc: "Transportsicherheitsrichtlinie",
+          sanAnalysis: "SAN-Domains",
+          sanAnalysisDesc: "Alternative Subjektnamen",
+        },
+        mac: {
+          ouiLookup: "OUI-Suche",
+          ouiLookupDesc: "Herstellerkennung",
+          vendorId: "Hersteller",
+          vendorIdDesc: "Gerätehersteller",
+          vmDetect: "VM-Erkennung",
+          vmDetectDesc: "Virtuelle Maschine-Prüfung",
+          typeAnalysis: "Typ",
+          typeAnalysisDesc: "Unicast/Multicast-Analyse",
+        },
       },
       bulkMode: "Massenmodus",
       singleMode: "Einzelmodus",
@@ -4275,6 +4627,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "d41d8cd98f00b204e9800998ecf8427e",
         username: "johndoe",
         card: "411111",
+        password: "MyP@ssw0rd!",
+        dns: "example.com",
+        ssl: "example.com",
+        mac: "AA:BB:CC:DD:EE:FF",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -4288,6 +4644,10 @@ export const translations: Record<Language, TranslationSchema> = {
         hash: "Hash-Prüfung",
         username: "OSINT Benutzername",
         card: "Karten-BIN",
+        password: "Passwort",
+        dns: "DNS",
+        ssl: "SSL/TLS",
+        mac: "MAC",
       },
     },
     account: {

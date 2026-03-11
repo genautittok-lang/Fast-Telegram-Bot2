@@ -71,7 +71,11 @@ import {
   Gauge,
   History,
   Bell,
-  Share2
+  Share2,
+  KeyRound,
+  Wifi,
+  ShieldQuestion,
+  Network
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,6 +135,10 @@ const checkTypeStyles = [
   { id: "hash", icon: Hash, gradient: "from-slate-500/20 via-zinc-500/10 to-transparent", iconColor: "text-slate-400", borderColor: "border-slate-500/30 hover:border-slate-400/50", glowColor: "shadow-slate-500/20", btn3d: "btn-3d-slate", serviceIcons: [Bug, Link2, Shield, FileCheck] },
   { id: "username", icon: User, gradient: "from-amber-500/20 via-yellow-500/10 to-transparent", iconColor: "text-amber-400", borderColor: "border-amber-500/30 hover:border-amber-400/50", glowColor: "shadow-amber-500/20", btn3d: "btn-3d-amber", serviceIcons: [Users, Globe, MessageSquare, Lock] },
   { id: "card", icon: CreditCard, gradient: "from-emerald-500/20 via-teal-500/10 to-transparent", iconColor: "text-emerald-400", borderColor: "border-emerald-500/30 hover:border-emerald-400/50", glowColor: "shadow-emerald-500/20", btn3d: "btn-3d-emerald", serviceIcons: [CreditCard, Building, Wallet, Globe] },
+  { id: "password", icon: KeyRound, gradient: "from-yellow-500/20 via-amber-500/10 to-transparent", iconColor: "text-yellow-400", borderColor: "border-yellow-500/30 hover:border-yellow-400/50", glowColor: "shadow-yellow-500/20", btn3d: "btn-3d-amber", serviceIcons: [KeyRound, Lock, ShieldAlert, Hash] },
+  { id: "dns", icon: Network, gradient: "from-sky-500/20 via-blue-500/10 to-transparent", iconColor: "text-sky-400", borderColor: "border-sky-500/30 hover:border-sky-400/50", glowColor: "shadow-sky-500/20", btn3d: "btn-3d-blue", serviceIcons: [Network, Globe, Server, ShieldCheck] },
+  { id: "ssl", icon: ShieldQuestion, gradient: "from-lime-500/20 via-green-500/10 to-transparent", iconColor: "text-lime-400", borderColor: "border-lime-500/30 hover:border-lime-400/50", glowColor: "shadow-lime-500/20", btn3d: "btn-3d-green", serviceIcons: [Lock, ShieldCheck, Globe, FileCheck] },
+  { id: "mac", icon: Wifi, gradient: "from-violet-500/20 via-purple-500/10 to-transparent", iconColor: "text-violet-400", borderColor: "border-violet-500/30 hover:border-violet-400/50", glowColor: "shadow-violet-500/20", btn3d: "btn-3d-purple", serviceIcons: [Wifi, Fingerprint, Server, Globe] },
 ];
 
 const serviceKeyMap: Record<string, string[][]> = {
@@ -145,6 +153,10 @@ const serviceKeyMap: Record<string, string[][]> = {
   hash: [["malwareBazaar", "malwareBazaarDesc"], ["urlhaus", "urlhausDesc"], ["virusTotal", "virusTotalDesc"], ["signatureMatch", "signatureMatchDesc"]],
   username: [["githubProfile", "githubProfileDesc"], ["socialMedia", "socialMediaDesc"], ["forums", "forumsDesc"], ["dataBreaches", "dataBreachesDesc"]],
   card: [["binLookup", "binLookupDesc"], ["bankInfo", "bankInfoDesc"], ["cardType", "cardTypeDesc"], ["country", "countryDesc"]],
+  password: [["entropyCalc", "entropyCalcDesc"], ["breachCheck", "breachCheckDesc"], ["patternDetect", "patternDetectDesc"], ["crackTime", "crackTimeDesc"]],
+  dns: [["aRecords", "aRecordsDesc"], ["mxRecords", "mxRecordsDesc"], ["spfDmarc", "spfDmarcDesc"], ["dnssec", "dnssecDesc"]],
+  ssl: [["certValidity", "certValidityDesc"], ["issuerCheck", "issuerCheckDesc"], ["hstsCheck", "hstsCheckDesc"], ["sanAnalysis", "sanAnalysisDesc"]],
+  mac: [["ouiLookup", "ouiLookupDesc"], ["vendorId", "vendorIdDesc"], ["vmDetect", "vmDetectDesc"], ["typeAnalysis", "typeAnalysisDesc"]],
 };
 
 
@@ -1943,7 +1955,46 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                       <div className="flex gap-1.5 sm:gap-2 w-full flex-wrap">
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
-                          <Button variant="outline" size="sm" className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-white/10 touch-manipulation" data-testid="button-download-pdf">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-primary/30 text-primary touch-manipulation"
+                            onClick={async () => {
+                              if (!result) return;
+                              try {
+                                toast({ title: lang === "uk" ? "Генерація PDF..." : "Generating PDF..." });
+                                const response = await fetch("/api/check/generate-pdf", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  credentials: "include",
+                                  body: JSON.stringify({
+                                    type: result.type,
+                                    target: result.target,
+                                    riskScore: result.riskScore,
+                                    riskLevel: result.riskLevel,
+                                    findings: result.findings,
+                                    sources: result.sources,
+                                    details: result.details,
+                                    aiInsights: result.aiInsights,
+                                  }),
+                                });
+                                if (!response.ok) throw new Error("PDF generation failed");
+                                const blob = await response.blob();
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `DARKSHARE_${result.type}_${result.target.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}.pdf`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                toast({ title: lang === "uk" ? "PDF завантажено!" : "PDF downloaded!" });
+                              } catch (err) {
+                                toast({ title: lang === "uk" ? "Помилка генерації PDF" : "PDF generation error", variant: "destructive" });
+                              }
+                            }}
+                            data-testid="button-download-pdf"
+                          >
                             <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
                             <span className="truncate">PDF</span>
                           </Button>

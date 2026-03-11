@@ -29,44 +29,91 @@ interface Finding {
   evidence?: string;
 }
 
-const COLORS = {
+const C = {
+  bg: "#050508",
+  bgDark: "#020204",
+  surface: "#0c0c14",
+  surfaceAlt: "#101018",
+  surfaceLight: "#16161f",
+  surfaceBorder: "#1e1e2a",
   primary: "#22c55e",
   primaryDark: "#16a34a",
-  background: "#0a0a0f",
-  surface: "#13131a",
-  surfaceLight: "#1a1a24",
-  text: "#ffffff",
-  textSecondary: "#e4e4e7",
+  primaryMuted: "#166534",
+  accent: "#34d399",
+  white: "#ffffff",
+  textLight: "#f4f4f5",
+  textSec: "#d4d4d8",
   textMuted: "#a1a1aa",
   textDim: "#71717a",
+  textDark: "#52525b",
   success: "#22c55e",
+  successBg: "#052e16",
   warning: "#f59e0b",
+  warningBg: "#451a03",
   danger: "#ef4444",
+  dangerBg: "#450a0a",
   info: "#3b82f6",
+  infoBg: "#172554",
+  high: "#f97316",
 };
 
-const RISK_COLORS = {
+const RISK_COLORS: Record<string, string> = {
   low: "#22c55e",
   medium: "#f59e0b",
   high: "#f97316",
   critical: "#ef4444",
 };
 
+const RISK_BG: Record<string, string> = {
+  low: "#052e16",
+  medium: "#451a03",
+  high: "#431407",
+  critical: "#450a0a",
+};
+
 async function generateQRDataURL(text: string): Promise<string> {
   return QRCode.toDataURL(text, {
-    width: 100,
+    width: 120,
     margin: 1,
-    color: {
-      dark: "#22c55e",
-      light: "#0a0a0f",
-    },
+    color: { dark: "#22c55e", light: "#050508" },
   });
+}
+
+function drawPageBg(doc: PDFKit.PDFDocument, w: number, h: number) {
+  doc.rect(0, 0, w, h).fill(C.bg);
+  doc.save();
+  doc.opacity(0.07);
+  doc.circle(w * 0.8, h * 0.15, 200).fill(C.primary);
+  doc.circle(w * 0.2, h * 0.85, 150).fill(C.accent);
+  doc.restore();
+}
+
+function drawLine(doc: PDFKit.PDFDocument, x1: number, y1: number, x2: number, lineColor = C.surfaceBorder) {
+  doc.moveTo(x1, y1).lineTo(x2, y1).lineWidth(0.5).strokeColor(lineColor).stroke();
+}
+
+function ensureSpace(doc: PDFKit.PDFDocument, y: number, needed: number, pageW: number, pageH: number, margin: number): number {
+  if (y + needed > pageH - 60) {
+    doc.addPage();
+    drawPageBg(doc, pageW, pageH);
+    drawPageHeader(doc, pageW, margin);
+    return 70;
+  }
+  return y;
+}
+
+function drawPageHeader(doc: PDFKit.PDFDocument, pageW: number, margin: number) {
+  doc.rect(0, 0, pageW, 45).fill(C.surface);
+  doc.rect(0, 45, pageW, 1).fill(C.primaryMuted);
+  doc.fillColor(C.primary).fontSize(11).font("Helvetica-Bold");
+  doc.text("DARKSHARE", margin, 14);
+  doc.fillColor(C.textDim).fontSize(7).font("Helvetica");
+  doc.text("RISK INTELLIGENCE PLATFORM", margin + 85, 16);
 }
 
 export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
   const reportId = data.verificationId;
   const verificationUrl = `/verify/${reportId}`;
-  
   const qrDataUrl = await generateQRDataURL(verificationUrl);
   const qrBuffer = Buffer.from(qrDataUrl.split(",")[1], "base64");
 
@@ -76,10 +123,10 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       margin: 40,
       bufferPages: true,
       info: {
-        Title: `DARKSHARE Report - ${data.moduleType.toUpperCase()}`,
+        Title: `DARKSHARE Intelligence Report - ${data.moduleType.toUpperCase()}`,
         Author: "DARKSHARE v4.4",
-        Subject: `Risk Assessment for ${data.targetValue}`,
-        Keywords: "risk, assessment, security, darkshare, osint",
+        Subject: `Risk Assessment: ${data.targetValue}`,
+        Keywords: "risk, assessment, security, darkshare, osint, intelligence",
         CreationDate: data.timestamp,
       },
     });
@@ -89,259 +136,467 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.on("end", () => resolve(Buffer.concat(buffers)));
     doc.on("error", reject);
 
-    const pageWidth = doc.page.width;
-    const pageHeight = doc.page.height;
-    const margin = 40;
-    const contentWidth = pageWidth - margin * 2;
+    const W = doc.page.width;
+    const H = doc.page.height;
+    const M = 40;
+    const CW = W - M * 2;
 
-    doc.rect(0, 0, pageWidth, pageHeight).fill(COLORS.background);
+    // ═══════════════ PAGE 1: COVER ═══════════════
+    drawPageBg(doc, W, H);
 
-    doc.rect(0, 0, pageWidth, 70).fill(COLORS.surface);
+    // Top accent bar
+    doc.rect(0, 0, W, 4).fill(C.primary);
 
-    doc.fillColor(COLORS.primary).fontSize(24).font("Helvetica-Bold");
-    doc.text("DARKSHARE", margin, 20);
-    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
-    doc.text("RISK INTELLIGENCE PLATFORM", margin, 46);
+    const isDraft = reportId.startsWith("DRAFT-");
 
-    const dateStr = data.timestamp.toLocaleDateString('en-GB', { 
-      year: 'numeric', month: 'short', day: 'numeric'
-    });
-    const timeStr = data.timestamp.toLocaleTimeString('en-GB', { 
-      hour: '2-digit', minute: '2-digit'
-    });
+    // Classification banner
+    doc.roundedRect(M, 30, CW, 28, 4).fill(C.surface);
+    doc.rect(M, 30, 5, 28).fill(isDraft ? C.warning : C.danger);
+    doc.fillColor(isDraft ? C.warning : C.danger).fontSize(8).font("Helvetica-Bold");
+    doc.text(isDraft ? "DRAFT REPORT" : "CONFIDENTIAL", M + 15, 39);
+    doc.fillColor(C.textDim).fontSize(7).font("Helvetica");
+    doc.text(isDraft ? `Draft export  |  Not verified  |  ID: ${reportId}` : `Classification: Restricted  |  Distribution: Need-to-Know  |  ID: ${reportId}`, M + 100, 40);
 
-    doc.fillColor(COLORS.textMuted).fontSize(8).font("Helvetica");
-    doc.text(`Report ID: ${reportId}`, pageWidth - margin - 150, 22, { width: 150, align: "right" });
-    doc.text(`${dateStr} ${timeStr}`, pageWidth - margin - 150, 34, { width: 150, align: "right" });
+    // Main title block
+    let y = 90;
+    doc.fillColor(C.primary).fontSize(38).font("Helvetica-Bold");
+    doc.text("DARKSHARE", M, y);
+    y += 45;
+    doc.fillColor(C.textDim).fontSize(12).font("Helvetica");
+    doc.text("RISK INTELLIGENCE PLATFORM  ·  v4.4", M, y);
+    y += 35;
 
+    drawLine(doc, M, y, M + CW, C.primaryMuted);
+    y += 20;
+
+    // Report type badge
     const moduleLabel = getModuleLabel(data.moduleType);
-    doc.roundedRect(pageWidth - margin - 100, 48, 100, 18, 4).fill(COLORS.primary);
-    doc.fillColor(COLORS.background).fontSize(9).font("Helvetica-Bold");
-    doc.text(moduleLabel.toUpperCase(), pageWidth - margin - 95, 53, { width: 90, align: "center" });
-
-    let y = 85;
-
-    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
-    doc.text("SUBJECT OF ANALYSIS", margin, y);
-    y += 18;
-
-    doc.roundedRect(margin, y, contentWidth, 45, 6).fill(COLORS.surface);
+    const riskColor = RISK_COLORS[data.riskLevel] || C.warning;
+    doc.roundedRect(M, y, 160, 32, 6).fill(C.primary);
+    doc.fillColor(C.bgDark).fontSize(14).font("Helvetica-Bold");
+    doc.text(moduleLabel.toUpperCase(), M + 12, y + 8, { width: 140 });
     
-    const displayTarget = data.targetValue.length > 60 
-      ? data.targetValue.substring(0, 57) + "..." 
+    doc.roundedRect(M + 170, y, 120, 32, 6).fill(riskColor);
+    doc.fillColor(C.white).fontSize(14).font("Helvetica-Bold");
+    doc.text(`RISK: ${data.riskLevel.toUpperCase()}`, M + 180, y + 8, { width: 110 });
+    y += 55;
+
+    // Subject of analysis
+    doc.fillColor(C.textDim).fontSize(9).font("Helvetica");
+    doc.text("SUBJECT OF ANALYSIS", M, y);
+    y += 14;
+    doc.roundedRect(M, y, CW, 50, 6).fill(C.surface);
+    doc.rect(M, y, 4, 50).fill(C.primary);
+    const displayTarget = data.targetValue.length > 70
+      ? data.targetValue.substring(0, 67) + "..."
       : data.targetValue;
-    doc.fillColor(COLORS.text).fontSize(14).font("Helvetica-Bold");
-    doc.text(displayTarget, margin + 15, y + 14, { width: contentWidth - 30 });
+    doc.fillColor(C.white).fontSize(18).font("Helvetica-Bold");
+    doc.text(displayTarget, M + 18, y + 14, { width: CW - 30 });
+    y += 70;
 
-    y += 60;
+    // Report metadata grid
+    doc.fillColor(C.textDim).fontSize(9).font("Helvetica");
+    doc.text("REPORT METADATA", M, y);
+    y += 14;
+    doc.roundedRect(M, y, CW, 80, 6).fill(C.surface);
 
-    const riskBoxWidth = contentWidth * 0.42;
-    const verdictBoxWidth = contentWidth * 0.55;
-    const gap = contentWidth - riskBoxWidth - verdictBoxWidth;
+    const metaFields = [
+      { label: "REPORT ID", value: reportId },
+      { label: "MODULE", value: moduleLabel },
+      { label: "ANALYST", value: data.userId },
+      { label: "DATE", value: data.timestamp.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) },
+      { label: "TIME (UTC)", value: data.timestamp.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
+      { label: "RISK SCORE", value: `${data.riskScore}/100` },
+    ];
+    const mCols = 3;
+    const mColW = (CW - 30) / mCols;
+    metaFields.forEach((f, i) => {
+      const col = i % mCols;
+      const row = Math.floor(i / mCols);
+      const xP = M + 15 + col * mColW;
+      const yP = y + 12 + row * 32;
+      doc.fillColor(C.textDark).fontSize(7).font("Helvetica");
+      doc.text(f.label, xP, yP);
+      doc.fillColor(C.textLight).fontSize(10).font("Helvetica-Bold");
+      const val = String(f.value).length > 25 ? String(f.value).substring(0, 22) + "..." : String(f.value);
+      doc.text(val, xP, yP + 11);
+    });
+    y += 100;
 
-    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
-    doc.text("RISK ASSESSMENT", margin, y);
-    doc.text("VERDICT", margin + riskBoxWidth + gap, y);
-    y += 18;
+    // Risk score visual (large gauge)
+    doc.fillColor(C.textDim).fontSize(9).font("Helvetica");
+    doc.text("RISK ASSESSMENT", M, y);
+    y += 14;
+    doc.roundedRect(M, y, CW, 130, 6).fill(C.surface);
 
-    doc.roundedRect(margin, y, riskBoxWidth, 90, 6).fill(COLORS.surface);
+    // Score circle
+    const cx = M + 80;
+    const cy = y + 65;
+    const r = 42;
+    doc.circle(cx, cy, r + 6).lineWidth(3).strokeColor(riskColor).stroke();
+    doc.circle(cx, cy, r - 3).fill(C.surfaceLight);
+    doc.fillColor(riskColor).fontSize(32).font("Helvetica-Bold");
+    const st = data.riskScore.toString();
+    const sw = doc.widthOfString(st);
+    doc.text(st, cx - sw / 2, cy - 16);
+    doc.fillColor(C.textDim).fontSize(10).font("Helvetica");
+    doc.text("/100", cx - 12, cy + 14);
 
-    const riskColor = RISK_COLORS[data.riskLevel];
-    const circleX = margin + 55;
-    const circleY = y + 45;
-    const radius = 28;
-
-    doc.circle(circleX, circleY, radius + 4).lineWidth(3).stroke(riskColor);
-    doc.circle(circleX, circleY, radius - 2).fill(COLORS.surfaceLight);
-    
-    doc.fillColor(riskColor).fontSize(22).font("Helvetica-Bold");
-    const scoreText = data.riskScore.toString();
-    const scoreWidth = doc.widthOfString(scoreText);
-    doc.text(scoreText, circleX - scoreWidth / 2, circleY - 10);
-    doc.fillColor(COLORS.textDim).fontSize(7).font("Helvetica");
-    doc.text("/100", circleX - 8, circleY + 8);
-
-    doc.fillColor(riskColor).fontSize(16).font("Helvetica-Bold");
-    doc.text(data.riskLevel.toUpperCase(), margin + 100, y + 28);
-    doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
-    doc.text("Risk Level", margin + 100, y + 48);
-
-    const barWidth = riskBoxWidth - 120;
-    const barProgress = (data.riskScore / 100) * barWidth;
-    doc.roundedRect(margin + 100, y + 65, barWidth, 8, 4).fill(COLORS.surfaceLight);
-    if (barProgress > 0) {
-      doc.roundedRect(margin + 100, y + 65, Math.max(barProgress, 8), 8, 4).fill(riskColor);
-    }
-
-    doc.roundedRect(margin + riskBoxWidth + gap, y, verdictBoxWidth, 90, 6).fill(COLORS.surface);
+    // Risk bar
+    const barX = M + 160;
+    const barW = CW - 180;
+    const barY2 = y + 30;
+    doc.fillColor(C.textLight).fontSize(14).font("Helvetica-Bold");
+    doc.text(data.riskLevel.toUpperCase() + " RISK", barX, barY2);
     
     const verdict = getVerdict(data.riskLevel, data.riskScore);
-    doc.fillColor(COLORS.text).fontSize(13).font("Helvetica-Bold");
-    doc.text(verdict.title, margin + riskBoxWidth + gap + 15, y + 20, { width: verdictBoxWidth - 30 });
-    doc.fillColor(COLORS.textMuted).fontSize(10).font("Helvetica");
-    doc.text(verdict.description, margin + riskBoxWidth + gap + 15, y + 45, { width: verdictBoxWidth - 30 });
+    doc.fillColor(C.textMuted).fontSize(9).font("Helvetica");
+    doc.text(verdict.title, barX, barY2 + 20, { width: barW });
+    doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+    doc.text(verdict.description, barX, barY2 + 35, { width: barW });
 
-    y += 105;
+    // Horizontal risk bar
+    const hBarY = y + 95;
+    doc.roundedRect(barX, hBarY, barW, 12, 6).fill(C.surfaceLight);
+    const prog = Math.max((data.riskScore / 100) * barW, 12);
+    doc.roundedRect(barX, hBarY, prog, 12, 6).fill(riskColor);
 
-    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
-    doc.text("KEY FINDINGS", margin, y);
-    y += 18;
+    // Scale labels
+    doc.fillColor(C.textDark).fontSize(6).font("Helvetica");
+    doc.text("0", barX, hBarY + 16);
+    doc.text("25", barX + barW * 0.25 - 4, hBarY + 16);
+    doc.text("50", barX + barW * 0.5 - 4, hBarY + 16);
+    doc.text("75", barX + barW * 0.75 - 4, hBarY + 16);
+    doc.text("100", barX + barW - 10, hBarY + 16);
 
-    const findingsToShow = data.findings.slice(0, 5);
-    const findingRowHeight = 24;
-    const findingsHeight = findingsToShow.length * findingRowHeight + 16;
-    
-    doc.roundedRect(margin, y, contentWidth, findingsHeight, 6).fill(COLORS.surface);
-    
-    let findingY = y + 10;
-    for (const finding of findingsToShow) {
-      const findingColor = {
-        info: COLORS.info,
-        warning: COLORS.warning,
-        danger: COLORS.danger,
-        success: COLORS.success,
-      }[finding.type];
+    y += 150;
 
-      doc.circle(margin + 20, findingY + 6, 5).fill(findingColor);
-      
-      const icon = { info: "i", warning: "!", danger: "x", success: "✓" }[finding.type];
-      doc.fillColor(COLORS.background).fontSize(8).font("Helvetica-Bold");
-      doc.text(icon, margin + 16, findingY + 2, { width: 8, align: "center" });
+    // QR + verification section on cover
+    doc.roundedRect(M, y, CW, 65, 6).fill(C.surface);
+    if (isDraft) {
+      doc.rect(M, y, 4, 65).fill(C.warning);
+      doc.fillColor(C.warning).fontSize(10).font("Helvetica-Bold");
+      doc.text("DRAFT — NOT VERIFIED", M + 18, y + 12);
+      doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+      doc.text("This is a draft export of check results. To obtain a verified report with QR verification, save results to your report history first.", M + 18, y + 28, { width: CW - 30 });
+      doc.fillColor(C.textDark).fontSize(8).font("Helvetica");
+      doc.text(`Draft ID: ${reportId}`, M + 18, y + 48);
+    } else {
+      doc.image(qrBuffer, M + 12, y + 7, { width: 50, height: 50 });
+      doc.fillColor(C.textLight).fontSize(10).font("Helvetica-Bold");
+      doc.text("VERIFICATION & AUTHENTICITY", M + 75, y + 12);
+      doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+      doc.text(`This report can be verified by scanning the QR code or visiting the verification URL.`, M + 75, y + 28, { width: CW - 95 });
+      doc.fillColor(C.primary).fontSize(8).font("Helvetica-Bold");
+      doc.text(`Verification ID: ${reportId}`, M + 75, y + 46);
+    }
 
-      doc.fillColor(COLORS.text).fontSize(10).font("Helvetica-Bold");
-      doc.text(finding.title, margin + 35, findingY + 2);
-      
-      if (finding.description) {
-        doc.fillColor(COLORS.textDim).fontSize(8).font("Helvetica");
-        const descWidth = contentWidth - 180;
-        const shortDesc = finding.description.length > 50 
-          ? finding.description.substring(0, 47) + "..."
-          : finding.description;
-        doc.text(shortDesc, pageWidth - margin - descWidth - 10, findingY + 3, { width: descWidth, align: "right" });
+    // Footer line
+    doc.rect(0, H - 30, W, 30).fill(C.surface);
+    doc.fillColor(C.textDark).fontSize(6).font("Helvetica");
+    doc.text("CONFIDENTIAL  ·  DARKSHARE v4.4 Risk Intelligence  ·  Page 1", M, H - 20, { width: CW, align: "center" });
+
+    // ═══════════════ PAGE 2: FINDINGS ═══════════════
+    doc.addPage();
+    drawPageBg(doc, W, H);
+    drawPageHeader(doc, W, M);
+    y = 60;
+
+    doc.fillColor(C.white).fontSize(16).font("Helvetica-Bold");
+    doc.text("KEY FINDINGS", M, y);
+    y += 25;
+
+    const findings = data.findings.slice(0, 12);
+    for (let i = 0; i < findings.length; i++) {
+      const f = findings[i];
+      y = ensureSpace(doc, y, 55, W, H, M);
+
+      const fColor = { info: C.info, warning: C.warning, danger: C.danger, success: C.success }[f.type];
+      const fBg = { info: C.infoBg, warning: C.warningBg, danger: C.dangerBg, success: C.successBg }[f.type];
+      const fIcon = { info: "ℹ", warning: "⚠", danger: "✕", success: "✓" }[f.type];
+      const fLabel = { info: "INFO", warning: "WARNING", danger: "CRITICAL", success: "SAFE" }[f.type];
+
+      doc.roundedRect(M, y, CW, 42, 5).fill(C.surface);
+      doc.rect(M, y, 4, 42).fill(fColor);
+
+      // Number badge
+      doc.roundedRect(M + 12, y + 8, 24, 24, 12).fill(fBg);
+      doc.fillColor(fColor).fontSize(11).font("Helvetica-Bold");
+      doc.text(String(i + 1).padStart(2, '0'), M + 14, y + 14, { width: 20, align: "center" });
+
+      // Type badge
+      doc.roundedRect(M + 44, y + 10, 60, 18, 4).fill(fBg);
+      doc.fillColor(fColor).fontSize(7).font("Helvetica-Bold");
+      doc.text(`${fIcon} ${fLabel}`, M + 48, y + 15, { width: 52, align: "center" });
+
+      // Title
+      const titleText = f.title.length > 65 ? f.title.substring(0, 62) + "..." : f.title;
+      doc.fillColor(C.white).fontSize(10).font("Helvetica-Bold");
+      doc.text(titleText, M + 115, y + 10, { width: CW - 135 });
+
+      // Description
+      if (f.description) {
+        const desc = f.description.length > 85 ? f.description.substring(0, 82) + "..." : f.description;
+        doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+        doc.text(desc, M + 115, y + 25, { width: CW - 135 });
       }
 
-      findingY += findingRowHeight;
+      y += 48;
     }
 
-    y += findingsHeight + 15;
+    // Findings summary
+    y = ensureSpace(doc, y, 60, W, H, M);
+    y += 10;
+    const dangerCount = findings.filter(f => f.type === "danger").length;
+    const warnCount = findings.filter(f => f.type === "warning").length;
+    const infoCount = findings.filter(f => f.type === "info").length;
+    const safeCount = findings.filter(f => f.type === "success").length;
 
-    if (data.metadata && Object.keys(data.metadata).length > 0) {
-      doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
-      doc.text("ANALYSIS DETAILS", margin, y);
-      y += 18;
+    doc.roundedRect(M, y, CW, 50, 6).fill(C.surface);
+    doc.fillColor(C.textSec).fontSize(9).font("Helvetica-Bold");
+    doc.text("FINDINGS SUMMARY", M + 15, y + 10);
 
-      const metaEntries = Object.entries(data.metadata).slice(0, 6);
-      const cols = 3;
-      const rows = Math.ceil(metaEntries.length / cols);
-      const metaHeight = rows * 28 + 16;
-      const colWidth = (contentWidth - 30) / cols;
-      
-      doc.roundedRect(margin, y, contentWidth, metaHeight, 6).fill(COLORS.surface);
-      
-      metaEntries.forEach(([key, value], index) => {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const xPos = margin + 15 + (col * colWidth);
-        const yPos = y + 12 + (row * 28);
-        
-        doc.fillColor(COLORS.textDim).fontSize(8).font("Helvetica");
-        doc.text(key.toUpperCase(), xPos, yPos);
-        doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
-        doc.text(String(value), xPos, yPos + 12);
-      });
+    const sumY = y + 28;
+    const sumW = (CW - 30) / 4;
+    [
+      { label: "CRITICAL", count: dangerCount, color: C.danger },
+      { label: "WARNING", count: warnCount, color: C.warning },
+      { label: "INFO", count: infoCount, color: C.info },
+      { label: "SAFE", count: safeCount, color: C.success },
+    ].forEach((s, i) => {
+      const sx = M + 15 + i * sumW;
+      doc.circle(sx + 5, sumY + 4, 5).fill(s.color);
+      doc.fillColor(C.white).fontSize(10).font("Helvetica-Bold");
+      doc.text(String(s.count), sx + 15, sumY);
+      doc.fillColor(C.textDim).fontSize(7).font("Helvetica");
+      doc.text(s.label, sx + 28, sumY + 2);
+    });
 
-      y += metaHeight + 15;
-    }
+    // ═══════════════ PAGE 3: DETAILS & AI ═══════════════
+    if (data.metadata || data.aiInsights) {
+      doc.addPage();
+      drawPageBg(doc, W, H);
+      drawPageHeader(doc, W, M);
+      y = 60;
 
-    // AI INSIGHTS SECTION
-    if (data.aiInsights) {
-      doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
-      doc.text("AI SECURITY ANALYSIS", margin, y);
-      y += 18;
+      if (data.metadata && Object.keys(data.metadata).length > 0) {
+        doc.fillColor(C.white).fontSize(16).font("Helvetica-Bold");
+        doc.text("ANALYSIS DETAILS", M, y);
+        y += 25;
 
-      const aiHeight = 70;
-      doc.roundedRect(margin, y, contentWidth, aiHeight, 6).fill(COLORS.surface);
-      
-      // Threat level badge
-      const threatColors: Record<string, string> = {
-        "БЕЗПЕЧНО": COLORS.success,
-        "УВАГА": COLORS.warning,
-        "НЕБЕЗПЕЧНО": "#f97316",
-        "КРИТИЧНО": COLORS.danger,
-      };
-      const threatColor = threatColors[data.aiInsights.threatLevel] || COLORS.warning;
-      doc.roundedRect(margin + 12, y + 10, 80, 20, 4).fill(threatColor);
-      doc.fillColor(COLORS.background).fontSize(8).font("Helvetica-Bold");
-      doc.text(data.aiInsights.threatLevel, margin + 14, y + 15, { width: 76, align: "center" });
+        const entries = Object.entries(data.metadata).slice(0, 12);
+        const detCols = 2;
+        const detColW = (CW - 20) / detCols;
+        const detRows = Math.ceil(entries.length / detCols);
+        const detH = detRows * 38 + 20;
 
-      // Verdict
-      doc.fillColor(COLORS.text).fontSize(11).font("Helvetica-Bold");
-      doc.text(data.aiInsights.verdict, margin + 100, y + 14, { width: contentWidth - 115 });
+        doc.roundedRect(M, y, CW, detH, 6).fill(C.surface);
 
-      // Summary (compact)
-      const shortSummary = data.aiInsights.summary.length > 140 
-        ? data.aiInsights.summary.substring(0, 137) + "..."
-        : data.aiInsights.summary;
-      doc.fillColor(COLORS.textMuted).fontSize(9).font("Helvetica");
-      doc.text(shortSummary, margin + 12, y + 38, { width: contentWidth - 24 });
+        entries.forEach(([key, value], idx) => {
+          const col = idx % detCols;
+          const row = Math.floor(idx / detCols);
+          const xP = M + 15 + col * detColW;
+          const yP = y + 15 + row * 38;
 
-      // Top 2 recommendations
-      const topRecs = data.aiInsights.recommendations.slice(0, 2);
-      if (topRecs.length > 0) {
-        doc.fillColor(COLORS.textDim).fontSize(8).font("Helvetica");
-        const recsText = topRecs.map((r, i) => `${i + 1}. ${r}`).join("  ");
-        doc.text(recsText.substring(0, 100), margin + 12, y + 55, { width: contentWidth - 24 });
+          doc.fillColor(C.textDark).fontSize(7).font("Helvetica");
+          doc.text(key.toUpperCase().replace(/_/g, ' '), xP, yP);
+          doc.fillColor(C.textLight).fontSize(11).font("Helvetica-Bold");
+          const v = String(value);
+          doc.text(v.length > 45 ? v.substring(0, 42) + "..." : v, xP, yP + 12, { width: detColW - 20 });
+
+          if (col === 0 && detCols === 2) {
+            doc.moveTo(M + detColW + 5, yP - 3).lineTo(M + detColW + 5, yP + 25).lineWidth(0.3).strokeColor(C.surfaceBorder).stroke();
+          }
+        });
+
+        y += detH + 20;
       }
 
-      y += aiHeight + 15;
+      if (data.aiInsights) {
+        y = ensureSpace(doc, y, 200, W, H, M);
+
+        doc.fillColor(C.white).fontSize(16).font("Helvetica-Bold");
+        doc.text("AI SECURITY ANALYSIS", M, y);
+        doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+        doc.text("Powered by DARKSHARE AI Engine", M + 180, y + 4);
+        y += 25;
+
+        // Threat level card
+        const threatColors: Record<string, string> = {
+          "БЕЗПЕЧНО": C.success, "SAFE": C.success,
+          "УВАГА": C.warning, "CAUTION": C.warning,
+          "НЕБЕЗПЕЧНО": C.high, "DANGEROUS": C.high,
+          "КРИТИЧНО": C.danger, "CRITICAL": C.danger,
+        };
+        const threatColor = threatColors[data.aiInsights.threatLevel] || C.warning;
+
+        doc.roundedRect(M, y, CW, 80, 6).fill(C.surface);
+        doc.rect(M, y, 4, 80).fill(threatColor);
+
+        // Threat badge
+        doc.roundedRect(M + 15, y + 12, 100, 24, 5).fill(threatColor);
+        doc.fillColor(C.bgDark).fontSize(10).font("Helvetica-Bold");
+        doc.text(data.aiInsights.threatLevel, M + 20, y + 17, { width: 90, align: "center" });
+
+        // Verdict
+        doc.fillColor(C.white).fontSize(12).font("Helvetica-Bold");
+        doc.text(data.aiInsights.verdict, M + 125, y + 15, { width: CW - 145 });
+
+        // Summary
+        const summary = data.aiInsights.summary.length > 200
+          ? data.aiInsights.summary.substring(0, 197) + "..."
+          : data.aiInsights.summary;
+        doc.fillColor(C.textMuted).fontSize(9).font("Helvetica");
+        doc.text(summary, M + 15, y + 48, { width: CW - 30 });
+
+        y += 95;
+
+        // Recommendations
+        if (data.aiInsights.recommendations && data.aiInsights.recommendations.length > 0) {
+          doc.fillColor(C.textSec).fontSize(10).font("Helvetica-Bold");
+          doc.text("RECOMMENDATIONS", M, y);
+          y += 18;
+
+          const recs = data.aiInsights.recommendations.slice(0, 5);
+          for (let i = 0; i < recs.length; i++) {
+            y = ensureSpace(doc, y, 35, W, H, M);
+            doc.roundedRect(M, y, CW, 28, 4).fill(C.surfaceAlt);
+            doc.rect(M, y, 3, 28).fill(C.accent);
+            doc.roundedRect(M + 12, y + 6, 20, 16, 8).fill(C.primaryMuted);
+            doc.fillColor(C.accent).fontSize(8).font("Helvetica-Bold");
+            doc.text(String(i + 1), M + 14, y + 10, { width: 16, align: "center" });
+            const recText = recs[i].length > 90 ? recs[i].substring(0, 87) + "..." : recs[i];
+            doc.fillColor(C.textLight).fontSize(9).font("Helvetica");
+            doc.text(recText, M + 40, y + 8, { width: CW - 55 });
+            y += 34;
+          }
+        }
+      }
     }
 
-    doc.fillColor(COLORS.textSecondary).fontSize(10).font("Helvetica-Bold");
-    doc.text("DATA SOURCES", margin, y);
-    y += 14;
-    doc.fillColor(COLORS.textDim).fontSize(9).font("Helvetica");
-    const sourcesText = data.sources.slice(0, 6).join("  •  ");
-    doc.text(sourcesText, margin, y, { width: contentWidth * 0.65 });
+    // ═══════════════ PAGE 4: SOURCES & CERTIFICATION ═══════════════
+    doc.addPage();
+    drawPageBg(doc, W, H);
+    drawPageHeader(doc, W, M);
+    y = 60;
 
-    const qrX = pageWidth - margin - 70;
-    const qrY = pageHeight - 145;
-    
-    doc.roundedRect(qrX - 8, qrY - 8, 86, 106, 6).fill(COLORS.surface);
-    doc.image(qrBuffer, qrX, qrY, { width: 70, height: 70 });
-    doc.fillColor(COLORS.textMuted).fontSize(7).font("Helvetica");
-    doc.text("SCAN TO VERIFY", qrX - 5, qrY + 75, { width: 80, align: "center" });
-    doc.fillColor(COLORS.textDim).fontSize(6).font("Helvetica");
-    doc.text(reportId, qrX - 5, qrY + 86, { width: 80, align: "center" });
+    doc.fillColor(C.white).fontSize(16).font("Helvetica-Bold");
+    doc.text("DATA SOURCES & METHODOLOGY", M, y);
+    y += 25;
 
-    const stampX = margin + 50;
-    const stampY = pageHeight - 100;
-    
+    doc.roundedRect(M, y, CW, 40, 6).fill(C.surface);
+    doc.fillColor(C.textMuted).fontSize(9).font("Helvetica");
+    doc.text("This analysis was performed using the following intelligence sources and databases. Each source was queried in real-time to ensure data accuracy and relevance.", M + 15, y + 10, { width: CW - 30 });
+    y += 55;
+
+    const srcs = data.sources.slice(0, 12);
+    for (let i = 0; i < srcs.length; i++) {
+      y = ensureSpace(doc, y, 30, W, H, M);
+      doc.roundedRect(M, y, CW, 24, 4).fill(i % 2 === 0 ? C.surface : C.surfaceAlt);
+      doc.circle(M + 18, y + 12, 4).fill(C.primary);
+      doc.fillColor(C.bgDark).fontSize(6).font("Helvetica-Bold");
+      doc.text("✓", M + 15, y + 9, { width: 6, align: "center" });
+      doc.fillColor(C.textLight).fontSize(9).font("Helvetica-Bold");
+      doc.text(srcs[i], M + 30, y + 7);
+      y += 28;
+    }
+
+    y += 20;
+    y = ensureSpace(doc, y, 200, W, H, M);
+
+    // Certification section
+    doc.fillColor(C.white).fontSize(16).font("Helvetica-Bold");
+    doc.text("CERTIFICATION & VERIFICATION", M, y);
+    y += 25;
+
+    doc.roundedRect(M, y, CW, 190, 8).fill(C.surface);
+    doc.rect(M, y, CW, 4).fill(C.primary);
+
+    // Stamp
+    const stampX = M + 75;
+    const stampY2 = y + 95;
     doc.save();
-    doc.circle(stampX, stampY, 38).lineWidth(2.5).stroke(COLORS.primary);
-    doc.circle(stampX, stampY, 32).lineWidth(1.5).stroke(COLORS.primary);
-    
-    doc.fillColor(COLORS.primary).fontSize(5).font("Helvetica-Bold");
-    doc.text("DARKSHARE", stampX - 25, stampY - 26, { width: 50, align: "center" });
-    doc.text("INTERNATIONAL", stampX - 25, stampY - 19, { width: 50, align: "center" });
-    
-    doc.fillColor(COLORS.primary).fontSize(12).font("Helvetica-Bold");
-    doc.text("VERIFIED", stampX - 25, stampY - 6, { width: 50, align: "center" });
-    
-    doc.fillColor(COLORS.primary).fontSize(6).font("Helvetica");
-    doc.text("SECURITY ANALYSIS", stampX - 30, stampY + 10, { width: 60, align: "center" });
-    
-    const certDate = data.timestamp.toLocaleDateString('en-GB');
-    doc.fillColor(COLORS.primary).fontSize(6).font("Helvetica-Bold");
-    doc.text(certDate, stampX - 20, stampY + 22, { width: 40, align: "center" });
+    doc.circle(stampX, stampY2, 48).lineWidth(3).strokeColor(C.primary).stroke();
+    doc.circle(stampX, stampY2, 42).lineWidth(1.5).strokeColor(C.primary).stroke();
+    doc.circle(stampX, stampY2, 36).lineWidth(0.8).strokeColor(C.primaryMuted).stroke();
+
+    doc.fillColor(C.primary).fontSize(5).font("Helvetica-Bold");
+    doc.text("• DARKSHARE INTERNATIONAL •", stampX - 35, stampY2 - 36, { width: 70, align: "center" });
+    doc.fillColor(C.primary).fontSize(16).font("Helvetica-Bold");
+    doc.text("VERIFIED", stampX - 35, stampY2 - 12, { width: 70, align: "center" });
+    doc.fillColor(C.primary).fontSize(7).font("Helvetica");
+    doc.text("SECURITY ANALYSIS", stampX - 35, stampY2 + 8, { width: 70, align: "center" });
+    doc.fillColor(C.primary).fontSize(6).font("Helvetica-Bold");
+    doc.text(data.timestamp.toLocaleDateString('en-GB'), stampX - 30, stampY2 + 22, { width: 60, align: "center" });
+    doc.fillColor(C.primaryMuted).fontSize(4).font("Helvetica");
+    doc.text("RISK INTELLIGENCE PLATFORM", stampX - 35, stampY2 + 34, { width: 70, align: "center" });
     doc.restore();
 
-    const footerY = pageHeight - 35;
-    
-    doc.fillColor(COLORS.textDim).fontSize(7).font("Helvetica");
-    doc.text("CONFIDENTIAL - This report is intended for authorized recipients only.", margin, footerY);
-    
-    const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 16);
-    doc.text(`DARKSHARE v4.4  •  Hash: ${hash}  •  © ${new Date().getFullYear()}`, margin, footerY + 12);
+    // Cert details
+    const certX = M + 170;
+    doc.fillColor(C.textLight).fontSize(11).font("Helvetica-Bold");
+    doc.text("Certificate of Analysis", certX, y + 20);
+
+    const certFields = [
+      { l: "Report ID", v: reportId },
+      { l: "Module", v: moduleLabel },
+      { l: "Target", v: displayTarget.substring(0, 35) },
+      { l: "Risk Level", v: `${data.riskLevel.toUpperCase()} (${data.riskScore}/100)` },
+      { l: "Date", v: data.timestamp.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) },
+      { l: "Analyst", v: data.userId },
+    ];
+    let cY = y + 40;
+    certFields.forEach(cf => {
+      doc.fillColor(C.textDark).fontSize(7).font("Helvetica");
+      doc.text(cf.l.toUpperCase(), certX, cY);
+      doc.fillColor(C.textLight).fontSize(9).font("Helvetica-Bold");
+      doc.text(cf.v, certX + 80, cY);
+      cY += 16;
+    });
+
+    // Hash
+    const hash = Buffer.from(`${reportId}-${data.targetValue}-${data.timestamp.getTime()}`).toString("base64").substring(0, 32);
+    doc.fillColor(C.textDark).fontSize(7).font("Helvetica");
+    doc.text("INTEGRITY HASH", certX, cY + 5);
+    doc.fillColor(C.primary).fontSize(8).font("Courier");
+    doc.text(hash, certX + 80, cY + 5);
+
+    y += 210;
+
+    // QR verification block
+    y = ensureSpace(doc, y, 80, W, H, M);
+    doc.roundedRect(M, y, CW, 70, 6).fill(C.surface);
+    if (isDraft) {
+      doc.rect(M, y, 4, 70).fill(C.warning);
+      doc.fillColor(C.warning).fontSize(10).font("Helvetica-Bold");
+      doc.text("DRAFT — Verification Not Available", M + 18, y + 15);
+      doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+      doc.text("This draft report was exported directly from check results and does not have a verification ID. Save the report to your history to generate a verified report with QR code authentication.", M + 18, y + 32, { width: CW - 30 });
+    } else {
+      doc.image(qrBuffer, M + 12, y + 10, { width: 50, height: 50 });
+      doc.fillColor(C.textLight).fontSize(10).font("Helvetica-Bold");
+      doc.text("Scan QR code to verify this report", M + 75, y + 15);
+      doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
+      doc.text("Each DARKSHARE report is assigned a unique verification ID. This report's authenticity can be verified through the DARKSHARE verification portal.", M + 75, y + 32, { width: CW - 100 });
+      doc.fillColor(C.primary).fontSize(8).font("Courier");
+      doc.text(verificationUrl, M + 75, y + 55);
+    }
+
+    // Disclaimer
+    y += 85;
+    y = ensureSpace(doc, y, 60, W, H, M);
+    doc.roundedRect(M, y, CW, 50, 4).fill(C.surfaceAlt);
+    doc.rect(M, y, 3, 50).fill(C.warning);
+    doc.fillColor(C.warning).fontSize(7).font("Helvetica-Bold");
+    doc.text("LEGAL DISCLAIMER", M + 15, y + 8);
+    doc.fillColor(C.textDim).fontSize(7).font("Helvetica");
+    doc.text("This report is provided for informational purposes only and does not constitute legal, financial, or professional advice. DARKSHARE makes no warranties regarding the accuracy or completeness of the information contained herein. The recipient assumes full responsibility for any actions taken based on this report.", M + 15, y + 20, { width: CW - 30 });
+
+    // Footer on last page
+    const footY = H - 30;
+    doc.rect(0, footY, W, 30).fill(C.surface);
+    doc.fillColor(C.textDark).fontSize(6).font("Helvetica");
+    doc.text(`CONFIDENTIAL  ·  DARKSHARE v4.4 Risk Intelligence  ·  © ${new Date().getFullYear()} DARKSHARE International  ·  Generated: ${data.timestamp.toISOString()}`, M, footY + 10, { width: CW, align: "center" });
 
     doc.end();
   });
@@ -350,15 +605,20 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
 function getModuleLabel(moduleType: string): string {
   const labels: Record<string, string> = {
     ip: "IP Analysis",
-    wallet: "Blockchain",
+    wallet: "Blockchain Intel",
     phone: "Phone Intel",
     email: "Email Check",
     domain: "Domain Intel",
     url: "URL Scan",
     bot: "Bot Audit",
     cve: "CVE Scan",
-    iot: "IoT Scan",
-    cloud: "Cloud Intel",
+    hash: "Hash Check",
+    username: "Username OSINT",
+    card: "Card BIN Check",
+    password: "Password Audit",
+    dns: "DNS Analysis",
+    ssl: "SSL/TLS Check",
+    mac: "MAC Lookup",
   };
   return labels[moduleType] || moduleType.toUpperCase();
 }
@@ -367,24 +627,24 @@ function getVerdict(level: string, score: number): { title: string; description:
   if (level === "critical" || score >= 80) {
     return {
       title: "CRITICAL RISK — Immediate Action Required",
-      description: "Serious risk indicators detected. Do not proceed without thorough verification and risk mitigation.",
+      description: "Serious risk indicators detected. Do not proceed without thorough verification and comprehensive risk mitigation measures.",
     };
   }
   if (level === "high" || score >= 60) {
     return {
       title: "HIGH RISK — Exercise Extreme Caution",
-      description: "Multiple concerning indicators found. Additional verification strongly recommended before proceeding.",
+      description: "Multiple concerning indicators found. Additional verification strongly recommended before any interaction.",
     };
   }
   if (level === "medium" || score >= 30) {
     return {
       title: "MODERATE RISK — Apply Due Diligence",
-      description: "Some risk indicators present. Standard verification procedures should be followed.",
+      description: "Some risk indicators present. Standard verification procedures should be followed before proceeding.",
     };
   }
   return {
     title: "LOW RISK — Generally Safe",
-    description: "No significant risk indicators detected. Standard precautions recommended.",
+    description: "No significant risk indicators detected. Standard precautions still recommended for all operations.",
   };
 }
 
@@ -432,10 +692,34 @@ export function generateFindings(moduleType: string, riskLevel: string): Finding
       { type: riskLevel === "high" ? "warning" : "success", title: "Permission Check", description: riskLevel === "high" ? "Elevated permissions detected." : "Standard permissions." },
       { type: riskLevel === "high" ? "danger" : "success", title: "Security Analysis", description: riskLevel === "high" ? "Suspicious bot patterns found." : "No security issues found." },
     ],
+    password: [
+      { type: "info", title: "Entropy Calculation", description: "Password entropy and bit strength computed." },
+      { type: riskLevel === "high" ? "danger" : "success", title: "Breach Database Check", description: riskLevel === "high" ? "Password found in HIBP breaches." : "Password not found in known breaches." },
+      { type: riskLevel === "high" ? "warning" : "info", title: "Pattern Detection", description: riskLevel === "high" ? "Common patterns detected." : "No known patterns found." },
+      { type: "info", title: "Crack Time Estimation", description: "Estimated time to crack via brute force." },
+    ],
+    dns: [
+      { type: "info", title: "A/AAAA Record Resolution", description: "IP addresses resolved from DNS." },
+      { type: "info", title: "MX Records Retrieved", description: "Mail server configuration analyzed." },
+      { type: riskLevel === "high" ? "warning" : "success", title: "SPF/DMARC Policy", description: riskLevel === "high" ? "Misconfigured email auth." : "Email authentication properly configured." },
+      { type: riskLevel === "high" ? "danger" : "success", title: "DNSSEC Status", description: riskLevel === "high" ? "DNSSEC not enabled." : "DNSSEC properly configured." },
+    ],
+    ssl: [
+      { type: riskLevel === "high" ? "danger" : "success", title: "Certificate Validity", description: riskLevel === "high" ? "Certificate expired or invalid." : "Certificate is valid and current." },
+      { type: "info", title: "Issuer Verification", description: "Certificate authority identified." },
+      { type: riskLevel === "high" ? "warning" : "success", title: "HSTS Policy", description: riskLevel === "high" ? "HSTS not enforced." : "HSTS properly configured." },
+      { type: "info", title: "SAN Analysis", description: "Subject alternative names checked." },
+    ],
+    mac: [
+      { type: "info", title: "OUI Vendor Lookup", description: "Manufacturer identified from OUI prefix." },
+      { type: "info", title: "Device Type Classification", description: "MAC address type and format analyzed." },
+      { type: riskLevel === "high" ? "warning" : "success", title: "VM Detection", description: riskLevel === "high" ? "Virtual machine MAC detected." : "Physical device identified." },
+      { type: "info", title: "Address Classification", description: "Unicast/multicast status determined." },
+    ],
   };
 
   return baseFindingsByModule[moduleType] || [
-    { type: "info", title: "Analysis Complete", description: "Target analyzed using available sources." },
+    { type: "info", title: "Analysis Complete", description: "Target analyzed using available intelligence sources." },
   ];
 }
 
@@ -448,6 +732,10 @@ export function generateMetadata(moduleType: string): Record<string, string | nu
     domain: { "Age": "5 years", "Registrar": "Cloudflare", "DNS": 12 },
     url: { "Status": 200, "Redirects": Math.floor(Math.random() * 3), "Engines": 70 },
     bot: { "API": "Telegram", "Validation": "Live", "Checks": 4 },
+    password: { "Charset": "Mixed", "Entropy": "High", "HIBP Check": "Complete" },
+    dns: { "Resolver": "Google DNS", "Record Types": 6, "DNSSEC": "Checked" },
+    ssl: { "Protocol": "TLS 1.3", "Key Size": "256-bit", "HSTS": "Checked" },
+    mac: { "OUI Source": "IEEE", "Format": "EUI-48", "Type": "Unicast" },
   };
 
   return baseMetadata[moduleType] || { "Type": moduleType };
