@@ -615,6 +615,7 @@ export class DatabaseStorage implements IStorage {
   async getReactions(messageIds: number[]): Promise<{ messageId: number; emoji: string; userId: number }[]> {
     if (!messageIds.length) return [];
     const { pool } = await import("./db");
+    if (!pool) return [];
     const placeholders = messageIds.map((_, i) => `$${i + 1}`).join(",");
     const result = await pool.query(
       `SELECT message_id as "messageId", emoji, user_id as "userId" FROM ds_chat_reactions WHERE message_id IN (${placeholders})`,
@@ -625,6 +626,7 @@ export class DatabaseStorage implements IStorage {
 
   async addReaction(messageId: number, userId: number, emoji: string): Promise<void> {
     const { pool } = await import("./db");
+    if (!pool) return;
     await pool.query(
       `INSERT INTO ds_chat_reactions (message_id, user_id, emoji) VALUES ($1, $2, $3) ON CONFLICT (message_id, user_id, emoji) DO NOTHING`,
       [messageId, userId, emoji]
@@ -633,6 +635,7 @@ export class DatabaseStorage implements IStorage {
 
   async removeReaction(messageId: number, userId: number, emoji: string): Promise<void> {
     const { pool } = await import("./db");
+    if (!pool) return;
     await pool.query(
       `DELETE FROM ds_chat_reactions WHERE message_id = $1 AND user_id = $2 AND emoji = $3`,
       [messageId, userId, emoji]
@@ -652,6 +655,7 @@ export class DatabaseStorage implements IStorage {
 
   async getConversationList(): Promise<Array<{ userId: number; username: string | null; lastMessage: string; lastAt: Date | null; unreadCount: number }>> {
     const { pool } = await import("./db");
+    if (!pool) return [];
     const result = await pool.query(`
       SELECT 
         m.user_id as "userId",
@@ -810,6 +814,8 @@ export class MemStorage implements IStorage {
       autoRenew: false,
       totpSecret: null,
       totpEnabled: false,
+      photoUrl: null,
+      lastReminderSent: null,
     };
     this.users.set(id, user);
     return user;
@@ -907,6 +913,7 @@ export class MemStorage implements IStorage {
       amountUsdt: insertPayment.amountUsdt,
       txHash: insertPayment.txHash || null,
       screenshotUrl: insertPayment.screenshotUrl || null,
+      invoiceId: insertPayment.invoiceId || null,
       status: insertPayment.status || "pending",
       period: insertPayment.period || null,
       createdAt: new Date(),
@@ -1176,7 +1183,7 @@ export class MemStorage implements IStorage {
   }
 
   async createChatMessage(msg: InsertChatMessage): Promise<ChatMessage> {
-    const created: ChatMessage = { id: this.nextChatId++, userId: msg.userId, username: msg.username ?? null, message: msg.message, messageType: msg.messageType ?? "text", fileUrl: msg.fileUrl ?? null, teamId: msg.teamId ?? null, createdAt: new Date() };
+    const created: ChatMessage = { id: this.nextChatId++, userId: msg.userId, username: msg.username ?? null, photoUrl: msg.photoUrl ?? null, message: msg.message, messageType: msg.messageType ?? "text", fileUrl: msg.fileUrl ?? null, teamId: msg.teamId ?? null, createdAt: new Date() };
     this.memChatMessages.push(created);
     return created;
   }
@@ -1210,7 +1217,7 @@ export class MemStorage implements IStorage {
   }
 
   async getConversationList(): Promise<Array<{ userId: number; username: string | null; lastMessage: string; lastAt: Date | null; unreadCount: number }>> {
-    const userIds = [...new Set(this.memAdminMessages.map(m => m.userId))];
+    const userIds = Array.from(new Set(this.memAdminMessages.map(m => m.userId)));
     return userIds.map(userId => {
       const msgs = this.memAdminMessages.filter(m => m.userId === userId);
       const last = msgs[msgs.length - 1];

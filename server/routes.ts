@@ -34,7 +34,7 @@ function rateLimit(key: string, maxRequests: number, windowMs: number): boolean 
 
 setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of rateLimitMap.entries()) {
+  for (const [key, entry] of Array.from(rateLimitMap.entries())) {
     if (now > entry.resetAt) rateLimitMap.delete(key);
   }
 }, 5 * 60 * 1000);
@@ -150,12 +150,12 @@ export async function registerRoutes(
             await storage.updateUser(dsUser.id, updates);
             dsUser = { ...dsUser, ...updates };
           }
-          await storage.updateUserLogin(dsUser.id);
-          storage.logActivity({ eventType: "login", userId: dsUser.id, username: dsUser.username || null, details: `User logged in via Google/Replit` }).catch(() => {});
+          await storage.updateUserLogin(dsUser!.id);
+          storage.logActivity({ eventType: "login", userId: dsUser!.id, username: dsUser!.username || null, details: `User logged in via Google/Replit` }).catch(() => {});
         }
         
-        req.session.userId = dsUser.id;
-        req.session.tgId = dsUser.tgId;
+        req.session.userId = dsUser!.id;
+        req.session.tgId = dsUser!.tgId;
         (req.session as any).provider = 'replit';
         (req.session as any).email = email;
         req.session.save(() => {});
@@ -1302,8 +1302,8 @@ export async function registerRoutes(
           Object.entries(req.body.details)
             .slice(0, 8)
             .filter(([k, v]) => typeof k === "string" && (typeof v === "string" || typeof v === "number"))
-            .map(([k, v]) => [k.substring(0, 30), typeof v === "string" ? (v as string).substring(0, 100) : v])
-        );
+            .map(([k, v]) => [k.substring(0, 30), typeof v === "string" ? (v as string).substring(0, 100) : v as number])
+        ) as Record<string, string | number>;
       }
 
       const pdfBuffer = await generateDetailedPDF({
@@ -1592,7 +1592,7 @@ export async function registerRoutes(
           const used = await storage.hasUserUsedCoupon(coupon.id, authReq.user!.id);
           if (!used) {
             await storage.useCoupon(coupon.id, authReq.user!.id);
-            amount = Math.round(amount * (1 - (coupon.discountPct || 0) / 100) * 100) / 100;
+            amount = Math.round(amount * (1 - (coupon.value || 0) / 100) * 100) / 100;
             promoValid = true;
           }
         }
@@ -1842,7 +1842,7 @@ export async function registerRoutes(
 
       const monoData = await monoResponse.json();
 
-      if (monoData.invoiceId) {
+      if (monoData.invoiceId && pool) {
         await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
       }
 
@@ -1954,7 +1954,7 @@ export async function registerRoutes(
 
       const monoData = await monoResponse.json();
 
-      if (monoData.invoiceId) {
+      if (monoData.invoiceId && pool) {
         await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
       }
 
@@ -2888,6 +2888,8 @@ export async function registerRoutes(
     if (!title || !msgBody) return res.status(400).json({ error: "title and body required" });
 
     try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       const webPush = await import("web-push");
       const vapidPublic = process.env.VAPID_PUBLIC_KEY;
       const vapidPrivate = process.env.VAPID_PRIVATE_KEY;

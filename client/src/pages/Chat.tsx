@@ -622,7 +622,7 @@ function MessageBubble({
                     <div
                       className="mb-1.5 px-2 py-1 rounded-md bg-white/[0.04] border-l-2 border-primary/40 cursor-pointer hover:bg-white/[0.07] transition-colors"
                       onClick={() => {
-                        const allMsgs = document.querySelectorAll(`[data-testid^="chat-message-"]`);
+                        const allMsgs = Array.from(document.querySelectorAll(`[data-testid^="chat-message-"]`));
                         for (const msgEl of allMsgs) {
                           const msgText = msgEl.textContent || '';
                           if (msgText.includes(quotedUser) && msgText.includes(quotedText.substring(0, 30))) {

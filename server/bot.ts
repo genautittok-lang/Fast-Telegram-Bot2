@@ -102,7 +102,7 @@ export async function setupBot(storage: IStorage) {
 
       const tl = (uk: string, ru: string, en: string, pl: string) => pl === "uk" ? uk : pl === "ru" ? ru : en;
 
-      function buildContent(pl: string) {
+      const buildContent = (pl: string) => {
         return [
         { tag: "h3", children: [tl("🛡 DARKSHARE v4.4 — Професійна OSINT платформа безпеки", "🛡 DARKSHARE v4.4 — Профессиональная OSINT платформа безопасности", "🛡 DARKSHARE v4.4 — Professional Security OSINT Platform", pl)] },
         { tag: "p", children: [{ tag: "b", children: [tl("Комплексна платформа аналізу безпеки для перевірки крипто гаманців, IP адрес, email, телефонів, доменів, URL, CVE вразливостей, хешів файлів, юзернеймів та BIN карток. Доступна як Telegram бот, веб-дашборд та REST API.", "Комплексная платформа анализа безопасности для проверки крипто кошельков, IP адресов, email, телефонов, доменов, URL, CVE уязвимостей, хешей файлов, юзернеймов и BIN карт. Доступна как Telegram бот, веб-дашборд и REST API.", "Comprehensive security intelligence platform for analyzing blockchain wallets, IP addresses, emails, phone numbers, domains, URLs, CVE vulnerabilities, file hashes, usernames, and bank card BINs. Available as Telegram bot, web dashboard, and REST API.", pl)] }] },
@@ -4577,7 +4577,7 @@ ${allTypesText}
         cache_time: 300,
         switch_pm_text: "Open DarkShare Bot",
         switch_pm_parameter: "inline"
-      });
+      } as any);
     }
 
     const parts = query.split(/\s+/);
