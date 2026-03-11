@@ -2,6 +2,23 @@ import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Clock, Scan, MessageCircle, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+
+function useIsPwa() {
+  const [isPwa, setIsPwa] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      const standalone = window.matchMedia("(display-mode: standalone)").matches
+        || (window.navigator as any).standalone === true;
+      setIsPwa(standalone);
+    };
+    check();
+    const mq = window.matchMedia("(display-mode: standalone)");
+    mq.addEventListener("change", check);
+    return () => mq.removeEventListener("change", check);
+  }, []);
+  return isPwa;
+}
 
 const tabs = [
   { id: "dashboard", icon: LayoutDashboard, href: "/dashboard", label: "Home" },
@@ -29,6 +46,7 @@ function NotificationDot({ count, color = "bg-red-500" }: { count: number; color
 
 export function BottomTabBar() {
   const [location] = useLocation();
+  const isPwa = useIsPwa();
 
   const { data: recentReports = [] } = useQuery<any[]>({
     queryKey: ["/api/reports"],
@@ -46,6 +64,8 @@ export function BottomTabBar() {
       navigator.vibrate(10);
     }
   };
+
+  if (!isPwa) return null;
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50" data-testid="app-bottom-tab-bar">
