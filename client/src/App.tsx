@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider, useAuth } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import { PWAProvider } from "@/lib/pwa";
 import { CookieBanner } from "@/components/CookieBanner";
@@ -12,6 +12,7 @@ import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import { InstallBanner } from "@/components/InstallBanner";
 import { NotificationManager } from "@/components/NotificationManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { BottomTabBar } from "@/components/BottomTabBar";
 import { motion, AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
@@ -35,14 +36,16 @@ import Chat from "@/pages/Chat";
 import Guide from "@/pages/Guide";
 import Download from "@/pages/Download";
 
+const APP_PATHS = ["/dashboard", "/history", "/monitoring", "/referral", "/account", "/teams", "/chat", "/admin"];
+
 const pageVariants = {
-  initial: { opacity: 0, y: 8 },
+  initial: { opacity: 0, y: 6 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
+  exit: { opacity: 0, y: -6 },
 };
 
 const pageTransition = {
-  duration: 0.2,
+  duration: 0.18,
   ease: [0.25, 0.1, 0.25, 1],
 };
 
@@ -59,6 +62,18 @@ function AnimatedPage({ children }: { children: React.ReactNode }) {
       {children}
     </motion.div>
   );
+}
+
+function PersistentBottomBar() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
+
+  if (isLoading || !isAuthenticated) return null;
+
+  const isAppPage = APP_PATHS.some(p => location === p || location.startsWith(p + "/"));
+  if (!isAppPage) return null;
+
+  return <BottomTabBar />;
 }
 
 function Router() {
@@ -110,6 +125,7 @@ function App() {
                 <Toaster />
                 <CookieBanner />
                 <Router />
+                <PersistentBottomBar />
               </AuthProvider>
             </PWAProvider>
           </LanguageProvider>

@@ -3,7 +3,6 @@ import { Link, useLocation } from "wouter";
 import { Shield, Globe, Lock, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppSidebar } from "@/components/AppSidebar";
-import { BottomTabBar } from "@/components/BottomTabBar";
 import { MobileMenu } from "@/components/MobileMenu";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
@@ -519,7 +518,6 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
             <PullToRefresh scrollRef={mainScrollRef} />
             {children}
           </main>
-          <BottomTabBar />
         </div>
       </div>
     );
