@@ -97,6 +97,10 @@ export const translations = {
       locked: "🔒 Преміум функція!",
       required: "Потрібен PRO тариф",
     },
+
+    check: {
+      noRequestsLeft: "❌ Ліміт запитів вичерпано!\n\n⭐ Оновись до PRO для більше запитів!",
+    },
     
     referrals: {
       title: "📣 Реферальна програма",
@@ -626,6 +630,10 @@ Select a module for analysis:`,
     premium: {
       locked: "🔒 Premium feature!",
       required: "PRO tier required",
+    },
+
+    check: {
+      noRequestsLeft: "❌ Request limit reached!\n\n⭐ Upgrade to PRO for more requests!",
     },
     
     referrals: {
@@ -1157,6 +1165,10 @@ Select a module for analysis:`,
       locked: "🔒 Премиум функция!",
       required: "Нужен PRO тариф",
     },
+
+    check: {
+      noRequestsLeft: "❌ Лимит запросов исчерпан!\n\n⭐ Обновись до PRO для большего количества запросов!",
+    },
     
     referrals: {
       title: "📣 Реферальная программа",
@@ -1687,6 +1699,10 @@ Selecciona un módulo para análisis:`,
       locked: "🔒 ¡Función premium!",
       required: "Se requiere nivel PRO",
     },
+
+    check: {
+      noRequestsLeft: "❌ ¡Límite de solicitudes alcanzado!\n\n⭐ ¡Actualiza a PRO para más solicitudes!",
+    },
     
     referrals: {
       title: "📣 Programa de Referidos",
@@ -2216,6 +2232,10 @@ Wähle ein Modul zur Analyse:`,
     premium: {
       locked: "🔒 Premium-Funktion!",
       required: "PRO-Stufe erforderlich",
+    },
+
+    check: {
+      noRequestsLeft: "❌ Anfragelimit erreicht!\n\n⭐ Upgrade auf PRO für mehr Anfragen!",
     },
     
     referrals: {
