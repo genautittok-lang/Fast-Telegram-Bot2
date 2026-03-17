@@ -388,6 +388,7 @@ export async function setupBot(storage: IStorage) {
       [cb((t(lang, "admin.tiersBtn") || "Tiers"), "admin_change_tier", "primary", E.star),
        cb((lang === "uk" ? "Онлайн" : lang === "ru" ? "Онлайн" : "Online"), "admin_online", "primary", E.globe)],
       [cb((t(lang, "admin.settingsBtn") || "Settings"), "admin_settings", "primary", E.gear)],
+      [Markup.button.url("🌐 " + (lang === "uk" ? "Веб-адмінка" : lang === "ru" ? "Веб-админка" : "Web Admin"), (process.env.WEB_DOMAIN || "https://www.darkshare.store") + "/admin")],
       [cb((t(lang, "admin.exitBtn") || "Exit"), exitAction, "danger", E.back)]
     ]);
   }

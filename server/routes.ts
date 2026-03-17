@@ -3647,53 +3647,6 @@ export async function registerRoutes(
     }
   });
 
-  // EXIF metadata extraction endpoint
-  const exifUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
-    if (["image/jpeg", "image/png", "image/webp", "image/tiff", "image/heic"].includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type. Only images allowed (JPEG, PNG, WebP, TIFF, HEIC)."));
-    }
-  } });
-
-  app.post("/api/exif", loadUser, requireAuth, exifUpload.single("photo"), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-      const exifr = await import("exifr");
-      const buffer = req.file.buffer;
-      const [exifData, gpsData] = await Promise.all([
-        exifr.default.parse(buffer, { pick: [
-          "Make", "Model", "Software", "DateTimeOriginal", "CreateDate", "ModifyDate",
-          "ExposureTime", "FNumber", "ISO", "FocalLength", "Flash", "WhiteBalance",
-          "ImageWidth", "ImageHeight", "Orientation", "ColorSpace",
-          "LensModel", "LensMake", "GPSLatitude", "GPSLongitude", "GPSAltitude",
-          "Artist", "Copyright", "Description", "XPComment"
-        ] }).catch(() => null),
-        exifr.default.gps(buffer).catch(() => null)
-      ]);
-
-      const result: any = {
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
-        metadata: exifData || {},
-        gps: gpsData || null,
-        hasGps: !!gpsData,
-      };
-
-      if (gpsData) {
-        result.mapUrl = `https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`;
-      }
-
-      res.json(result);
-    } catch (err) {
-      console.error("EXIF extraction error:", err);
-      res.status(500).json({ error: "Failed to extract metadata" });
-    }
-  });
-
   // GEOINT hints reference endpoint
   app.get("/api/geoint-hints", (_req, res) => {
     const hints = [
