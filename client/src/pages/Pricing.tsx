@@ -627,12 +627,12 @@ function PricingContent() {
                             <div className="text-[11px] text-muted-foreground mt-0.5">@CryptoBot · Telegram</div>
                           </div>
                           <div className="flex flex-col items-end gap-0.5">
+                            <span className="px-2.5 py-1 rounded-lg bg-blue-500/15 text-xs font-bold text-blue-400 border border-blue-500/25 shadow-sm">${showPaymentModal ? getFinalAmount(showPaymentModal) : 0}</span>
                             <div className="flex flex-wrap gap-1 justify-end">
                               {["BTC", "TON", "USDT"].map(c => (
-                                <span key={c} className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-[9px] font-mono text-blue-400 border border-blue-500/20">{c}</span>
+                                <span key={c} className="px-1 py-0 rounded bg-blue-500/10 text-[8px] font-mono text-blue-400/70">{c}</span>
                               ))}
                             </div>
-                            <span className="text-[9px] text-muted-foreground/60">${showPaymentModal ? getFinalAmount(showPaymentModal) : 0} USD</span>
                           </div>
                         </button>
 
@@ -660,24 +660,11 @@ function PricingContent() {
                             <div className="text-sm font-semibold text-white flex items-center gap-1.5">
                               Google Pay / Apple Pay
                             </div>
-                            <div className="text-[11px] text-muted-foreground mt-0.5">Visa, Mastercard · UAH</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">Visa, Mastercard</div>
                           </div>
                           <div className="flex flex-col items-end gap-0.5">
-                            {(() => {
-                              const uahPrices: Record<string, Record<string, number>> = {
-                                PRO: { monthly: 410, yearly: 4100 },
-                                ENTERPRISE: { monthly: 1435, yearly: 14309 },
-                                GROUPS: { monthly: 2255, yearly: 22509 },
-                              };
-                              const base = showPaymentModal ? uahPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0 : 0;
-                              const finalUah = promoApplied && promoDiscount > 0 ? Math.round(base * (1 - promoDiscount / 100)) : base;
-                              return (
-                                <>
-                                  <span className="px-2 py-0.5 rounded-lg bg-violet-500/10 text-[10px] font-mono text-violet-400 border border-violet-500/20">{finalUah} UAH</span>
-                                  <span className="text-[9px] text-muted-foreground/60">~${showPaymentModal ? getFinalAmount(showPaymentModal) : 0}</span>
-                                </>
-                              );
-                            })()}
+                            <span className="px-2.5 py-1 rounded-lg bg-violet-500/15 text-xs font-bold text-violet-400 border border-violet-500/25 shadow-sm">${showPaymentModal ? getFinalAmount(showPaymentModal) : 0}</span>
+                            <span className="text-[9px] text-muted-foreground/60">USD</span>
                           </div>
                         </button>
                       </div>
