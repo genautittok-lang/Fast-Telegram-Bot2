@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { pool } from "./db";
 import { setupBot, botInstance, ADMIN_IDS } from "./bot";
 import { api } from "@shared/routes";
-import { performCheck, validateInput } from "./checkService";
+import { performCheck, validateInput, extractExifFromBuffer } from "./checkService";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
@@ -934,6 +934,21 @@ export async function registerRoutes(
       addActivity(type, value, result.riskLevel);
       storage.logActivity({ eventType: "check", userId: authReq.user!.id, username: authReq.user!.username || null, details: `Check: ${type}`, meta: { type, riskLevel: result.riskLevel, riskScore: result.riskScore } }).catch(() => {});
 
+      if (authReq.user!.pendingRefCode) {
+        try {
+          const referrer = await storage.getUserByRefCode(authReq.user!.pendingRefCode);
+          if (referrer && referrer.id !== authReq.user!.id) {
+            await storage.createReferral({ referrerId: referrer.id, referredId: authReq.user!.id, bonus: 5 });
+            await storage.updateUser(authReq.user!.id, { requestsLeft: (authReq.user!.requestsLeft || 5) + 5, pendingRefCode: null });
+            await storage.updateUser(referrer.id, { requestsLeft: (referrer.requestsLeft || 5) + 2 });
+          } else {
+            await storage.updateUser(authReq.user!.id, { pendingRefCode: null });
+          }
+        } catch (e) {
+          await storage.updateUser(authReq.user!.id, { pendingRefCode: null }).catch(() => {});
+        }
+      }
+
       const verificationId = generateVerificationId();
 
       await storage.createReport({
@@ -958,6 +973,113 @@ export async function registerRoutes(
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }
+  });
+
+  app.post("/api/exif", loadUser, requireAuth, upload.single("photo"), async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user!;
+    const userTier = (user.tier || "FREE").toUpperCase();
+
+    if (userTier === "FREE") {
+      return res.status(403).json({ error: "EXIF analysis requires PRO tier or higher" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    if ((user.requestsLeft || 0) <= 0 && userTier !== "ENTERPRISE" && userTier !== "GROUPS") {
+      return res.status(403).json({ error: "No requests left" });
+    }
+
+    try {
+      const buffer = fs.readFileSync(req.file.path);
+      const result = await extractExifFromBuffer(buffer, req.file.originalname || "photo.jpg");
+
+      if (userTier !== "ENTERPRISE" && userTier !== "GROUPS") {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+      }
+
+      await storage.createReport({
+        userId: user.id,
+        objectType: "exif",
+        dataJson: {
+          target: req.file.originalname,
+          riskScore: result.riskScore,
+          riskLevel: result.riskLevel,
+          findings: result.findings,
+          details: result.details,
+          sources: result.sources,
+          summary: result.summary,
+        },
+      });
+
+      fs.unlinkSync(req.file.path);
+
+      res.json({
+        type: "exif",
+        target: req.file.originalname,
+        riskScore: result.riskScore,
+        riskLevel: result.riskLevel,
+        findings: result.findings,
+        details: result.details,
+        sources: result.sources,
+        summary: result.summary,
+        aiInsights: result.aiInsights,
+      });
+    } catch (err: any) {
+      if (req.file?.path) fs.unlinkSync(req.file.path);
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/geosint", (_req, res) => {
+    const regions = [
+      { id: "europe_west", emoji: "🇪🇺", name: "Western Europe", tips: [
+        "White license plates with blue EU strip",
+        "Red/brown tile roofs — Germany, Netherlands",
+        "Circular road signs with red border",
+        "Half-timbered houses — Germany, France",
+        "Yellow mailboxes — France, Germany",
+        "Plane trees along roads — France",
+      ]},
+      { id: "europe_east", emoji: "🇺🇦", name: "Eastern Europe / CIS", tips: [
+        "Panel 5-9 story apartment blocks (Khrushchyovkas)",
+        "Concrete fences with diamond pattern — Ukraine, Russia",
+        "White road posts with red stripes",
+        "Onion-shaped church domes",
+        "Marshrutkas (minibuses)",
+        "Sunflower fields — Ukraine",
+        "Soviet mosaics on buildings",
+      ]},
+      { id: "asia", emoji: "🌏", name: "Asia", tips: [
+        "Left-hand traffic — Japan, Thailand, India",
+        "Chinese characters vs Japanese kanji vs Korean Hangul",
+        "Red lanterns — China",
+        "Torii gates — Japan",
+        "Buddhist temples with golden spires — Thailand",
+        "Tuk-tuks — Thailand, India",
+        "Rice terraces — Vietnam, Philippines",
+      ]},
+      { id: "americas", emoji: "🌎", name: "Americas", tips: [
+        "Yellow school buses — USA, Canada",
+        "Green signs with white text — American highways",
+        "Horizontal traffic lights — USA",
+        "Blue USPS mailboxes — USA",
+        "Colorful colonial buildings — Latin America",
+        "Cacti and deserts — Mexico, Arizona",
+        "Long straight roads — Midwest",
+      ]},
+      { id: "africa_mideast", emoji: "🌍", name: "Africa & Middle East", tips: [
+        "Mosques with minarets",
+        "Arabic script (right to left)",
+        "Green license plates — Saudi Arabia",
+        "Mud-brick houses — Morocco, Mali",
+        "Red dirt roads — Sub-Saharan Africa",
+        "Savanna with acacia trees — Kenya, Tanzania",
+      ]},
+    ];
+    res.json(regions);
   });
 
   app.post("/api/quick-check", async (req, res) => {

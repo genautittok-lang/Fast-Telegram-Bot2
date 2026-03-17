@@ -676,7 +676,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserTier(userId: number, tier: string): Promise<User> {
     if (!db) throw new Error("Database not available");
-    const [updated] = await db.update(users).set({ tier }).where(eq(users.id, userId)).returning();
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+    const requestsLeft = tierLimits[tier] || 5;
+    const [updated] = await db.update(users).set({ tier, requestsLeft }).where(eq(users.id, userId)).returning();
     return updated;
   }
 
@@ -1228,7 +1230,9 @@ export class MemStorage implements IStorage {
   async updateUserTier(userId: number, tier: string): Promise<User> {
     const user = this.users.get(userId);
     if (!user) throw new Error("User not found");
-    const updated = { ...user, tier };
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+    const requestsLeft = tierLimits[tier] || 5;
+    const updated = { ...user, tier, requestsLeft };
     this.users.set(userId, updated);
     return updated;
   }

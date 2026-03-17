@@ -245,6 +245,7 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN DEFAULT false`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS last_reminder_sent TIMESTAMP`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS photo_url TEXT`);
+    await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS pending_ref_code TEXT`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_admin_messages (

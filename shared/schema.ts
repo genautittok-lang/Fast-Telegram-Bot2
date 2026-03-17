@@ -26,6 +26,7 @@ export const users = pgTable("ds_users", {
   totpSecret: text("totp_secret"),
   totpEnabled: boolean("totp_enabled").default(false),
   lastReminderSent: timestamp("last_reminder_sent"),
+  pendingRefCode: text("pending_ref_code"),
 });
 
 export const reports = pgTable("ds_reports", {

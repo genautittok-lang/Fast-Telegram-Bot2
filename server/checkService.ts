@@ -1,6 +1,5 @@
-// Enhanced OSINT Check Service v2.0
-// Uses multiple free APIs for comprehensive analysis
 import { generateAIAnalysis } from "./aiAnalyzer";
+import exifr from "exifr";
 
 export interface AIInsights {
   summary: string;
@@ -2979,6 +2978,168 @@ async function checkMAC(value: string, timestamp: Date): Promise<CheckResult> {
     riskLevel,
     summary: `MAC ${macData.normalized} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
     details: macData,
+    findings,
+    sources,
+    timestamp,
+  };
+}
+
+export async function extractExifFromBuffer(buffer: Buffer, filename: string): Promise<CheckResult> {
+  const timestamp = new Date();
+  const findings: string[] = [];
+  const sources: string[] = ["EXIF metadata"];
+  let riskScore = 0;
+  const details: Record<string, any> = { filename };
+
+  try {
+    const exifData = await exifr.parse(buffer, {
+      gps: true,
+      ifd0: true,
+      exif: true,
+      iptc: true,
+      xmp: true,
+      tiff: true,
+    });
+
+    if (!exifData || Object.keys(exifData).length === 0) {
+      findings.push("No EXIF metadata found — file may have been stripped");
+      return {
+        type: "exif",
+        target: filename,
+        riskScore: 0,
+        riskLevel: "low",
+        summary: `EXIF analysis for ${filename} — no metadata found`,
+        details: { filename, metadata: null },
+        findings,
+        sources,
+        timestamp,
+      };
+    }
+
+    if (exifData.Make) {
+      details.camera = `${exifData.Make} ${exifData.Model || ""}`.trim();
+      findings.push(`Camera: ${details.camera}`);
+    }
+    if (exifData.LensModel) {
+      details.lens = exifData.LensModel;
+      findings.push(`Lens: ${details.lens}`);
+    }
+    if (exifData.Software) {
+      details.software = exifData.Software;
+      findings.push(`Software: ${details.software}`);
+    }
+    if (exifData.DateTimeOriginal) {
+      details.dateOriginal = exifData.DateTimeOriginal;
+      findings.push(`Date taken: ${new Date(exifData.DateTimeOriginal).toLocaleString()}`);
+    }
+    if (exifData.CreateDate) {
+      details.createDate = exifData.CreateDate;
+    }
+    if (exifData.ModifyDate) {
+      details.modifyDate = exifData.ModifyDate;
+      findings.push(`Last modified: ${new Date(exifData.ModifyDate).toLocaleString()}`);
+    }
+    if (exifData.ImageWidth && exifData.ImageHeight) {
+      details.resolution = `${exifData.ImageWidth}x${exifData.ImageHeight}`;
+      findings.push(`Resolution: ${details.resolution}`);
+    } else if (exifData.ExifImageWidth && exifData.ExifImageHeight) {
+      details.resolution = `${exifData.ExifImageWidth}x${exifData.ExifImageHeight}`;
+      findings.push(`Resolution: ${details.resolution}`);
+    }
+    if (exifData.ISO || exifData.ISOSpeedRatings) {
+      details.iso = exifData.ISO || exifData.ISOSpeedRatings;
+      findings.push(`ISO: ${details.iso}`);
+    }
+    if (exifData.FNumber) {
+      details.aperture = `f/${exifData.FNumber}`;
+      findings.push(`Aperture: ${details.aperture}`);
+    }
+    if (exifData.ExposureTime) {
+      const expTime = exifData.ExposureTime < 1 ? `1/${Math.round(1 / exifData.ExposureTime)}` : `${exifData.ExposureTime}`;
+      details.exposureTime = expTime;
+      findings.push(`Exposure: ${expTime}s`);
+    }
+    if (exifData.FocalLength) {
+      details.focalLength = `${exifData.FocalLength}mm`;
+      findings.push(`Focal length: ${details.focalLength}`);
+    }
+    if (exifData.Flash !== undefined) {
+      details.flash = exifData.Flash;
+      findings.push(`Flash: ${typeof exifData.Flash === 'object' ? JSON.stringify(exifData.Flash) : exifData.Flash}`);
+    }
+
+    if (exifData.latitude !== undefined && exifData.longitude !== undefined) {
+      details.gps = {
+        latitude: exifData.latitude,
+        longitude: exifData.longitude,
+      };
+      findings.push(`📍 GPS: ${exifData.latitude.toFixed(6)}, ${exifData.longitude.toFixed(6)}`);
+      riskScore += 40;
+
+      try {
+        const geoRes = await fetchWithTimeout(`https://nominatim.openstreetmap.org/reverse?lat=${exifData.latitude}&lon=${exifData.longitude}&format=json&accept-language=en`, 5000, {
+          headers: { "User-Agent": "DarkShare-OSINT/1.0" }
+        });
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.display_name) {
+            details.gps.address = geoData.display_name;
+            findings.push(`📍 Location: ${geoData.display_name}`);
+          }
+          if (geoData.address) {
+            details.gps.country = geoData.address.country;
+            details.gps.city = geoData.address.city || geoData.address.town || geoData.address.village;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (exifData.GPSAltitude) {
+      details.altitude = `${exifData.GPSAltitude.toFixed(1)}m`;
+      findings.push(`Altitude: ${details.altitude}`);
+    }
+
+    if (exifData.Artist || exifData.Copyright) {
+      details.author = exifData.Artist || exifData.Copyright;
+      findings.push(`Author/Copyright: ${details.author}`);
+      riskScore += 10;
+    }
+
+    if (exifData.SerialNumber || exifData.BodySerialNumber) {
+      details.serialNumber = exifData.SerialNumber || exifData.BodySerialNumber;
+      findings.push(`⚠️ Camera serial: ${details.serialNumber}`);
+      riskScore += 20;
+    }
+
+    if (exifData.OwnerName) {
+      details.ownerName = exifData.OwnerName;
+      findings.push(`⚠️ Owner name: ${details.ownerName}`);
+      riskScore += 15;
+    }
+
+    const hasGPS = details.gps !== undefined;
+    const hasPersonalInfo = details.serialNumber || details.ownerName || details.author;
+    if (hasGPS && hasPersonalInfo) riskScore += 15;
+
+    details.totalFieldsFound = Object.keys(exifData).length;
+    findings.push(`Total metadata fields: ${details.totalFieldsFound}`);
+
+  } catch (e: any) {
+    findings.push(`Error parsing EXIF: ${e.message}`);
+  }
+
+  const riskLevel: "low" | "medium" | "high" | "critical" = 
+    riskScore >= 70 ? "critical" :
+    riskScore >= 50 ? "high" :
+    riskScore >= 25 ? "medium" : "low";
+
+  return {
+    type: "exif",
+    target: filename,
+    riskScore: Math.min(riskScore, 100),
+    riskLevel,
+    summary: `EXIF analysis for ${filename} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    details,
     findings,
     sources,
     timestamp,

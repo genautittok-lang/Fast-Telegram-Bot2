@@ -1,7 +1,7 @@
 import { Telegraf, Markup, Context } from "telegraf";
 import { IStorage } from "./storage";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
-import { performCheck, CheckResult, validateInput } from "./checkService";
+import { performCheck, CheckResult, validateInput, extractExifFromBuffer } from "./checkService";
 import { t, Language, languageNames } from "./i18n";
 
 interface BotContext extends Context {}
@@ -316,6 +316,33 @@ export async function setupBot(storage: IStorage) {
   const userStates: Map<string, { module?: string; step?: string; data?: any }> = new Map();
   const pendingReferrals: Map<string, string> = new Map();
 
+  async function creditPendingReferral(user: any) {
+    if (!user?.pendingRefCode) return;
+    try {
+      const referrer = await storage.getUserByRefCode(user.pendingRefCode);
+      if (referrer && referrer.id !== user.id) {
+        await storage.createReferral({
+          referrerId: referrer.id,
+          referredId: user.id,
+          bonus: 5
+        });
+        await storage.updateUser(user.id, { 
+          requestsLeft: (user.requestsLeft || 5) + 5,
+          pendingRefCode: null
+        });
+        await storage.updateUser(referrer.id, {
+          requestsLeft: (referrer.requestsLeft || 5) + 2
+        });
+        console.log(`Referral credited after first check: ${user.pendingRefCode} -> user ${user.id}`);
+      } else {
+        await storage.updateUser(user.id, { pendingRefCode: null });
+      }
+    } catch (e) {
+      console.log(`Referral credit failed: ${user.pendingRefCode} -> user ${user.id}`, e);
+      await storage.updateUser(user.id, { pendingRefCode: null }).catch(() => {});
+    }
+  }
+
   bot.use(async (ctx, next) => {
     if (ctx.from) {
       const tgId = ctx.from.id.toString();
@@ -573,26 +600,8 @@ ${t(lang, "startWelcome.selectLang")}`;
     const pendingRefCode = pendingReferrals.get(tgId);
     if (pendingRefCode && user) {
       pendingReferrals.delete(tgId);
-      const referrer = await storage.getUserByRefCode(pendingRefCode);
-      if (referrer && referrer.id !== user.id) {
-        try {
-          await storage.createReferral({
-            referrerId: referrer.id,
-            referredId: user.id,
-            bonus: 5
-          });
-          await storage.updateUser(user.id, { 
-            requestsLeft: (user.requestsLeft || 5) + 5
-          });
-          await storage.updateUser(referrer.id, {
-            requestsLeft: (referrer.requestsLeft || 5) + 2
-          });
-          console.log(`Referral credited after language selection: ${pendingRefCode} -> ${tgId}`);
-          user = await storage.getUserByTgId(tgId);
-        } catch (e) {
-          console.log(`Referral already exists or failed: ${pendingRefCode} -> ${tgId}`);
-        }
-      }
+      await storage.updateUser(user.id, { pendingRefCode: pendingRefCode });
+      console.log(`Referral saved to DB, will credit after first check: ${pendingRefCode} -> ${tgId}`);
     }
 
     await ctx.answerCbQuery(t(langCode, "settings.languageChanged"));
@@ -1885,6 +1894,7 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       if (checkTier !== "ENTERPRISE" && checkTier !== "GROUPS") {
         await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 5) - 1) });
       }
+      creditPendingReferral(user).catch(() => {});
       
       await storage.createReport({
         userId: user.id,
@@ -2702,7 +2712,7 @@ ${faqText}`;
 
       for (const adminId of ADMIN_IDS) {
         try {
-          await ctx.telegram.sendPhoto(adminId, fileId, {
+          await ctx.telegram.sendPhoto(adminId, fileId as string, {
             caption: `${t("uk", "admin.newPayment", { id: payment.id.toString() })}\n\n${t("uk", "admin.user", { username: user.username || t("uk", "common.na"), tgId: user.tgId })}\n${t("uk", "admin.tier", { tier: state.data.tier })}\n${t("uk", "admin.paymentAmount", { amount: state.data.amount })}\n${t("uk", "admin.type", { type: t(lang, "common.screenshot") })}`,
             reply_markup: Markup.inlineKeyboard([
               [
@@ -2715,6 +2725,82 @@ ${faqText}`;
           console.log(`Failed to notify admin ${adminId}:`, e);
         }
       }
+      return;
+    }
+
+    const user = await storage.getUserByTgId(tgId);
+    if (!user) return;
+    const lang = getUserLang(user.lang);
+
+    const userTier = (user.tier || "FREE").toUpperCase();
+    if (userTier === "FREE") {
+      return ctx.reply(t(lang, "exif.proRequired"), 
+        Markup.inlineKeyboard([[cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.crown)]])
+      );
+    }
+
+    if ((user.requestsLeft || 0) <= 0 && userTier !== "ENTERPRISE" && userTier !== "GROUPS") {
+      return ctx.reply(t(lang, "check.noRequestsLeft"));
+    }
+
+    const photo = ctx.message.photo[ctx.message.photo.length - 1];
+    const processingMsg = await ctx.reply(`🔍 ${t(lang, "exif.analyzing")}...`);
+    
+    try {
+      const fileLink = await ctx.telegram.getFileLink(photo.file_id);
+      const response = await fetch(fileLink.href);
+      const arrayBuf = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuf);
+      const filename = `photo_${photo.file_id.slice(0, 8)}.jpg`;
+
+      const result = await extractExifFromBuffer(buffer, filename);
+
+      if (userTier !== "ENTERPRISE" && userTier !== "GROUPS") {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+      }
+      creditPendingReferral(user).catch(() => {});
+
+      await storage.createReport({
+        userId: user.id,
+        objectType: "exif",
+        dataJson: {
+          target: filename,
+          riskScore: result.riskScore,
+          riskLevel: result.riskLevel,
+          findings: result.findings,
+          details: result.details,
+          sources: result.sources,
+          summary: result.summary,
+        },
+      });
+
+      const riskEmoji = result.riskLevel === "critical" ? "🔴" : 
+                        result.riskLevel === "high" ? "🟠" : 
+                        result.riskLevel === "medium" ? "🟡" : "🟢";
+
+      let text = `${riskEmoji} *EXIF Analysis*\n`;
+      text += `📄 ${escMd(filename)}\n`;
+      text += `📊 Risk: ${result.riskScore}/100 (${result.riskLevel.toUpperCase()})\n\n`;
+
+      if (result.findings.length > 0) {
+        text += `*${t(lang, "exif.findings")}:*\n`;
+        for (const f of result.findings.slice(0, 20)) {
+          text += `• ${escMd(f)}\n`;
+        }
+      }
+
+      if (result.details?.gps) {
+        text += `\n🗺 [${t(lang, "exif.openMap")}](https://www.google.com/maps?q=${result.details.gps.latitude},${result.details.gps.longitude})`;
+      }
+
+      await ctx.telegram.editMessageText(ctx.chat!.id, processingMsg.message_id, undefined, text, { 
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "dashboard", "primary", E.home)]])
+      });
+    } catch (e: any) {
+      console.error("EXIF analysis error:", e);
+      await ctx.telegram.editMessageText(ctx.chat!.id, processingMsg.message_id, undefined, 
+        `❌ ${t(lang, "exif.error")}: ${e.message}`);
     }
   });
 
@@ -3812,7 +3898,9 @@ ${allTypesText}
       return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
-    await storage.updateUser(userId, { tier: newTier });
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+    const newRequests = tierLimits[newTier] || 5;
+    await storage.updateUser(userId, { tier: newTier, requestsLeft: newRequests });
     await ctx.answerCbQuery(t(lang, "admin.tierChangedTo", { tier: newTier }));
     
     const userLang = await getLang(user.tgId);
@@ -4557,6 +4645,346 @@ ${allTypesText}
     }
   });
 
+  const geosintData: Record<string, { emoji: string; name: Record<string, string>; tips: Record<string, string[]> }> = {
+    europe_west: {
+      emoji: "🇪🇺",
+      name: { uk: "Західна Європа", en: "Western Europe", ru: "Западная Европа", es: "Europa Occidental", de: "Westeuropa" },
+      tips: {
+        uk: [
+          "🚗 Номерні знаки: білі з синьою смугою зліва (прапор ЄС)",
+          "🏠 Червоні/коричневі черепичні дахи — Німеччина, Нідерланди",
+          "🛣️ Дорожні знаки: кругла форма з червоною рамкою",
+          "🔌 Розетки типу F (Schuko) — Німеччина, Франція, Іспанія",
+          "🏗️ Фахверкові будинки — Німеччина, Франція (Ельзас)",
+          "🚦 Жовті світлофори — Нідерланди",
+          "📮 Жовті поштові скриньки — Франція, Німеччина",
+          "🌿 Платани уздовж доріг — Франція",
+        ],
+        en: [
+          "🚗 License plates: white with blue EU strip on left",
+          "🏠 Red/brown tile roofs — Germany, Netherlands",
+          "🛣️ Road signs: circular shape with red border",
+          "🔌 Type F (Schuko) outlets — Germany, France, Spain",
+          "🏗️ Half-timbered houses — Germany, France (Alsace)",
+          "🚦 Yellow traffic lights — Netherlands",
+          "📮 Yellow mailboxes — France, Germany",
+          "🌿 Plane trees along roads — France",
+        ],
+        ru: [
+          "🚗 Номерные знаки: белые с синей полосой ЕС слева",
+          "🏠 Красные/коричневые черепичные крыши — Германия, Нидерланды",
+          "🛣️ Дорожные знаки: круглая форма с красной рамкой",
+          "🔌 Розетки типа F (Schuko) — Германия, Франция, Испания",
+          "🏗️ Фахверковые дома — Германия, Франция (Эльзас)",
+          "🚦 Жёлтые светофоры — Нидерланды",
+          "📮 Жёлтые почтовые ящики — Франция, Германия",
+          "🌿 Платаны вдоль дорог — Франция",
+        ],
+        es: [
+          "🚗 Matrículas: blancas con franja azul UE a la izquierda",
+          "🏠 Tejados rojos/marrones — Alemania, Países Bajos",
+          "🛣️ Señales de tráfico: forma circular con borde rojo",
+          "🔌 Enchufes tipo F (Schuko) — Alemania, Francia, España",
+          "🏗️ Casas con entramado de madera — Alemania, Francia (Alsacia)",
+          "🚦 Semáforos amarillos — Países Bajos",
+          "📮 Buzones amarillos — Francia, Alemania",
+          "🌿 Plátanos a lo largo de las carreteras — Francia",
+        ],
+        de: [
+          "🚗 Kennzeichen: weiß mit blauem EU-Streifen links",
+          "🏠 Rote/braune Ziegeldächer — Deutschland, Niederlande",
+          "🛣️ Verkehrszeichen: runde Form mit rotem Rand",
+          "🔌 Steckdosen Typ F (Schuko) — Deutschland, Frankreich, Spanien",
+          "🏗️ Fachwerkhäuser — Deutschland, Frankreich (Elsass)",
+          "🚦 Gelbe Ampeln — Niederlande",
+          "📮 Gelbe Briefkästen — Frankreich, Deutschland",
+          "🌿 Platanen entlang der Straßen — Frankreich",
+        ],
+      },
+    },
+    europe_east: {
+      emoji: "🇺🇦",
+      name: { uk: "Східна Європа / СНД", en: "Eastern Europe / CIS", ru: "Восточная Европа / СНГ", es: "Europa del Este / CEI", de: "Osteuropa / GUS" },
+      tips: {
+        uk: [
+          "🏠 Панельні 5-9 поверхові будинки (хрущовки, брежнєвки)",
+          "🧱 Бетонні паркани з ромбовидним візерунком — Україна, Росія",
+          "🛣️ Білі стовпчики з червоними смугами вздовж доріг",
+          "🚗 Жовті номерні знаки — старі українські; білі — нові",
+          "📮 Сині поштові скриньки — Україна",
+          "⛪ Цибулеподібні куполи церков — Росія, Україна",
+          "🚌 Маршрутки (мікроавтобуси) — типові для СНД",
+          "🌻 Соняшникові поля — Україна, південь Росії",
+          "🏗️ Радянські мозаїки на будівлях",
+        ],
+        en: [
+          "🏠 Panel 5-9 story apartment blocks (Khrushchyovkas)",
+          "🧱 Concrete fences with diamond pattern — Ukraine, Russia",
+          "🛣️ White road posts with red stripes along roads",
+          "🚗 Yellow plates — old Ukrainian; white — new Ukrainian",
+          "📮 Blue mailboxes — Ukraine",
+          "⛪ Onion-shaped church domes — Russia, Ukraine",
+          "🚌 Marshrutkas (minibuses) — typical for CIS countries",
+          "🌻 Sunflower fields — Ukraine, southern Russia",
+          "🏗️ Soviet mosaics on buildings",
+        ],
+        ru: [
+          "🏠 Панельные 5-9 этажные дома (хрущёвки, брежневки)",
+          "🧱 Бетонные заборы с ромбовидным узором — Украина, Россия",
+          "🛣️ Белые столбики с красными полосами вдоль дорог",
+          "🚗 Жёлтые номера — старые украинские; белые — новые",
+          "📮 Синие почтовые ящики — Украина",
+          "⛪ Луковичные купола церквей — Россия, Украина",
+          "🚌 Маршрутки (микроавтобусы) — типичны для СНГ",
+          "🌻 Подсолнечные поля — Украина, юг России",
+          "🏗️ Советские мозаики на зданиях",
+        ],
+        es: [
+          "🏠 Bloques de apartamentos de 5-9 pisos (Khrushchyovkas)",
+          "🧱 Vallas de hormigón con patrón de diamantes — Ucrania, Rusia",
+          "🛣️ Postes blancos con franjas rojas a lo largo de las carreteras",
+          "🚗 Matrículas amarillas — ucranianas antiguas; blancas — nuevas",
+          "📮 Buzones azules — Ucrania",
+          "⛪ Cúpulas en forma de cebolla — Rusia, Ucrania",
+          "🚌 Marshrutkas (minibuses) — típicos de los países de la CEI",
+          "🌻 Campos de girasoles — Ucrania, sur de Rusia",
+          "🏗️ Mosaicos soviéticos en edificios",
+        ],
+        de: [
+          "🏠 Plattenbauten mit 5-9 Stockwerken (Chruschtschowkas)",
+          "🧱 Betonzäune mit Rautenmuster — Ukraine, Russland",
+          "🛣️ Weiße Pfosten mit roten Streifen entlang der Straßen",
+          "🚗 Gelbe Kennzeichen — alte ukrainische; weiße — neue",
+          "📮 Blaue Briefkästen — Ukraine",
+          "⛪ Zwiebelförmige Kirchenkuppeln — Russland, Ukraine",
+          "🚌 Marshrutkas (Minibusse) — typisch für GUS-Länder",
+          "🌻 Sonnenblumenfelder — Ukraine, Südrussland",
+          "🏗️ Sowjetische Mosaike an Gebäuden",
+        ],
+      },
+    },
+    asia: {
+      emoji: "🌏",
+      name: { uk: "Азія", en: "Asia", ru: "Азия", es: "Asia", de: "Asien" },
+      tips: {
+        uk: [
+          "🚗 Рух лівосторонній — Японія, Таїланд, Індія, Індонезія",
+          "📝 Ієрогліфи: прості — китайські; складні з рисками — японські",
+          "🏮 Червоні ліхтарі та вивіски — Китай",
+          "⛩️ Торії (червоні ворота) — Японія",
+          "🛕 Буддійські храми з золотими шпилями — Таїланд, М'янма",
+          "🛺 Тук-туки — Таїланд, Індія, Шрі-Ланка",
+          "🌾 Рисові тераси — В'єтнам, Філіппіни, Індонезія",
+          "🔠 Корейський алфавіт (хангиль) — кола та лінії",
+        ],
+        en: [
+          "🚗 Left-hand traffic — Japan, Thailand, India, Indonesia",
+          "📝 Characters: simple — Chinese; complex with strokes — Japanese",
+          "🏮 Red lanterns and signs — China",
+          "⛩️ Torii gates (red gates) — Japan",
+          "🛕 Buddhist temples with golden spires — Thailand, Myanmar",
+          "🛺 Tuk-tuks — Thailand, India, Sri Lanka",
+          "🌾 Rice terraces — Vietnam, Philippines, Indonesia",
+          "🔠 Korean alphabet (Hangul) — circles and lines",
+        ],
+        ru: [
+          "🚗 Левостороннее движение — Япония, Таиланд, Индия, Индонезия",
+          "📝 Иероглифы: простые — китайские; сложные с чертами — японские",
+          "🏮 Красные фонари и вывески — Китай",
+          "⛩️ Тории (красные ворота) — Япония",
+          "🛕 Буддийские храмы с золотыми шпилями — Таиланд, Мьянма",
+          "🛺 Тук-туки — Таиланд, Индия, Шри-Ланка",
+          "🌾 Рисовые террасы — Вьетнам, Филиппины, Индонезия",
+          "🔠 Корейский алфавит (хангыль) — круги и линии",
+        ],
+        es: [
+          "🚗 Tráfico por la izquierda — Japón, Tailandia, India, Indonesia",
+          "📝 Caracteres: simples — chinos; complejos — japoneses",
+          "🏮 Farolillos rojos — China",
+          "⛩️ Puertas torii (rojas) — Japón",
+          "🛕 Templos budistas con agujas doradas — Tailandia, Myanmar",
+          "🛺 Tuk-tuks — Tailandia, India, Sri Lanka",
+          "🌾 Terrazas de arroz — Vietnam, Filipinas, Indonesia",
+          "🔠 Alfabeto coreano (Hangul) — círculos y líneas",
+        ],
+        de: [
+          "🚗 Linksverkehr — Japan, Thailand, Indien, Indonesien",
+          "📝 Zeichen: einfach — Chinesisch; komplex — Japanisch",
+          "🏮 Rote Laternen und Schilder — China",
+          "⛩️ Torii-Tore (rote Tore) — Japan",
+          "🛕 Buddhistische Tempel mit goldenen Spitzen — Thailand, Myanmar",
+          "🛺 Tuk-Tuks — Thailand, Indien, Sri Lanka",
+          "🌾 Reisterrassen — Vietnam, Philippinen, Indonesien",
+          "🔠 Koreanisches Alphabet (Hangul) — Kreise und Linien",
+        ],
+      },
+    },
+    americas: {
+      emoji: "🌎",
+      name: { uk: "Америка", en: "Americas", ru: "Америка", es: "América", de: "Amerika" },
+      tips: {
+        uk: [
+          "🚗 Жовті школьні автобуси — США, Канада",
+          "🛣️ Зелені знаки з білим текстом — американські хайвеї",
+          "🏠 Дерев'яні будинки з верандами — південь США",
+          "📮 Сині поштові скриньки USPS — США",
+          "🚦 Горизонтальні світлофори — США (вертикальні — Канада)",
+          "🏗️ Кольорові колоніальні будинки — Латинська Америка",
+          "🌵 Кактуси та пустелі — Мексика, США (Аризона, Техас)",
+          "🛤️ Довгі прямі дороги — американський Середній Захід",
+        ],
+        en: [
+          "🚗 Yellow school buses — USA, Canada",
+          "🛣️ Green signs with white text — American highways",
+          "🏠 Wooden houses with porches — Southern USA",
+          "📮 Blue USPS mailboxes — USA",
+          "🚦 Horizontal traffic lights — USA (vertical — Canada)",
+          "🏗️ Colorful colonial buildings — Latin America",
+          "🌵 Cacti and deserts — Mexico, USA (Arizona, Texas)",
+          "🛤️ Long straight roads — American Midwest",
+        ],
+        ru: [
+          "🚗 Жёлтые школьные автобусы — США, Канада",
+          "🛣️ Зелёные знаки с белым текстом — американские хайвеи",
+          "🏠 Деревянные дома с верандами — юг США",
+          "📮 Синие почтовые ящики USPS — США",
+          "🚦 Горизонтальные светофоры — США (вертикальные — Канада)",
+          "🏗️ Красочные колониальные здания — Латинская Америка",
+          "🌵 Кактусы и пустыни — Мексика, США (Аризона, Техас)",
+          "🛤️ Длинные прямые дороги — американский Средний Запад",
+        ],
+        es: [
+          "🚗 Autobuses escolares amarillos — EE.UU., Canadá",
+          "🛣️ Señales verdes con texto blanco — autopistas americanas",
+          "🏠 Casas de madera con porches — sur de EE.UU.",
+          "📮 Buzones azules USPS — EE.UU.",
+          "🚦 Semáforos horizontales — EE.UU. (verticales — Canadá)",
+          "🏗️ Edificios coloniales coloridos — América Latina",
+          "🌵 Cactus y desiertos — México, EE.UU. (Arizona, Texas)",
+          "🛤️ Carreteras largas y rectas — Medio Oeste americano",
+        ],
+        de: [
+          "🚗 Gelbe Schulbusse — USA, Kanada",
+          "🛣️ Grüne Schilder mit weißem Text — amerikanische Highways",
+          "🏠 Holzhäuser mit Veranden — Süden der USA",
+          "📮 Blaue USPS-Briefkästen — USA",
+          "🚦 Horizontale Ampeln — USA (vertikal — Kanada)",
+          "🏗️ Bunte Kolonialgebäude — Lateinamerika",
+          "🌵 Kakteen und Wüsten — Mexiko, USA (Arizona, Texas)",
+          "🛤️ Lange gerade Straßen — amerikanischer Mittlerer Westen",
+        ],
+      },
+    },
+    africa_mideast: {
+      emoji: "🌍",
+      name: { uk: "Африка та Близький Схід", en: "Africa & Middle East", ru: "Африка и Ближний Восток", es: "África y Medio Oriente", de: "Afrika & Naher Osten" },
+      tips: {
+        uk: [
+          "🕌 Мечеті з мінаретами — Близький Схід, Північна Африка",
+          "🏜️ Піщані дюни та пустелі — Сахара, Аравійський п-ів",
+          "📝 Арабська в'язь (справа наліво) — арабські країни",
+          "🚗 Зелені номерні знаки — Саудівська Аравія",
+          "🏠 Глинобитні будинки — Марокко, Малі, Нігер",
+          "🌴 Пальмові плантації — Єгипет, ОАЕ",
+          "🛣️ Червона ґрунтова дорога — Субсахарна Африка",
+          "🦒 Савана з акаціями — Кенія, Танзанія",
+        ],
+        en: [
+          "🕌 Mosques with minarets — Middle East, North Africa",
+          "🏜️ Sand dunes and deserts — Sahara, Arabian Peninsula",
+          "📝 Arabic script (right to left) — Arab countries",
+          "🚗 Green license plates — Saudi Arabia",
+          "🏠 Mud-brick houses — Morocco, Mali, Niger",
+          "🌴 Palm plantations — Egypt, UAE",
+          "🛣️ Red dirt roads — Sub-Saharan Africa",
+          "🦒 Savanna with acacia trees — Kenya, Tanzania",
+        ],
+        ru: [
+          "🕌 Мечети с минаретами — Ближний Восток, Северная Африка",
+          "🏜️ Песчаные дюны и пустыни — Сахара, Аравийский п-ов",
+          "📝 Арабская вязь (справа налево) — арабские страны",
+          "🚗 Зелёные номерные знаки — Саудовская Аравия",
+          "🏠 Глинобитные дома — Марокко, Мали, Нигер",
+          "🌴 Пальмовые плантации — Египет, ОАЭ",
+          "🛣️ Красная грунтовая дорога — Субсахарная Африка",
+          "🦒 Саванна с акациями — Кения, Танзания",
+        ],
+        es: [
+          "🕌 Mezquitas con minaretes — Medio Oriente, Norte de África",
+          "🏜️ Dunas de arena y desiertos — Sahara, Península Arábiga",
+          "📝 Escritura árabe (de derecha a izquierda) — países árabes",
+          "🚗 Matrículas verdes — Arabia Saudita",
+          "🏠 Casas de adobe — Marruecos, Mali, Níger",
+          "🌴 Plantaciones de palmeras — Egipto, EAU",
+          "🛣️ Caminos de tierra roja — África subsahariana",
+          "🦒 Sabana con acacias — Kenia, Tanzania",
+        ],
+        de: [
+          "🕌 Moscheen mit Minaretten — Naher Osten, Nordafrika",
+          "🏜️ Sanddünen und Wüsten — Sahara, Arabische Halbinsel",
+          "📝 Arabische Schrift (rechts nach links) — arabische Länder",
+          "🚗 Grüne Kennzeichen — Saudi-Arabien",
+          "🏠 Lehmziegelhäuser — Marokko, Mali, Niger",
+          "🌴 Palmenplantagen — Ägypten, VAE",
+          "🛣️ Rote Erdstraßen — Subsahara-Afrika",
+          "🦒 Savanne mit Akazien — Kenia, Tansania",
+        ],
+      },
+    },
+  };
+
+  bot.command("geosint", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+
+    let text = `${t(lang, "geosint.title")}\n${t(lang, "geosint.description")}\n\n${t(lang, "geosint.selectRegion")}`;
+
+    const buttons = Object.entries(geosintData).map(([key, region]) => {
+      const regionName = region.name[lang] || region.name.en;
+      return [cb(`${region.emoji} ${regionName}`, `geosint_${key}`, "primary")];
+    });
+
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard(buttons),
+    });
+  });
+
+  bot.action(/^geosint_(.+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const regionKey = ctx.match[1];
+
+    if (regionKey === "back") {
+      let text = `${t(lang, "geosint.title")}\n${t(lang, "geosint.description")}\n\n${t(lang, "geosint.selectRegion")}`;
+      const buttons = Object.entries(geosintData).map(([key, region]) => {
+        const regionName = region.name[lang] || region.name.en;
+        return [cb(`${region.emoji} ${regionName}`, `geosint_${key}`, "primary")];
+      });
+      await ctx.editMessageText(text, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard(buttons),
+      });
+      return;
+    }
+
+    const region = geosintData[regionKey];
+    if (!region) return ctx.answerCbQuery("Region not found");
+
+    const regionName = region.name[lang] || region.name.en;
+    const tips = region.tips[lang] || region.tips.en;
+
+    let text = `${region.emoji} *${escMd(regionName)}*\n\n`;
+    for (const tip of tips) {
+      text += `${tip}\n`;
+    }
+
+    await ctx.editMessageText(text, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[cb(t(lang, "geosint.back"), "geosint_back", "danger", E.back)]]),
+    });
+  });
+
   // QUICK CHECK COMMAND - перевірка без меню
   bot.command("check", async (ctx) => {
     const tgId = ctx.from!.id.toString();
@@ -4611,6 +5039,7 @@ ${allTypesText}
       if (qcTier !== "ENTERPRISE" && qcTier !== "GROUPS") {
         await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
       }
+      creditPendingReferral(user).catch(() => {});
       
       const riskEmoji = checkResult.riskLevel === "critical" ? "🔴" : 
                         checkResult.riskLevel === "high" ? "🟠" : 
@@ -4939,6 +5368,7 @@ ${allTypesText}
       if (inlineTier !== "ENTERPRISE" && inlineTier !== "GROUPS") {
         await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 1) - 1) });
       }
+      creditPendingReferral(user).catch(() => {});
 
       const getRiskEmoji = (level: string) => {
         switch (level) {
