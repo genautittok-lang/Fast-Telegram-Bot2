@@ -2513,6 +2513,15 @@ export async function registerRoutes(
 
   // ==================== ADMIN API ROUTES ====================
   
+  app.post("/api/admin/login", (req, res) => {
+    const { password } = req.body;
+    if (password === "bogdan123boG#") {
+      res.json({ success: true });
+    } else {
+      res.status(401).json({ success: false, error: "Invalid password" });
+    }
+  });
+
   // Verify if user is admin
   app.get("/api/admin/verify", loadUser, async (req, res) => {
     const authReq = req as AuthenticatedRequest;

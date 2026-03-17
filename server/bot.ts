@@ -779,6 +779,10 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
         cb(t(lang, "modules.card"), "mod_card", "primary", E.card),
         cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary", E.shield)
       ],
+      [
+        cb("📸 EXIF", "mod_exif", "primary", E.doc),
+        cb("🗺 GEOINT", "mod_geoint", "primary", E.globe)
+      ],
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
@@ -999,6 +1003,40 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       }
     });
   }
+
+  bot.action("mod_exif", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    const userTier = (user?.tier || "FREE").toUpperCase();
+    if (userTier === "FREE") {
+      return ctx.answerCbQuery(t(lang, "exif.proRequired"), { show_alert: true });
+    }
+    userStates.set(tgId, { module: "exif", step: "input" });
+    const text = `📸 *EXIF ${lang === "uk" ? "Аналіз метаданих" : lang === "ru" ? "Анализ метаданных" : "Metadata Analysis"}*\n\n${lang === "uk" ? "Надішліть фото для аналізу EXIF-метаданих.\n\n🔍 Аналізуємо: GPS, камера, дата, програмне забезпечення" : lang === "ru" ? "Отправьте фото для анализа EXIF-метаданных.\n\n🔍 Анализируем: GPS, камера, дата, программное обеспечение" : "Send a photo to analyze EXIF metadata.\n\n🔍 We analyze: GPS, camera, date, software"}`;
+    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.cancel"), "back_to_dashboard", "danger", E.back)]]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("mod_geoint", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    let text = `🗺 *GEOINT ${lang === "uk" ? "Довідник" : lang === "ru" ? "Справочник" : "Reference"}*\n\n${lang === "uk" ? "Оберіть регіон для підказок геолокації:" : lang === "ru" ? "Выберите регион для подсказок геолокации:" : "Select a region for geolocation hints:"}`;
+    const buttons = Object.entries(geosintData).map(([key, region]) => {
+      const regionName = region.name[lang] || region.name.en;
+      return [cb(`${region.emoji} ${regionName}`, `geosint_${key}`, "primary")];
+    });
+    buttons.push([cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+    }
+  });
 
   bot.action(["mod_iot", "mod_cloud"], async (ctx) => {
     const tgId = ctx.from!.id.toString();

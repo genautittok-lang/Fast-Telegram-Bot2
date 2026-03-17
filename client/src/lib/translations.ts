@@ -173,6 +173,8 @@ export interface TranslationSchema {
       dns: string;
       ssl: string;
       mac: string;
+      exif: string;
+      geoint: string;
     };
     riskLevels: {
       low: string;
@@ -377,6 +379,26 @@ export interface TranslationSchema {
         typeAnalysis: string;
         typeAnalysisDesc: string;
       };
+      exif: {
+        gpsData: string;
+        gpsDataDesc: string;
+        cameraInfo: string;
+        cameraInfoDesc: string;
+        dateTime: string;
+        dateTimeDesc: string;
+        software: string;
+        softwareDesc: string;
+      };
+      geoint: {
+        regionHints: string;
+        regionHintsDesc: string;
+        roadSigns: string;
+        roadSignsDesc: string;
+        architecture: string;
+        architectureDesc: string;
+        vegetation: string;
+        vegetationDesc: string;
+      };
     };
     bulkMode: string;
     singleMode: string;
@@ -442,6 +464,8 @@ export interface TranslationSchema {
       dns: string;
       ssl: string;
       mac: string;
+      exif: string;
+      geoint: string;
     };
     checkLabels: {
       ip: string;
@@ -459,6 +483,8 @@ export interface TranslationSchema {
       dns: string;
       ssl: string;
       mac: string;
+      exif: string;
+      geoint: string;
     };
   };
   account: {
@@ -1022,6 +1048,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
       riskLevels: {
         low: "Low",
@@ -1226,6 +1254,26 @@ export const translations: Record<Language, TranslationSchema> = {
           typeAnalysis: "Type",
           typeAnalysisDesc: "Unicast/multicast analysis",
         },
+        exif: {
+          gpsData: "GPS Data",
+          gpsDataDesc: "Location coordinates",
+          cameraInfo: "Camera Info",
+          cameraInfoDesc: "Device model & settings",
+          dateTime: "Date/Time",
+          dateTimeDesc: "Original capture time",
+          software: "Software",
+          softwareDesc: "Editing software used",
+        },
+        geoint: {
+          regionHints: "Region Hints",
+          regionHintsDesc: "Location identification",
+          roadSigns: "Road Signs",
+          roadSignsDesc: "Sign type analysis",
+          architecture: "Architecture",
+          architectureDesc: "Building style patterns",
+          vegetation: "Vegetation",
+          vegetationDesc: "Flora & landscape analysis",
+        },
       },
       bulkMode: "Bulk Mode",
       singleMode: "Single Mode",
@@ -1291,6 +1339,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "example.com",
         ssl: "example.com",
         mac: "AA:BB:CC:DD:EE:FF",
+        exif: "Upload photo",
+        geoint: "Select region",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -1308,6 +1358,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS Lookup",
         ssl: "SSL/TLS Check",
         mac: "MAC Lookup",
+        exif: "EXIF Analysis",
+        geoint: "GEOINT",
       },
     },
     account: {
@@ -1869,6 +1921,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
       riskLevels: {
         low: "Низький",
@@ -2073,6 +2127,26 @@ export const translations: Record<Language, TranslationSchema> = {
           typeAnalysis: "Тип",
           typeAnalysisDesc: "Аналіз unicast/multicast",
         },
+        exif: {
+          gpsData: "GPS дані",
+          gpsDataDesc: "Координати місцезнаходження",
+          cameraInfo: "Камера",
+          cameraInfoDesc: "Модель та параметри",
+          dateTime: "Дата/Час",
+          dateTimeDesc: "Час зйомки",
+          software: "Софт",
+          softwareDesc: "Програма обробки",
+        },
+        geoint: {
+          regionHints: "Підказки регіону",
+          regionHintsDesc: "Визначення місця",
+          roadSigns: "Дорожні знаки",
+          roadSignsDesc: "Аналіз типів знаків",
+          architecture: "Архітектура",
+          architectureDesc: "Стиль будівель",
+          vegetation: "Рослинність",
+          vegetationDesc: "Флора та ландшафт",
+        },
       },
       bulkMode: "Масова перевірка",
       singleMode: "Одиночний режим",
@@ -2138,6 +2212,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "example.com",
         ssl: "example.com",
         mac: "AA:BB:CC:DD:EE:FF",
+        exif: "Upload photo",
+        geoint: "Select region",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -2155,6 +2231,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS Пошук",
         ssl: "SSL/TLS Перевірка",
         mac: "MAC Пошук",
+        exif: "EXIF Аналіз",
+        geoint: "GEOINT",
       },
     },
     account: {
@@ -2716,6 +2794,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
       riskLevels: {
         low: "Низкий",
@@ -2920,6 +3000,26 @@ export const translations: Record<Language, TranslationSchema> = {
           typeAnalysis: "Тип",
           typeAnalysisDesc: "Анализ unicast/multicast",
         },
+        exif: {
+          gpsData: "GPS данные",
+          gpsDataDesc: "Координаты местоположения",
+          cameraInfo: "Камера",
+          cameraInfoDesc: "Модель и параметры",
+          dateTime: "Дата/Время",
+          dateTimeDesc: "Время съёмки",
+          software: "Софт",
+          softwareDesc: "Программа обработки",
+        },
+        geoint: {
+          regionHints: "Подсказки региона",
+          regionHintsDesc: "Определение места",
+          roadSigns: "Дорожные знаки",
+          roadSignsDesc: "Анализ типов знаков",
+          architecture: "Архитектура",
+          architectureDesc: "Стиль зданий",
+          vegetation: "Растительность",
+          vegetationDesc: "Флора и ландшафт",
+        },
       },
       bulkMode: "Массовая проверка",
       singleMode: "Одиночный режим",
@@ -2985,6 +3085,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "example.com",
         ssl: "example.com",
         mac: "AA:BB:CC:DD:EE:FF",
+        exif: "Upload photo",
+        geoint: "Select region",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -3002,6 +3104,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS Поиск",
         ssl: "SSL/TLS Проверка",
         mac: "MAC Поиск",
+        exif: "EXIF Анализ",
+        geoint: "GEOINT",
       },
     },
     account: {
@@ -3563,6 +3667,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
       riskLevels: {
         low: "Bajo",
@@ -3767,6 +3873,26 @@ export const translations: Record<Language, TranslationSchema> = {
           typeAnalysis: "Tipo",
           typeAnalysisDesc: "Análisis unicast/multicast",
         },
+        exif: {
+          gpsData: "Datos GPS",
+          gpsDataDesc: "Coordenadas de ubicación",
+          cameraInfo: "Cámara",
+          cameraInfoDesc: "Modelo y parámetros",
+          dateTime: "Fecha/Hora",
+          dateTimeDesc: "Hora de captura",
+          software: "Software",
+          softwareDesc: "Software de edición",
+        },
+        geoint: {
+          regionHints: "Pistas de región",
+          regionHintsDesc: "Identificación de lugar",
+          roadSigns: "Señales de tráfico",
+          roadSignsDesc: "Análisis de señales",
+          architecture: "Arquitectura",
+          architectureDesc: "Estilo de edificios",
+          vegetation: "Vegetación",
+          vegetationDesc: "Flora y paisaje",
+        },
       },
       bulkMode: "Modo masivo",
       singleMode: "Modo individual",
@@ -3832,6 +3958,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "example.com",
         ssl: "example.com",
         mac: "AA:BB:CC:DD:EE:FF",
+        exif: "Upload photo",
+        geoint: "Select region",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -3849,6 +3977,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
     },
     account: {
@@ -4410,6 +4540,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
       riskLevels: {
         low: "Niedrig",
@@ -4614,6 +4746,26 @@ export const translations: Record<Language, TranslationSchema> = {
           typeAnalysis: "Typ",
           typeAnalysisDesc: "Unicast/Multicast-Analyse",
         },
+        exif: {
+          gpsData: "GPS-Daten",
+          gpsDataDesc: "Standortkoordinaten",
+          cameraInfo: "Kamera",
+          cameraInfoDesc: "Modell und Einstellungen",
+          dateTime: "Datum/Zeit",
+          dateTimeDesc: "Aufnahmezeit",
+          software: "Software",
+          softwareDesc: "Bearbeitungssoftware",
+        },
+        geoint: {
+          regionHints: "Regionshinweise",
+          regionHintsDesc: "Ortsbestimmung",
+          roadSigns: "Verkehrszeichen",
+          roadSignsDesc: "Schilderanalyse",
+          architecture: "Architektur",
+          architectureDesc: "Baustil",
+          vegetation: "Vegetation",
+          vegetationDesc: "Flora und Landschaft",
+        },
       },
       bulkMode: "Massenmodus",
       singleMode: "Einzelmodus",
@@ -4679,6 +4831,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "example.com",
         ssl: "example.com",
         mac: "AA:BB:CC:DD:EE:FF",
+        exif: "Upload photo",
+        geoint: "Select region",
       },
       checkLabels: {
         ip: "IP/GEO",
@@ -4696,6 +4850,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS",
         ssl: "SSL/TLS",
         mac: "MAC",
+        exif: "EXIF",
+        geoint: "GEOINT",
       },
     },
     account: {

@@ -49,6 +49,7 @@ import {
   Database,
   Globe,
   PieChart,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,6 +100,7 @@ interface Coupon {
   maxUses: number;
   usedCount: number;
   isActive: boolean;
+  isPublic: boolean;
   expiresAt: string | null;
   createdAt: string;
 }
@@ -216,6 +218,10 @@ export default function Admin() {
   const [newConvUserId, setNewConvUserId] = useState("");
   const [newConvMessage, setNewConvMessage] = useState("");
   const [userTierFilter, setUserTierFilter] = useState<string>("all");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [editChecksAmount, setEditChecksAmount] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -500,6 +506,66 @@ export default function Admin() {
               Повернутися
             </Button>
           </Link>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!isPasswordVerified) {
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setPasswordLoading(true);
+      setPasswordError(false);
+      try {
+        const res = await apiRequest("POST", "/api/admin/login", { password: adminPassword });
+        const data = await res.json();
+        if (data.success) {
+          setIsPasswordVerified(true);
+        } else {
+          setPasswordError(true);
+        }
+      } catch {
+        setPasswordError(true);
+      } finally {
+        setPasswordLoading(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm mx-auto p-6">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Lock className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold">Адмін-панель</h1>
+            <p className="text-sm text-muted-foreground mt-1">Введіть пароль для входу</p>
+          </div>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Пароль"
+              value={adminPassword}
+              onChange={(e) => { setAdminPassword(e.target.value); setPasswordError(false); }}
+              className={passwordError ? "border-red-500" : ""}
+              autoFocus
+              data-testid="input-admin-password"
+            />
+            {passwordError && (
+              <p className="text-sm text-red-500">Невірний пароль</p>
+            )}
+            <Button type="submit" className="w-full gap-2" disabled={passwordLoading || !adminPassword} data-testid="button-admin-login">
+              {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+              Увійти
+            </Button>
+          </form>
+          <div className="mt-4 text-center">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" data-testid="button-back-from-admin">
+                <ArrowLeft className="w-3 h-3" /> Назад
+              </Button>
+            </Link>
+          </div>
         </motion.div>
       </div>
     );

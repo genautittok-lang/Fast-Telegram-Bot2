@@ -76,7 +76,11 @@ import {
   KeyRound,
   Wifi,
   ShieldQuestion,
-  Network
+  Network,
+  Camera,
+  Map,
+  Navigation,
+  Compass
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,6 +144,8 @@ const checkTypeStyles = [
   { id: "dns", icon: Network, gradient: "from-sky-500/20 via-blue-500/10 to-transparent", iconColor: "text-sky-400", borderColor: "border-sky-500/30 hover:border-sky-400/50", glowColor: "shadow-sky-500/20", btn3d: "btn-3d-blue", serviceIcons: [Network, Globe, Server, ShieldCheck] },
   { id: "ssl", icon: ShieldQuestion, gradient: "from-lime-500/20 via-green-500/10 to-transparent", iconColor: "text-lime-400", borderColor: "border-lime-500/30 hover:border-lime-400/50", glowColor: "shadow-lime-500/20", btn3d: "btn-3d-green", serviceIcons: [Lock, ShieldCheck, Globe, FileCheck] },
   { id: "mac", icon: Wifi, gradient: "from-violet-500/20 via-purple-500/10 to-transparent", iconColor: "text-violet-400", borderColor: "border-violet-500/30 hover:border-violet-400/50", glowColor: "shadow-violet-500/20", btn3d: "btn-3d-purple", serviceIcons: [Wifi, Fingerprint, Server, Globe] },
+  { id: "exif", icon: Camera, gradient: "from-pink-500/20 via-rose-500/10 to-transparent", iconColor: "text-pink-400", borderColor: "border-pink-500/30 hover:border-pink-400/50", glowColor: "shadow-pink-500/20", btn3d: "btn-3d-rose", serviceIcons: [Camera, MapPin, Clock, FileText] },
+  { id: "geoint", icon: Map, gradient: "from-teal-500/20 via-cyan-500/10 to-transparent", iconColor: "text-teal-400", borderColor: "border-teal-500/30 hover:border-teal-400/50", glowColor: "shadow-teal-500/20", btn3d: "btn-3d-cyan", serviceIcons: [Map, Navigation, Compass, Globe] },
 ];
 
 const serviceKeyMap: Record<string, string[][]> = {
@@ -158,6 +164,8 @@ const serviceKeyMap: Record<string, string[][]> = {
   dns: [["aRecords", "aRecordsDesc"], ["mxRecords", "mxRecordsDesc"], ["spfDmarc", "spfDmarcDesc"], ["dnssec", "dnssecDesc"]],
   ssl: [["certValidity", "certValidityDesc"], ["issuerCheck", "issuerCheckDesc"], ["hstsCheck", "hstsCheckDesc"], ["sanAnalysis", "sanAnalysisDesc"]],
   mac: [["ouiLookup", "ouiLookupDesc"], ["vendorId", "vendorIdDesc"], ["vmDetect", "vmDetectDesc"], ["typeAnalysis", "typeAnalysisDesc"]],
+  exif: [["gpsData", "gpsDataDesc"], ["cameraInfo", "cameraInfoDesc"], ["dateTime", "dateTimeDesc"], ["software", "softwareDesc"]],
+  geoint: [["regionHints", "regionHintsDesc"], ["roadSigns", "roadSignsDesc"], ["architecture", "architectureDesc"], ["vegetation", "vegetationDesc"]],
 };
 
 
