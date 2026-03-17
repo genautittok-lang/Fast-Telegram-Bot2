@@ -67,6 +67,7 @@ export interface IStorage {
   getCouponByCode(code: string): Promise<Coupon | undefined>;
   createCoupon(coupon: InsertCoupon): Promise<Coupon>;
   deleteCoupon(id: number): Promise<void>;
+  updateCoupon(id: number, data: Partial<{ description: string | null; imageUrl: string | null; isPublic: boolean; isActive: boolean }>): Promise<any>;
   useCoupon(couponId: number, userId: number): Promise<void>;
   hasUserUsedCoupon(couponId: number, userId: number): Promise<boolean>;
   
@@ -378,6 +379,12 @@ export class DatabaseStorage implements IStorage {
     await db.delete(coupons).where(eq(coupons.id, id));
   }
 
+  async updateCoupon(id: number, data: Partial<{ description: string | null; imageUrl: string | null; isPublic: boolean; isActive: boolean }>): Promise<any> {
+    if (!db) throw new Error("Database not available");
+    const [updated] = await db.update(coupons).set(data).where(eq(coupons.id, id)).returning();
+    return updated;
+  }
+
   async useCoupon(couponId: number, userId: number): Promise<void> {
     if (!db) throw new Error("Database not available");
     await db.insert(couponUsages).values({ couponId, userId });
@@ -676,7 +683,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserTier(userId: number, tier: string): Promise<User> {
     if (!db) throw new Error("Database not available");
-    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
     const requestsLeft = tierLimits[tier] || 5;
     const [updated] = await db.update(users).set({ tier, requestsLeft }).where(eq(users.id, userId)).returning();
     return updated;
@@ -996,6 +1003,7 @@ export class MemStorage implements IStorage {
   async getCouponByCode(code: string): Promise<Coupon | undefined> { return undefined; }
   async createCoupon(coupon: InsertCoupon): Promise<Coupon> { throw new Error("Not available"); }
   async deleteCoupon(id: number): Promise<void> {}
+  async updateCoupon(id: number, data: any): Promise<any> { return data; }
   async useCoupon(couponId: number, userId: number): Promise<void> {}
   async hasUserUsedCoupon(couponId: number, userId: number): Promise<boolean> { return false; }
   
@@ -1230,7 +1238,7 @@ export class MemStorage implements IStorage {
   async updateUserTier(userId: number, tier: string): Promise<User> {
     const user = this.users.get(userId);
     if (!user) throw new Error("User not found");
-    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
     const requestsLeft = tierLimits[tier] || 5;
     const updated = { ...user, tier, requestsLeft };
     this.users.set(userId, updated);

@@ -5,7 +5,8 @@ import Stripe from 'stripe';
 const TIER_REQUESTS: Record<string, number> = {
   'FREE': 15,
   'PRO': 50,
-  'ENTERPRISE': 9999,
+  'ENTERPRISE': 999999,
+  'GROUPS': 999999,
 };
 
 export class WebhookHandlers {

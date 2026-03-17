@@ -2549,7 +2549,7 @@ export async function registerRoutes(
     if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
       return res.status(403).json({ error: "Access denied" });
     }
-    const { code, type, value, tier, maxUses, expiresAt } = req.body;
+    const { code, type, value, tier, maxUses, expiresAt, description, imageUrl, isPublic } = req.body;
     if (!code || !type || value === undefined) {
       return res.status(400).json({ error: "Code, type and value are required" });
     }
@@ -2562,6 +2562,9 @@ export async function registerRoutes(
         maxUses: maxUses ? parseInt(maxUses) : 1,
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         isActive: true,
+        description: description || null,
+        imageUrl: imageUrl || null,
+        isPublic: isPublic || false,
       });
       res.json(coupon);
     } catch (err: any) {
@@ -2577,6 +2580,55 @@ export async function registerRoutes(
     }
     await storage.deleteCoupon(parseInt(req.params.id));
     res.json({ success: true });
+  });
+
+  // Update coupon (toggle public, edit description/image)
+  app.patch("/api/admin/coupons/:id", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    try {
+      const allowedFields = ["description", "imageUrl", "isPublic", "isActive"];
+      const updates: Record<string, any> = {};
+      for (const key of allowedFields) {
+        if (req.body[key] !== undefined) {
+          updates[key] = req.body[key];
+        }
+      }
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: "No valid fields to update" });
+      }
+      const coupon = await storage.updateCoupon(parseInt(req.params.id), updates);
+      res.json(coupon);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message || "Failed to update coupon" });
+    }
+  });
+
+  // Public promo board - returns active public coupons (no auth required)
+  app.get("/api/promos", async (_req, res) => {
+    try {
+      const allCoupons = await storage.getCoupons();
+      const publicPromos = allCoupons.filter(c => 
+        c.isPublic && c.isActive && 
+        (c.usedCount || 0) < (c.maxUses || 1) &&
+        (!c.expiresAt || new Date(c.expiresAt) > new Date())
+      ).map(c => ({
+        id: c.id,
+        code: c.code,
+        type: c.type,
+        value: c.value,
+        tier: c.tier,
+        description: c.description,
+        imageUrl: c.imageUrl,
+        expiresAt: c.expiresAt,
+        usesLeft: (c.maxUses || 1) - (c.usedCount || 0),
+      }));
+      res.json(publicPromos);
+    } catch (err) {
+      res.json([]);
+    }
   });
 
   // Get admin settings
@@ -2863,13 +2915,29 @@ export async function registerRoutes(
     const { message, ticketId } = req.body;
     if (!message?.trim()) return res.status(400).json({ error: "Message required" });
     try {
+      const targetUserId = parseInt(req.params.userId);
       const created = await storage.createAdminMessage({
-        userId: parseInt(req.params.userId),
+        userId: targetUserId,
         message: message.trim(),
         sender: "admin",
         ticketId: ticketId || null,
       });
-      res.json(created);
+
+      let telegramDelivered = false;
+      try {
+        const targetUser = await storage.getUser(targetUserId);
+        if (targetUser?.tgId && botInstance) {
+          await botInstance.telegram.sendMessage(
+            targetUser.tgId,
+            `📩 Повідомлення від підтримки DARKSHARE:\n\n${message.trim()}`
+          );
+          telegramDelivered = true;
+        }
+      } catch (botErr) {
+        console.log("Failed to forward admin message to Telegram:", botErr);
+      }
+
+      res.json({ ...created, telegramDelivered });
     } catch (err: any) {
       res.status(500).json({ error: err.message || "Failed to send message" });
     }

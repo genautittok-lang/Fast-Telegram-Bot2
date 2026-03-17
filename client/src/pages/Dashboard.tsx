@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import PromoBoard from "@/components/PromoBoard";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -1063,7 +1064,7 @@ Sources: ${result.sources.join(', ')}`;
                   user={user}
                   streakDays={user.streakDays ?? 0}
                   checksLeft={user.requestsLeft ?? 0}
-                  maxChecks={(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 }; return limits[(user.tier || "FREE").toUpperCase()] || 5; })()}
+                  maxChecks={(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 }; return limits[(user.tier || "FREE").toUpperCase()] || 5; })()}
                   tier={(user.tier || "FREE").toUpperCase()}
                 />
               )}
@@ -1109,7 +1110,7 @@ Sources: ${result.sources.join(', ')}`;
             </div>
 
             {user && (() => {
-              const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+              const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
               const maxLimit = limits[(user.tier || "FREE").toUpperCase()] || 5;
               const left = user.requestsLeft ?? 0;
               const pct = maxLimit >= 9999 ? 100 : Math.round((left / maxLimit) * 100);
@@ -2416,6 +2417,10 @@ Sources: ${result.sources.join(', ')}`;
 
       </div>
 
+      <div className="px-3 lg:px-6 pb-6">
+        <PromoBoard />
+      </div>
+
       <Dialog open={showProfile} onOpenChange={setShowProfile}>
         <DialogContent className="bg-black/95 border-cyan-500/30 backdrop-blur-xl max-w-md">
           <DialogHeader>
@@ -2444,7 +2449,7 @@ Sources: ${result.sources.join(', ')}`;
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1">{t('account.remaining')}</div>
-                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 }; const max = limits[(user?.tier || "FREE").toUpperCase()] || 5; return max >= 9999 ? '∞' : `${user?.requestsLeft ?? 0}/${max}`; })()}</div>
+                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 }; const max = limits[(user?.tier || "FREE").toUpperCase()] || 5; return max >= 9999 ? '∞' : `${user?.requestsLeft ?? 0}/${max}`; })()}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">

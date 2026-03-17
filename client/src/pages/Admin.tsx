@@ -227,6 +227,9 @@ export default function Admin() {
     tier: "PRO",
     maxUses: 100,
     expiresAt: null as Date | null,
+    description: "",
+    imageUrl: "",
+    isPublic: false,
   });
 
   const [settingsForm, setSettingsForm] = useState({
@@ -362,7 +365,7 @@ export default function Admin() {
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
       toast({ title: "Купон створено" });
-      setCouponForm({ code: "", type: "checks", value: 10, tier: "PRO", maxUses: 100, expiresAt: null });
+      setCouponForm({ code: "", type: "checks", value: 10, tier: "PRO", maxUses: 100, expiresAt: null, description: "", imageUrl: "", isPublic: false });
     },
     onError: (error: Error) => { toast({ title: "Помилка", description: error.message, variant: "destructive" }); },
   });
@@ -372,6 +375,16 @@ export default function Admin() {
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
       toast({ title: "Купон видалено" });
+    },
+  });
+
+  const togglePublicMutation = useMutation({
+    mutationFn: async ({ id, isPublic }: { id: number; isPublic: boolean }) => {
+      await apiRequest("PATCH", `/api/admin/coupons/${id}`, { isPublic });
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      toast({ title: "Оновлено" });
     },
   });
 
@@ -1587,6 +1600,20 @@ export default function Admin() {
                         </PopoverContent>
                       </Popover>
                     </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-sm text-muted-foreground">Опис (для промо-дошки)</label>
+                      <Input placeholder="Отримай +10 перевірок безкоштовно!" value={couponForm.description} onChange={(e) => setCouponForm({ ...couponForm, description: e.target.value })} className="bg-white/5 border-white/10" data-testid="input-coupon-description" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">URL зображення</label>
+                      <Input placeholder="https://..." value={couponForm.imageUrl} onChange={(e) => setCouponForm({ ...couponForm, imageUrl: e.target.value })} className="bg-white/5 border-white/10" data-testid="input-coupon-image" />
+                    </div>
+                    <div className="flex items-end gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm">
+                        <input type="checkbox" checked={couponForm.isPublic} onChange={(e) => setCouponForm({ ...couponForm, isPublic: e.target.checked })} className="rounded" data-testid="checkbox-coupon-public" />
+                        Показати на сайті
+                      </label>
+                    </div>
                     <div className="flex items-end">
                       <Button onClick={() => createCouponMutation.mutate(couponForm)} disabled={!couponForm.code || createCouponMutation.isPending} className="w-full gap-2" data-testid="button-create-coupon">
                         {createCouponMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -1616,6 +1643,7 @@ export default function Admin() {
                             <TableHead>Значення</TableHead>
                             <TableHead className="hidden md:table-cell">Використано</TableHead>
                             <TableHead className="hidden md:table-cell">Статус</TableHead>
+                            <TableHead className="hidden md:table-cell">Публічний</TableHead>
                             <TableHead className="hidden lg:table-cell">Термін</TableHead>
                             <TableHead className="text-right">Дії</TableHead>
                           </TableRow>
@@ -1634,6 +1662,12 @@ export default function Admin() {
                               <TableCell className="hidden md:table-cell">{coupon.usedCount} / {coupon.maxUses}</TableCell>
                               <TableCell className="hidden md:table-cell">
                                 {coupon.isActive ? <Badge className="bg-green-500/10 text-green-400 border-green-500/30">Активний</Badge> : <Badge className="bg-zinc-500/10 text-zinc-400 border-zinc-500/30">Неактивний</Badge>}
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                <Button variant="ghost" size="sm" className={`h-7 px-2 text-xs ${coupon.isPublic ? "text-green-400" : "text-zinc-500"}`} onClick={() => togglePublicMutation.mutate({ id: coupon.id, isPublic: !coupon.isPublic })} data-testid={`button-toggle-public-${coupon.id}`}>
+                                  {coupon.isPublic ? <Eye className="w-3 h-3 mr-1" /> : <X className="w-3 h-3 mr-1" />}
+                                  {coupon.isPublic ? "Так" : "Ні"}
+                                </Button>
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{coupon.expiresAt ? format(new Date(coupon.expiresAt), "dd.MM.yyyy") : "—"}</TableCell>
                               <TableCell className="text-right">

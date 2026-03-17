@@ -656,7 +656,8 @@ ${t(lang, "startWelcome.selectLang")}`;
       "FREE": 5,
       "BASIC": 30,
       "PRO": 50,
-      "ENTERPRISE": 9999,
+      "ENTERPRISE": 999999,
+      "GROUPS": 999999,
     };
     const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const progressBar = generateProgressBar(requestsLeft, requestsLimit);
@@ -902,7 +903,7 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
     } catch (e) {}
 
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    const statsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 9999 };
+    const statsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, statsUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
@@ -2340,7 +2341,7 @@ ${faqText}`;
       const telegramPaymentId = payment.telegram_payment_charge_id;
       await storage.updatePaymentStatus(paymentId, "approved");
 
-      const tierLimits: Record<string, number> = { PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+      const tierLimits: Record<string, number> = { PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
       const newLimit = tierLimits[tier] || 50;
       const days = periodDays || 30;
       const expiryDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
@@ -2824,7 +2825,7 @@ ${faqText}`;
       const newTier = payment.tier;
       const tierLimits: Record<string, number> = {
         "pro": 50,
-        "enterprise": 9999,
+        "enterprise": 999999,
         "basic": 30
       };
       const newLimit = tierLimits[newTier.toLowerCase()] || 50;
@@ -3121,7 +3122,7 @@ ${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
       .join("\n") || "├ —";
     
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    const detailTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 9999 };
+    const detailTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, detailUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
@@ -3898,7 +3899,7 @@ ${allTypesText}
       return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
-    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
     const newRequests = tierLimits[newTier] || 5;
     await storage.updateUser(userId, { tier: newTier, requestsLeft: newRequests });
     await ctx.answerCbQuery(t(lang, "admin.tierChangedTo", { tier: newTier }));
@@ -5113,7 +5114,7 @@ ${allTypesText}
     
     let text = `📊 *ВАША СТАТИСТИКА*\n\n`;
     text += `${tierEmoji} *Тариф:* ${user.tier}\n`;
-    const myStatsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 9999 };
+    const myStatsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const myStatsUserLimit = myStatsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     text += `🎯 *Запитів залишилось:* ${user.requestsLeft}/${myStatsUserLimit}\n`;
     text += `🔥 *Серія днів:* ${user.streakDays}\n`;

@@ -247,6 +247,10 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS photo_url TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS pending_ref_code TEXT`);
 
+    await pool.query(`ALTER TABLE ds_coupons ADD COLUMN IF NOT EXISTS description TEXT`);
+    await pool.query(`ALTER TABLE ds_coupons ADD COLUMN IF NOT EXISTS image_url TEXT`);
+    await pool.query(`ALTER TABLE ds_coupons ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false`);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_admin_messages (
         id SERIAL PRIMARY KEY,

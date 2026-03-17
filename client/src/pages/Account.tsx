@@ -338,7 +338,8 @@ export default function Account() {
       FREE: 5,
       BASIC: 30,
       PRO: 50,
-      ENTERPRISE: 9999,
+      ENTERPRISE: 999999,
+      GROUPS: 999999,
     };
     const total = tierLimits[userTier] || 5;
     const left = user?.requestsLeft ?? total;

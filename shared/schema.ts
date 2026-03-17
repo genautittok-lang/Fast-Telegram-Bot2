@@ -92,14 +92,17 @@ export const achievements = pgTable("ds_achievements", {
 export const coupons = pgTable("ds_coupons", {
   id: serial("id").primaryKey(),
   code: text("code").notNull().unique(),
-  type: text("type").notNull(), // 'checks' or 'tier'
-  value: integer("value").notNull(), // number of checks or tier upgrade
-  tier: text("tier"), // for tier upgrades: 'PRO' or 'ENTERPRISE'
+  type: text("type").notNull(),
+  value: integer("value").notNull(),
+  tier: text("tier"),
   maxUses: integer("max_uses").default(1),
   usedCount: integer("used_count").default(0),
   expiresAt: timestamp("expires_at"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  isPublic: boolean("is_public").default(false),
 });
 
 // Track coupon usage
