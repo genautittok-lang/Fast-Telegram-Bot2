@@ -50,7 +50,7 @@ function PricingContent() {
   const [timeLeft, setTimeLeft] = useState(600);
   const [timerExpired, setTimerExpired] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
-  const [selectedMethod, setSelectedMethod] = useState<"crypto" | "monobank" | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<"crypto" | "monobank" | "stars" | null>(null);
 
   useEffect(() => {
     if (!showPaymentModal || paymentStep !== "details") {
@@ -611,6 +611,41 @@ function PricingContent() {
                             <div className="text-[11px] text-muted-foreground mt-0.5">Visa, Mastercard · UAH</div>
                           </div>
                         </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMethod("stars")}
+                          className={`w-full flex items-center gap-3.5 p-4 rounded-2xl border text-left transition-all duration-200 ${
+                            selectedMethod === "stars"
+                              ? "border-yellow-500/40 bg-yellow-500/[0.08] shadow-lg shadow-yellow-500/10 ring-1 ring-yellow-500/20"
+                              : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/15"
+                          }`}
+                          data-testid="button-method-stars"
+                        >
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                            selectedMethod === "stars"
+                              ? "bg-gradient-to-br from-yellow-500/30 to-amber-500/20 shadow-lg shadow-yellow-500/20"
+                              : "bg-yellow-500/10"
+                          }`}>
+                            <span className="text-2xl">⭐</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-white">Telegram Stars</div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">{t('pricing.starsNote') || "Pay with Stars in Telegram"}</div>
+                          </div>
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
+                            {(() => {
+                              const starPrices: Record<string, Record<string, number>> = {
+                                PRO: { monthly: 500, yearly: 5000 },
+                                ENTERPRISE: { monthly: 1750, yearly: 17500 },
+                                GROUPS: { monthly: 2750, yearly: 27500 },
+                              };
+                              const base = showPaymentModal ? starPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0 : 0;
+                              const final = promoApplied && promoDiscount > 0 ? Math.max(1, Math.round(base * (1 - promoDiscount / 100))) : base;
+                              return <span className="px-1.5 py-0.5 rounded-md bg-yellow-500/10 text-[9px] font-mono text-yellow-400 border border-yellow-500/20">{final} ⭐</span>;
+                            })()}
+                          </div>
+                        </button>
                       </div>
                     </div>
 
@@ -838,6 +873,65 @@ function PricingContent() {
                             <Lock className="w-3 h-3" />
                             <span>{t('pricing.bankConversionNote')}</span>
                           </div>
+                      </div>
+                    )}
+
+                    {selectedMethod === "stars" && (
+                      <div className="space-y-4">
+                        <div className="p-5 rounded-2xl bg-gradient-to-br from-yellow-500/[0.08] to-amber-500/[0.04] border border-yellow-500/20 text-center">
+                          <div className="flex items-center justify-center mb-3">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500/25 to-amber-500/15 flex items-center justify-center shadow-lg shadow-yellow-500/15 border border-yellow-500/20">
+                              <span className="text-4xl">⭐</span>
+                            </div>
+                          </div>
+                          <p className="text-sm font-bold text-white mb-0.5">Telegram Stars</p>
+                          <p className="text-[11px] text-muted-foreground mb-3">{t('pricing.starsOfficialPayment') || "Official Telegram payment"}</p>
+                          <div className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent mb-2">
+                            {(() => {
+                              const starPrices: Record<string, Record<string, number>> = {
+                                PRO: { monthly: 500, yearly: 5000 },
+                                ENTERPRISE: { monthly: 1750, yearly: 17500 },
+                                GROUPS: { monthly: 2750, yearly: 27500 },
+                              };
+                              const base = showPaymentModal ? starPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0 : 0;
+                              const final = promoApplied && promoDiscount > 0 ? Math.max(1, Math.round(base * (1 - promoDiscount / 100))) : base;
+                              return `${final} Stars`;
+                            })()}
+                          </div>
+                          <p className="text-xs text-muted-foreground/80 mb-3">
+                            ~${getFinalAmount(showPaymentModal)} USD
+                          </p>
+                          <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                            {t('pricing.starsRedirectNote') || "You will be redirected to our Telegram bot to complete the payment with Stars"}
+                          </p>
+                        </div>
+
+                        <Button
+                          className="w-full bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-white font-semibold py-5 rounded-2xl shadow-lg shadow-yellow-500/20 transition-all duration-200"
+                          onClick={() => {
+                            const botUsername = "DarkShare1Bot";
+                            const starPrices: Record<string, Record<string, number>> = {
+                              PRO: { monthly: 500, yearly: 5000 },
+                              ENTERPRISE: { monthly: 1750, yearly: 17500 },
+                              GROUPS: { monthly: 2750, yearly: 27500 },
+                            };
+                            const tier = showPaymentModal || "PRO";
+                            const base = starPrices[tier]?.[isYearly ? "yearly" : "monthly"] || 500;
+                            const starsAmount = promoApplied && promoDiscount > 0 ? Math.max(1, Math.round(base * (1 - promoDiscount / 100))) : base;
+                            const deepLink = `https://t.me/${botUsername}?start=stars_${tier}_${starsAmount}`;
+                            window.open(deepLink, "_blank");
+                          }}
+                          disabled={timerExpired}
+                          data-testid="button-stars-checkout"
+                        >
+                          <span className="mr-2 text-lg">⭐</span>
+                          {t('pricing.payWithStars') || "Pay with Telegram Stars"}
+                        </Button>
+
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground/60 justify-center mt-3">
+                          <Lock className="w-3 h-3" />
+                          <span>{t('pricing.starsSecure') || "Secure payment via Telegram"}</span>
+                        </div>
                       </div>
                     )}
                   </div>

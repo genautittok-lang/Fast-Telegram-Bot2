@@ -369,6 +369,7 @@ export async function setupBot(storage: IStorage) {
     const text = ctx.message.text;
     // Match both /start ref_CODE and /start=ref_CODE formats
     const refMatch = text.match(/(?:start\s+ref_|start=ref_)([A-Z0-9-]+)/i);
+    const starsMatch = text.match(/(?:start\s+stars_|start=stars_)(PRO|ENTERPRISE|GROUPS)_(\d+)/i);
     const tgId = ctx.from!.id.toString();
     let user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
@@ -403,6 +404,68 @@ export async function setupBot(storage: IStorage) {
           } catch (e) {
             console.log(`Referral already exists or failed: ${refCode} -> ${tgId}`);
           }
+        }
+      }
+    }
+    
+    if (starsMatch && user) {
+      const starsTier = starsMatch[1].toUpperCase();
+      const requestedStars = parseInt(starsMatch[2]);
+      
+      const canonicalStarPrices: Record<string, Record<string, number>> = {
+        PRO: { monthly: 500, yearly: 5000 },
+        ENTERPRISE: { monthly: 1750, yearly: 17500 },
+        GROUPS: { monthly: 2750, yearly: 27500 },
+      };
+      
+      if (["PRO", "ENTERPRISE", "GROUPS"].includes(starsTier) && canonicalStarPrices[starsTier]) {
+        const monthlyPrice = canonicalStarPrices[starsTier].monthly;
+        const yearlyPrice = canonicalStarPrices[starsTier].yearly;
+        const isYearly = requestedStars > monthlyPrice && requestedStars <= yearlyPrice;
+        const canonicalPrice = isYearly ? yearlyPrice : monthlyPrice;
+        const period = isYearly ? "yearly" : "monthly";
+        const periodDays = isYearly ? 365 : 30;
+
+        const validAmount = (requestedStars > 0 && requestedStars <= canonicalPrice) ? requestedStars : canonicalPrice;
+        
+        try {
+          const payment = await storage.createPayment({
+            userId: user.id,
+            tier: starsTier,
+            amountUsdt: String(validAmount),
+            txHash: null,
+            status: "pending",
+          });
+
+          const periodLabel = isYearly
+            ? (lang === "uk" ? "рік" : lang === "ru" ? "год" : "year")
+            : (lang === "uk" ? "30 днів" : lang === "ru" ? "30 дней" : "30 days");
+          const titles: Record<string, string> = {
+            uk: `DARKSHARE ${starsTier} — Підписка (${periodLabel})`,
+            ru: `DARKSHARE ${starsTier} — Подписка (${periodLabel})`,
+            en: `DARKSHARE ${starsTier} — Subscription (${periodLabel})`,
+            es: `DARKSHARE ${starsTier} — Suscripción (${periodLabel})`,
+            de: `DARKSHARE ${starsTier} — Abonnement (${periodLabel})`,
+          };
+          const descriptions: Record<string, string> = {
+            uk: `${starsTier} тариф на ${periodLabel}. Після оплати тариф активується автоматично!`,
+            ru: `${starsTier} тариф на ${periodLabel}. После оплаты тариф активируется автоматически!`,
+            en: `${starsTier} plan for ${periodLabel}. Plan activates automatically after payment!`,
+            es: `Plan ${starsTier} por ${periodLabel}. ¡Se activa automáticamente!`,
+            de: `${starsTier} Tarif für ${periodLabel}. Wird automatisch aktiviert!`,
+          };
+
+          await ctx.replyWithInvoice(
+            titles[lang] || titles["en"],
+            descriptions[lang] || descriptions["en"],
+            JSON.stringify({ paymentId: payment.id, userId: user.id, tier: starsTier, period, periodDays }),
+            "",
+            "XTR",
+            [{ label: `${starsTier} Plan (${period})`, amount: validAmount }],
+          );
+          return;
+        } catch (err) {
+          console.error("Stars deep link payment error:", err);
         }
       }
     }
@@ -1002,9 +1065,13 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
         
         const promoText = `✅ *${lang === "uk" ? "Промокод активовано!" : lang === "ru" ? "Промокод активирован!" : lang === "es" ? "¡Código promocional activado!" : lang === "de" ? "Promo-Code aktiviert!" : "Promo code activated!"}*\n\n🎁 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : lang === "es" ? "Descuento" : lang === "de" ? "Rabatt" : "Discount"}: -${coupon.value}%\n💰 ${lang === "uk" ? "Нова ціна" : lang === "ru" ? "Новая цена" : lang === "es" ? "Nuevo precio" : lang === "de" ? "Neuer Preis" : "New price"}: ~~${basePrice}~~ ${discountedPrice} UAH\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : lang === "es" ? "Seleccione método de pago:" : lang === "de" ? "Zahlungsmethode wählen:" : "Select payment method:"}`;
         
+        const starPricesPromo: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
+        const discountedStars = Math.round(starPricesPromo[tier] * (1 - (coupon.value || 0) / 100));
+        
         await ctx.reply(promoText, {
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
+            [cb(`⭐ Telegram Stars (${discountedStars} ⭐)`, `bot_pay_method_${tier}_stars_promo_${coupon.value}`, "primary", E.star)],
             [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
             [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
             [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
@@ -2166,9 +2233,12 @@ ${faqText}`;
     const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
     const usdPrices: Record<string, number> = { PRO: 10, ENTERPRISE: 35, GROUPS: 55 };
     
+    const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
+    
     const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
     
     const keyboard = Markup.inlineKeyboard([
+      [cb(`⭐ Telegram Stars (${starPrices[tier]} ⭐)`, `bot_pay_method_${tier}_stars`, "primary", E.star)],
       [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
       [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
       [cb((lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
@@ -2179,6 +2249,169 @@ ${faqText}`;
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
       await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_stars$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
+    const stars = starPrices[tier];
+    
+    try {
+      await ctx.answerCbQuery();
+      
+      const user = await storage.getUserByTgId(tgId);
+      if (!user) return;
+
+      const payment = await storage.createPayment({
+        userId: user.id,
+        tier,
+        amountUsdt: String(stars),
+        txHash: null,
+        status: "pending",
+      });
+
+      const titles: Record<string, string> = {
+        uk: `DARKSHARE ${tier} — Підписка`,
+        ru: `DARKSHARE ${tier} — Подписка`,
+        en: `DARKSHARE ${tier} — Subscription`,
+        es: `DARKSHARE ${tier} — Suscripción`,
+        de: `DARKSHARE ${tier} — Abonnement`,
+      };
+      const descriptions: Record<string, string> = {
+        uk: `${tier} тариф на 30 днів. Після оплати тариф активується автоматично!`,
+        ru: `${tier} тариф на 30 дней. После оплаты тариф активируется автоматически!`,
+        en: `${tier} plan for 30 days. Plan activates automatically after payment!`,
+        es: `Plan ${tier} por 30 días. ¡Se activa automáticamente después del pago!`,
+        de: `${tier} Tarif für 30 Tage. Der Tarif wird nach der Zahlung automatisch aktiviert!`,
+      };
+
+      await ctx.replyWithInvoice(
+        titles[lang] || titles["en"],
+        descriptions[lang] || descriptions["en"],
+        JSON.stringify({ paymentId: payment.id, userId: user.id, tier, period: "monthly", periodDays: 30 }),
+        "",
+        "XTR",
+        [{ label: `${tier} Plan`, amount: stars }],
+      );
+    } catch (err) {
+      console.error("Bot Stars payment error:", err);
+      const errText = lang === "uk" ? "❌ Помилка створення платежу зірками." : lang === "ru" ? "❌ Ошибка создания платежа звёздами." : "❌ Failed to create Stars payment.";
+      await ctx.reply(errText);
+    }
+  });
+
+  bot.on("pre_checkout_query", async (ctx) => {
+    try {
+      await ctx.answerPreCheckoutQuery(true);
+    } catch (err) {
+      console.error("Pre-checkout query error:", err);
+      try {
+        await ctx.answerPreCheckoutQuery(false, "Payment processing error. Please try again.");
+      } catch {}
+    }
+  });
+
+  bot.on("successful_payment", async (ctx) => {
+    try {
+      const payment = ctx.message?.successful_payment;
+      if (!payment) return;
+
+      const payload = JSON.parse(payment.invoice_payload);
+      const { paymentId, userId, tier, periodDays } = payload;
+      const tgId = ctx.from!.id.toString();
+      const user = await storage.getUserByTgId(tgId);
+      if (!user) return;
+      const lang = getUserLang(user.lang);
+
+      const telegramPaymentId = payment.telegram_payment_charge_id;
+      await storage.updatePaymentStatus(paymentId, "approved");
+
+      const tierLimits: Record<string, number> = { PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 };
+      const newLimit = tierLimits[tier] || 50;
+      const days = periodDays || 30;
+      const expiryDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+      await storage.updateUser(user.id, { tier, requestsLeft: newLimit, subscriptionExpiresAt: expiryDate });
+
+      const expiryStr = expiryDate.toLocaleDateString("uk-UA");
+      const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "∞" : "50";
+      const starsAmount = payment.total_amount;
+
+      const receiptTexts: Record<string, string> = {
+        uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату зірками підтверджено!\n\n📦 Тариф: *${tier}*\n⭐ Сума: ${starsAmount} Stars\n🔢 Запитів: ${requestsDisplay}/день\n📅 Діє до: ${expiryStr}\n🆔 Платіж: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
+        ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата звёздами подтверждена!\n\n📦 Тариф: *${tier}*\n⭐ Сумма: ${starsAmount} Stars\n🔢 Запросов: ${requestsDisplay}/день\n📅 Действует до: ${expiryStr}\n🆔 Платёж: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
+        en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Stars payment confirmed!\n\n📦 Plan: *${tier}*\n⭐ Amount: ${starsAmount} Stars\n🔢 Requests: ${requestsDisplay}/day\n📅 Valid until: ${expiryStr}\n🆔 Payment: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
+        es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago con estrellas confirmado!\n\n📦 Plan: *${tier}*\n⭐ Monto: ${starsAmount} Stars\n🔢 Solicitudes: ${requestsDisplay}/día\n📅 Válido hasta: ${expiryStr}\n🆔 Pago: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
+        de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Stars-Zahlung bestätigt!\n\n📦 Tarif: *${tier}*\n⭐ Betrag: ${starsAmount} Stars\n🔢 Anfragen: ${requestsDisplay}/Tag\n📅 Gültig bis: ${expiryStr}\n🆔 Zahlung: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
+      };
+
+      const receiptText = receiptTexts[lang] || receiptTexts["en"];
+      await ctx.reply(receiptText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]])
+      });
+
+      const ADMIN_IDS = (process.env.ADMIN_TG_IDS || "").split(",").map(id => id.trim()).filter(Boolean);
+      for (const adminId of ADMIN_IDS) {
+        try {
+          await bot.telegram.sendMessage(adminId, `⭐ *Stars Payment Received*\n\nUser: @${user.username || "N/A"} (${tgId})\nTier: ${tier}\nStars: ${starsAmount}\nPayment #${paymentId}\nTG Charge: ${telegramPaymentId}`, { parse_mode: "Markdown" });
+        } catch {}
+      }
+    } catch (err) {
+      console.error("Successful payment handler error:", err);
+    }
+  });
+
+  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_stars_promo_(\d+)$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const discount = parseInt(ctx.match[2]);
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    
+    const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
+    const baseStars = starPrices[tier];
+    const discountedStars = Math.max(1, Math.round(baseStars * (1 - discount / 100)));
+    
+    try {
+      await ctx.answerCbQuery();
+      
+      const user = await storage.getUserByTgId(tgId);
+      if (!user) return;
+
+      const payment = await storage.createPayment({
+        userId: user.id,
+        tier,
+        amountUsdt: String(discountedStars),
+        txHash: null,
+        status: "pending",
+      });
+
+      const titles: Record<string, string> = {
+        uk: `DARKSHARE ${tier} — Підписка (-${discount}%)`,
+        ru: `DARKSHARE ${tier} — Подписка (-${discount}%)`,
+        en: `DARKSHARE ${tier} — Subscription (-${discount}%)`,
+      };
+      const descriptions: Record<string, string> = {
+        uk: `${tier} тариф на 30 днів зі знижкою ${discount}%! Активується автоматично.`,
+        ru: `${tier} тариф на 30 дней со скидкой ${discount}%! Активируется автоматически.`,
+        en: `${tier} plan for 30 days with ${discount}% discount! Activates automatically.`,
+      };
+
+      await ctx.replyWithInvoice(
+        titles[lang] || titles["en"],
+        descriptions[lang] || descriptions["en"],
+        JSON.stringify({ paymentId: payment.id, userId: user.id, tier, period: "monthly", periodDays: 30 }),
+        "",
+        "XTR",
+        [{ label: `${tier} Plan (-${discount}%)`, amount: discountedStars }],
+      );
+    } catch (err) {
+      console.error("Bot Stars promo payment error:", err);
+      const errText = lang === "uk" ? "❌ Помилка створення платежу зірками." : lang === "ru" ? "❌ Ошибка создания платежа звёздами." : "❌ Failed to create Stars payment.";
+      await ctx.reply(errText);
     }
   });
 
@@ -2403,10 +2636,12 @@ ${faqText}`;
     
     const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
     const usdPrices: Record<string, number> = { PRO: 10, ENTERPRISE: 35, GROUPS: 55 };
+    const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
     
     const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
     
     const keyboard = Markup.inlineKeyboard([
+      [cb(`⭐ Telegram Stars (${starPrices[tier]} ⭐)`, `bot_pay_method_${tier}_stars`, "primary", E.star)],
       [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
       [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
       [cb((lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],

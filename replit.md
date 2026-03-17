@@ -10,6 +10,7 @@ DARKSHARE is a professional security OSINT platform designed for analyzing 15 da
 - **EXIF Metadata Extractor**: New `/exif` page and `/api/exif` endpoint. Users upload photos to extract EXIF metadata (camera, GPS, dates). Uses `exifr` package. Auth-required, no data stored.
 - **GEOINT Hints**: New `/geoint` page and `/api/geoint-hints` endpoint. Reference guide for geolocation analysis — road signs, architecture, fences, vegetation, license plates, etc. organized by region.
 - **Navigation**: Added EXIF Metadata and GEOINT items to sidebar navigation with i18n support (5 languages).
+- **Telegram Stars payments**: Added official Telegram Stars as payment method in bot and web. Bot: `sendInvoice` with XTR currency, `pre_checkout_query` auto-approve, `successful_payment` handler with receipt + admin notification. Stars prices: PRO=500⭐, ENTERPRISE=1750⭐, GROUPS=2750⭐. Promo codes apply discount to Stars amount. Deep link `stars_TIER_AMOUNT` for web-to-bot redirect. Web Pricing page: Stars option in payment modal with redirect to bot.
 - **Security hardening**: cookie.secure based on NODE_ENV, removed hardcoded session secret fallback (uses crypto.randomBytes), Stripe webhook rejects when secret not configured.
 - **DB performance**: searchUsers uses SQL ILIKE, getHighRiskReportsCount uses SQL filter, getTopUsers/getReferralStats use single JOIN queries (eliminated N+1), indexes added on all FK columns.
 - **User ID fix**: Replit/Google auth now extracts real name from claims, updates old "Dark..." usernames.
