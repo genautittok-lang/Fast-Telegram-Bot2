@@ -219,7 +219,8 @@ export default function Admin() {
   const [newConvMessage, setNewConvMessage] = useState("");
   const [userTierFilter, setUserTierFilter] = useState<string>("all");
   const [adminPassword, setAdminPassword] = useState("");
-  const [isPasswordVerified, setIsPasswordVerified] = useState(false);
+  const [isPasswordVerified, setIsPasswordVerified] = useState(() => !!sessionStorage.getItem("adminToken"));
+  const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem("adminToken") || "");
   const [passwordError, setPasswordError] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
@@ -243,24 +244,55 @@ export default function Admin() {
     enterprisePrice: "50",
   });
 
-  const { data: isAdminData, isLoading: adminLoading, error: adminError } = useQuery<{ isAdmin: boolean }>({
-    queryKey: ["/api/admin/verify"],
-    retry: false,
-  });
-  const isAdmin = isAdminData?.isAdmin;
+  const adminFetch = async (url: string) => {
+    const res = await fetch(url, { headers: { "x-admin-token": adminToken } });
+    if (!res.ok) throw new Error("Admin request failed");
+    return res.json();
+  };
+
+  const adminPost = async (url: string, body?: any) => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error("Admin request failed");
+    return res.json();
+  };
+
+  const adminDelete = async (url: string) => {
+    const res = await fetch(url, { method: "DELETE", headers: { "x-admin-token": adminToken } });
+    if (!res.ok) throw new Error("Admin request failed");
+    return res.json();
+  };
+
+  const adminPatch = async (url: string, body?: any) => {
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "x-admin-token": adminToken },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error("Admin request failed");
+    return res.json();
+  };
+
+  const isAdmin = isPasswordVerified;
 
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
+    queryFn: () => adminFetch("/api/admin/stats"),
     enabled: !!isAdmin,
   });
 
   const { data: coupons, isLoading: couponsLoading } = useQuery<Coupon[]>({
     queryKey: ["/api/admin/coupons"],
+    queryFn: () => adminFetch("/api/admin/coupons"),
     enabled: !!isAdmin && activeTab === "coupons",
   });
 
   const { data: settings, isLoading: settingsLoading } = useQuery<PaymentSettings>({
     queryKey: ["/api/admin/settings"],
+    queryFn: () => adminFetch("/api/admin/settings"),
     enabled: !!isAdmin && activeTab === "settings",
   });
 
@@ -285,6 +317,7 @@ export default function Admin() {
     dbConnected: boolean;
   }>({
     queryKey: ["/api/admin/system-health"],
+    queryFn: () => adminFetch("/api/admin/system-health"),
     enabled: !!isAdmin && activeTab === "dashboard",
     refetchInterval: 30000,
   });
@@ -294,8 +327,7 @@ export default function Admin() {
 
   const pushBroadcastMutation = useMutation({
     mutationFn: async ({ title, body }: { title: string; body: string }) => {
-      const res = await apiRequest("POST", "/api/admin/push-broadcast", { title, body });
-      return res.json();
+      return await adminPost("/api/admin/push-broadcast", { title, body });
     },
     onSuccess: (data: any) => {
       toast({ title: `Push надіслано: ${data.sent} успішних, ${data.failed} невдалих` });
@@ -309,32 +341,38 @@ export default function Admin() {
 
   const { data: pendingPayments } = useQuery<PaymentRecord[]>({
     queryKey: ["/api/admin/payments"],
+    queryFn: () => adminFetch("/api/admin/payments"),
     enabled: !!isAdmin,
   });
 
   const { data: allPayments, isLoading: allPaymentsLoading } = useQuery<PaymentRecord[]>({
     queryKey: ["/api/admin/payments/all"],
+    queryFn: () => adminFetch("/api/admin/payments/all"),
     enabled: !!isAdmin && activeTab === "payments",
   });
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery<SupportTicketRecord[]>({
     queryKey: ["/api/admin/tickets"],
+    queryFn: () => adminFetch("/api/admin/tickets"),
     enabled: !!isAdmin && (activeTab === "tickets" || activeTab === "dashboard"),
   });
 
   const { data: allUsers, isLoading: usersLoading } = useQuery<AdminUser[]>({
     queryKey: ["/api/admin/users"],
+    queryFn: () => adminFetch("/api/admin/users"),
     enabled: !!isAdmin && (activeTab === "users" || activeTab === "messages"),
   });
 
   const { data: conversations, isLoading: convsLoading } = useQuery<Conversation[]>({
     queryKey: ["/api/admin/conversations"],
+    queryFn: () => adminFetch("/api/admin/conversations"),
     enabled: !!isAdmin && activeTab === "messages",
     refetchInterval: 10000,
   });
 
   const { data: chatMessages, isLoading: chatLoading } = useQuery<AdminMessage[]>({
     queryKey: ["/api/admin/messages", selectedConversation],
+    queryFn: () => adminFetch(`/api/admin/messages/${selectedConversation}`),
     enabled: !!isAdmin && !!selectedConversation,
     refetchInterval: 5000,
   });
@@ -344,11 +382,7 @@ export default function Admin() {
 
   const { data: activityData, isLoading: activityLoading } = useQuery<ActivityLogResponse>({
     queryKey: ["/api/admin/activity", activityPage],
-    queryFn: async () => {
-      const res = await fetch(`/api/admin/activity?limit=${ACTIVITY_PAGE_SIZE}&offset=${activityPage * ACTIVITY_PAGE_SIZE}`);
-      if (!res.ok) throw new Error("Failed to fetch activity log");
-      return res.json();
-    },
+    queryFn: () => adminFetch(`/api/admin/activity?limit=${ACTIVITY_PAGE_SIZE}&offset=${activityPage * ACTIVITY_PAGE_SIZE}`),
     enabled: !!isAdmin && activeTab === "activity",
     refetchInterval: 15000,
   });
@@ -365,8 +399,7 @@ export default function Admin() {
 
   const createCouponMutation = useMutation({
     mutationFn: async (data: typeof couponForm) => {
-      const res = await apiRequest("POST", "/api/admin/coupons", { ...data, expiresAt: data.expiresAt?.toISOString() || null });
-      return res.json();
+      return await adminPost("/api/admin/coupons", { ...data, expiresAt: data.expiresAt?.toISOString() || null });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
@@ -377,7 +410,7 @@ export default function Admin() {
   });
 
   const deleteCouponMutation = useMutation({
-    mutationFn: async (id: number) => { await apiRequest("DELETE", `/api/admin/coupons/${id}`); },
+    mutationFn: async (id: number) => { await adminDelete(`/api/admin/coupons/${id}`); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
       toast({ title: "Купон видалено" });
@@ -386,7 +419,7 @@ export default function Admin() {
 
   const togglePublicMutation = useMutation({
     mutationFn: async ({ id, isPublic }: { id: number; isPublic: boolean }) => {
-      await apiRequest("PATCH", `/api/admin/coupons/${id}`, { isPublic });
+      await adminPatch(`/api/admin/coupons/${id}`, { isPublic });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
@@ -395,7 +428,7 @@ export default function Admin() {
   });
 
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: PaymentSettings) => { await apiRequest("POST", "/api/admin/settings", data); },
+    mutationFn: async (data: PaymentSettings) => { await adminPost("/api/admin/settings", data); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       toast({ title: "Налаштування збережено" });
@@ -403,7 +436,7 @@ export default function Admin() {
   });
 
   const approvePaymentMutation = useMutation({
-    mutationFn: async (id: number) => { await apiRequest("POST", `/api/admin/payments/${id}/approve`); },
+    mutationFn: async (id: number) => { await adminPost(`/api/admin/payments/${id}/approve`); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments"] });
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments/all"] });
@@ -413,7 +446,7 @@ export default function Admin() {
   });
 
   const rejectPaymentMutation = useMutation({
-    mutationFn: async (id: number) => { await apiRequest("POST", `/api/admin/payments/${id}/reject`); },
+    mutationFn: async (id: number) => { await adminPost(`/api/admin/payments/${id}/reject`); },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments"] });
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/payments/all"] });
@@ -424,7 +457,7 @@ export default function Admin() {
 
   const updateTicketMutation = useMutation({
     mutationFn: async ({ id, status, adminReply }: { id: number; status: string; adminReply?: string }) => {
-      await apiRequest("POST", `/api/admin/tickets/${id}/status`, { status, adminReply });
+      await adminPost(`/api/admin/tickets/${id}/status`, { status, adminReply });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/tickets"] });
@@ -435,7 +468,7 @@ export default function Admin() {
 
   const blockUserMutation = useMutation({
     mutationFn: async ({ userId, blocked }: { userId: number; blocked: boolean }) => {
-      await apiRequest("POST", `/api/admin/users/${userId}/block`, { blocked });
+      await adminPost(`/api/admin/users/${userId}/block`, { blocked });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -445,8 +478,7 @@ export default function Admin() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ userId, message, ticketId }: { userId: number; message: string; ticketId?: number }) => {
-      const res = await apiRequest("POST", `/api/admin/messages/${userId}`, { message, ticketId });
-      return res.json();
+      return await adminPost(`/api/admin/messages/${userId}`, { message, ticketId });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/messages", selectedConversation] });
@@ -457,7 +489,7 @@ export default function Admin() {
 
   const changeTierMutation = useMutation({
     mutationFn: async ({ userId, tier }: { userId: number; tier: string }) => {
-      await apiRequest("POST", `/api/admin/users/${userId}/tier`, { tier });
+      await adminPost(`/api/admin/users/${userId}/tier`, { tier });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -468,7 +500,7 @@ export default function Admin() {
 
   const addChecksMutation = useMutation({
     mutationFn: async ({ userId, amount }: { userId: number; amount: number }) => {
-      await apiRequest("POST", `/api/admin/users/${userId}/checks`, { amount });
+      await adminPost(`/api/admin/users/${userId}/checks`, { amount });
     },
     onSuccess: () => {
       queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/users"] });
@@ -477,49 +509,21 @@ export default function Admin() {
     },
   });
 
-  if (adminLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-            <Shield className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-          <p className="text-muted-foreground font-mono text-sm">Перевірка доступу...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (adminError || !isAdmin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
-          <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
-            <ShieldAlert className="w-10 h-10 text-red-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-red-400">Доступ заборонено</h1>
-          <p className="text-muted-foreground">У вас немає прав адміністратора</p>
-          <Link href="/dashboard">
-            <Button variant="outline" className="gap-2" data-testid="button-back-dashboard">
-              <ArrowLeft className="w-4 h-4" />
-              Повернутися
-            </Button>
-          </Link>
-        </motion.div>
-      </div>
-    );
-  }
-
   if (!isPasswordVerified) {
     const handlePasswordSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setPasswordLoading(true);
       setPasswordError(false);
       try {
-        const res = await apiRequest("POST", "/api/admin/login", { password: adminPassword });
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: adminPassword }),
+        });
         const data = await res.json();
-        if (data.success) {
+        if (data.success && data.token) {
+          sessionStorage.setItem("adminToken", data.token);
+          setAdminToken(data.token);
           setIsPasswordVerified(true);
         } else {
           setPasswordError(true);

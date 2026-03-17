@@ -2513,17 +2513,35 @@ export async function registerRoutes(
 
   // ==================== ADMIN API ROUTES ====================
   
+  const ADMIN_PASSWORD = "bogdan123boG#";
+  const ADMIN_TOKEN = "ds_admin_" + Buffer.from(ADMIN_PASSWORD).toString("base64");
+  
   app.post("/api/admin/login", (req, res) => {
     const { password } = req.body;
-    if (password === "bogdan123boG#") {
-      res.json({ success: true });
+    if (password === ADMIN_PASSWORD) {
+      res.json({ success: true, token: ADMIN_TOKEN });
     } else {
       res.status(401).json({ success: false, error: "Invalid password" });
     }
   });
 
-  // Verify if user is admin
+  const requireAdmin: express.RequestHandler = async (req, res, next) => {
+    const authHeader = req.headers["x-admin-token"] as string;
+    if (authHeader === ADMIN_TOKEN) {
+      return next();
+    }
+    const authReq = req as AuthenticatedRequest;
+    if (authReq.user && ADMIN_IDS.includes(authReq.user.tgId)) {
+      return next();
+    }
+    res.status(403).json({ error: "Access denied" });
+  };
+
   app.get("/api/admin/verify", loadUser, async (req, res) => {
+    const authHeader = req.headers["x-admin-token"] as string;
+    if (authHeader === ADMIN_TOKEN) {
+      return res.json({ isAdmin: true });
+    }
     const authReq = req as AuthenticatedRequest;
     if (!authReq.user) {
       return res.json({ isAdmin: false });
@@ -2533,31 +2551,19 @@ export async function registerRoutes(
   });
 
   // Admin stats
-  app.get("/api/admin/stats", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/stats", requireAdmin, async (req, res) => {
     const stats = await storage.getStats();
     res.json(stats);
   });
 
   // Get all coupons
-  app.get("/api/admin/coupons", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/coupons", requireAdmin, async (req, res) => {
     const coupons = await storage.getCoupons();
     res.json(coupons);
   });
 
   // Create coupon
-  app.post("/api/admin/coupons", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/coupons", requireAdmin, async (req, res) => {
     const { code, type, value, tier, maxUses, expiresAt, description, imageUrl, isPublic } = req.body;
     if (!code || !type || value === undefined) {
       return res.status(400).json({ error: "Code, type and value are required" });
@@ -2582,21 +2588,13 @@ export async function registerRoutes(
   });
 
   // Delete coupon
-  app.delete("/api/admin/coupons/:id", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.delete("/api/admin/coupons/:id", requireAdmin, async (req, res) => {
     await storage.deleteCoupon(parseInt(req.params.id));
     res.json({ success: true });
   });
 
   // Update coupon (toggle public, edit description/image)
-  app.patch("/api/admin/coupons/:id", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.patch("/api/admin/coupons/:id", requireAdmin, async (req, res) => {
     try {
       const allowedFields = ["description", "imageUrl", "isPublic", "isActive"];
       const updates: Record<string, any> = {};
@@ -2641,11 +2639,7 @@ export async function registerRoutes(
   });
 
   // Get admin settings
-  app.get("/api/admin/settings", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/settings", requireAdmin, async (req, res) => {
     const settings = await storage.getAllAdminSettings();
     const settingsMap: Record<string, string> = {};
     settings.forEach(s => { settingsMap[s.key] = s.value; });
@@ -2659,11 +2653,7 @@ export async function registerRoutes(
   });
 
   // Update admin settings
-  app.post("/api/admin/settings", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/settings", requireAdmin, async (req, res) => {
     const { proPrice, enterprisePrice, dailyBroadcastEnabled } = req.body;
     if (proPrice) await storage.setAdminSetting('pro_price', proPrice.toString());
     if (enterprisePrice) await storage.setAdminSetting('enterprise_price', enterprisePrice.toString());
@@ -2674,11 +2664,7 @@ export async function registerRoutes(
   });
 
   // Get pending payments for admin
-  app.get("/api/admin/payments", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/payments", requireAdmin, async (req, res) => {
     const payments = await storage.getPendingPayments();
     // Enrich with user info
     const enrichedPayments = await Promise.all(
@@ -2691,11 +2677,7 @@ export async function registerRoutes(
   });
 
   // Approve payment
-  app.post("/api/admin/payments/:id/approve", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/payments/:id/approve", requireAdmin, async (req, res) => {
     const paymentId = parseInt(req.params.id);
     const payment = await storage.getPaymentById(paymentId);
     if (!payment) return res.status(404).json({ error: "Payment not found" });
@@ -2723,11 +2705,7 @@ export async function registerRoutes(
   });
 
   // Reject payment
-  app.post("/api/admin/payments/:id/reject", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/payments/:id/reject", requireAdmin, async (req, res) => {
     const paymentId = parseInt(req.params.id);
     const payment = await storage.getPaymentById(paymentId);
     if (!payment) return res.status(404).json({ error: "Payment not found" });
@@ -2808,11 +2786,7 @@ export async function registerRoutes(
   });
 
   // Get support tickets (admin only)
-  app.get("/api/admin/tickets", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/tickets", requireAdmin, async (req, res) => {
     const tickets = await storage.getSupportTickets();
     const enriched = await Promise.all(
       tickets.map(async (t) => {
@@ -2824,11 +2798,7 @@ export async function registerRoutes(
   });
 
   // Update support ticket status (admin only)
-  app.post("/api/admin/tickets/:id/status", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/tickets/:id/status", requireAdmin, async (req, res) => {
     const { status, adminReply } = req.body;
     try {
       const ticket = await storage.updateSupportTicketStatus(parseInt(req.params.id), status, adminReply);
@@ -2839,11 +2809,7 @@ export async function registerRoutes(
   });
 
   // Get ALL payments (admin only, not just pending)
-  app.get("/api/admin/payments/all", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/payments/all", requireAdmin, async (req, res) => {
     const allPayments = await storage.getAllPayments();
     const enriched = await Promise.all(
       allPayments.map(async (p) => {
@@ -2855,11 +2821,7 @@ export async function registerRoutes(
   });
 
   // Get all users (admin only)
-  app.get("/api/admin/users", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/users", requireAdmin, async (req, res) => {
     const allUsers = await storage.getAllUsers();
     res.json(allUsers.map(u => ({
       id: u.id,
@@ -2874,11 +2836,7 @@ export async function registerRoutes(
     })));
   });
 
-  app.post("/api/admin/users/:id/block", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/users/:id/block", requireAdmin, async (req, res) => {
     const { blocked } = req.body;
     try {
       const user = await storage.blockUser(parseInt(req.params.id), blocked);
@@ -2890,11 +2848,7 @@ export async function registerRoutes(
 
   // ============ Admin Messages / Support Dialog Routes ============
 
-  app.get("/api/admin/conversations", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/conversations", requireAdmin, async (req, res) => {
     try {
       const conversations = await storage.getConversationList();
       res.json(conversations);
@@ -2903,11 +2857,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/messages/:userId", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/messages/:userId", requireAdmin, async (req, res) => {
     try {
       const messages = await storage.getAdminMessages(parseInt(req.params.userId));
       res.json(messages);
@@ -2916,11 +2866,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/messages/:userId", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/messages/:userId", requireAdmin, async (req, res) => {
     const { message, ticketId } = req.body;
     if (!message?.trim()) return res.status(400).json({ error: "Message required" });
     try {
@@ -2979,11 +2925,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/users/:id/tier", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/users/:id/tier", requireAdmin, async (req, res) => {
     const { tier } = req.body;
     if (!["FREE", "PRO", "ENTERPRISE"].includes(tier)) return res.status(400).json({ error: "Invalid tier" });
     try {
@@ -2995,11 +2937,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/users/:id/checks", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/users/:id/checks", requireAdmin, async (req, res) => {
     const { amount } = req.body;
     if (!amount || amount < 1) return res.status(400).json({ error: "Invalid amount" });
     try {
@@ -3010,11 +2948,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/activity", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/activity", requireAdmin, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
     const offset = parseInt(req.query.offset as string) || 0;
     try {
@@ -3029,11 +2963,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/activity", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/activity", requireAdmin, async (req, res) => {
     const { eventType, userId, username, details, meta } = req.body;
     if (!eventType) return res.status(400).json({ error: "eventType is required" });
     try {
@@ -3078,11 +3008,7 @@ export async function registerRoutes(
     res.json({ publicKey: vapidKey });
   });
 
-  app.post("/api/admin/push-broadcast", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.post("/api/admin/push-broadcast", requireAdmin, async (req, res) => {
     const { title, body: msgBody } = req.body;
     if (!title || !msgBody) return res.status(400).json({ error: "title and body required" });
 
@@ -3122,11 +3048,7 @@ export async function registerRoutes(
 
   // ============ Admin Analytics ============
 
-  app.get("/api/admin/revenue", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/revenue", requireAdmin, async (req, res) => {
     try {
       const revenueStats = await storage.getRevenueStats();
       res.json(revenueStats);
@@ -3135,11 +3057,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/system-health", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/system-health", requireAdmin, async (req, res) => {
     const mem = process.memoryUsage();
     const uptimeSec = process.uptime();
     const hours = Math.floor(uptimeSec / 3600);
@@ -3156,11 +3074,7 @@ export async function registerRoutes(
     });
   });
 
-  app.get("/api/admin/user-growth", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!ADMIN_IDS.includes(authReq.user!.tgId)) {
-      return res.status(403).json({ error: "Access denied" });
-    }
+  app.get("/api/admin/user-growth", requireAdmin, async (req, res) => {
     try {
       const growth = await storage.getUserGrowthStats();
       res.json(growth);

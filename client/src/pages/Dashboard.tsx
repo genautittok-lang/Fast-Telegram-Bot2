@@ -80,7 +80,8 @@ import {
   Camera,
   Map,
   Navigation,
-  Compass
+  Compass,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -657,6 +658,10 @@ export default function Dashboard() {
   const [breachEmail, setBreachEmail] = useState("");
   const [breachResult, setBreachResult] = useState<any>(null);
   const [breachLoading, setBreachLoading] = useState(false);
+  const [exifFile, setExifFile] = useState<File | null>(null);
+  const [exifDragging, setExifDragging] = useState(false);
+  const [geointRegion, setGeointRegion] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bulkTextareaRef = useRef<HTMLTextAreaElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -769,6 +774,78 @@ export default function Dashboard() {
       });
     },
   });
+
+  const exifMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("photo", file);
+      const res = await fetch("/api/exif", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "EXIF analysis failed");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setResult({
+        type: "exif",
+        target: exifFile?.name || "photo",
+        riskScore: data.riskScore || 30,
+        riskLevel: data.riskLevel || "low",
+        summary: data.summary || "EXIF metadata extracted",
+        details: data.details || data,
+        findings: data.findings || [],
+        sources: ["EXIF Parser"],
+        timestamp: new Date().toISOString(),
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      setExifFile(null);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('common.error'),
+        description: error.message || "EXIF analysis error",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const geointRegions = [
+    { id: "europe_west", emoji: "🇪🇺", label: "Western Europe", color: "from-blue-500/20 to-indigo-500/20" },
+    { id: "europe_east", emoji: "🇺🇦", label: "Eastern Europe / CIS", color: "from-blue-500/20 to-yellow-500/20" },
+    { id: "asia", emoji: "🌏", label: "Asia", color: "from-orange-500/20 to-red-500/20" },
+    { id: "americas", emoji: "🌎", label: "Americas", color: "from-red-500/20 to-blue-500/20" },
+    { id: "africa_mideast", emoji: "🌍", label: "Africa & Middle East", color: "from-green-500/20 to-amber-500/20" },
+  ];
+
+  const [geointData, setGeointData] = useState<any>(null);
+  const [geointLoading, setGeointLoading] = useState(false);
+
+  const loadGeointRegion = async (regionId: string) => {
+    setGeointLoading(true);
+    try {
+      const res = await fetch(`/api/geosint`);
+      if (res.ok) {
+        const regions = await res.json();
+        const region = regions.find((r: any) => r.id === regionId);
+        if (region) {
+          setGeointData(region);
+          setGeointRegion(regionId);
+        }
+      }
+    } catch {
+      toast({ title: t('common.error'), variant: "destructive" });
+    } finally {
+      setGeointLoading(false);
+    }
+  };
 
   const bulkCheckMutation = useMutation({
     mutationFn: async (checks: Array<{ type: string; value: string }>) => {
@@ -1468,6 +1545,9 @@ Sources: ${result.sources.join(', ')}`;
                           setSelectedType(type.id);
                           setInputValue("");
                           setResult(null);
+                          setExifFile(null);
+                          setGeointRegion(null);
+                          setGeointData(null);
                         }}
                         className={`relative flex flex-col items-center gap-1.5 min-w-[4rem] py-2 px-1 rounded-2xl touch-manipulation active:scale-[0.92] transition-transform duration-150 ${
                           isSelected
@@ -1511,6 +1591,9 @@ Sources: ${result.sources.join(', ')}`;
                         setSelectedType(type.id);
                         setInputValue("");
                         setResult(null);
+                        setExifFile(null);
+                        setGeointRegion(null);
+                        setGeointData(null);
                       }}
                       className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group cursor-pointer hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 ease-out ${
                         isSelected
@@ -1614,6 +1697,7 @@ Sources: ${result.sources.join(', ')}`;
                   )}
                   
                   <div className="flex flex-col gap-2.5 lg:gap-3">
+                    {selectedType !== "exif" && selectedType !== "geoint" && (
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
                         <Layers className="w-4 h-4 text-muted-foreground" />
@@ -1633,8 +1717,9 @@ Sources: ${result.sources.join(', ')}`;
                         <span className="text-xs text-muted-foreground">{bulkMode ? t('dashboard.enabled') : t('dashboard.disabled')}</span>
                       </div>
                     </div>
+                    )}
                     
-                    {bulkMode ? (
+                    {bulkMode && selectedType !== "exif" && selectedType !== "geoint" ? (
                       <div className="relative w-full">
                         <Textarea
                           ref={bulkTextareaRef}
@@ -1647,6 +1732,99 @@ Sources: ${result.sources.join(', ')}`;
                         <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                           <span>{bulkInput.split('\n').filter(v => v.trim()).length} / 20 {t('dashboard.values')}</span>
                         </div>
+                      </div>
+                    ) : selectedType === "exif" ? (
+                      <div
+                        className={`relative w-full rounded-xl border-2 border-dashed transition-all duration-200 ${exifDragging ? 'border-pink-400 bg-pink-500/10' : 'border-white/10 bg-black/40 hover:border-pink-400/50'} ${inputShake ? 'animate-shake' : ''}`}
+                        onDragOver={(e) => { e.preventDefault(); setExifDragging(true); }}
+                        onDragLeave={() => setExifDragging(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setExifDragging(false);
+                          const file = e.dataTransfer.files[0];
+                          if (file && file.type.startsWith("image/")) setExifFile(file);
+                        }}
+                        onClick={() => fileInputRef.current?.click()}
+                        data-testid="dropzone-exif"
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setExifFile(file);
+                          }}
+                        />
+                        <div className="flex flex-col items-center justify-center py-6 lg:py-8 gap-2 cursor-pointer">
+                          {exifFile ? (
+                            <>
+                              <div className="w-16 h-16 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                                <Camera className="w-8 h-8 text-pink-400" />
+                              </div>
+                              <p className="text-sm font-medium text-pink-300">{exifFile.name}</p>
+                              <p className="text-xs text-muted-foreground">{(exifFile.size / 1024).toFixed(1)} KB</p>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-12 h-12 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                                <Camera className="w-6 h-6 text-pink-400/70" />
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {lang === "uk" ? "Перетягніть фото або натисніть" : lang === "ru" ? "Перетащите фото или нажмите" : "Drag photo or click to upload"}
+                              </p>
+                              <p className="text-xs text-muted-foreground/60">JPG, PNG, TIFF</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ) : selectedType === "geoint" ? (
+                      <div className="w-full space-y-3">
+                        {geointLoading ? (
+                          <div className="flex items-center justify-center py-8 gap-3">
+                            <Loader2 className="w-5 h-5 text-teal-400 animate-spin" />
+                            <span className="text-sm text-muted-foreground">{lang === "uk" ? "Завантаження..." : lang === "ru" ? "Загрузка..." : "Loading..."}</span>
+                          </div>
+                        ) : !geointRegion ? (
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                            {geointRegions.map((region) => (
+                              <button
+                                key={region.id}
+                                onClick={() => loadGeointRegion(region.id)}
+                                disabled={geointLoading}
+                                className={`p-3 rounded-xl bg-gradient-to-br ${region.color} border border-white/10 hover:border-teal-400/50 transition-all text-center`}
+                                data-testid={`button-geoint-${region.id}`}
+                              >
+                                <div className="text-2xl mb-1">{region.emoji}</div>
+                                <div className="text-xs font-medium">{region.label}</div>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{geointRegions.find(r => r.id === geointRegion)?.emoji}</span>
+                                <span className="font-medium">{geointData?.name || geointRegions.find(r => r.id === geointRegion)?.label || geointRegion}</span>
+                              </div>
+                              <Button variant="ghost" size="sm" onClick={() => { setGeointRegion(null); setGeointData(null); }} data-testid="button-geoint-back">
+                                <ArrowLeft className="w-4 h-4 mr-1" />
+                                {lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"}
+                              </Button>
+                            </div>
+                            {geointData?.tips && (
+                              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                                {(Array.isArray(geointData.tips) ? geointData.tips : []).map((tip: string, i: number) => (
+                                  <div key={i} className="flex gap-2 p-2 rounded-lg bg-teal-500/5 border border-teal-500/10">
+                                    <Navigation className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
+                                    <p className="text-sm text-muted-foreground">{tip}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className={`relative w-full ${inputShake ? 'animate-shake' : ''}`}>
@@ -1673,8 +1851,9 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                     )}
 
+                    {selectedType !== "geoint" && (
                     <motion.div whileTap={{ scale: 0.98 }} className="relative">
-                      {!(checkMutation.isPending || bulkCheckMutation.isPending) && !bulkMode && (
+                      {!(checkMutation.isPending || bulkCheckMutation.isPending || exifMutation.isPending) && !bulkMode && selectedType !== "exif" && (
                         <>
                           <motion.div
                             className="absolute inset-0 rounded-xl border-2 border-primary/30"
@@ -1689,12 +1868,26 @@ Sources: ${result.sources.join(', ')}`;
                         </>
                       )}
                       <Button 
-                        onClick={bulkMode ? handleBulkCheck : handleCheck} 
-                        disabled={checkMutation.isPending || bulkCheckMutation.isPending}
-                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80 text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode ? 'animate-subtle-pulse ring-pulse' : ''}`}
+                        onClick={selectedType === "exif" ? () => exifFile && exifMutation.mutate(exifFile) : bulkMode ? handleBulkCheck : handleCheck} 
+                        disabled={checkMutation.isPending || bulkCheckMutation.isPending || exifMutation.isPending || (selectedType === "exif" && !exifFile)}
+                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold ${selectedType === "exif" ? 'bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 hover:from-pink-500/90 hover:via-pink-400/90 hover:to-rose-400/90' : 'bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80'} text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode && selectedType !== "exif" ? 'animate-subtle-pulse ring-pulse' : ''}`}
                         data-testid="button-perform-check"
                       >
-                        {(checkMutation.isPending || bulkCheckMutation.isPending) ? (
+                        {exifMutation.isPending ? (
+                          <div className="flex items-center gap-2">
+                            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}>
+                              <Camera className="w-5 h-5" />
+                            </motion.div>
+                            <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
+                              {lang === "uk" ? "Аналіз EXIF..." : lang === "ru" ? "Анализ EXIF..." : "Analyzing EXIF..."}
+                            </motion.span>
+                          </div>
+                        ) : selectedType === "exif" ? (
+                          <>
+                            <Camera className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
+                            {lang === "uk" ? "Аналізувати EXIF" : lang === "ru" ? "Анализировать EXIF" : "Analyze EXIF"}
+                          </>
+                        ) : (checkMutation.isPending || bulkCheckMutation.isPending) ? (
                           <div className="flex items-center gap-2">
                             <div className="relative w-6 h-6">
                               <motion.div
@@ -1737,6 +1930,7 @@ Sources: ${result.sources.join(', ')}`;
                         )}
                       </Button>
                     </motion.div>
+                    )}
                   </div>
                 </div>
               </motion.div>
