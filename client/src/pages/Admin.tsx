@@ -50,6 +50,10 @@ import {
   Globe,
   PieChart,
   Lock,
+  Megaphone,
+  ExternalLink,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,7 +187,7 @@ interface ActivityLogResponse {
   offset: number;
 }
 
-type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages" | "activity";
+type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages" | "activity" | "banners";
 
 function generateCouponCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -244,6 +248,20 @@ export default function Admin() {
     enterprisePrice: "50",
   });
 
+  const [bannerForm, setBannerForm] = useState({
+    title: "",
+    description: "",
+    imageUrl: "",
+    linkUrl: "",
+    linkText: "",
+    bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent",
+    position: "dashboard",
+    isActive: true,
+    priority: 0,
+    showForTiers: ["FREE", "PRO"],
+  });
+  const [editingBannerId, setEditingBannerId] = useState<number | null>(null);
+
   const adminFetch = async (url: string) => {
     const res = await fetch(url, { headers: { "x-admin-token": adminToken } });
     if (!res.ok) throw new Error("Admin request failed");
@@ -298,11 +316,13 @@ export default function Admin() {
 
   const { data: revenueData } = useQuery<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }>({
     queryKey: ["/api/admin/revenue"],
+    queryFn: () => adminFetch("/api/admin/revenue"),
     enabled: !!isAdmin && activeTab === "dashboard",
   });
 
   const { data: userGrowth } = useQuery<Array<{ date: string; count: number }>>({
     queryKey: ["/api/admin/user-growth"],
+    queryFn: () => adminFetch("/api/admin/user-growth"),
     enabled: !!isAdmin && activeTab === "dashboard",
   });
 
@@ -375,6 +395,12 @@ export default function Admin() {
     queryFn: () => adminFetch(`/api/admin/messages/${selectedConversation}`),
     enabled: !!isAdmin && !!selectedConversation,
     refetchInterval: 5000,
+  });
+
+  const { data: adminBanners, isLoading: bannersLoading } = useQuery<any[]>({
+    queryKey: ["/api/admin/banners"],
+    queryFn: () => adminFetch("/api/admin/banners"),
+    enabled: !!isAdmin && activeTab === "banners",
   });
 
   const [activityPage, setActivityPage] = useState(0);
@@ -586,6 +612,7 @@ export default function Admin() {
     { id: "payments", label: "Платежі", icon: CreditCard, count: pendingPayments?.length },
     { id: "users", label: "Користувачі", icon: Users },
     { id: "coupons", label: "Купони", icon: Ticket },
+    { id: "banners", label: "Банери", icon: Megaphone },
     { id: "settings", label: "Налаштування", icon: Settings },
   ];
 
@@ -1880,6 +1907,178 @@ export default function Admin() {
                   )}
                 </CardContent>
               </Card>
+            </motion.div>
+          )}
+
+          {activeTab === "banners" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-pink-400" />
+                Рекламні банери
+              </h2>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base">{editingBannerId ? "Редагувати банер" : "Створити банер"}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Input placeholder="Заголовок *" value={bannerForm.title} onChange={e => setBannerForm({...bannerForm, title: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-title" />
+                  <Textarea placeholder="Опис" value={bannerForm.description} onChange={e => setBannerForm({...bannerForm, description: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-description" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Input placeholder="URL зображення" value={bannerForm.imageUrl} onChange={e => setBannerForm({...bannerForm, imageUrl: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-image" />
+                    <Input placeholder="URL посилання" value={bannerForm.linkUrl} onChange={e => setBannerForm({...bannerForm, linkUrl: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-link" />
+                    <Input placeholder="Текст кнопки (напр. Дізнатись більше)" value={bannerForm.linkText} onChange={e => setBannerForm({...bannerForm, linkText: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-link-text" />
+                    <Input placeholder="Пріоритет (0-100)" type="number" value={bannerForm.priority} onChange={e => setBannerForm({...bannerForm, priority: parseInt(e.target.value) || 0})} className="bg-white/5 border-white/10" data-testid="input-banner-priority" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Градієнт фону</label>
+                      <select
+                        value={bannerForm.bgGradient}
+                        onChange={e => setBannerForm({...bannerForm, bgGradient: e.target.value})}
+                        className="w-full h-10 rounded-md bg-white/5 border border-white/10 text-sm px-3"
+                        data-testid="select-banner-gradient"
+                      >
+                        <option value="from-purple-600/20 via-pink-500/10 to-transparent">Purple-Pink</option>
+                        <option value="from-blue-600/20 via-cyan-500/10 to-transparent">Blue-Cyan</option>
+                        <option value="from-green-600/20 via-emerald-500/10 to-transparent">Green-Emerald</option>
+                        <option value="from-amber-600/20 via-orange-500/10 to-transparent">Amber-Orange</option>
+                        <option value="from-red-600/20 via-rose-500/10 to-transparent">Red-Rose</option>
+                        <option value="from-indigo-600/20 via-violet-500/10 to-transparent">Indigo-Violet</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Показувати для тарифів</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {["FREE", "PRO", "ENTERPRISE", "GROUPS"].map(tier => (
+                          <Badge
+                            key={tier}
+                            variant={bannerForm.showForTiers.includes(tier) ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              setBannerForm({
+                                ...bannerForm,
+                                showForTiers: bannerForm.showForTiers.includes(tier)
+                                  ? bannerForm.showForTiers.filter(t => t !== tier)
+                                  : [...bannerForm.showForTiers, tier]
+                              });
+                            }}
+                            data-testid={`badge-tier-${tier.toLowerCase()}`}
+                          >
+                            {tier}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        if (!bannerForm.title) { toast({ title: "Помилка", description: "Вкажіть заголовок", variant: "destructive" }); return; }
+                        try {
+                          if (editingBannerId) {
+                            await fetch(`/api/admin/banners/${editingBannerId}`, { method: "PATCH", headers: { "Content-Type": "application/json", "x-admin-token": adminToken }, body: JSON.stringify(bannerForm) });
+                            toast({ title: "Банер оновлено" });
+                          } else {
+                            await fetch("/api/admin/banners", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": adminToken }, body: JSON.stringify(bannerForm) });
+                            toast({ title: "Банер створено" });
+                          }
+                          setBannerForm({ title: "", description: "", imageUrl: "", linkUrl: "", linkText: "", bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent", position: "dashboard", isActive: true, priority: 0, showForTiers: ["FREE", "PRO"] });
+                          setEditingBannerId(null);
+                          queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/banners"] });
+                        } catch { toast({ title: "Помилка", variant: "destructive" }); }
+                      }}
+                      className="gap-2"
+                      data-testid="button-save-banner"
+                    >
+                      {editingBannerId ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      {editingBannerId ? "Зберегти" : "Створити"}
+                    </Button>
+                    {editingBannerId && (
+                      <Button variant="outline" onClick={() => { setEditingBannerId(null); setBannerForm({ title: "", description: "", imageUrl: "", linkUrl: "", linkText: "", bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent", position: "dashboard", isActive: true, priority: 0, showForTiers: ["FREE", "PRO"] }); }} data-testid="button-cancel-edit-banner">
+                        Скасувати
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-3">
+                {bannersLoading ? (
+                  <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                ) : !adminBanners?.length ? (
+                  <Card className="border-white/10 bg-white/5 p-8 text-center">
+                    <Megaphone className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
+                    <p className="text-muted-foreground">Банерів поки немає</p>
+                  </Card>
+                ) : adminBanners.map((banner: any) => (
+                  <Card key={banner.id} className={`border-white/10 bg-white/5 overflow-hidden ${!banner.isActive ? 'opacity-50' : ''}`} data-testid={`card-banner-${banner.id}`}>
+                    <div className={`h-1 bg-gradient-to-r ${banner.bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent'}`} />
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        {banner.imageUrl ? (
+                          <img src={banner.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/10" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center"><Megaphone className="w-5 h-5 text-pink-400" /></div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-sm truncate">{banner.title}</h4>
+                            <Badge variant={banner.isActive ? "default" : "outline"} className="text-[10px]">{banner.isActive ? "Активний" : "Вимкнено"}</Badge>
+                            <Badge variant="outline" className="text-[10px]">P: {banner.priority}</Badge>
+                          </div>
+                          {banner.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{banner.description}</p>}
+                          <div className="flex gap-1 mt-1">
+                            {(banner.showForTiers || []).map((t: string) => <Badge key={t} variant="outline" className="text-[9px] px-1 py-0">{t}</Badge>)}
+                          </div>
+                          {banner.linkUrl && <p className="text-[10px] text-blue-400 mt-1 flex items-center gap-1"><ExternalLink className="w-3 h-3" />{banner.linkUrl}</p>}
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={async () => {
+                              await fetch(`/api/admin/banners/${banner.id}`, { method: "PATCH", headers: { "Content-Type": "application/json", "x-admin-token": adminToken }, body: JSON.stringify({ isActive: !banner.isActive }) });
+                              queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/banners"] });
+                            }}
+                            data-testid={`button-toggle-banner-${banner.id}`}
+                          >
+                            {banner.isActive ? <ToggleRight className="w-4 h-4 text-green-400" /> : <ToggleLeft className="w-4 h-4 text-muted-foreground" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingBannerId(banner.id);
+                              setBannerForm({
+                                title: banner.title || "", description: banner.description || "", imageUrl: banner.imageUrl || "",
+                                linkUrl: banner.linkUrl || "", linkText: banner.linkText || "", bgGradient: banner.bgGradient || "from-purple-600/20 via-pink-500/10 to-transparent",
+                                position: banner.position || "dashboard", isActive: banner.isActive, priority: banner.priority || 0, showForTiers: banner.showForTiers || ["FREE", "PRO"],
+                              });
+                            }}
+                            data-testid={`button-edit-banner-${banner.id}`}
+                          >
+                            <Settings className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={async () => {
+                              if (!confirm("Видалити банер?")) return;
+                              await fetch(`/api/admin/banners/${banner.id}`, { method: "DELETE", headers: { "x-admin-token": adminToken } });
+                              queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/banners"] });
+                              toast({ title: "Банер видалено" });
+                            }}
+                            data-testid={`button-delete-banner-${banner.id}`}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </motion.div>
           )}
 

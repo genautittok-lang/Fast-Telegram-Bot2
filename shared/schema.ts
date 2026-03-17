@@ -222,6 +222,21 @@ export const pushSubscriptions = pgTable("ds_push_subscriptions", {
   index("idx_push_subscriptions_user_id").on(table.userId),
 ]);
 
+export const adBanners = pgTable("ds_ad_banners", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+  linkUrl: text("link_url"),
+  linkText: text("link_text"),
+  bgGradient: text("bg_gradient").default("from-purple-600/20 via-pink-500/10 to-transparent"),
+  position: text("position").default("dashboard"),
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(0),
+  showForTiers: text("show_for_tiers").array().default(["FREE", "PRO"]),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastReminderSent: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
@@ -238,6 +253,7 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({ id: tru
 export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({ id: true, createdAt: true });
 export const insertAdminMessageSchema = createInsertSchema(adminMessages).omit({ id: true, createdAt: true });
 export const insertActivityLogSchema = createInsertSchema(activityLog).omit({ id: true, createdAt: true });
+export const insertAdBannerSchema = createInsertSchema(adBanners).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -263,6 +279,9 @@ export type AdminMessage = typeof adminMessages.$inferSelect;
 export type InsertAdminMessage = z.infer<typeof insertAdminMessageSchema>;
 export type ActivityLog = typeof activityLog.$inferSelect;
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
+
+export type AdBanner = typeof adBanners.$inferSelect;
+export type InsertAdBanner = z.infer<typeof insertAdBannerSchema>;
 
 // Note: Replit Auth tables are in shared/models/auth.ts
 // Import them directly where needed to avoid type conflicts

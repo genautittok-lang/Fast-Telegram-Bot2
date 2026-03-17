@@ -81,7 +81,8 @@ import {
   Map,
   Navigation,
   Compass,
-  ArrowLeft
+  ArrowLeft,
+  Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -672,6 +673,10 @@ export default function Dashboard() {
   const { t, lang } = useTranslation();
   const { data: platformStats } = useStats();
   const { showTour, completeTour } = useOnboardingTour();
+  const [dismissedBanners, setDismissedBanners] = useState<number[]>([]);
+  const { data: adBanners } = useQuery<Array<{ id: number; title: string; description?: string; imageUrl?: string; linkUrl?: string; linkText?: string; bgGradient?: string; showForTiers?: string[] }>>({
+    queryKey: ["/api/banners"],
+  });
 
   const checkTypes = useMemo(() => checkTypeStyles.map(style => ({
     ...style,
@@ -2618,6 +2623,59 @@ Sources: ${result.sources.join(', ')}`;
         </div>
 
       </div>
+
+      {adBanners && adBanners.filter(b => !dismissedBanners.includes(b.id) && (!b.showForTiers || b.showForTiers.includes((user?.tier || "FREE").toUpperCase()))).length > 0 && (
+        <div className="px-3 lg:px-6 pb-2">
+          <div className="flex flex-col gap-3">
+            <AnimatePresence>
+              {adBanners.filter(b => !dismissedBanners.includes(b.id) && (!b.showForTiers || b.showForTiers.includes((user?.tier || "FREE").toUpperCase()))).map((banner) => (
+                <motion.div
+                  key={banner.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -100, scale: 0.9 }}
+                  transition={{ duration: 0.4, type: "spring" }}
+                  className={`relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r ${banner.bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent'} backdrop-blur-xl`}
+                  data-testid={`banner-ad-${banner.id}`}
+                >
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent" />
+                  <button
+                    onClick={() => setDismissedBanners(prev => [...prev, banner.id])}
+                    className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                    data-testid={`button-dismiss-banner-${banner.id}`}
+                  >
+                    <X className="w-3 h-3 text-white/60" />
+                  </button>
+                  <div className="relative flex items-center gap-4 p-4 lg:p-5">
+                    {banner.imageUrl ? (
+                      <img src={banner.imageUrl} alt={banner.title} className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl object-cover border border-white/10 flex-shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center flex-shrink-0">
+                        <Megaphone className="w-6 h-6 text-pink-400" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm lg:text-base font-bold text-white truncate">{banner.title}</h3>
+                      {banner.description && <p className="text-xs lg:text-sm text-white/60 mt-0.5 line-clamp-2">{banner.description}</p>}
+                    </div>
+                    {banner.linkUrl && (
+                      <a
+                        href={banner.linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-sm font-medium text-white transition-all hover:scale-105"
+                        data-testid={`link-banner-${banner.id}`}
+                      >
+                        {banner.linkText || "Learn more"} →
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       <div className="px-3 lg:px-6 pb-6">
         <PromoBoard />

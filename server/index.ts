@@ -325,6 +325,23 @@ async function ensureTablesExist() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON ds_push_subscriptions(user_id)`);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_ad_banners (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        image_url TEXT,
+        link_url TEXT,
+        link_text TEXT,
+        bg_gradient TEXT DEFAULT 'from-purple-600/20 via-pink-500/10 to-transparent',
+        position TEXT DEFAULT 'dashboard',
+        is_active BOOLEAN DEFAULT true,
+        priority INTEGER DEFAULT 0,
+        show_for_tiers TEXT[] DEFAULT ARRAY['FREE','PRO'],
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS auth_users (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::VARCHAR,
         email VARCHAR UNIQUE,
