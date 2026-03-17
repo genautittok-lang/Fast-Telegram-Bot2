@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -77,7 +77,7 @@ export const referrals = pgTable("ds_referrals", {
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_referrals_referrer_id").on(table.referrerId),
-  index("idx_referrals_referred_id").on(table.referredId),
+  uniqueIndex("idx_referrals_referred_id_unique").on(table.referredId),
 ]);
 
 export const achievements = pgTable("ds_achievements", {

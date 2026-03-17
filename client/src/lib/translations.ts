@@ -14,6 +14,8 @@ export interface TranslationSchema {
     widget: string;
     chat: string;
     guide: string;
+    exif: string;
+    geoint: string;
   };
   common: {
     loading: string;
@@ -855,6 +857,8 @@ export const translations: Record<Language, TranslationSchema> = {
       widget: "Widget",
       chat: "Chat",
       guide: "Guide",
+      exif: "EXIF Metadata",
+      geoint: "GEOINT",
     },
     common: {
       loading: "Loading...",
@@ -1694,6 +1698,8 @@ export const translations: Record<Language, TranslationSchema> = {
       widget: "Віджет",
       chat: "Чат",
       guide: "Інструкція",
+      exif: "EXIF Метадані",
+      geoint: "GEOINT",
     },
     common: {
       loading: "Завантаження...",
@@ -2533,6 +2539,8 @@ export const translations: Record<Language, TranslationSchema> = {
       widget: "Виджет",
       chat: "Чат",
       guide: "Инструкция",
+      exif: "EXIF Метаданные",
+      geoint: "GEOINT",
     },
     common: {
       loading: "Загрузка...",
@@ -3372,6 +3380,8 @@ export const translations: Record<Language, TranslationSchema> = {
       widget: "Widget",
       chat: "Chat",
       guide: "Guía",
+      exif: "EXIF Metadatos",
+      geoint: "GEOINT",
     },
     common: {
       loading: "Cargando...",
@@ -4211,6 +4221,8 @@ export const translations: Record<Language, TranslationSchema> = {
       widget: "Widget",
       chat: "Chat",
       guide: "Anleitung",
+      exif: "EXIF-Metadaten",
+      geoint: "GEOINT",
     },
     common: {
       loading: "Laden...",

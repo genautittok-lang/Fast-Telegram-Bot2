@@ -3457,6 +3457,184 @@ export async function registerRoutes(
     }
   });
 
+  // EXIF metadata extraction endpoint
+  const exifUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
+    if (["image/jpeg", "image/png", "image/webp", "image/tiff", "image/heic"].includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only images allowed (JPEG, PNG, WebP, TIFF, HEIC)."));
+    }
+  } });
+
+  app.post("/api/exif", loadUser, requireAuth, exifUpload.single("photo"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      const exifr = await import("exifr");
+      const buffer = req.file.buffer;
+      const [exifData, gpsData] = await Promise.all([
+        exifr.default.parse(buffer, { pick: [
+          "Make", "Model", "Software", "DateTimeOriginal", "CreateDate", "ModifyDate",
+          "ExposureTime", "FNumber", "ISO", "FocalLength", "Flash", "WhiteBalance",
+          "ImageWidth", "ImageHeight", "Orientation", "ColorSpace",
+          "LensModel", "LensMake", "GPSLatitude", "GPSLongitude", "GPSAltitude",
+          "Artist", "Copyright", "Description", "XPComment"
+        ] }).catch(() => null),
+        exifr.default.gps(buffer).catch(() => null)
+      ]);
+
+      const result: any = {
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        metadata: exifData || {},
+        gps: gpsData || null,
+        hasGps: !!gpsData,
+      };
+
+      if (gpsData) {
+        result.mapUrl = `https://www.google.com/maps?q=${gpsData.latitude},${gpsData.longitude}`;
+      }
+
+      res.json(result);
+    } catch (err) {
+      console.error("EXIF extraction error:", err);
+      res.status(500).json({ error: "Failed to extract metadata" });
+    }
+  });
+
+  // GEOINT hints reference endpoint
+  app.get("/api/geoint-hints", (_req, res) => {
+    const hints = [
+      {
+        category: "road_signs",
+        icon: "🛣️",
+        items: [
+          { region: "Europe (EU)", hint: "White rectangular signs with red borders, blue motorway signs" },
+          { region: "USA/Canada", hint: "Green highway signs, yellow diamond warning signs, stop signs with white text" },
+          { region: "Japan", hint: "Blue info signs, inverted triangle yield, red circle prohibition" },
+          { region: "Australia", hint: "Yellow diamond signs, green/gold highway markers, kangaroo warnings" },
+          { region: "Russia/CIS", hint: "Blue rectangular info signs, white speed limit with red circle" },
+          { region: "Middle East", hint: "Arabic + English text, green signs, km-based distances" },
+          { region: "South America", hint: "Spanish/Portuguese text, similar to EU style but local variations" },
+          { region: "Africa", hint: "French/English text depending on region, varied sign quality" }
+        ]
+      },
+      {
+        category: "road_markings",
+        icon: "🔲",
+        items: [
+          { region: "UK/Japan/Australia", hint: "Left-hand traffic, road markings on left side" },
+          { region: "Continental Europe", hint: "Right-hand traffic, white dashed center lines" },
+          { region: "USA", hint: "Yellow center lines (double/single), white lane lines" },
+          { region: "Southeast Asia", hint: "Mixed quality, sometimes absent in rural areas" }
+        ]
+      },
+      {
+        category: "license_plates",
+        icon: "🚗",
+        items: [
+          { region: "EU countries", hint: "Blue strip on left with country code and EU stars" },
+          { region: "USA", hint: "State-specific designs, various colors and graphics" },
+          { region: "Russia", hint: "White with black text, region code on right" },
+          { region: "Japan", hint: "Green (commercial) or white (private), prefecture name in Japanese" },
+          { region: "Brazil", hint: "Mercosul standard: white with blue top strip" },
+          { region: "Middle East", hint: "Arabic numerals, country-specific colors" },
+          { region: "China", hint: "Blue plate with white characters, first character is province" }
+        ]
+      },
+      {
+        category: "architecture",
+        icon: "🏠",
+        items: [
+          { region: "Eastern Europe", hint: "Soviet-era panel buildings (khrushchyovkas), concrete fences, 5-9 floor blocks" },
+          { region: "Western Europe", hint: "Stone/brick buildings, tiled roofs, narrow streets in old towns" },
+          { region: "Southeast Asia", hint: "Shophouses, corrugated metal roofs, open-air markets" },
+          { region: "Middle East", hint: "Flat roofs, sand/beige colored walls, courtyard houses" },
+          { region: "Latin America", hint: "Colorful painted walls, flat concrete roofs, rebar visible on top" },
+          { region: "Sub-Saharan Africa", hint: "Corrugated iron roofs, red laterite soil, compound walls" },
+          { region: "Japan", hint: "Compact houses, curved tile roofs, vending machines everywhere" },
+          { region: "USA/Canada", hint: "Wood-frame houses, front lawns, attached garages, wide streets" }
+        ]
+      },
+      {
+        category: "fences_barriers",
+        icon: "🚧",
+        items: [
+          { region: "Eastern Europe/CIS", hint: "Concrete panel fences (PO-2), metal corrugated fences, brick columns" },
+          { region: "Western Europe", hint: "Hedges, wooden picket fences, stone walls" },
+          { region: "USA", hint: "Chain-link fences, white vinyl fences, split-rail wood" },
+          { region: "Latin America", hint: "High concrete walls with broken glass on top, iron gates" },
+          { region: "Australia", hint: "Post and wire fences, Colorbond steel fences" },
+          { region: "Japan", hint: "Block walls with tile caps, bamboo fences near temples" }
+        ]
+      },
+      {
+        category: "vegetation",
+        icon: "🌿",
+        items: [
+          { region: "Tropical (SE Asia, Central Africa)", hint: "Palm trees, banana plants, dense jungle canopy" },
+          { region: "Mediterranean", hint: "Olive trees, cypress, dry scrubland, pine forests" },
+          { region: "Northern Europe/Russia", hint: "Birch forests, coniferous (spruce/pine), moss" },
+          { region: "Desert (Sahara, Arabia)", hint: "Sparse vegetation, date palms near oases, sand dunes" },
+          { region: "South America", hint: "Rainforest, cacti in arid regions, pampas grasslands" },
+          { region: "Australia", hint: "Eucalyptus, red earth, spinifex grass, baobab-like trees" }
+        ]
+      },
+      {
+        category: "utility_poles",
+        icon: "⚡",
+        items: [
+          { region: "Japan", hint: "Dense wiring, wooden/concrete poles, many transformers" },
+          { region: "USA", hint: "Wooden poles, crossarm design, less dense wiring" },
+          { region: "Europe (Western)", hint: "Underground cables common, fewer visible poles in cities" },
+          { region: "Eastern Europe", hint: "Concrete poles, Soviet-standard designs, above-ground wires" },
+          { region: "Southeast Asia", hint: "Chaotic wiring clusters, overloaded poles" }
+        ]
+      },
+      {
+        category: "ground_surface",
+        icon: "🧱",
+        items: [
+          { region: "Netherlands/Germany", hint: "Red/brown brick pavers, herringbone pattern" },
+          { region: "Portugal", hint: "Calçada portuguesa — black and white stone mosaic sidewalks" },
+          { region: "Russia/Ukraine", hint: "Concrete tiles (FEM), asphalt with patches, curbs painted white" },
+          { region: "Japan", hint: "Tactile paving (yellow bumps) for visually impaired, clean asphalt" },
+          { region: "USA", hint: "Wide concrete sidewalks, asphalt roads, painted curbs" },
+          { region: "India", hint: "Mixed surfaces, red laterite, unfinished edges" }
+        ]
+      },
+      {
+        category: "language_scripts",
+        icon: "🔤",
+        items: [
+          { region: "Cyrillic", hint: "Russia, Ukraine, Serbia, Bulgaria, Mongolia" },
+          { region: "Arabic script", hint: "Middle East, North Africa, Iran (Farsi), Pakistan (Urdu)" },
+          { region: "Devanagari", hint: "India (Hindi, Marathi, Nepali)" },
+          { region: "Thai script", hint: "Thailand — unique curvy characters" },
+          { region: "Hangul", hint: "South Korea — block-shaped syllable characters" },
+          { region: "Kanji + Hiragana + Katakana", hint: "Japan — mixed scripts" },
+          { region: "Simplified Chinese", hint: "China — fewer strokes than traditional" },
+          { region: "Traditional Chinese", hint: "Taiwan, Hong Kong — more complex characters" }
+        ]
+      },
+      {
+        category: "vehicles",
+        icon: "🚙",
+        items: [
+          { region: "Southeast Asia", hint: "Many motorbikes/scooters, tuk-tuks, songthaews" },
+          { region: "India", hint: "Auto-rickshaws, Tata/Mahindra trucks, colorful decorations" },
+          { region: "Japan", hint: "Kei cars (tiny), Toyota/Honda dominant, very clean vehicles" },
+          { region: "Russia", hint: "Lada, UAZ, many Hyundai/Kia, dashcams visible" },
+          { region: "USA", hint: "Large pickup trucks, SUVs, wider vehicles overall" },
+          { region: "Africa", hint: "Older model vehicles, overloaded trucks, matatus (minibuses)" }
+        ]
+      }
+    ];
+    res.json({ hints });
+  });
+
   // Start the bot
   try {
       await setupBot(storage);

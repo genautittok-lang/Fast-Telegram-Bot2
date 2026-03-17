@@ -5,6 +5,11 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing 15 data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, bank card BINs, passwords, DNS records, SSL/TLS certificates, and MAC addresses. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable multi-page PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Recent Changes (Mar 2026)
+- **Enterprise tier fix**: ENTERPRISE/GROUPS users no longer blocked by `requestsLeft <= 0` checks. Fixed in Dashboard (web), bot check handler, quick check, inline mode, and bot dashboard display. Unlimited tiers show "UNLIMITED" status and skip request decrement.
+- **Referral abuse fix**: New users' referrals deferred until language selection (in-memory `pendingReferrals` map). Referral crediting is now idempotent — `createReferral` must succeed before bonuses are given. Added unique index on `ds_referrals(referred_id)` to prevent duplicate referrals at DB level.
+- **EXIF Metadata Extractor**: New `/exif` page and `/api/exif` endpoint. Users upload photos to extract EXIF metadata (camera, GPS, dates). Uses `exifr` package. Auth-required, no data stored.
+- **GEOINT Hints**: New `/geoint` page and `/api/geoint-hints` endpoint. Reference guide for geolocation analysis — road signs, architecture, fences, vegetation, license plates, etc. organized by region.
+- **Navigation**: Added EXIF Metadata and GEOINT items to sidebar navigation with i18n support (5 languages).
 - **Security hardening**: cookie.secure based on NODE_ENV, removed hardcoded session secret fallback (uses crypto.randomBytes), Stripe webhook rejects when secret not configured.
 - **DB performance**: searchUsers uses SQL ILIKE, getHighRiskReportsCount uses SQL filter, getTopUsers/getReferralStats use single JOIN queries (eliminated N+1), indexes added on all FK columns.
 - **User ID fix**: Replit/Google auth now extracts real name from claims, updates old "Dark..." usernames.

@@ -880,7 +880,9 @@ Sources: ${result.sources.join(', ')}`;
   };
 
   const handleCheck = () => {
-    if (user && (user.requestsLeft ?? 0) <= 0) {
+    const userTier = (user?.tier || "FREE").toUpperCase();
+    const isUnlimitedTier = userTier === "ENTERPRISE" || userTier === "GROUPS";
+    if (user && !isUnlimitedTier && (user.requestsLeft ?? 0) <= 0) {
       setShowSubscription(true);
       toast({
         title: t('dashboard.limitReachedTitle'),
@@ -904,7 +906,9 @@ Sources: ${result.sources.join(', ')}`;
   };
 
   const handleBulkCheck = () => {
-    if (user && (user.requestsLeft ?? 0) <= 0) {
+    const userTier = (user?.tier || "FREE").toUpperCase();
+    const isUnlimitedTier = userTier === "ENTERPRISE" || userTier === "GROUPS";
+    if (user && !isUnlimitedTier && (user.requestsLeft ?? 0) <= 0) {
       setShowSubscription(true);
       toast({
         title: t('dashboard.limitReachedTitle'),
@@ -2440,7 +2444,7 @@ Sources: ${result.sources.join(', ')}`;
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1">{t('account.remaining')}</div>
-                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{user?.requestsLeft ?? 0}/{(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999 }; return limits[(user?.tier || "FREE").toUpperCase()] || 5; })()}</div>
+                <div className="font-mono text-blue-400 text-sm" data-testid="text-requests-left">{(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 9999, GROUPS: 9999 }; const max = limits[(user?.tier || "FREE").toUpperCase()] || 5; return max >= 9999 ? '∞' : `${user?.requestsLeft ?? 0}/${max}`; })()}</div>
               </div>
               <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                 <div className="text-[10px] text-muted-foreground mb-1 flex items-center gap-1">

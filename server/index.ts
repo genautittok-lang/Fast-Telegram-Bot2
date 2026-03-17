@@ -294,7 +294,7 @@ async function ensureTablesExist() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_user_id ON ds_payments(user_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_status ON ds_payments(status)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON ds_referrals(referrer_id)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referred_id ON ds_referrals(referred_id)`);
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred_id_unique ON ds_referrals(referred_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON ds_team_members(team_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON ds_team_members(user_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON ds_favorites(user_id)`);

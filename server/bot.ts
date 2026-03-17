@@ -314,6 +314,7 @@ export async function setupBot(storage: IStorage) {
     .catch(err => console.error("Failed to reset menu button:", err.message));
 
   const userStates: Map<string, { module?: string; step?: string; data?: any }> = new Map();
+  const pendingReferrals: Map<string, string> = new Map();
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
@@ -379,34 +380,30 @@ export async function setupBot(storage: IStorage) {
       const refCode = refMatch[1].toUpperCase();
       console.log(`Processing referral code: ${refCode}`);
       
-      // Find referrer by code
       const referrer = await storage.getUserByRefCode(refCode);
       if (referrer && referrer.id !== user?.id) {
-        // Give bonus to new user
-        if (user) {
-          await storage.updateUser(user.id, { 
-            requestsLeft: (user.requestsLeft || 5) + 5
-          });
-          user = await storage.getUserByTgId(tgId);
+        if (isNewUser) {
+          pendingReferrals.set(tgId, refCode);
+          console.log(`Referral deferred until language selection: ${refCode} -> ${tgId}`);
+        } else if (user) {
+          try {
+            await storage.createReferral({
+              referrerId: referrer.id,
+              referredId: user.id,
+              bonus: 5
+            });
+            await storage.updateUser(user.id, { 
+              requestsLeft: (user.requestsLeft || 5) + 5
+            });
+            await storage.updateUser(referrer.id, {
+              requestsLeft: (referrer.requestsLeft || 5) + 2
+            });
+            user = await storage.getUserByTgId(tgId);
+            console.log(`Referral processed: ${refCode} -> ${tgId}`);
+          } catch (e) {
+            console.log(`Referral already exists or failed: ${refCode} -> ${tgId}`);
+          }
         }
-        
-        // Give bonus to referrer
-        await storage.updateUser(referrer.id, {
-          requestsLeft: (referrer.requestsLeft || 5) + 2
-        });
-        
-        // Track referral
-        try {
-          await storage.createReferral({
-            referrerId: referrer.id,
-            referredId: user?.id || 0,
-            bonus: 5
-          });
-        } catch (e) {
-          // Ignore duplicate referral errors
-        }
-        
-        console.log(`Referral processed: ${refCode} -> ${tgId}`);
       }
     }
     
@@ -505,10 +502,36 @@ ${t(lang, "startWelcome.selectLang")}`;
   bot.action(/^lang_/, async (ctx) => {
     const langCode = ctx.match.input.split('_')[1] as Language;
     const tgId = ctx.from!.id.toString();
-    const user = await storage.getUserByTgId(tgId);
+    let user = await storage.getUserByTgId(tgId);
     if (user) {
       await storage.updateUser(user.id, { lang: langCode, langSet: true });
     }
+
+    const pendingRefCode = pendingReferrals.get(tgId);
+    if (pendingRefCode && user) {
+      pendingReferrals.delete(tgId);
+      const referrer = await storage.getUserByRefCode(pendingRefCode);
+      if (referrer && referrer.id !== user.id) {
+        try {
+          await storage.createReferral({
+            referrerId: referrer.id,
+            referredId: user.id,
+            bonus: 5
+          });
+          await storage.updateUser(user.id, { 
+            requestsLeft: (user.requestsLeft || 5) + 5
+          });
+          await storage.updateUser(referrer.id, {
+            requestsLeft: (referrer.requestsLeft || 5) + 2
+          });
+          console.log(`Referral credited after language selection: ${pendingRefCode} -> ${tgId}`);
+          user = await storage.getUserByTgId(tgId);
+        } catch (e) {
+          console.log(`Referral already exists or failed: ${pendingRefCode} -> ${tgId}`);
+        }
+      }
+    }
+
     await ctx.answerCbQuery(t(langCode, "settings.languageChanged"));
     
     const startText = t(langCode, "common.languageSet");
@@ -570,19 +593,22 @@ ${t(lang, "startWelcome.selectLang")}`;
     const tierEmoji = user?.tier === "ENTERPRISE" ? "👑" : user?.tier === "PRO" ? "⭐" : "🆓";
     const tierName = user?.tier || "FREE";
 
-    const requestsWarning = requestsLeft <= 3 
+    const dashTier = (user?.tier || "FREE").toUpperCase();
+    const dashUnlimited = dashTier === "ENTERPRISE" || dashTier === "GROUPS";
+    const requestsWarning = dashUnlimited ? ''
+      : requestsLeft <= 3 
       ? "\n⚠️ " + t(lang, "common.lowRequests")
       : requestsLeft <= 0
       ? "\n❌ " + (lang === "uk" ? "Ліміт вичерпано" : lang === "ru" ? "Лимит исчерпан" : "Limit exceeded")
       : '';
 
-    const systemStatus = requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 3 ? "⚡ LOW" : "✅ READY";
+    const systemStatus = dashUnlimited ? "✅ UNLIMITED" : requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 3 ? "⚡ LOW" : "✅ READY";
     
     const escapeMd = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
     const greetName = escapeMd(user?.username || (lang === "uk" ? "Користувач" : lang === "ru" ? "Пользователь" : "User"));
     const tierLabel = tierName === "FREE" ? (lang === "uk" ? "Безкоштовний" : lang === "ru" ? "Бесплатный" : "Free") :
                       tierName === "PRO" ? "PRO" : tierName === "ENTERPRISE" ? "Enterprise" : tierName;
-    const statusIcon = requestsLeft <= 0 ? "🔴" : requestsLeft <= 3 ? "🟡" : "🟢";
+    const statusIcon = dashUnlimited ? "🟢" : requestsLeft <= 0 ? "🔴" : requestsLeft <= 3 ? "🟡" : "🟢";
 
     const dashboardText = `🛡 *DARKSHARE* — Risk Intelligence
 
@@ -1467,7 +1493,9 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       }
     }
 
-    if (user && user.requestsLeft! <= 0) {
+    const userTier = (user?.tier || "FREE").toUpperCase();
+    const isUnlimitedTier = userTier === "ENTERPRISE" || userTier === "GROUPS";
+    if (user && !isUnlimitedTier && user.requestsLeft! <= 0) {
       return ctx.reply(t(lang, "checkResult.limitExceeded"), {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
@@ -1786,7 +1814,10 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
     }
 
     if (user) {
-      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 5) - 1) });
+      const checkTier = (user.tier || "FREE").toUpperCase();
+      if (checkTier !== "ENTERPRISE" && checkTier !== "GROUPS") {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 5) - 1) });
+      }
       
       await storage.createReport({
         userId: user.id,
@@ -4328,7 +4359,9 @@ ${allTypesText}
       return ctx.reply(t(lang, "quickCheck.unknownType", { type: checkType, available: validTypes.join(", ") }));
     }
     
-    if (!user || user.requestsLeft! <= 0) {
+    const qcTier = (user?.tier || "FREE").toUpperCase();
+    const qcUnlimited = qcTier === "ENTERPRISE" || qcTier === "GROUPS";
+    if (!user || (!qcUnlimited && user.requestsLeft! <= 0)) {
       return ctx.reply(t(lang, "validation.limitReached", { limit: "5" }), 
         Markup.inlineKeyboard([
           [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)]
@@ -4340,7 +4373,9 @@ ${allTypesText}
     
     try {
       const checkResult = await performCheck(checkType, target);
-      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+      if (qcTier !== "ENTERPRISE" && qcTier !== "GROUPS") {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+      }
       
       const riskEmoji = checkResult.riskLevel === "critical" ? "🔴" : 
                         checkResult.riskLevel === "high" ? "🟠" : 
@@ -4646,7 +4681,9 @@ ${allTypesText}
       const tgId = ctx.from.id.toString();
       const user = await storage.getUserByTgId(tgId);
 
-      if (!user || (user.requestsLeft ?? 0) <= 0) {
+      const inlineTier = (user?.tier || "FREE").toUpperCase();
+      const inlineUnlimited = inlineTier === "ENTERPRISE" || inlineTier === "GROUPS";
+      if (!user || (!inlineUnlimited && (user.requestsLeft ?? 0) <= 0)) {
         return ctx.answerInlineQuery([{
           type: "article",
           id: "no-checks",
@@ -4664,7 +4701,9 @@ ${allTypesText}
         timeoutPromise
       ]);
       
-      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 1) - 1) });
+      if (inlineTier !== "ENTERPRISE" && inlineTier !== "GROUPS") {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 1) - 1) });
+      }
 
       const getRiskEmoji = (level: string) => {
         switch (level) {

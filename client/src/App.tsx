@@ -35,8 +35,10 @@ import Privacy from "@/pages/Privacy";
 import Chat from "@/pages/Chat";
 import Guide from "@/pages/Guide";
 import Download from "@/pages/Download";
+import ExifTool from "@/pages/ExifTool";
+import GeointHints from "@/pages/GeointHints";
 
-const APP_PATHS = ["/dashboard", "/history", "/monitoring", "/referral", "/account", "/teams", "/chat", "/admin"];
+const APP_PATHS = ["/dashboard", "/history", "/monitoring", "/referral", "/account", "/teams", "/chat", "/admin", "/exif", "/geoint"];
 
 const pageVariants = {
   initial: { opacity: 0, y: 6 },
@@ -103,6 +105,8 @@ function Router() {
           <Route path="/chat" component={Chat} />
           <Route path="/guide" component={Guide} />
           <Route path="/download" component={Download} />
+          <Route path="/exif" component={ExifTool} />
+          <Route path="/geoint" component={GeointHints} />
           <Route component={NotFound} />
         </Switch>
       </AnimatedPage>

@@ -17,6 +17,8 @@ import {
   Code2,
   Blocks,
   BookOpen,
+  Camera,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -35,6 +37,8 @@ const navItems = [
   { id: "api-docs", labelKey: "nav.apiDocs", icon: Code2, href: "/api-docs" },
   { id: "widget", labelKey: "nav.widget", icon: Blocks, href: "/widget" },
   { id: "guide", labelKey: "nav.guide", icon: BookOpen, href: "/guide" },
+  { id: "exif", labelKey: "nav.exif", icon: Camera, href: "/exif" },
+  { id: "geoint", labelKey: "nav.geoint", icon: Globe, href: "/geoint" },
 ];
 
 export function AppSidebar() {
