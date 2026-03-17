@@ -595,7 +595,7 @@ function PricingContent() {
                               return (
                                 <>
                                   <span className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-yellow-500/20 to-amber-500/15 text-xs font-bold text-yellow-400 border border-yellow-500/25 shadow-sm">{finalStars} ⭐</span>
-                                  <span className="text-[9px] text-muted-foreground/60">~${showPaymentModal ? getFinalAmount(showPaymentModal) : 0}</span>
+                                  <span className="text-[9px] text-muted-foreground/60">≈ ${(finalStars * 0.019).toFixed(2)}</span>
                                 </>
                               );
                             })()}
