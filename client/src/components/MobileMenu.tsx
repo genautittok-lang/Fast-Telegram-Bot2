@@ -23,6 +23,7 @@ import {
   Code2,
   Blocks,
   BookOpen,
+  ShieldAlert,
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -34,13 +35,15 @@ interface MobileMenuProps {
   onLogout?: () => void;
   username?: string;
   tier?: string;
+  isAdmin?: boolean;
 }
 
 export function MobileMenu({ 
   isAuthenticated = false, 
   onLogout,
   username,
-  tier = "FREE"
+  tier = "FREE",
+  isAdmin = false,
 }: MobileMenuProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -95,6 +98,7 @@ export function MobileMenu({
     { href: "/api-docs", icon: Code2, label: t('nav.apiDocs'), desc: "REST API" },
     { href: "/widget", icon: Blocks, label: t('nav.widget'), desc: "Security Badge" },
     { href: "/guide", icon: BookOpen, label: t('nav.guide'), desc: "How to use" },
+    ...(isAdmin ? [{ href: "/admin", icon: ShieldAlert, label: "Admin Panel", highlight: true, desc: "Management" }] : []),
   ];
 
   const navItems = isAuthenticated ? authItems : publicItems;

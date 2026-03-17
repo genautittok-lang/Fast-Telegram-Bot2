@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import {
   Shield,
   Home,
@@ -19,6 +20,7 @@ import {
   BookOpen,
   Camera,
   Globe,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -45,6 +47,11 @@ export function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { t } = useTranslation();
   const { logout } = useAuth();
+
+  const { data: adminData } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ["/api/admin/verify"],
+  });
+  const isAdmin = adminData?.isAdmin;
 
   const handleLogout = async () => {
     await logout();
@@ -100,6 +107,31 @@ export function AppSidebar() {
             </Link>
           );
         })}
+
+        {isAdmin && (
+          <Link href="/admin">
+            <motion.button
+              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300 mt-2 ${
+                location === "/admin"
+                  ? "bg-gradient-to-r from-red-500/20 via-red-500/10 to-transparent text-red-400 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)]"
+                  : "text-red-400/60 hover:text-red-400 hover:bg-red-500/5 border border-transparent"
+              }`}
+              whileHover={{ x: location === "/admin" ? 0 : 4 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              data-testid="nav-admin"
+            >
+              <ShieldAlert className={`w-5 h-5 ${location === "/admin" ? "text-red-400" : ""}`} />
+              <span>Admin Panel</span>
+              {location === "/admin" && (
+                <motion.div
+                  className="ml-auto w-1.5 h-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                  layoutId="activeNav"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          </Link>
+        )}
       </nav>
 
       <div className="px-4 py-3 border-t border-white/5">

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 import { useTranslation } from "@/lib/i18n";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -457,6 +457,11 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
   const [, setLocation] = useLocation();
   const { t } = useTranslation();
   const mainScrollRef = useRef<HTMLElement>(null);
+  const { data: adminData } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ["/api/admin/verify"],
+    enabled: isAuthenticated,
+  });
+  const isAdmin = adminData?.isAdmin || false;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !appMode) {
@@ -537,7 +542,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
           <div className="flex items-center gap-2">
             {headerActions}
             <LanguageSwitcher variant="minimal" />
-            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} isAdmin={isAdmin} />
           </div>
         </div>
         <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
