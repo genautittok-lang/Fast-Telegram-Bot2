@@ -455,14 +455,14 @@ export async function setupBot(storage: IStorage) {
             de: `${starsTier} Tarif für ${periodLabel}. Wird automatisch aktiviert!`,
           };
 
-          await ctx.replyWithInvoice(
-            titles[lang] || titles["en"],
-            descriptions[lang] || descriptions["en"],
-            JSON.stringify({ paymentId: payment.id, userId: user.id, tier: starsTier, period, periodDays }),
-            "",
-            "XTR",
-            [{ label: `${starsTier} Plan (${period})`, amount: validAmount }],
-          );
+          await ctx.sendInvoice({
+            title: titles[lang] || titles["en"],
+            description: descriptions[lang] || descriptions["en"],
+            payload: JSON.stringify({ paymentId: payment.id, userId: user.id, tier: starsTier, period, periodDays }),
+            provider_token: "",
+            currency: "XTR",
+            prices: [{ label: `${starsTier} Plan (${period})`, amount: validAmount }],
+          });
           return;
         } catch (err) {
           console.error("Stars deep link payment error:", err);
@@ -2289,14 +2289,14 @@ ${faqText}`;
         de: `${tier} Tarif für 30 Tage. Der Tarif wird nach der Zahlung automatisch aktiviert!`,
       };
 
-      await ctx.replyWithInvoice(
-        titles[lang] || titles["en"],
-        descriptions[lang] || descriptions["en"],
-        JSON.stringify({ paymentId: payment.id, userId: user.id, tier, period: "monthly", periodDays: 30 }),
-        "",
-        "XTR",
-        [{ label: `${tier} Plan`, amount: stars }],
-      );
+      await ctx.sendInvoice({
+        title: titles[lang] || titles["en"],
+        description: descriptions[lang] || descriptions["en"],
+        payload: JSON.stringify({ paymentId: payment.id, userId: user.id, tier, period: "monthly", periodDays: 30 }),
+        provider_token: "",
+        currency: "XTR",
+        prices: [{ label: `${tier} Plan`, amount: stars }],
+      });
     } catch (err) {
       console.error("Bot Stars payment error:", err);
       const errText = lang === "uk" ? "❌ Помилка створення платежу зірками." : lang === "ru" ? "❌ Ошибка создания платежа звёздами." : "❌ Failed to create Stars payment.";
@@ -2400,14 +2400,14 @@ ${faqText}`;
         en: `${tier} plan for 30 days with ${discount}% discount! Activates automatically.`,
       };
 
-      await ctx.replyWithInvoice(
-        titles[lang] || titles["en"],
-        descriptions[lang] || descriptions["en"],
-        JSON.stringify({ paymentId: payment.id, userId: user.id, tier, period: "monthly", periodDays: 30 }),
-        "",
-        "XTR",
-        [{ label: `${tier} Plan (-${discount}%)`, amount: discountedStars }],
-      );
+      await ctx.sendInvoice({
+        title: titles[lang] || titles["en"],
+        description: descriptions[lang] || descriptions["en"],
+        payload: JSON.stringify({ paymentId: payment.id, userId: user.id, tier, period: "monthly", periodDays: 30 }),
+        provider_token: "",
+        currency: "XTR",
+        prices: [{ label: `${tier} Plan (-${discount}%)`, amount: discountedStars }],
+      });
     } catch (err) {
       console.error("Bot Stars promo payment error:", err);
       const errText = lang === "uk" ? "❌ Помилка створення платежу зірками." : lang === "ru" ? "❌ Ошибка создания платежа звёздами." : "❌ Failed to create Stars payment.";

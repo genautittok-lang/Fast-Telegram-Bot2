@@ -555,6 +555,55 @@ function PricingContent() {
                       <div className="space-y-2.5">
                         <button
                           type="button"
+                          onClick={() => setSelectedMethod("stars")}
+                          className={`w-full relative flex items-center gap-3.5 p-4 rounded-2xl border text-left transition-all duration-200 ${
+                            selectedMethod === "stars"
+                              ? "border-yellow-500/50 bg-gradient-to-r from-yellow-500/[0.12] to-amber-500/[0.06] shadow-lg shadow-yellow-500/15 ring-1 ring-yellow-500/30"
+                              : "border-yellow-500/20 bg-gradient-to-r from-yellow-500/[0.04] to-transparent hover:from-yellow-500/[0.08] hover:border-yellow-500/30"
+                          }`}
+                          data-testid="button-method-stars"
+                        >
+                          <div className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-[9px] font-bold text-black uppercase tracking-wide shadow-lg shadow-yellow-500/30">
+                            {t('pricing.recommended') || "Recommended"}
+                          </div>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                            selectedMethod === "stars"
+                              ? "bg-gradient-to-br from-yellow-500/40 to-amber-500/25 shadow-lg shadow-yellow-500/25 border border-yellow-500/30"
+                              : "bg-gradient-to-br from-yellow-500/15 to-amber-500/10 border border-yellow-500/10"
+                          }`}>
+                            <span className="text-2xl">⭐</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                              Telegram Stars
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-yellow-400">
+                                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" opacity="0.15"/>
+                              </svg>
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">{t('pricing.starsNote') || "Pay with Stars in Telegram"}</div>
+                          </div>
+                          <div className="flex flex-col items-end gap-0.5">
+                            {(() => {
+                              const starPrices: Record<string, Record<string, number>> = {
+                                PRO: { monthly: 500, yearly: 5000 },
+                                ENTERPRISE: { monthly: 1750, yearly: 17500 },
+                                GROUPS: { monthly: 2750, yearly: 27500 },
+                              };
+                              const base = showPaymentModal ? starPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0 : 0;
+                              const finalStars = promoApplied && promoDiscount > 0 ? Math.max(1, Math.round(base * (1 - promoDiscount / 100))) : base;
+                              return (
+                                <>
+                                  <span className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-yellow-500/20 to-amber-500/15 text-xs font-bold text-yellow-400 border border-yellow-500/25 shadow-sm">{finalStars} ⭐</span>
+                                  <span className="text-[9px] text-muted-foreground/60">~${showPaymentModal ? getFinalAmount(showPaymentModal) : 0}</span>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={() => setSelectedMethod("crypto")}
                           className={`w-full flex items-center gap-3.5 p-4 rounded-2xl border text-left transition-all duration-200 ${
                             selectedMethod === "crypto"
@@ -563,10 +612,10 @@ function PricingContent() {
                           }`}
                           data-testid="button-method-crypto"
                         >
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
                             selectedMethod === "crypto"
-                              ? "bg-gradient-to-br from-blue-500/30 to-cyan-500/20 shadow-lg shadow-blue-500/20"
-                              : "bg-blue-500/10"
+                              ? "bg-gradient-to-br from-blue-500/30 to-cyan-500/20 shadow-lg shadow-blue-500/20 border border-blue-500/30"
+                              : "bg-blue-500/10 border border-blue-500/10"
                           }`}>
                             <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
                               <circle cx="24" cy="24" r="18" stroke="#2AABEE" strokeWidth="2" fill="none" opacity="0.3"/>
@@ -577,10 +626,13 @@ function PricingContent() {
                             <div className="text-sm font-semibold text-white">Crypto Pay</div>
                             <div className="text-[11px] text-muted-foreground mt-0.5">@CryptoBot · Telegram</div>
                           </div>
-                          <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
-                            {["BTC", "TON", "USDT"].map(c => (
-                              <span key={c} className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-[9px] font-mono text-blue-400 border border-blue-500/20">{c}</span>
-                            ))}
+                          <div className="flex flex-col items-end gap-0.5">
+                            <div className="flex flex-wrap gap-1 justify-end">
+                              {["BTC", "TON", "USDT"].map(c => (
+                                <span key={c} className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-[9px] font-mono text-blue-400 border border-blue-500/20">{c}</span>
+                              ))}
+                            </div>
+                            <span className="text-[9px] text-muted-foreground/60">${showPaymentModal ? getFinalAmount(showPaymentModal) : 0} USD</span>
                           </div>
                         </button>
 
@@ -594,10 +646,10 @@ function PricingContent() {
                           }`}
                           data-testid="button-method-monobank"
                         >
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
                             selectedMethod === "monobank"
-                              ? "bg-gradient-to-br from-violet-500/30 to-purple-500/20 shadow-lg shadow-violet-500/20"
-                              : "bg-violet-500/10"
+                              ? "bg-gradient-to-br from-violet-500/30 to-purple-500/20 shadow-lg shadow-violet-500/20 border border-violet-500/30"
+                              : "bg-violet-500/10 border border-violet-500/10"
                           }`}>
                             <div className="flex items-center gap-0.5">
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 1 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
@@ -610,39 +662,21 @@ function PricingContent() {
                             </div>
                             <div className="text-[11px] text-muted-foreground mt-0.5">Visa, Mastercard · UAH</div>
                           </div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMethod("stars")}
-                          className={`w-full flex items-center gap-3.5 p-4 rounded-2xl border text-left transition-all duration-200 ${
-                            selectedMethod === "stars"
-                              ? "border-yellow-500/40 bg-yellow-500/[0.08] shadow-lg shadow-yellow-500/10 ring-1 ring-yellow-500/20"
-                              : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/15"
-                          }`}
-                          data-testid="button-method-stars"
-                        >
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                            selectedMethod === "stars"
-                              ? "bg-gradient-to-br from-yellow-500/30 to-amber-500/20 shadow-lg shadow-yellow-500/20"
-                              : "bg-yellow-500/10"
-                          }`}>
-                            <span className="text-2xl">⭐</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-white">Telegram Stars</div>
-                            <div className="text-[11px] text-muted-foreground mt-0.5">{t('pricing.starsNote') || "Pay with Stars in Telegram"}</div>
-                          </div>
-                          <div className="flex flex-wrap gap-1 justify-end max-w-[100px]">
+                          <div className="flex flex-col items-end gap-0.5">
                             {(() => {
-                              const starPrices: Record<string, Record<string, number>> = {
-                                PRO: { monthly: 500, yearly: 5000 },
-                                ENTERPRISE: { monthly: 1750, yearly: 17500 },
-                                GROUPS: { monthly: 2750, yearly: 27500 },
+                              const uahPrices: Record<string, Record<string, number>> = {
+                                PRO: { monthly: 410, yearly: 4100 },
+                                ENTERPRISE: { monthly: 1435, yearly: 14309 },
+                                GROUPS: { monthly: 2255, yearly: 22509 },
                               };
-                              const base = showPaymentModal ? starPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0 : 0;
-                              const final = promoApplied && promoDiscount > 0 ? Math.max(1, Math.round(base * (1 - promoDiscount / 100))) : base;
-                              return <span className="px-1.5 py-0.5 rounded-md bg-yellow-500/10 text-[9px] font-mono text-yellow-400 border border-yellow-500/20">{final} ⭐</span>;
+                              const base = showPaymentModal ? uahPrices[showPaymentModal]?.[isYearly ? "yearly" : "monthly"] || 0 : 0;
+                              const finalUah = promoApplied && promoDiscount > 0 ? Math.round(base * (1 - promoDiscount / 100)) : base;
+                              return (
+                                <>
+                                  <span className="px-2 py-0.5 rounded-lg bg-violet-500/10 text-[10px] font-mono text-violet-400 border border-violet-500/20">{finalUah} UAH</span>
+                                  <span className="text-[9px] text-muted-foreground/60">~${showPaymentModal ? getFinalAmount(showPaymentModal) : 0}</span>
+                                </>
+                              );
                             })()}
                           </div>
                         </button>

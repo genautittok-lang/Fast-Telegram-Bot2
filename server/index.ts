@@ -294,7 +294,21 @@ async function ensureTablesExist() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_user_id ON ds_payments(user_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_payments_status ON ds_payments(status)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON ds_referrals(referrer_id)`);
-    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred_id_unique ON ds_referrals(referred_id)`);
+    try {
+      await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred_id_unique ON ds_referrals(referred_id)`);
+    } catch (e: any) {
+      if (e?.message?.includes("could not create unique index")) {
+        console.log("Note: Duplicate referrals exist, cleaning up before creating unique index...");
+        await pool.query(`
+          DELETE FROM ds_referrals a USING ds_referrals b
+          WHERE a.id < b.id AND a.referred_id = b.referred_id
+        `);
+        try {
+          await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred_id_unique ON ds_referrals(referred_id)`);
+          console.log("Unique referral index created after cleanup.");
+        } catch { console.log("Unique referral index still could not be created."); }
+      }
+    }
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON ds_team_members(team_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON ds_team_members(user_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON ds_favorites(user_id)`);

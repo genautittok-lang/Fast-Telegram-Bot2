@@ -145,6 +145,7 @@ export interface TranslationSchema {
     cryptoPayNote: string;
     cryptoPaySecure: string;
     payWithCard: string;
+    recommended: string;
     payWithStars: string;
     starsNote: string;
     starsOfficialPayment: string;
@@ -993,6 +994,7 @@ export const translations: Record<Language, TranslationSchema> = {
       cryptoPayNote: "Pay with any cryptocurrency via Telegram @CryptoBot",
       cryptoPaySecure: "Secure payment via Telegram CryptoBot",
       payWithCard: "Pay with Google Pay / Apple Pay",
+      recommended: "Recommended",
       payWithStars: "Pay with Telegram Stars",
       starsNote: "Pay with Stars in Telegram",
       starsOfficialPayment: "Official Telegram payment",
@@ -1839,6 +1841,7 @@ export const translations: Record<Language, TranslationSchema> = {
       cryptoPayNote: "Оплата будь-якою криптовалютою через Telegram @CryptoBot",
       cryptoPaySecure: "Безпечна оплата через Telegram CryptoBot",
       payWithCard: "Оплатити через Google Pay / Apple Pay",
+      recommended: "Рекомендовано",
       payWithStars: "Оплатити Telegram Stars",
       starsNote: "Оплата зірками в Telegram",
       starsOfficialPayment: "Офіційна оплата Telegram",
@@ -2685,6 +2688,7 @@ export const translations: Record<Language, TranslationSchema> = {
       cryptoPayNote: "Оплата любой криптовалютой через Telegram @CryptoBot",
       cryptoPaySecure: "Безопасная оплата через Telegram CryptoBot",
       payWithCard: "Оплатить через Google Pay / Apple Pay",
+      recommended: "Рекомендовано",
       payWithStars: "Оплатить Telegram Stars",
       starsNote: "Оплата звёздами в Telegram",
       starsOfficialPayment: "Официальная оплата Telegram",
@@ -3531,6 +3535,7 @@ export const translations: Record<Language, TranslationSchema> = {
       cryptoPayNote: "Pague con cualquier criptomoneda a través de Telegram @CryptoBot",
       cryptoPaySecure: "Pago seguro a través de Telegram CryptoBot",
       payWithCard: "Pagar con Google Pay / Apple Pay",
+      recommended: "Recomendado",
       payWithStars: "Pagar con Telegram Stars",
       starsNote: "Pagar con estrellas en Telegram",
       starsOfficialPayment: "Pago oficial de Telegram",
@@ -4377,6 +4382,7 @@ export const translations: Record<Language, TranslationSchema> = {
       cryptoPayNote: "Zahlen Sie mit jeder Kryptowährung über Telegram @CryptoBot",
       cryptoPaySecure: "Sichere Zahlung über Telegram CryptoBot",
       payWithCard: "Mit Google Pay / Apple Pay bezahlen",
+      recommended: "Empfohlen",
       payWithStars: "Mit Telegram Stars bezahlen",
       starsNote: "Mit Stars in Telegram bezahlen",
       starsOfficialPayment: "Offizielle Telegram-Zahlung",
