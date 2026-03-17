@@ -4256,12 +4256,15 @@ ${allTypesText}
       return ctx.answerCbQuery("Ticket not found");
     }
     
+    const escapeMd = (s: string) => s.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+    const msgText = ticket.message ? escapeMd(ticket.message).slice(0, 500) : "—";
+    const replyText = ticket.adminReply ? escapeMd(ticket.adminReply) : "";
     const text = t(lang, "admin.ticketsTitle") + "\n\n" +
-      `${t(lang, "admin.ticketFrom")} ${ticket.name || ticket.contact || "?"}\n` +
+      `${t(lang, "admin.ticketFrom")} ${escapeMd(ticket.name || ticket.contact || "?")}\n` +
       `${t(lang, "admin.ticketStatus")} ${ticket.status}\n` +
       `${t(lang, "admin.ticketDate")} ${ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : "?"}\n\n` +
-      `${t(lang, "admin.ticketMessage")}\n${ticket.message || "—"}` +
-      (ticket.adminReply ? `\n\n${t(lang, "admin.ticketReply")} ${ticket.adminReply}` : "");
+      `${t(lang, "admin.ticketMessage")}\n${msgText}` +
+      (ticket.adminReply ? `\n\n${t(lang, "admin.ticketReply")} ${replyText}` : "");
     
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
