@@ -818,11 +818,11 @@ export default function Dashboard() {
   });
 
   const geointRegions = [
-    { id: "europe_west", emoji: "🇪🇺", label: "Western Europe", color: "from-blue-500/20 to-indigo-500/20" },
-    { id: "europe_east", emoji: "🇺🇦", label: "Eastern Europe / CIS", color: "from-blue-500/20 to-yellow-500/20" },
-    { id: "asia", emoji: "🌏", label: "Asia", color: "from-orange-500/20 to-red-500/20" },
-    { id: "americas", emoji: "🌎", label: "Americas", color: "from-red-500/20 to-blue-500/20" },
-    { id: "africa_mideast", emoji: "🌍", label: "Africa & Middle East", color: "from-green-500/20 to-amber-500/20" },
+    { id: "europe_west", emoji: "🇪🇺", label: { en: "Western Europe", uk: "Західна Європа", ru: "Западная Европа", es: "Europa Occidental", de: "Westeuropa" }, color: "from-blue-500/20 to-indigo-500/20" },
+    { id: "europe_east", emoji: "🇺🇦", label: { en: "Eastern Europe / CIS", uk: "Східна Європа / СНД", ru: "Восточная Европа / СНГ", es: "Europa del Este / CEI", de: "Osteuropa / GUS" }, color: "from-blue-500/20 to-yellow-500/20" },
+    { id: "asia", emoji: "🌏", label: { en: "Asia", uk: "Азія", ru: "Азия", es: "Asia", de: "Asien" }, color: "from-orange-500/20 to-red-500/20" },
+    { id: "americas", emoji: "🌎", label: { en: "Americas", uk: "Америка", ru: "Америка", es: "América", de: "Amerika" }, color: "from-red-500/20 to-blue-500/20" },
+    { id: "africa_mideast", emoji: "🌍", label: { en: "Africa & Middle East", uk: "Африка та Бл. Схід", ru: "Африка и Бл. Восток", es: "África y Oriente M.", de: "Afrika & Naher Osten" }, color: "from-green-500/20 to-amber-500/20" },
   ];
 
   const [geointData, setGeointData] = useState<any>(null);
@@ -1686,7 +1686,7 @@ Sources: ${result.sources.join(', ')}`;
                                 <service.icon className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${selectedCheck.iconColor}`} />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] lg:text-xs font-medium truncate">{service.name}</p>
+                                <p className="text-[10px] lg:text-xs font-medium leading-tight">{service.name}</p>
                                 <p className="text-[9px] lg:text-[10px] text-muted-foreground/70 leading-tight">{service.desc}</p>
                               </div>
                             </motion.div>
@@ -1797,7 +1797,7 @@ Sources: ${result.sources.join(', ')}`;
                                 data-testid={`button-geoint-${region.id}`}
                               >
                                 <div className="text-2xl mb-1">{region.emoji}</div>
-                                <div className="text-xs font-medium">{region.label}</div>
+                                <div className="text-xs font-medium">{(region.label as any)[lang] || (region.label as any).en}</div>
                               </button>
                             ))}
                           </div>
@@ -1806,7 +1806,7 @@ Sources: ${result.sources.join(', ')}`;
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span className="text-lg">{geointRegions.find(r => r.id === geointRegion)?.emoji}</span>
-                                <span className="font-medium">{geointData?.name || geointRegions.find(r => r.id === geointRegion)?.label || geointRegion}</span>
+                                <span className="font-medium">{(typeof geointData?.name === 'object' ? (geointData.name[lang] || geointData.name.en) : geointData?.name) || (() => { const r = geointRegions.find(r => r.id === geointRegion); return r ? ((r.label as any)[lang] || (r.label as any).en) : geointRegion; })()}</span>
                               </div>
                               <Button variant="ghost" size="sm" onClick={() => { setGeointRegion(null); setGeointData(null); }} data-testid="button-geoint-back">
                                 <ArrowLeft className="w-4 h-4 mr-1" />
@@ -1815,7 +1815,7 @@ Sources: ${result.sources.join(', ')}`;
                             </div>
                             {geointData?.tips && (
                               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                                {(Array.isArray(geointData.tips) ? geointData.tips : []).map((tip: string, i: number) => (
+                                {(typeof geointData.tips === 'object' && !Array.isArray(geointData.tips) ? (geointData.tips[lang] || geointData.tips.en || []) : Array.isArray(geointData.tips) ? geointData.tips : []).map((tip: string, i: number) => (
                                   <div key={i} className="flex gap-2 p-2 rounded-lg bg-teal-500/5 border border-teal-500/10">
                                     <Navigation className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
                                     <p className="text-sm text-muted-foreground">{tip}</p>

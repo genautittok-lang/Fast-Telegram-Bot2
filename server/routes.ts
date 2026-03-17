@@ -1035,49 +1035,31 @@ export async function registerRoutes(
 
   app.get("/api/geosint", (_req, res) => {
     const regions = [
-      { id: "europe_west", emoji: "🇪🇺", name: "Western Europe", tips: [
-        "White license plates with blue EU strip",
-        "Red/brown tile roofs — Germany, Netherlands",
-        "Circular road signs with red border",
-        "Half-timbered houses — Germany, France",
-        "Yellow mailboxes — France, Germany",
-        "Plane trees along roads — France",
-      ]},
-      { id: "europe_east", emoji: "🇺🇦", name: "Eastern Europe / CIS", tips: [
-        "Panel 5-9 story apartment blocks (Khrushchyovkas)",
-        "Concrete fences with diamond pattern — Ukraine, Russia",
-        "White road posts with red stripes",
-        "Onion-shaped church domes",
-        "Marshrutkas (minibuses)",
-        "Sunflower fields — Ukraine",
-        "Soviet mosaics on buildings",
-      ]},
-      { id: "asia", emoji: "🌏", name: "Asia", tips: [
-        "Left-hand traffic — Japan, Thailand, India",
-        "Chinese characters vs Japanese kanji vs Korean Hangul",
-        "Red lanterns — China",
-        "Torii gates — Japan",
-        "Buddhist temples with golden spires — Thailand",
-        "Tuk-tuks — Thailand, India",
-        "Rice terraces — Vietnam, Philippines",
-      ]},
-      { id: "americas", emoji: "🌎", name: "Americas", tips: [
-        "Yellow school buses — USA, Canada",
-        "Green signs with white text — American highways",
-        "Horizontal traffic lights — USA",
-        "Blue USPS mailboxes — USA",
-        "Colorful colonial buildings — Latin America",
-        "Cacti and deserts — Mexico, Arizona",
-        "Long straight roads — Midwest",
-      ]},
-      { id: "africa_mideast", emoji: "🌍", name: "Africa & Middle East", tips: [
-        "Mosques with minarets",
-        "Arabic script (right to left)",
-        "Green license plates — Saudi Arabia",
-        "Mud-brick houses — Morocco, Mali",
-        "Red dirt roads — Sub-Saharan Africa",
-        "Savanna with acacia trees — Kenya, Tanzania",
-      ]},
+      { id: "europe_west", emoji: "🇪🇺", name: { en: "Western Europe", uk: "Західна Європа", ru: "Западная Европа" }, tips: {
+        en: ["White license plates with blue EU strip", "Red/brown tile roofs — Germany, Netherlands", "Circular road signs with red border", "Half-timbered houses — Germany, France", "Yellow mailboxes — France, Germany", "Plane trees along roads — France"],
+        uk: ["Білі номерні знаки з синьою смугою ЄС", "Червоно-коричневі черепичні дахи — Німеччина, Нідерланди", "Круглі дорожні знаки з червоною рамкою", "Фахверкові будинки — Німеччина, Франція", "Жовті поштові скриньки — Франція, Німеччина", "Платани вздовж доріг — Франція"],
+        ru: ["Белые номерные знаки с синей полосой ЕС", "Красно-коричневые черепичные крыши — Германия, Нидерланды", "Круглые дорожные знаки с красной рамкой", "Фахверковые дома — Германия, Франция", "Жёлтые почтовые ящики — Франция, Германия", "Платаны вдоль дорог — Франция"],
+      }},
+      { id: "europe_east", emoji: "🇺🇦", name: { en: "Eastern Europe / CIS", uk: "Східна Європа / СНД", ru: "Восточная Европа / СНГ" }, tips: {
+        en: ["Panel 5-9 story apartment blocks (Khrushchyovkas)", "Concrete fences with diamond pattern — Ukraine, Russia", "White road posts with red stripes", "Onion-shaped church domes", "Marshrutkas (minibuses)", "Sunflower fields — Ukraine", "Soviet mosaics on buildings"],
+        uk: ["Панельні 5-9 поверхові будинки (хрущовки)", "Бетонні паркани з ромбовидним візерунком — Україна, Росія", "Білі дорожні стовпчики з червоними смугами", "Цибулеподібні куполи церков", "Маршрутки (мікроавтобуси)", "Соняшникові поля — Україна", "Радянські мозаїки на будівлях"],
+        ru: ["Панельные 5-9 этажные дома (хрущёвки)", "Бетонные заборы с ромбовидным узором — Украина, Россия", "Белые дорожные столбики с красными полосами", "Луковичные купола церквей", "Маршрутки (микроавтобусы)", "Подсолнечные поля — Украина", "Советские мозаики на зданиях"],
+      }},
+      { id: "asia", emoji: "🌏", name: { en: "Asia", uk: "Азія", ru: "Азия" }, tips: {
+        en: ["Left-hand traffic — Japan, Thailand, India", "Chinese characters vs Japanese kanji vs Korean Hangul", "Red lanterns — China", "Torii gates — Japan", "Buddhist temples with golden spires — Thailand", "Tuk-tuks — Thailand, India", "Rice terraces — Vietnam, Philippines"],
+        uk: ["Лівосторонній рух — Японія, Таїланд, Індія", "Китайські ієрогліфи vs японські кандзі vs корейський хангиль", "Червоні ліхтарі — Китай", "Ворота торії — Японія", "Буддійські храми із золотими шпилями — Таїланд", "Тук-туки — Таїланд, Індія", "Рисові тераси — В'єтнам, Філіппіни"],
+        ru: ["Левостороннее движение — Япония, Таиланд, Индия", "Китайские иероглифы vs японские кандзи vs корейский хангыль", "Красные фонари — Китай", "Ворота тории — Япония", "Буддийские храмы с золотыми шпилями — Таиланд", "Тук-туки — Таиланд, Индия", "Рисовые террасы — Вьетнам, Филиппины"],
+      }},
+      { id: "americas", emoji: "🌎", name: { en: "Americas", uk: "Америка", ru: "Америка" }, tips: {
+        en: ["Yellow school buses — USA, Canada", "Green signs with white text — American highways", "Horizontal traffic lights — USA", "Blue USPS mailboxes — USA", "Colorful colonial buildings — Latin America", "Cacti and deserts — Mexico, Arizona", "Long straight roads — Midwest"],
+        uk: ["Жовті шкільні автобуси — США, Канада", "Зелені знаки з білим текстом — американські шосе", "Горизонтальні світлофори — США", "Сині поштові скриньки USPS — США", "Кольорові колоніальні будівлі — Латинська Америка", "Кактуси та пустелі — Мексика, Арізона", "Довгі прямі дороги — Середній Захід"],
+        ru: ["Жёлтые школьные автобусы — США, Канада", "Зелёные знаки с белым текстом — американские шоссе", "Горизонтальные светофоры — США", "Синие почтовые ящики USPS — США", "Цветные колониальные здания — Латинская Америка", "Кактусы и пустыни — Мексика, Аризона", "Длинные прямые дороги — Средний Запад"],
+      }},
+      { id: "africa_mideast", emoji: "🌍", name: { en: "Africa & Middle East", uk: "Африка та Близький Схід", ru: "Африка и Ближний Восток" }, tips: {
+        en: ["Mosques with minarets", "Arabic script (right to left)", "Green license plates — Saudi Arabia", "Mud-brick houses — Morocco, Mali", "Red dirt roads — Sub-Saharan Africa", "Savanna with acacia trees — Kenya, Tanzania"],
+        uk: ["Мечеті з мінаретами", "Арабська писемність (справа наліво)", "Зелені номерні знаки — Саудівська Аравія", "Глинобитні будинки — Марокко, Малі", "Червоні ґрунтові дороги — Субсахарська Африка", "Савана з акаціями — Кенія, Танзанія"],
+        ru: ["Мечети с минаретами", "Арабская письменность (справа налево)", "Зелёные номерные знаки — Саудовская Аравия", "Глинобитные дома — Марокко, Мали", "Красные грунтовые дороги — Субсахарская Африка", "Саванна с акациями — Кения, Танзания"],
+      }},
     ];
     res.json(regions);
   });

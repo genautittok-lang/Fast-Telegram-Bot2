@@ -210,6 +210,8 @@ export interface TranslationSchema {
       dns: string;
       ssl: string;
       mac: string;
+      exif: string;
+      geoint: string;
     };
     checkShortDescs: {
       ip: string;
@@ -227,6 +229,8 @@ export interface TranslationSchema {
       dns: string;
       ssl: string;
       mac: string;
+      exif: string;
+      geoint: string;
     };
     services: {
       ip: {
@@ -1085,6 +1089,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS records analysis: A, AAAA, MX, NS, TXT, SPF, DMARC, DNSSEC check via Google DNS",
         ssl: "SSL/TLS certificate analysis: validity, issuer verification, HSTS, SAN domains, algorithm check",
         mac: "MAC address lookup: OUI vendor identification, VM detection, multicast/unicast classification",
+        exif: "EXIF metadata extraction from images: GPS coordinates, camera model, capture date/time, editing software detection",
+        geoint: "Geolocation intelligence reference guide: visual markers for region identification — road signs, architecture, vegetation, landscape patterns",
       },
       checkShortDescs: {
         ip: "Geolocation, provider, blacklists",
@@ -1102,6 +1108,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Records, SPF, DMARC, DNSSEC",
         ssl: "Certificate, issuer, HSTS",
         mac: "Vendor, device type, VM check",
+        exif: "GPS, camera, date, software",
+        geoint: "Regions, signs, architecture, flora",
       },
       services: {
         ip: {
@@ -1958,6 +1966,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Аналіз DNS записів: A, AAAA, MX, NS, TXT, SPF, DMARC, перевірка DNSSEC через Google DNS",
         ssl: "Аналіз SSL/TLS сертифіката: валідність, перевірка видавця, HSTS, SAN домени, алгоритм",
         mac: "Пошук MAC-адреси: OUI ідентифікація виробника, виявлення VM, класифікація unicast/multicast",
+        exif: "Витяг EXIF метаданих з зображень: GPS координати, модель камери, дата/час зйомки, виявлення програм обробки",
+        geoint: "Довідник геолокаційної розвідки: візуальні маркери для визначення регіону — дорожні знаки, архітектура, рослинність, ландшафт",
       },
       checkShortDescs: {
         ip: "Геолокація, провайдер, чорні списки",
@@ -1975,6 +1985,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Записи, SPF, DMARC, DNSSEC",
         ssl: "Сертифікат, видавець, HSTS",
         mac: "Виробник, тип пристрою, VM",
+        exif: "GPS, камера, дата, софт",
+        geoint: "Регіони, знаки, архітектура, флора",
       },
       services: {
         ip: {
@@ -2831,6 +2843,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Анализ DNS записей: A, AAAA, MX, NS, TXT, SPF, DMARC, проверка DNSSEC через Google DNS",
         ssl: "Анализ SSL/TLS сертификата: валидность, проверка издателя, HSTS, SAN домены, алгоритм",
         mac: "Поиск MAC-адреса: OUI идентификация производителя, обнаружение VM, классификация unicast/multicast",
+        exif: "Извлечение EXIF метаданных из изображений: GPS координаты, модель камеры, дата/время съёмки, обнаружение ПО обработки",
+        geoint: "Справочник геолокационной разведки: визуальные маркеры для определения региона — дорожные знаки, архитектура, растительность, ландшафт",
       },
       checkShortDescs: {
         ip: "Геолокация, провайдер, чёрные списки",
@@ -2848,6 +2862,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Записи, SPF, DMARC, DNSSEC",
         ssl: "Сертификат, издатель, HSTS",
         mac: "Производитель, тип устройства, VM",
+        exif: "GPS, камера, дата, софт",
+        geoint: "Регионы, знаки, архитектура, флора",
       },
       services: {
         ip: {
@@ -3704,6 +3720,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Análisis de registros DNS: A, AAAA, MX, NS, TXT, SPF, DMARC, verificación DNSSEC vía Google DNS",
         ssl: "Análisis de certificado SSL/TLS: validez, verificación de emisor, HSTS, dominios SAN, algoritmo",
         mac: "Búsqueda de dirección MAC: identificación de fabricante OUI, detección de VM, clasificación unicast/multicast",
+        exif: "Extracción de metadatos EXIF de imágenes: coordenadas GPS, modelo de cámara, fecha/hora de captura, detección de software",
+        geoint: "Guía de inteligencia de geolocalización: marcadores visuales para identificación de regiones — señales viales, arquitectura, vegetación, paisaje",
       },
       checkShortDescs: {
         ip: "Geolocalización, proveedor, listas negras",
@@ -3721,6 +3739,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Registros, SPF, DMARC, DNSSEC",
         ssl: "Certificado, emisor, HSTS",
         mac: "Fabricante, tipo de dispositivo, VM",
+        exif: "GPS, cámara, fecha, software",
+        geoint: "Regiones, señales, arquitectura, flora",
       },
       services: {
         ip: {
@@ -4577,6 +4597,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "DNS-Eintragsanalyse: A, AAAA, MX, NS, TXT, SPF, DMARC, DNSSEC-Prüfung über Google DNS",
         ssl: "SSL/TLS-Zertifikatsanalyse: Gültigkeit, Aussteller-Prüfung, HSTS, SAN-Domains, Algorithmus",
         mac: "MAC-Adress-Suche: OUI-Hersteller-Identifikation, VM-Erkennung, Unicast/Multicast-Klassifikation",
+        exif: "EXIF-Metadaten-Extraktion aus Bildern: GPS-Koordinaten, Kameramodell, Aufnahmedatum, Software-Erkennung",
+        geoint: "Geolokalisierungs-Nachschlagewerk: visuelle Marker zur Regionserkennung — Verkehrszeichen, Architektur, Vegetation, Landschaft",
       },
       checkShortDescs: {
         ip: "Geolokalisierung, Anbieter, Blacklists",
@@ -4594,6 +4616,8 @@ export const translations: Record<Language, TranslationSchema> = {
         dns: "Einträge, SPF, DMARC, DNSSEC",
         ssl: "Zertifikat, Aussteller, HSTS",
         mac: "Hersteller, Gerätetyp, VM",
+        exif: "GPS, Kamera, Datum, Software",
+        geoint: "Regionen, Schilder, Architektur, Flora",
       },
       services: {
         ip: {
