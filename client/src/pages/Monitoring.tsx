@@ -100,6 +100,69 @@ const typeStyleConfig: Record<string, {
     bgGradient: "from-red-500/20 via-red-500/5 to-transparent",
     iconBg: "bg-gradient-to-br from-red-500/30 to-rose-500/20",
   },
+  bot: {
+    icon: Activity,
+    gradient: "from-cyan-500 to-teal-400",
+    borderColor: "border-l-cyan-500",
+    bgGradient: "from-cyan-500/20 via-cyan-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-cyan-500/30 to-teal-500/20",
+  },
+  cve: {
+    icon: AlertCircle,
+    gradient: "from-rose-500 to-red-400",
+    borderColor: "border-l-rose-500",
+    bgGradient: "from-rose-500/20 via-rose-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-rose-500/30 to-red-500/20",
+  },
+  hash: {
+    icon: Activity,
+    gradient: "from-slate-500 to-zinc-400",
+    borderColor: "border-l-slate-500",
+    bgGradient: "from-slate-500/20 via-slate-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-slate-500/30 to-zinc-500/20",
+  },
+  username: {
+    icon: Eye,
+    gradient: "from-amber-500 to-yellow-400",
+    borderColor: "border-l-amber-500",
+    bgGradient: "from-amber-500/20 via-amber-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-amber-500/30 to-yellow-500/20",
+  },
+  card: {
+    icon: Activity,
+    gradient: "from-emerald-500 to-teal-400",
+    borderColor: "border-l-emerald-500",
+    bgGradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-emerald-500/30 to-teal-500/20",
+  },
+  password: {
+    icon: Activity,
+    gradient: "from-yellow-500 to-amber-400",
+    borderColor: "border-l-yellow-500",
+    bgGradient: "from-yellow-500/20 via-yellow-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-yellow-500/30 to-amber-500/20",
+  },
+  dns: {
+    icon: Globe,
+    gradient: "from-sky-500 to-blue-400",
+    borderColor: "border-l-sky-500",
+    bgGradient: "from-sky-500/20 via-sky-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-sky-500/30 to-blue-500/20",
+  },
+  ssl: {
+    icon: Shield,
+    gradient: "from-lime-500 to-green-400",
+    borderColor: "border-l-lime-500",
+    bgGradient: "from-lime-500/20 via-lime-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-lime-500/30 to-green-500/20",
+  },
+  mac: {
+    icon: Activity,
+    gradient: "from-violet-500 to-purple-400",
+    borderColor: "border-l-violet-500",
+    bgGradient: "from-violet-500/20 via-violet-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-violet-500/30 to-purple-500/20",
+  },
 };
 
 const typeTranslationKeys: Record<string, string> = {
@@ -109,6 +172,15 @@ const typeTranslationKeys: Record<string, string> = {
   phone: 'monitoring.typePhone',
   domain: 'monitoring.typeDomain',
   url: 'monitoring.typeUrl',
+  bot: 'monitoring.typeBot',
+  cve: 'monitoring.typeCve',
+  hash: 'monitoring.typeHash',
+  username: 'monitoring.typeUsername',
+  card: 'monitoring.typeCard',
+  password: 'monitoring.typePassword',
+  dns: 'monitoring.typeDns',
+  ssl: 'monitoring.typeSsl',
+  mac: 'monitoring.typeMac',
 };
 
 function StatCard({ 

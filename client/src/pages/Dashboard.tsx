@@ -633,6 +633,167 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
   );
 }
 
+function ScanProgressSteps({ lang }: { lang: string }) {
+  const [activeStep, setActiveStep] = useState(0);
+  const steps = useMemo(() => {
+    const s: Record<string, string[]> = {
+      en: ["Connecting to APIs...", "Gathering intelligence...", "Cross-referencing databases...", "Running AI analysis...", "Generating report..."],
+      uk: ["Підключення до API...", "Збір розвідданих...", "Перехресна перевірка баз...", "AI-аналіз даних...", "Генерація звіту..."],
+      ru: ["Подключение к API...", "Сбор разведданных...", "Перекрёстная проверка баз...", "AI-анализ данных...", "Генерация отчёта..."],
+      es: ["Conectando APIs...", "Recopilando inteligencia...", "Cruzando bases de datos...", "Ejecutando análisis IA...", "Generando reporte..."],
+      de: ["API-Verbindung...", "Intelligence sammeln...", "Datenbanken abgleichen...", "KI-Analyse...", "Bericht generieren..."],
+    };
+    return s[lang] || s.en;
+  }, [lang]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep(prev => prev < steps.length - 1 ? prev + 1 : prev);
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [steps.length]);
+
+  return (
+    <div className="space-y-2">
+      {steps.map((step, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0.3 }}
+          animate={{
+            opacity: idx <= activeStep ? 1 : 0.3,
+          }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-2.5"
+        >
+          <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+            idx < activeStep ? 'bg-primary/20 border border-primary/40' :
+            idx === activeStep ? 'bg-primary/10 border border-primary/30' :
+            'bg-white/5 border border-white/10'
+          }`}>
+            {idx < activeStep ? (
+              <Check className="w-3 h-3 text-primary" />
+            ) : idx === activeStep ? (
+              <motion.div
+                className="w-2 h-2 rounded-full bg-primary"
+                animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              />
+            ) : (
+              <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+            )}
+          </div>
+          <span className={`text-[10px] lg:text-xs font-medium transition-colors duration-300 ${
+            idx < activeStep ? 'text-primary/70' :
+            idx === activeStep ? 'text-primary' :
+            'text-muted-foreground/40'
+          }`}>
+            {step}
+          </span>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function SecurityTipRotator({ lang }: { lang: string }) {
+  const [tipIndex, setTipIndex] = useState(0);
+  const tips = useMemo(() => {
+    const allTips: Record<string, string[]> = {
+      en: [
+        "Always verify wallet addresses before sending cryptocurrency",
+        "Use 2FA on all accounts — SMS is not enough, use authenticator apps",
+        "Check URLs carefully — phishing sites mimic real ones with tiny differences",
+        "Never share your private keys or seed phrases with anyone",
+        "Regularly check if your email appeared in data breaches",
+        "Use unique passwords for each service — a password manager helps",
+        "Verify Telegram bots before sharing personal data with them",
+        "Check domain age — newly registered domains are often used for scams",
+        "Monitor your digital footprint — search your username across platforms",
+        "Enable login notifications on all critical accounts",
+      ],
+      uk: [
+        "Завжди перевіряйте адреси гаманців перед відправкою криптовалюти",
+        "Використовуйте 2FA на всіх акаунтах — SMS недостатньо, використовуйте authenticator",
+        "Уважно перевіряйте URL — фішинг-сайти копіюють справжні з мінімальними змінами",
+        "Ніколи не діліться приватними ключами або seed-фразами",
+        "Регулярно перевіряйте чи ваш email не з'явився у витоках даних",
+        "Використовуйте унікальні паролі для кожного сервісу",
+        "Перевіряйте Telegram-ботів перед тим як ділитися персональними даними",
+        "Перевіряйте вік домену — нові домени часто використовують для шахрайства",
+        "Моніторте свій цифровий слід — шукайте свій username на різних платформах",
+        "Увімкніть сповіщення про вхід на всіх важливих акаунтах",
+      ],
+      ru: [
+        "Всегда проверяйте адреса кошельков перед отправкой криптовалюты",
+        "Используйте 2FA на всех аккаунтах — SMS недостаточно, используйте authenticator",
+        "Внимательно проверяйте URL — фишинг-сайты копируют настоящие с минимальными изменениями",
+        "Никогда не делитесь приватными ключами или seed-фразами",
+        "Регулярно проверяйте, не появился ли ваш email в утечках данных",
+        "Используйте уникальные пароли для каждого сервиса",
+        "Проверяйте Telegram-ботов перед тем как делиться персональными данными",
+        "Проверяйте возраст домена — новые домены часто используют для мошенничества",
+        "Мониторьте свой цифровой след — ищите свой username на разных платформах",
+        "Включите уведомления о входе на всех важных аккаунтах",
+      ],
+      es: [
+        "Siempre verifica las direcciones de billetera antes de enviar criptomonedas",
+        "Usa 2FA en todas las cuentas — SMS no es suficiente, usa apps de autenticación",
+        "Revisa las URLs cuidadosamente — los sitios de phishing imitan a los reales",
+        "Nunca compartas tus claves privadas o frases semilla",
+        "Revisa regularmente si tu email apareció en filtraciones de datos",
+      ],
+      de: [
+        "Überprüfen Sie immer Wallet-Adressen bevor Sie Kryptowährung senden",
+        "Verwenden Sie 2FA auf allen Konten — SMS reicht nicht, nutzen Sie Authenticator-Apps",
+        "Überprüfen Sie URLs sorgfältig — Phishing-Seiten imitieren echte mit kleinen Unterschieden",
+        "Teilen Sie niemals Ihre privaten Schlüssel oder Seed-Phrasen",
+        "Überprüfen Sie regelmäßig ob Ihre E-Mail in Datenlecks aufgetaucht ist",
+      ],
+    };
+    return allTips[lang] || allTips.en;
+  }, [lang]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipIndex(prev => (prev + 1) % tips.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, [tips.length]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/5 via-primary/[0.02] to-transparent border border-primary/10 p-3 lg:p-4"
+    >
+      <div className="absolute inset-0 scan-effect" />
+      <div className="flex items-center gap-3 relative">
+        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 neon-pulse">
+          <Shield className="w-4 h-4 text-primary" />
+        </div>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={tipIndex}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4 }}
+            className="text-xs sm:text-sm text-muted-foreground leading-relaxed"
+            data-testid="text-security-tip"
+          >
+            💡 {tips[tipIndex]}
+          </motion.p>
+        </AnimatePresence>
+      </div>
+      <div className="flex gap-1 mt-2 justify-center">
+        {tips.map((_, i) => (
+          <div key={i} className={`h-0.5 rounded-full transition-all duration-500 ${i === tipIndex ? 'w-4 bg-primary' : 'w-1.5 bg-white/10'}`} />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 const TRC20_ADDRESS = "TRYbty4Ew9knf61brdrixeY5M34mQTt3zY";
 
 interface BulkCheckResult extends CheckResult {
@@ -1165,6 +1326,8 @@ Sources: ${result.sources.join(', ')}`;
                 streakDays={user?.streakDays ?? 0}
                 totalChecks={recentReports.length}
               />
+
+              <SecurityTipRotator lang={lang} />
             </div>
 
             <div className="hidden lg:block relative">
@@ -1600,18 +1763,19 @@ Sources: ${result.sources.join(', ')}`;
                         setGeointRegion(null);
                         setGeointData(null);
                       }}
-                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group cursor-pointer hover:-translate-y-1 active:scale-[0.97] transition-all duration-200 ease-out ${
+                      className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group cursor-pointer hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300 ease-out ${
                         isSelected
                           ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor} btn-3d btn-3d-selected ${type.btn3d}`
-                          : 'glass-card hover:border-white/15'
+                          : 'glass-card hover:border-white/15 hover:bg-white/[0.03]'
                       }`}
                       data-testid={`button-check-type-desktop-${type.id}`}
+                      title={type.shortDescription}
                     >
                       <div
-                        className={`w-11 h-11 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                        className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all duration-300 ${
                           isSelected
-                            ? `${type.iconColor} bg-white/10 border border-white/15`
-                            : 'text-muted-foreground bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.07] group-hover:border-white/10'
+                            ? `${type.iconColor} bg-white/10 border border-white/15 scale-110`
+                            : 'text-muted-foreground bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.07] group-hover:border-white/10 group-hover:scale-110'
                         }`}
                       >
                         <type.icon className="w-5 h-5" />
@@ -1621,6 +1785,9 @@ Sources: ${result.sources.join(', ')}`;
                       }`}>
                         {type.label}
                       </span>
+                      {!isSelected && (
+                        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-t from-white/[0.02] to-transparent" />
+                      )}
                       {isSelected && (
                         <motion.div
                           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-0.5 rounded-full"
@@ -1960,34 +2127,24 @@ Sources: ${result.sources.join(', ')}`;
                   <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="relative">
-                        <Skeleton className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl skeleton-shimmer" />
-                        <motion.div 
-                          className="absolute inset-0 flex items-center justify-center"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Scan className="w-5 h-5 lg:w-6 lg:h-6 text-primary/60" />
-                        </motion.div>
+                        <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Scan className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
+                          </motion.div>
+                        </div>
                       </div>
                       <div className="flex-1">
-                        <Skeleton className="h-5 w-40 mb-2 skeleton-shimmer" />
-                        <Skeleton className="h-3 w-24 skeleton-shimmer" />
+                        <h3 className="text-sm lg:text-lg font-display font-bold text-white">{t('dashboard.scanInProgress')}</h3>
+                        <p className="text-[10px] lg:text-xs text-muted-foreground">{selectedCheck?.label} — {inputValue || 'target'}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mb-4 text-xs text-primary/80">
-                      <motion.div
-                        className="w-2 h-2 rounded-full bg-primary"
-                        animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                      />
-                      <motion.span
-                        animate={{ opacity: [1, 0.6, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        {t('dashboard.scanInProgress')}
-                      </motion.span>
-                    </div>
-                    <Skeleton className="h-16 w-full rounded-xl skeleton-shimmer" />
+
+                    <ScanProgressSteps lang={lang} />
+
+                    <Skeleton className="h-16 w-full rounded-xl skeleton-shimmer mt-4" />
                     <div className="space-y-2 mt-4">
                       <Skeleton className="h-4 w-32 mb-3 skeleton-shimmer" />
                       <Skeleton className="h-12 w-full rounded-xl skeleton-shimmer" />

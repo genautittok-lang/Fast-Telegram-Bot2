@@ -35,7 +35,13 @@ import {
   GitCompareArrows,
   X,
   Trash2,
-  Share2
+  Share2,
+  KeyRound,
+  Network,
+  ShieldCheck,
+  Wifi,
+  Camera,
+  Map
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +76,12 @@ const typeIcons: Record<string, any> = {
   hash: Hash,
   username: User,
   card: CreditCard,
+  password: KeyRound,
+  dns: Network,
+  ssl: ShieldCheck,
+  mac: Wifi,
+  exif: Camera,
+  geoint: Map,
 };
 
 const typeGradients: Record<string, string> = {
@@ -84,6 +96,12 @@ const typeGradients: Record<string, string> = {
   hash: "from-slate-500 to-zinc-400",
   username: "from-amber-500 to-yellow-400",
   card: "from-emerald-500 to-teal-400",
+  password: "from-yellow-500 to-amber-400",
+  dns: "from-sky-500 to-blue-400",
+  ssl: "from-lime-500 to-green-400",
+  mac: "from-violet-500 to-purple-400",
+  exif: "from-pink-500 to-rose-400",
+  geoint: "from-teal-500 to-cyan-400",
 };
 
 const localeMap: Record<string, string> = {

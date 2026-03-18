@@ -350,6 +350,42 @@ export default function Home() {
       title: lang === "uk" ? "BIN Card" : lang === "ru" ? "BIN Card" : lang === "es" ? "BIN Card" : lang === "de" ? "BIN Card" : "BIN Card",
       description: lang === "uk" ? "Перевірка BIN коду банківської картки" : lang === "ru" ? "Проверка BIN кода банковской карты" : lang === "es" ? "Verificación del código BIN de tarjeta" : lang === "de" ? "BIN-Code-Prüfung der Bankkarte" : "Bank card BIN code verification",
       apis: ["BINList"]
+    },
+    {
+      icon: <Lock className="w-5 h-5" />,
+      title: lang === "uk" ? "Password" : lang === "ru" ? "Пароль" : lang === "es" ? "Contraseña" : lang === "de" ? "Passwort" : "Password",
+      description: lang === "uk" ? "Ентропія, злам-час та перевірка у витоках" : lang === "ru" ? "Энтропия, время взлома и проверка в утечках" : lang === "es" ? "Entropía, tiempo de craqueo y verificación de filtraciones" : lang === "de" ? "Entropie, Knackzeit & Leak-Prüfung" : "Entropy, crack time & breach check",
+      apis: ["HIBP", "zxcvbn"]
+    },
+    {
+      icon: <Network className="w-5 h-5" />,
+      title: "DNS",
+      description: lang === "uk" ? "A/MX/NS/TXT записи, SPF/DMARC та DNSSEC" : lang === "ru" ? "A/MX/NS/TXT записи, SPF/DMARC и DNSSEC" : lang === "es" ? "Registros A/MX/NS/TXT, SPF/DMARC y DNSSEC" : lang === "de" ? "A/MX/NS/TXT-Einträge, SPF/DMARC & DNSSEC" : "A/MX/NS/TXT records, SPF/DMARC & DNSSEC",
+      apis: ["Google DNS"]
+    },
+    {
+      icon: <ShieldCheck className="w-5 h-5" />,
+      title: "SSL/TLS",
+      description: lang === "uk" ? "Валідність сертифікату, HSTS та SAN аналіз" : lang === "ru" ? "Валидность сертификата, HSTS и SAN анализ" : lang === "es" ? "Validez del certificado, HSTS y análisis SAN" : lang === "de" ? "Zertifikatsgültigkeit, HSTS & SAN-Analyse" : "Certificate validity, HSTS & SAN analysis",
+      apis: ["SSL Labs"]
+    },
+    {
+      icon: <Server className="w-5 h-5" />,
+      title: "MAC",
+      description: lang === "uk" ? "OUI vendor, виявлення VM та тип пристрою" : lang === "ru" ? "OUI vendor, обнаружение VM и тип устройства" : lang === "es" ? "Vendor OUI, detección de VM y tipo de dispositivo" : lang === "de" ? "OUI-Vendor, VM-Erkennung & Gerätetyp" : "OUI vendor lookup, VM detection & device type",
+      apis: ["IEEE OUI"]
+    },
+    {
+      icon: <Download className="w-5 h-5" />,
+      title: "EXIF",
+      description: lang === "uk" ? "GPS, камера, дата з метаданих зображень" : lang === "ru" ? "GPS, камера, дата из метаданных изображений" : lang === "es" ? "GPS, cámara, fecha de metadatos de imagen" : lang === "de" ? "GPS, Kamera, Datum aus Bild-Metadaten" : "GPS, camera, date from image metadata",
+      apis: ["ExifReader"]
+    },
+    {
+      icon: <Scan className="w-5 h-5" />,
+      title: "GeoINT",
+      description: lang === "uk" ? "Підказки для геолокації по регіонам світу" : lang === "ru" ? "Подсказки для геолокации по регионам мира" : lang === "es" ? "Consejos de geolocalización por regiones del mundo" : lang === "de" ? "Geolokalisierungstipps nach Weltregionen" : "Geolocation hints by world regions",
+      apis: ["Regional DB"]
     }
   ];
 
@@ -1306,7 +1342,7 @@ export default function Home() {
             >
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
                 <Terminal className="w-3 h-3" />
-                {lang === "uk" ? "10 Модулів" : lang === "ru" ? "10 Модулей" : lang === "es" ? "10 Módulos" : lang === "de" ? "10 Module" : "10 Modules"}
+                {lang === "uk" ? "17 Модулів" : lang === "ru" ? "17 Модулей" : lang === "es" ? "17 Módulos" : lang === "de" ? "17 Module" : "17 Modules"}
               </span>
               <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
                 {lang === "uk" ? "Повний Арсенал OSINT" : lang === "ru" ? "Полный Арсенал OSINT" : lang === "es" ? "Arsenal OSINT Completo" : lang === "de" ? "Vollständiges OSINT-Arsenal" : "Complete OSINT Arsenal"}
@@ -1324,7 +1360,7 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
               {modules.map((module, idx) => (
                 <ModuleCard 
                   key={idx}
@@ -1332,7 +1368,7 @@ export default function Home() {
                   title={module.title}
                   description={module.description}
                   apis={module.apis}
-                  delay={0.05 * idx}
+                  delay={0.03 * idx}
                   onClick={() => setSelectedModule(idx)}
                 />
               ))}
@@ -1692,6 +1728,196 @@ export default function Home() {
                   </motion.div>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-8 sm:py-10 md:py-14 lg:py-16 section-divider">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 sm:mb-10 space-y-2 sm:space-y-3"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-xs font-medium text-violet-400">
+                <Zap className="w-3 h-3" />
+                {lang === "uk" ? "Порівняння Планів" : lang === "ru" ? "Сравнение Планов" : lang === "es" ? "Comparación de Planes" : lang === "de" ? "Planvergleich" : "Plan Comparison"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Оберіть Свій Рівень" : lang === "ru" ? "Выберите Свой Уровень" : lang === "es" ? "Elija Su Nivel" : lang === "de" ? "Wählen Sie Ihren Level" : "Choose Your Level"}
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"
+            >
+              <table className="w-full text-xs sm:text-sm border-collapse min-w-[500px]" data-testid="table-plan-comparison">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-3 px-2 sm:px-3 text-muted-foreground font-medium">
+                      {lang === "uk" ? "Можливість" : lang === "ru" ? "Возможность" : lang === "es" ? "Característica" : lang === "de" ? "Funktion" : "Feature"}
+                    </th>
+                    <th className="text-center py-3 px-2 sm:px-3 text-muted-foreground font-medium">FREE</th>
+                    <th className="text-center py-3 px-2 sm:px-3 text-primary font-bold relative">
+                      PRO
+                      <span className="absolute -top-1 left-1/2 -translate-x-1/2 text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full border border-primary/30">
+                        {lang === "uk" ? "Популярний" : lang === "ru" ? "Популярный" : "Popular"}
+                      </span>
+                    </th>
+                    <th className="text-center py-3 px-2 sm:px-3 text-amber-400 font-bold">ENT</th>
+                    <th className="text-center py-3 px-2 sm:px-3 text-cyan-400 font-bold">GROUPS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: lang === "uk" ? "Перевірок на день" : lang === "ru" ? "Проверок в день" : "Daily checks", free: "5", pro: "50", ent: "∞", grp: "∞" },
+                    { feature: lang === "uk" ? "Типів перевірок" : lang === "ru" ? "Типов проверок" : "Check types", free: "11", pro: "17", ent: "17", grp: "17" },
+                    { feature: "AI " + (lang === "uk" ? "аналіз" : lang === "ru" ? "анализ" : "analysis"), free: "—", pro: "✓", ent: "✓", grp: "✓" },
+                    { feature: "PDF " + (lang === "uk" ? "звіти" : lang === "ru" ? "отчёты" : "reports"), free: "—", pro: "✓", ent: "✓", grp: "✓" },
+                    { feature: lang === "uk" ? "Моніторинг 24/7" : lang === "ru" ? "Мониторинг 24/7" : "24/7 Monitoring", free: "—", pro: "5", ent: "25", grp: "50" },
+                    { feature: "API " + (lang === "uk" ? "доступ" : lang === "ru" ? "доступ" : "access"), free: "—", pro: "✓", ent: "✓", grp: "✓" },
+                    { feature: "EXIF / GeoINT", free: "—", pro: "✓", ent: "✓", grp: "✓" },
+                    { feature: "Bulk " + (lang === "uk" ? "перевірки" : lang === "ru" ? "проверки" : "checks"), free: "—", pro: "10", ent: "50", grp: "100" },
+                    { feature: lang === "uk" ? "Підтримка" : lang === "ru" ? "Поддержка" : "Support", free: "—", pro: "Email", ent: "Priority", grp: "Dedicated" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors" data-testid={`row-comparison-${idx}`}>
+                      <td className="py-2.5 px-2 sm:px-3 text-white/80 font-medium">{row.feature}</td>
+                      <td className="py-2.5 px-2 sm:px-3 text-center text-muted-foreground">{row.free}</td>
+                      <td className="py-2.5 px-2 sm:px-3 text-center text-primary font-medium">{row.pro}</td>
+                      <td className="py-2.5 px-2 sm:px-3 text-center text-amber-400 font-medium">{row.ent}</td>
+                      <td className="py-2.5 px-2 sm:px-3 text-center text-cyan-400 font-medium">{row.grp}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t border-white/10">
+                    <td className="py-3 px-2 sm:px-3 text-white font-bold">
+                      {lang === "uk" ? "Ціна / місяць" : lang === "ru" ? "Цена / месяц" : "Price / month"}
+                    </td>
+                    <td className="py-3 px-2 sm:px-3 text-center text-muted-foreground font-bold">$0</td>
+                    <td className="py-3 px-2 sm:px-3 text-center text-primary font-bold">$10</td>
+                    <td className="py-3 px-2 sm:px-3 text-center text-amber-400 font-bold">$35</td>
+                    <td className="py-3 px-2 sm:px-3 text-center text-cyan-400 font-bold">$55</td>
+                  </tr>
+                </tbody>
+              </table>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="text-center mt-6"
+            >
+              <Link href="/pricing">
+                <Button size="lg" className="px-8 h-12 bg-gradient-to-r from-primary to-emerald-400 text-black font-bold rounded-xl hover:scale-[1.03] transition-all duration-300 shadow-[0_0_30px_rgba(34,197,94,0.2)]" data-testid="button-view-pricing">
+                  {lang === "uk" ? "Детальніше про тарифи" : lang === "ru" ? "Подробнее о тарифах" : lang === "es" ? "Más sobre los planes" : lang === "de" ? "Mehr über Tarife" : "View Full Pricing"}
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="py-8 sm:py-10 md:py-12 section-divider">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8 space-y-2"
+            >
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+                <Star className="w-3 h-3" />
+                {lang === "uk" ? "Відгуки" : lang === "ru" ? "Отзывы" : lang === "es" ? "Testimonios" : lang === "de" ? "Bewertungen" : "Testimonials"}
+              </span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold px-2">
+                {lang === "uk" ? "Що Говорять Наші Користувачі" : lang === "ru" ? "Что Говорят Наши Пользователи" : lang === "es" ? "Lo Que Dicen Nuestros Usuarios" : lang === "de" ? "Was Unsere Nutzer Sagen" : "What Our Users Say"}
+              </h2>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  name: lang === "uk" ? "Олександр К." : lang === "ru" ? "Александр К." : "Alexander K.",
+                  role: lang === "uk" ? "Криптоінвестор" : lang === "ru" ? "Криптоинвестор" : lang === "es" ? "Criptoinversor" : lang === "de" ? "Kryptoinvestor" : "Crypto Investor",
+                  text: lang === "uk" ? "DARKSHARE врятував мені $12,000. Перевірив гаманець продавця перед угодою — виявив зв'язок з mixer'ом. Мій must-have інструмент." : lang === "ru" ? "DARKSHARE спас мне $12,000. Проверил кошелёк продавца перед сделкой — обнаружил связь с миксером. Мой must-have инструмент." : lang === "es" ? "DARKSHARE me salvó $12,000. Verifiqué la billetera del vendedor antes del trato — se detectó conexión con mixer." : lang === "de" ? "DARKSHARE hat mir $12.000 gespart. Die Wallet des Verkäufers wurde vor dem Deal geprüft — Mixer-Verbindung erkannt." : "DARKSHARE saved me $12,000. Checked seller's wallet before deal — detected mixer connection. My must-have tool.",
+                  rating: 5,
+                  avatar: "🛡️",
+                },
+                {
+                  name: lang === "uk" ? "Марина Д." : lang === "ru" ? "Марина Д." : "Marina D.",
+                  role: lang === "uk" ? "IT-безпека" : lang === "ru" ? "IT-безопасность" : lang === "es" ? "Seguridad IT" : lang === "de" ? "IT-Sicherheit" : "IT Security",
+                  text: lang === "uk" ? "Використовую для аудиту корпоративних доменів та email. AI-аналіз дає професійні рекомендації. PDF-звіти — знахідка для клієнтів." : lang === "ru" ? "Использую для аудита корпоративных доменов и email. AI-анализ даёт профессиональные рекомендации. PDF-отчёты — находка для клиентов." : lang === "es" ? "Lo uso para auditar dominios corporativos y emails. El análisis de IA da recomendaciones profesionales." : lang === "de" ? "Nutze es für Audits von Unternehmensdomains und E-Mails. Die KI-Analyse gibt professionelle Empfehlungen." : "I use it for corporate domain and email audits. AI analysis gives professional recommendations. PDF reports are a goldmine for clients.",
+                  rating: 5,
+                  avatar: "💼",
+                },
+                {
+                  name: lang === "uk" ? "Тарас В." : lang === "ru" ? "Тарас В." : "Taras V.",
+                  role: lang === "uk" ? "Фрілансер" : lang === "ru" ? "Фрилансер" : lang === "es" ? "Freelancer" : lang === "de" ? "Freelancer" : "Freelancer",
+                  text: lang === "uk" ? "Перевіряю замовників перед початком роботи. Один раз знайшов фішинговий домен у портфоліо 'клієнта'. Бот у Telegram — дуже зручно!" : lang === "ru" ? "Проверяю заказчиков перед началом работы. Однажды нашёл фишинговый домен в портфолио 'клиента'. Бот в Telegram — очень удобно!" : lang === "es" ? "Verifico clientes antes de comenzar a trabajar. Una vez encontré un dominio de phishing en el portafolio del 'cliente'." : lang === "de" ? "Ich überprüfe Auftraggeber vor Arbeitsbeginn. Einmal fand ich eine Phishing-Domain im Portfolio eines 'Kunden'." : "I check clients before starting work. Once found a phishing domain in a 'client's' portfolio. Telegram bot is super convenient!",
+                  rating: 5,
+                  avatar: "🎯",
+                },
+              ].map((review, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.5 }}
+                  className="premium-card p-5 space-y-3"
+                  data-testid={`card-review-${idx}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-lg">
+                      {review.avatar}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{review.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{review.role}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: review.rating }).map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{review.text}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-6 sm:py-8 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center text-xs text-muted-foreground mb-4"
+            >
+              {lang === "uk" ? "Працюємо з провідними джерелами безпеки" : lang === "ru" ? "Работаем с ведущими источниками безопасности" : lang === "es" ? "Trabajamos con las principales fuentes de seguridad" : lang === "de" ? "Wir arbeiten mit führenden Sicherheitsquellen" : "Powered by leading security intelligence sources"}
+            </motion.p>
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+              {["Shodan", "VirusTotal", "AbuseIPDB", "NVD NIST", "Etherscan", "URLScan", "MalwareBazaar", "HIBP", "Google DNS", "SSL Labs"].map((source, idx) => (
+                <motion.div
+                  key={source}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05, duration: 0.3 }}
+                  className="px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] sm:text-xs text-muted-foreground font-mono hover:border-primary/30 hover:text-primary/80 transition-colors"
+                  data-testid={`badge-source-${source.toLowerCase().replace(/\s/g, '-')}`}
+                >
+                  {source}
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
