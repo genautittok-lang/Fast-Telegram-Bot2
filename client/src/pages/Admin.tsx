@@ -115,6 +115,12 @@ interface PaymentSettings {
   dailyBroadcastEnabled?: boolean;
   dailyBroadcastLastSent?: string | null;
   dailyBroadcastLastReach?: number;
+  dailyEmailEnabled?: boolean;
+  dailyEmailSubject?: string;
+  dailyEmailTitle?: string;
+  dailyEmailBody?: string;
+  dailyEmailLastSent?: string | null;
+  dailyEmailLastReach?: number;
 }
 
 interface PaymentRecord {
@@ -2234,6 +2240,85 @@ export default function Admin() {
                 </CardContent>
               </Card>
 
+              <Card className="border-green-500/20 bg-green-500/5">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-green-400" />
+                    Автоматична щоденна розсилка
+                  </CardTitle>
+                  <CardDescription>Відправляється щодня о 10:00 UTC всім підписникам</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Статус</span>
+                    <Button
+                      data-testid="button-toggle-daily-email"
+                      variant="outline"
+                      size="sm"
+                      className={settings?.dailyEmailEnabled ? "border-green-500/30 text-green-400" : "border-white/10"}
+                      onClick={async () => {
+                        try {
+                          await adminPost("/api/admin/settings", { dailyEmailEnabled: !settings?.dailyEmailEnabled });
+                          queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+                          toast({ title: settings?.dailyEmailEnabled ? "Авторозсилку вимкнено" : "Авторозсилку увімкнено" });
+                        } catch {
+                          toast({ title: "Помилка", variant: "destructive" });
+                        }
+                      }}
+                    >
+                      {settings?.dailyEmailEnabled ? <><ToggleRight className="w-4 h-4 mr-1" /> Увімкнено</> : <><ToggleLeft className="w-4 h-4 mr-1" /> Вимкнено</>}
+                    </Button>
+                  </div>
+
+                  {settings?.dailyEmailLastSent && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-[10px] text-muted-foreground uppercase">Остання розсилка</p>
+                        <p className="text-sm font-mono font-bold mt-1">
+                          {new Date(settings.dailyEmailLastSent).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <p className="text-[10px] text-muted-foreground uppercase">Охоплення</p>
+                        <p className="text-sm font-mono font-bold mt-1">{settings?.dailyEmailLastReach || 0} email</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Тема щоденного листа</label>
+                    <Input
+                      data-testid="input-daily-email-subject"
+                      placeholder="DarkShare — Щоденний дайджест"
+                      defaultValue={settings?.dailyEmailSubject || ""}
+                      onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailSubject: e.target.value })}
+                      className="bg-white/5 border-white/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Заголовок</label>
+                    <Input
+                      data-testid="input-daily-email-title"
+                      placeholder="Що нового сьогодні"
+                      defaultValue={settings?.dailyEmailTitle || ""}
+                      onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailTitle: e.target.value })}
+                      className="bg-white/5 border-white/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Текст повідомлення</label>
+                    <Textarea
+                      data-testid="input-daily-email-body"
+                      placeholder="Привіт! Ось ваш щоденний дайджест безпеки..."
+                      defaultValue={settings?.dailyEmailBody || ""}
+                      onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailBody: e.target.value })}
+                      className="bg-white/5 border-white/10 min-h-[100px]"
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
               {emailSubscribers && emailSubscribers.emails.length > 0 && (
                 <Card className="border-white/10 bg-white/5">
                   <CardHeader>
@@ -2243,7 +2328,7 @@ export default function Admin() {
                     <div className="max-h-[300px] overflow-y-auto space-y-1">
                       {emailSubscribers.emails.map((email, i) => (
                         <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/5 text-sm" data-testid={`email-subscriber-${i}`}>
-                          <Mail className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                          <Mail className="w-3.5 h-3.5 text-green-400 shrink-0" />
                           <span className="text-white/80 truncate">{email}</span>
                         </div>
                       ))}

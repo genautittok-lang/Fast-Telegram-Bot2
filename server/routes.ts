@@ -2631,17 +2631,29 @@ export async function registerRoutes(
       dailyBroadcastEnabled: settingsMap['daily_broadcast_enabled'] === 'true',
       dailyBroadcastLastSent: settingsMap['daily_broadcast_last_sent'] || null,
       dailyBroadcastLastReach: parseInt(settingsMap['daily_broadcast_last_reach'] || '0'),
+      dailyEmailEnabled: settingsMap['daily_email_enabled'] === 'true',
+      dailyEmailSubject: settingsMap['daily_email_subject'] || '',
+      dailyEmailTitle: settingsMap['daily_email_title'] || '',
+      dailyEmailBody: settingsMap['daily_email_body'] || '',
+      dailyEmailLastSent: settingsMap['daily_email_last_sent'] || null,
+      dailyEmailLastReach: parseInt(settingsMap['daily_email_last_reach'] || '0'),
     });
   });
 
   // Update admin settings
   app.post("/api/admin/settings", requireAdmin, async (req, res) => {
-    const { proPrice, enterprisePrice, dailyBroadcastEnabled } = req.body;
+    const { proPrice, enterprisePrice, dailyBroadcastEnabled, dailyEmailEnabled, dailyEmailSubject, dailyEmailTitle, dailyEmailBody } = req.body;
     if (proPrice) await storage.setAdminSetting('pro_price', proPrice.toString());
     if (enterprisePrice) await storage.setAdminSetting('enterprise_price', enterprisePrice.toString());
     if (dailyBroadcastEnabled !== undefined) {
       await storage.setAdminSetting('daily_broadcast_enabled', dailyBroadcastEnabled ? 'true' : 'false');
     }
+    if (dailyEmailEnabled !== undefined) {
+      await storage.setAdminSetting('daily_email_enabled', dailyEmailEnabled ? 'true' : 'false');
+    }
+    if (dailyEmailSubject !== undefined) await storage.setAdminSetting('daily_email_subject', dailyEmailSubject);
+    if (dailyEmailTitle !== undefined) await storage.setAdminSetting('daily_email_title', dailyEmailTitle);
+    if (dailyEmailBody !== undefined) await storage.setAdminSetting('daily_email_body', dailyEmailBody);
     res.json({ success: true });
   });
 
@@ -3846,6 +3858,55 @@ export async function registerRoutes(
   } catch (err) {
     console.log("Database tables not ready yet - skipping seed (run db:push to create tables)");
   }
+
+  // ============ Daily Email Broadcast Scheduler ============
+  setInterval(async () => {
+    try {
+      const enabled = await storage.getAdminSetting("daily_email_enabled");
+      if (enabled !== "true") return;
+
+      const now = new Date();
+      if (now.getUTCHours() !== 10) return;
+
+      const lastSent = await storage.getAdminSetting("daily_email_last_sent");
+      if (lastSent) {
+        const lastDate = new Date(lastSent);
+        const hoursSince = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+        if (hoursSince < 20) return;
+      }
+
+      const subject = await storage.getAdminSetting("daily_email_subject");
+      const title = await storage.getAdminSetting("daily_email_title");
+      const body = await storage.getAdminSetting("daily_email_body");
+
+      if (!subject || !title || !body) {
+        console.log("[Daily Email] Skipping — subject/title/body not configured");
+        return;
+      }
+
+      console.log("[Daily Email] Running scheduled daily email broadcast...");
+
+      const { sendEmailBroadcast, buildBroadcastHtml } = await import("./emailService");
+      const html = buildBroadcastHtml(title, body);
+
+      const emailResult = await pool.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != ''");
+      const emails = emailResult.rows.map((r: any) => r.email);
+
+      if (emails.length === 0) {
+        console.log("[Daily Email] No subscribers found");
+        return;
+      }
+
+      const result = await sendEmailBroadcast({ to: emails, subject, html });
+
+      await storage.setAdminSetting("daily_email_last_sent", new Date().toISOString());
+      await storage.setAdminSetting("daily_email_last_reach", result.sent.toString());
+
+      console.log(`[Daily Email] Done: ${result.sent} sent, ${result.failed} failed out of ${emails.length}`);
+    } catch (err) {
+      console.error("[Daily Email] Scheduler error:", err);
+    }
+  }, 60 * 60 * 1000);
 
   return httpServer;
 }
