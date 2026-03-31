@@ -35,11 +35,14 @@ export async function sendEmailBroadcast(options: EmailBroadcastOptions): Promis
   let failed = 0;
   const errors: string[] = [];
 
-  const BATCH_SIZE = 50;
-  for (let i = 0; i < to.length; i += BATCH_SIZE) {
-    const batch = to.slice(i, i + BATCH_SIZE);
+  const DELAY_MS = 350;
+  const MAX_RETRIES = 2;
 
-    const promises = batch.map(async (email) => {
+  for (let i = 0; i < to.length; i++) {
+    const email = to[i];
+    let success = false;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         const { data, error } = await resend.emails.send({
           from: FROM_EMAIL,
@@ -50,24 +53,41 @@ export async function sendEmailBroadcast(options: EmailBroadcastOptions): Promis
           replyTo: "darkshare.store@gmail.com",
         });
         if (error) {
+          if (attempt < MAX_RETRIES && (error.message?.includes("rate") || error.message?.includes("limit") || error.message?.includes("429") || error.message?.includes("too many"))) {
+            console.log(`[Email] Rate limited on ${email}, retry ${attempt + 1}/${MAX_RETRIES} after 2s...`);
+            await new Promise((r) => setTimeout(r, 2000));
+            continue;
+          }
           failed++;
           errors.push(`${email}: ${error.message}`);
         } else {
           sent++;
+          success = true;
         }
+        break;
       } catch (err: any) {
+        const msg = err.message || "Unknown error";
+        if (attempt < MAX_RETRIES && (msg.includes("rate") || msg.includes("limit") || msg.includes("429") || msg.includes("too many") || msg.includes("ECONNRESET"))) {
+          console.log(`[Email] Error on ${email}, retry ${attempt + 1}/${MAX_RETRIES} after 2s...`);
+          await new Promise((r) => setTimeout(r, 2000));
+          continue;
+        }
         failed++;
-        errors.push(`${email}: ${err.message || "Unknown error"}`);
+        errors.push(`${email}: ${msg}`);
+        break;
       }
-    });
+    }
 
-    await Promise.all(promises);
+    if (i < to.length - 1) {
+      await new Promise((r) => setTimeout(r, DELAY_MS));
+    }
 
-    if (i + BATCH_SIZE < to.length) {
-      await new Promise((r) => setTimeout(r, 1000));
+    if ((i + 1) % 50 === 0) {
+      console.log(`[Email Broadcast] Progress: ${i + 1}/${to.length} (sent: ${sent}, failed: ${failed})`);
     }
   }
 
+  console.log(`[Email Broadcast] Final: ${sent} sent, ${failed} failed out of ${to.length}. Errors: ${errors.length > 0 ? errors.slice(0, 10).join('; ') : 'none'}`);
   return { sent, failed, errors };
 }
 

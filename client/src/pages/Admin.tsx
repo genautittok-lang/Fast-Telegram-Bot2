@@ -320,7 +320,7 @@ export default function Admin() {
     testEmail: "",
   });
   const [emailSending, setEmailSending] = useState(false);
-  const [emailResult, setEmailResult] = useState<{ sent: number; failed: number; total: number } | null>(null);
+  const [emailResult, setEmailResult] = useState<{ sent: number; failed: number; total: number; errors?: string[] } | null>(null);
 
   const adminFetch = async (url: string) => {
     const res = await fetch(url, { headers: { "x-admin-token": adminToken } });
@@ -2312,6 +2312,21 @@ export default function Admin() {
                     <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${emailResult.total > 0 ? (emailResult.sent / emailResult.total * 100) : 0}%` }}></div>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-1 text-right">{emailResult.total > 0 ? Math.round(emailResult.sent / emailResult.total * 100) : 0}%</p>
+                  {emailResult.errors && emailResult.errors.length > 0 && (
+                    <details className="mt-2">
+                      <summary className="text-[11px] text-red-400 cursor-pointer hover:text-red-300">
+                        Помилки ({emailResult.errors.length})
+                      </summary>
+                      <div className="mt-1.5 max-h-[120px] overflow-y-auto space-y-0.5">
+                        {emailResult.errors.slice(0, 20).map((err: string, i: number) => (
+                          <p key={i} className="text-[10px] text-red-400/70 font-mono truncate">{err}</p>
+                        ))}
+                        {emailResult.errors.length > 20 && (
+                          <p className="text-[10px] text-muted-foreground">...і ще {emailResult.errors.length - 20}</p>
+                        )}
+                      </div>
+                    </details>
+                  )}
                 </div>
               )}
 
