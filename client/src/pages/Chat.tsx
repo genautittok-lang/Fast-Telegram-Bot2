@@ -314,7 +314,7 @@ function ReportCard({ message }: { message: string }) {
         <span className="text-muted-foreground"><Search className="w-3 h-3 inline" /></span>
         <span className="font-mono text-white/70">{target}</span>
       </div>
-      {verifyUrl && verifyUrl !== "/verify/N/A" && (
+      {verifyUrl && verifyUrl !== "/verify/N/A" && /^https?:\/\//i.test(verifyUrl) && (
         <a href={verifyUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[10px] text-primary/70 hover:text-primary transition-colors">
           <ExternalLink className="w-3 h-3" />
           <span className="font-mono">{verifyUrl}</span>

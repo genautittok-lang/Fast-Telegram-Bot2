@@ -155,7 +155,7 @@ function PricingContent() {
         }),
       });
       const data = await response.json();
-      if (response.ok && data.payUrl) {
+      if (response.ok && data.payUrl && /^https?:\/\//i.test(data.payUrl)) {
         window.open(data.payUrl, "_blank");
         toast({
           title: t('pricing.cryptoPayOpened') || "Crypto Pay opened",
@@ -852,7 +852,7 @@ function PricingContent() {
                                   }),
                                 });
                                 const data = await response.json();
-                                if (response.ok && data.pageUrl) {
+                                if (response.ok && data.pageUrl && /^https?:\/\//i.test(data.pageUrl)) {
                                   window.location.href = data.pageUrl;
                                 } else if (response.status === 503) {
                                   toast({

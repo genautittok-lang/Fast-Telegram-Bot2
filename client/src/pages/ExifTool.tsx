@@ -267,7 +267,7 @@ export default function ExifTool() {
                         <span className="font-mono ml-2">{result.gps.longitude.toFixed(6)}</span>
                       </div>
                     </div>
-                    {result.mapUrl && (
+                    {result.mapUrl && /^https?:\/\//i.test(result.mapUrl) && (
                       <a
                         href={result.mapUrl}
                         target="_blank"

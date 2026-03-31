@@ -179,7 +179,7 @@ export async function registerRoutes(
         req.session.tgId = dsUser!.tgId;
         (req.session as any).provider = 'replit';
         (req.session as any).email = email;
-        req.session.save(() => {});
+        req.session.save((err) => { if (err) console.error("Session save error:", err); });
       }
     } catch (e) {
       console.error("Auth bridge error:", e);
@@ -761,6 +761,7 @@ export async function registerRoutes(
   });
 
   app.get("/api/logout", (req, res) => {
+    if (req.method !== "GET") return res.status(405).end();
     req.session.destroy((err) => {
       res.clearCookie("connect.sid", { path: "/" });
       res.redirect("/");
@@ -790,6 +791,9 @@ export async function registerRoutes(
 
   app.post("/api/2fa/verify", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
+    if (rateLimit(`2fa:${authReq.user?.id || "anon"}`, 5, 60000)) {
+      return res.status(429).json({ error: "Too many 2FA attempts. Please wait 1 minute." });
+    }
     try {
       const user = authReq.user!;
       const { token } = req.body;
@@ -967,6 +971,10 @@ export async function registerRoutes(
       }
     }
 
+    if (userTier !== "ENTERPRISE" && userTier !== "GROUPS" && (user.requestsLeft || 0) > 0) {
+      await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+    }
+
     try {
       const result = await performCheck(type, value);
       
@@ -1032,7 +1040,7 @@ export async function registerRoutes(
     }
 
     try {
-      const buffer = fs.readFileSync(req.file.path);
+      const buffer = await fs.promises.readFile(req.file.path);
       const result = await extractExifFromBuffer(buffer, req.file.originalname || "photo.jpg");
 
       if (userTier !== "ENTERPRISE" && userTier !== "GROUPS") {
@@ -1554,6 +1562,10 @@ export async function registerRoutes(
   });
 
   app.post("/api/promo/validate", loadUser, requireAuth, async (req, res) => {
+    const authReqPromo = req as AuthenticatedRequest;
+    if (rateLimit(`promo:${authReqPromo.user?.id || "anon"}`, 10, 60000)) {
+      return res.status(429).json({ error: "Too many attempts. Please try again later.", valid: false });
+    }
     const { code, tier } = req.body;
     if (!code) return res.status(400).json({ error: "Promo code is required", valid: false });
     
@@ -2783,6 +2795,10 @@ export async function registerRoutes(
   
   // Create support ticket (public - doesn't require auth but uses it if available)
   app.post("/api/support", loadUser, async (req, res) => {
+    const ip = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
+    if (rateLimit(`support:${ip}`, 3, 60000)) {
+      return res.status(429).json({ error: "Too many support requests. Please try again later." });
+    }
     const authReq = req as AuthenticatedRequest;
     const { name, contact, message } = req.body;
     
@@ -3545,6 +3561,10 @@ export async function registerRoutes(
   // ============ Partnership Application Route ============
 
   app.post("/api/partnership/apply", async (req, res) => {
+    const ip = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
+    if (rateLimit(`partner:${ip}`, 2, 300000)) {
+      return res.status(429).json({ error: "Too many requests. Please try again later." });
+    }
     try {
       const { name, phone, email, method, volume } = req.body;
 

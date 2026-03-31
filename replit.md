@@ -5,19 +5,30 @@
 DARKSHARE is a professional security OSINT platform designed for analyzing 17 data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, bank card BINs, passwords, DNS records, SSL/TLS certificates, and MAC addresses. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable multi-page PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
 ## Full Audit (Mar 31, 2026)
-- **Security: User data endpoint protected** — `/api/users/:tgId` now requires authentication; only the user themselves or admins can access; `cardToken` stripped from response
-- **Security: MonoPay webhook hardened** — Always verifies payment via Monobank API (`/merchant/invoice/status`); rejects if MONOBANK_TOKEN not set or API fails
-- **Security: File upload double-validation** — Validates both MIME type AND file extension; filenames sanitized with UUID to prevent collisions and path traversal; uploads directory blocks dotfiles and directory listing
-- **Security: Session/API key secrets** — Removed `Date.now()` dynamic fallback; uses stable deterministic fallback chain
-- **Security: Partnership input sanitized** — HTML/injection chars stripped, input capped at 200 chars before sending to admin Telegram
-- **Security: Settings type validation** — `notifsOn`/`digestsOn` require boolean, `lang` requires valid enum value
-- **Security: Widget user privacy** — Username masked to first 3 chars + `***`; userId validated as positive integer
-- **Security: Upload headers** — `X-Robots-Tag: noindex`, private Cache-Control on uploaded files
-- **Security: Error handler** — Multer errors now return proper 413/415 status codes; removed `throw err` after response
-- **Code quality: TIER_REQUESTS centralized** — All payment flows (MonoPay, CryptoPay, Stars, manual admin approve) now use shared `TIER_REQUESTS` constant map
-- **Code quality: File upload sanitization** — Filenames use UUID-based naming, extension whitelist enforced
-- **UX/A11y: Chat accessibility** — Added `aria-label` to all icon-only close/clear/cancel buttons; added `data-testid` to search clear, share close, emoji close buttons; fixed empty `alt` on file preview
-- **UX: ExifTool error messages** — Specific error messages for file too large (413), unsupported format (415), PRO-only (403) instead of generic "Failed to extract metadata"
+### Security (Critical)
+- **User data endpoint protected** — `/api/users/:tgId` now requires auth; only self or admins can access; `cardToken` stripped
+- **MonoPay webhook hardened** — Always verifies payment via Monobank API; rejects if MONOBANK_TOKEN missing or API fails
+- **File upload double-validation** — Validates both MIME type AND extension; UUID-based filenames; directory listing disabled
+- **Race condition fixed** — Request counter decremented BEFORE `performCheck()` runs, preventing parallel-request limit bypass
+- **XSS prevention** — All dynamic `href` and `window.location.href` now validate `https://` protocol before navigating (ExifTool mapUrl, Chat verifyUrl, Dashboard bannerUrl, Pricing payUrl/pageUrl)
+- **EXIF score cap** — `Math.min(riskScore, 100)` moved BEFORE `getRiskLevel()` call (was after)
+- **2FA brute-force protection** — Rate limited to 5 attempts/minute per user
+- **Session save error logging** — Auth bridge `req.session.save()` now logs errors instead of silently discarding
+- **Blocking I/O fix** — `fs.readFileSync` in EXIF route replaced with `await fs.promises.readFile`
+### Security (High)
+- **Rate limiting added** — `/api/support` (3/min/IP), `/api/partnership/apply` (2/5min/IP), `/api/promo/validate` (10/min/user), `/api/2fa/verify` (5/min/user)
+- **Session/API key secrets** — Removed unstable `Date.now()` fallback; stable deterministic chain
+- **Partnership input sanitized** — HTML/injection chars stripped, capped at 200 chars
+- **Settings type validation** — Boolean/enum type enforcement on `notifsOn`/`digestsOn`/`lang`
+- **Widget user privacy** — Username masked to 3 chars + `***`; positive integer validation
+- **Upload headers** — `X-Robots-Tag: noindex`, private Cache-Control, dotfiles denied
+- **Error handler** — Multer errors return proper 413/415 codes; removed `throw` after response
+### Code Quality
+- **TIER_REQUESTS centralized** — All payment flows use single constant map (was 4 separate hardcoded ternaries)
+- **File upload sanitization** — UUID-based naming prevents collisions and path traversal
+### UX/A11y
+- **Chat accessibility** — `aria-label` on all icon-only buttons; `data-testid` on interactive elements; fixed empty `alt`
+- **ExifTool error messages** — Specific messages for 413/415/403 errors
 
 ## Recent Changes (Mar 2026)
 - **Security Headers Hardening**: Added comprehensive HTTP security headers — `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Strict-Transport-Security` (HSTS 1yr), `Referrer-Policy`, `Permissions-Policy` (camera/mic/geo disabled), full `Content-Security-Policy` with whitelisted sources. Disabled `X-Powered-By` header. Addresses all 11 OWASP scanner warnings.

@@ -3476,6 +3476,8 @@ export async function extractExifFromBuffer(buffer: Buffer, filename: string): P
     findings.push(`Error parsing EXIF: ${e.message}`);
   }
 
+  riskScore = Math.min(riskScore, 100);
+
   const riskLevel: "low" | "medium" | "high" | "critical" = 
     riskScore >= 70 ? "critical" :
     riskScore >= 50 ? "high" :

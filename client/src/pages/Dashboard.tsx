@@ -2815,7 +2815,7 @@ Sources: ${result.sources.join(', ')}`;
                       <h3 className="text-sm lg:text-base font-bold text-white truncate">{banner.title}</h3>
                       {banner.description && <p className="text-xs lg:text-sm text-white/60 mt-0.5 line-clamp-2">{banner.description}</p>}
                     </div>
-                    {banner.linkUrl && (
+                    {banner.linkUrl && /^https?:\/\//i.test(banner.linkUrl) && (
                       <a
                         href={banner.linkUrl}
                         target="_blank"
