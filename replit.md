@@ -10,6 +10,13 @@ DARKSHARE is a professional security OSINT platform designed for analyzing 17 da
 - **BIN Card Check Fix**: Fixed "Country: undefined" and "Bank: null" display issues. API response now guarantees proper fallback values (`"Невідомо"` / `"Невідомий"`) instead of null/undefined when data is missing from binlist.net API.
 - **Pricing Table Accuracy**: Updated FREE tier check types from `11` to `15` across Home, Guide, Download pages and bot help text. Total platform modules: 17 (EXIF + GeoINT are PRO+). All `"11 модулів"` references updated to correct counts.
 - **Email Broadcast Statistics**: Enhanced admin Email tab with 4 stat cards (subscribers count, auto-broadcast status ON/OFF, last auto-broadcast reach, last sent date) and detailed manual broadcast result panel with progress bar and success percentage.
+- **Expanded Free API Sources**: Added 12+ new free API integrations across all check types:
+  - **IP**: ipwhois.app (geo/TOR/proxy/ASN/currency), AbuseIPDB (abuse confidence score, requires optional API key)
+  - **Domain**: crt.sh (Certificate Transparency), hackertarget.com (subdomain enumeration), ThreatFox abuse.ch (IOC database)
+  - **URL**: URLhaus abuse.ch (malicious URL database), PhishTank (phishing verification)
+  - **Hash**: CIRCL hashlookup (known file identification), ThreatFox abuse.ch (IOC hash lookup)
+  - **Email**: Disify (disposable email detection), EmailRep.io (reputation/profiles/leaked credentials)
+  - **Wallet**: Mempool.space (Bitcoin address fallback), ThreatFox abuse.ch (wallet IOC lookup)
 - **Email Broadcast via Resend**: Integrated Resend API for email newsletters. New `server/emailService.ts` with HTML-safe templating, proper Resend SDK error handling (checks `{ data, error }` response). Admin panel "Email" tab with subscriber list from `auth_users`, compose form (subject/title/body), test send to single email, and broadcast to all subscribers. Batch sending (50/batch with 1s delay). Branded HTML email template matching DarkShare design. Routes: `GET /api/admin/email-subscribers`, `POST /api/admin/email-broadcast`, `POST /api/admin/email-test`.
 
 - **ENTERPRISE/GROUPS truly unlimited**: All tier limit maps across bot, web, webhookHandlers now use 999999 (was 9999). GROUPS added to all maps that previously only had ENTERPRISE. All 5 decrement points skip for ENTERPRISE/GROUPS tiers. Frontend shows ∞ for unlimited tiers.

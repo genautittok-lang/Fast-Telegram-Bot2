@@ -269,6 +269,7 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
       if (data.org?.toLowerCase().includes("tor") || data.isp?.toLowerCase().includes("tor")) {
         riskScore += 50;
         findings.push("🔴 TOR exit node");
+        ipData.isTor = true;
       }
     }
   } catch (error) {
@@ -384,19 +385,82 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
       }
     }
   } catch {}
+
+  // API 6: ipwhois.app (free, no key, extra geo + ASN details)
+  try {
+    const response = await fetchWithTimeout(`https://ipwhois.app/json/${value}`, 3000);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success !== false) {
+        sources.push("ipwhois.app");
+        if (!ipData.country && data.country) ipData.country = data.country;
+        if (!ipData.city && data.city) ipData.city = data.city;
+        if (data.connection) {
+          if (data.connection.asn && !ipData.asn) ipData.asn = `AS${data.connection.asn}`;
+          if (data.connection.isp && !ipData.isp) ipData.isp = data.connection.isp;
+          if (data.connection.domain) ipData.ispDomain = data.connection.domain;
+        }
+        if (data.security) {
+          if (data.security.tor && !ipData.isTor) {
+            riskScore += 50;
+            findings.push("🔴 TOR мережа виявлено (ipwhois)");
+            ipData.isTor = true;
+          }
+          if (data.security.proxy && !ipData.proxy) {
+            riskScore += 20;
+            findings.push("⚠️ Проксі виявлено (ipwhois)");
+          }
+        }
+        if (data.currency) {
+          ipData.currency = data.currency.code;
+        }
+        if (data.timezone?.utc) {
+          ipData.utcOffset = data.timezone.utc;
+        }
+      }
+    }
+  } catch {}
+
+  // API 7: AbuseIPDB (free community check via HTML scraping fallback)
+  try {
+    const response = await fetchWithTimeout(`https://api.abuseipdb.com/api/v2/check?ipAddress=${value}&maxAgeInDays=90`, 4000, {
+      headers: {
+        'Key': process.env.ABUSEIPDB_API_KEY || '',
+        'Accept': 'application/json'
+      }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.data) {
+        sources.push("abuseipdb.com");
+        ipData.abuseConfidenceScore = data.data.abuseConfidenceScore;
+        ipData.totalReportsAbuse = data.data.totalReports;
+        if (data.data.abuseConfidenceScore > 50) {
+          riskScore += 35;
+          findings.push(`🔴 AbuseIPDB: ${data.data.abuseConfidenceScore}% abuse confidence (${data.data.totalReports} скарг)`);
+        } else if (data.data.abuseConfidenceScore > 20) {
+          riskScore += 15;
+          findings.push(`⚠️ AbuseIPDB: ${data.data.abuseConfidenceScore}% abuse confidence`);
+        } else if (data.data.totalReports > 0) {
+          findings.push(`ℹ️ AbuseIPDB: ${data.data.totalReports} скарг за 90 днів`);
+        }
+      }
+    }
+  } catch {}
   
   if (findings.length === 0) {
     findings.push("✅ Чистий IP без підозрілих ознак");
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "ip",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `IP ${value} — ${riskLevel.toUpperCase()} ризик (${Math.min(riskScore, 100)}/100)`,
+    summary: `IP ${value} — ${riskLevel.toUpperCase()} ризик (${riskScore}/100)`,
     details: {
       country: ipData.country || "Unknown",
       countryCode: ipData.countryCode || "??",
@@ -579,23 +643,65 @@ async function checkWallet(value: string, timestamp: Date): Promise<CheckResult>
     } catch {}
   }
   
-  // Check against ChainAbuse (if available)
-  // Note: ChainAbuse API requires registration but has free tier
-  
+  // API: Mempool.space (free, no key - Bitcoin address info)
+  if (chain === "Bitcoin") {
+    try {
+      const response = await fetchWithTimeout(`https://mempool.space/api/address/${value}`, 3000);
+      if (response.ok) {
+        const data = await response.json();
+        if (!sources.includes("blockchain.com")) {
+          sources.push("mempool.space");
+          const funded = data.chain_stats?.funded_txo_sum || 0;
+          const spent = data.chain_stats?.spent_txo_sum || 0;
+          const balance = (funded - spent) / 100000000;
+          walletData.balanceBTC = balance.toFixed(8);
+          walletData.txCount = (data.chain_stats?.tx_count || 0) + (data.mempool_stats?.tx_count || 0);
+          findings.push(`₿ Баланс: ${walletData.balanceBTC} BTC (mempool.space)`);
+          findings.push(`📊 Транзакцій: ${walletData.txCount}`);
+        } else {
+          sources.push("mempool.space");
+        }
+        if (data.mempool_stats?.tx_count > 0) {
+          findings.push(`⏳ Непідтверджених tx: ${data.mempool_stats.tx_count}`);
+        }
+      }
+    } catch {}
+  }
+
+  // API: ThreatFox IOC lookup for wallet addresses
+  try {
+    const response = await fetchWithTimeout('https://threatfox-api.abuse.ch/api/v1/', 3000, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'search_ioc', search_term: value })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.query_status === 'ok' && data.data && data.data.length > 0) {
+        sources.push("threatfox.abuse.ch");
+        riskScore += 60;
+        const threat = data.data[0];
+        findings.push(`🔴 ThreatFox: Пов'язано з ${threat.malware_printable || 'malware'}`);
+        walletData.threatfoxMalware = threat.malware_printable;
+      }
+    }
+  } catch {}
+
   if (findings.length <= 1) {
     findings.push("✅ Базова перевірка пройшла");
   }
   
   walletData.addressShort = `${value.substring(0, 6)}...${value.substring(value.length - 4)}`;
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "wallet",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Гаманець ${walletData.addressShort} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Гаманець ${walletData.addressShort} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: walletData,
     findings,
     sources,
@@ -739,14 +845,15 @@ async function checkPhone(value: string, timestamp: Date): Promise<CheckResult> 
     } catch {}
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "phone",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Телефон ${value} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Телефон ${value} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: phoneData,
     findings,
     sources,
@@ -1050,14 +1157,74 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     }
   }
   
+  // API: Disify (free - disposable email detection)
+  try {
+    const response = await fetchWithTimeout(`https://disify.com/api/email/${value}`, 3000);
+    if (response.ok) {
+      const data = await response.json();
+      sources.push("disify.com");
+      if (data.disposable && !emailData.isDisposable) {
+        riskScore += 40;
+        emailData.isDisposable = true;
+        findings.push("🔴 Одноразовий email підтверджено (Disify)");
+      }
+      if (data.dns === false) {
+        riskScore += 20;
+        findings.push("⚠️ DNS домену не валідний (Disify)");
+      }
+      if (data.format === false) {
+        riskScore += 15;
+        findings.push("⚠️ Невалідний формат email (Disify)");
+      }
+    }
+  } catch {}
+
+  // API: EmailRep.io (free basic tier)
+  try {
+    const response = await fetchWithTimeout(`https://emailrep.io/${value}`, 3000, {
+      headers: { 'Accept': 'application/json', 'User-Agent': 'DarkShare OSINT Platform' }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      sources.push("emailrep.io");
+      emailData.reputation = data.reputation;
+      emailData.suspicious = data.suspicious;
+      if (data.reputation === 'none' || data.reputation === 'low') {
+        riskScore += 15;
+        findings.push(`⚠️ EmailRep: Репутація — ${data.reputation}`);
+      } else if (data.reputation === 'high') {
+        findings.push(`✅ EmailRep: Репутація — висока`);
+      }
+      if (data.suspicious) {
+        riskScore += 25;
+        findings.push("🔴 EmailRep: Підозрілий email");
+      }
+      if (data.details) {
+        if (data.details.credentials_leaked) {
+          riskScore += 20;
+          findings.push("⚠️ EmailRep: Знайдено у витоках паролів");
+        }
+        if (data.details.malicious_activity) {
+          riskScore += 30;
+          findings.push("🔴 EmailRep: Зафіксовано шкідливу активність");
+        }
+        if (data.details.profiles && data.details.profiles.length > 0) {
+          emailData.socialProfiles = data.details.profiles;
+          findings.push(`👤 Профілі: ${data.details.profiles.slice(0, 5).join(', ')}`);
+        }
+      }
+    }
+  } catch {}
+
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "email",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Email ${value} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Email ${value} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: emailData,
     findings,
     sources,
@@ -1441,14 +1608,86 @@ async function checkDomain(value: string, timestamp: Date): Promise<CheckResult>
     findings.push("✅ Базова перевірка пройшла");
   }
   
+  // API: crt.sh (Certificate Transparency - free, no key)
+  if (!sources.includes("crt.sh")) {
+  try {
+    const response = await fetchWithTimeout(`https://crt.sh/?q=${domain}&output=json`, 4000);
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        sources.push("crt.sh");
+        const uniqueNames = [...new Set(data.map((c: any) => c.common_name || c.name_value).filter(Boolean))];
+        domainData.certificateCount = data.length;
+        domainData.uniqueCertNames = uniqueNames.slice(0, 10);
+        findings.push(`🔐 Знайдено ${data.length} SSL сертифікатів (${uniqueNames.length} унікальних)`);
+        const recentCert = data[0];
+        if (recentCert.not_after) {
+          const expiry = new Date(recentCert.not_after);
+          const daysLeft = Math.floor((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          if (daysLeft < 0) {
+            riskScore += 15;
+            findings.push("⚠️ Останній сертифікат прострочений");
+          } else if (daysLeft < 30) {
+            findings.push(`⚠️ Сертифікат закінчується через ${daysLeft} днів`);
+          }
+        }
+        if (recentCert.issuer_name) {
+          domainData.certIssuer = recentCert.issuer_name;
+        }
+      }
+    }
+  } catch {}
+  }
+
+  // API: HackerTarget (free - reverse DNS / associated hosts)
+  try {
+    const response = await fetchWithTimeout(`https://api.hackertarget.com/hostsearch/?q=${domain}`, 3000);
+    if (response.ok) {
+      const text = await response.text();
+      if (!text.includes('error') && !text.includes('API count exceeded') && text.trim().length > 0) {
+        const hosts = text.trim().split('\n').filter(line => line.includes(','));
+        if (hosts.length > 0) {
+          sources.push("hackertarget.com");
+          domainData.relatedHosts = hosts.slice(0, 10).map(h => h.split(',')[0]);
+          domainData.totalSubdomains = hosts.length;
+          findings.push(`🔍 Знайдено ${hosts.length} піддоменів/хостів`);
+          if (hosts.length > 50) {
+            findings.push("ℹ️ Великий домен з розвиненою інфраструктурою");
+          }
+        }
+      }
+    }
+  } catch {}
+
+  // API: ThreatFox (abuse.ch) - IOC database for domains
+  try {
+    const response = await fetchWithTimeout('https://threatfox-api.abuse.ch/api/v1/', 3000, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'search_ioc', search_term: domain })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.query_status === 'ok' && data.data && data.data.length > 0) {
+        sources.push("threatfox.abuse.ch");
+        riskScore += 45;
+        const threat = data.data[0];
+        findings.push(`🔴 ThreatFox IOC: ${threat.malware_printable || 'Malware'} (${threat.threat_type || 'unknown'})`);
+        domainData.threatfoxMalware = threat.malware_printable;
+        domainData.threatfoxType = threat.threat_type;
+      }
+    }
+  } catch {}
+
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "domain",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Домен ${domain} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Домен ${domain} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: domainData,
     findings,
     sources,
@@ -1647,6 +1886,47 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
         }
       } catch {}
     }
+
+    // API: URLhaus (abuse.ch) - malicious URL database
+    try {
+      const response = await fetchWithTimeout('https://urlhaus-api.abuse.ch/v1/url/', 4000, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `url=${encodeURIComponent(value)}`
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.query_status === 'ok' && data.id) {
+          sources.push("urlhaus.abuse.ch");
+          riskScore += 55;
+          findings.push(`🔴 URLhaus: Відомий шкідливий URL (${data.threat || 'malware'})`);
+          urlData.urlhausThreat = data.threat;
+          urlData.urlhausStatus = data.url_status;
+          if (data.tags) urlData.urlhausTags = data.tags;
+        } else if (data.query_status === 'no_results') {
+          sources.push("urlhaus.abuse.ch");
+          findings.push("✅ Не знайдено в базі URLhaus");
+        }
+      }
+    } catch {}
+
+    // API: PhishTank (free lookup)
+    try {
+      const response = await fetchWithTimeout(`https://checkurl.phishtank.com/checkurl/`, 3000, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `url=${encodeURIComponent(value)}&format=json&app_key=`
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results?.in_database === true && data.results?.valid === true) {
+          sources.push("phishtank.com");
+          riskScore += 50;
+          findings.push("🔴 ФІШИНГ підтверджено (PhishTank)");
+          urlData.phishtankVerified = true;
+        }
+      }
+    } catch {}
     
   } catch {
     return {
@@ -1666,14 +1946,15 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
     findings.push("✅ Базова перевірка пройшла");
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "url",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `URL — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `URL — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: urlData,
     findings,
     sources,
@@ -1778,15 +2059,16 @@ async function checkBot(value: string, timestamp: Date): Promise<CheckResult> {
     findings.push("💡 Створіть новий через @BotFather");
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "bot",
     target: botData.tokenMasked,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
     summary: botData.isValid 
-      ? `Bot @${botData.username} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`
+      ? `Bot @${botData.username} — ${riskLevel.toUpperCase()} (${riskScore}/100)`
       : `Bot Token — ${riskLevel.toUpperCase()} (НЕДІЙСНИЙ)`,
     details: botData,
     findings,
@@ -1973,15 +2255,16 @@ async function checkCVE(value: string, timestamp: Date): Promise<CheckResult> {
     findings.push("ℹ️ Дані відсутні");
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "cve",
     target: value,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
     summary: isCveId 
-      ? `${cleanValue} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`
+      ? `${cleanValue} — ${riskLevel.toUpperCase()} (${riskScore}/100)`
       : `CVE пошук "${value}" — ${riskLevel.toUpperCase()}`,
     details: cveData,
     findings,
@@ -2123,18 +2406,67 @@ async function checkHash(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
+  // API: CIRCL hashlookup (free, no key - known file identification)
+  try {
+    const lookupType = hashData.type === 'SHA-256' ? 'sha256' : hashData.type === 'SHA-1' ? 'sha1' : 'md5';
+    const response = await fetchWithTimeout(
+      `https://hashlookup.circl.lu/lookup/${lookupType}/${hash}`,
+      3000,
+      { headers: { 'Accept': 'application/json' } }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      sources.push("CIRCL hashlookup");
+      if (data.FileName) {
+        hashData.circlFileName = data.FileName;
+        findings.push(`📁 CIRCL: Відомий файл — ${data.FileName}`);
+        if (data.KnownMalicious) {
+          riskScore += 40;
+          findings.push("🔴 CIRCL: Позначено як шкідливий");
+        } else {
+          riskScore = Math.max(riskScore - 10, 5);
+          findings.push("✅ CIRCL: Легітимний відомий файл");
+        }
+      }
+      if (data.PackageName) {
+        hashData.packageName = data.PackageName;
+        findings.push(`📦 Пакет: ${data.PackageName}`);
+      }
+    }
+  } catch {}
+
+  // API: ThreatFox IOC lookup for hashes
+  try {
+    const response = await fetchWithTimeout('https://threatfox-api.abuse.ch/api/v1/', 3000, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'search_hash', hash: hash })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.query_status === 'ok' && data.data && data.data.length > 0) {
+        sources.push("threatfox.abuse.ch");
+        riskScore += 55;
+        const threat = data.data[0];
+        findings.push(`🔴 ThreatFox: ${threat.malware_printable || 'Malware'}`);
+        hashData.threatfoxMalware = threat.malware_printable;
+      }
+    }
+  } catch {}
+
   if (findings.length <= 1) {
     findings.push("✅ Хеш чистий");
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "hash",
     target: hash.substring(0, 16) + "...",
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Хеш (${hashData.type}) — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Хеш (${hashData.type}) — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: hashData,
     findings,
     sources,
@@ -2231,14 +2563,15 @@ async function checkUsername(value: string, timestamp: Date): Promise<CheckResul
     findings.push(`🔍 Знайдено на ${platformsFound} платформах`);
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "username",
     target: username,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Username "${username}" — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Username "${username}" — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: usernameData,
     findings,
     sources,
@@ -2395,14 +2728,15 @@ async function checkCard(value: string, timestamp: Date): Promise<CheckResult> {
     findings.push("✅ Базова перевірка пройшла");
   }
   
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
   return {
     type: "card",
     target: bin,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `BIN ${bin} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `BIN ${bin} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: cardData,
     findings,
     sources,
@@ -2549,14 +2883,15 @@ async function checkPassword(value: string, timestamp: Date): Promise<CheckResul
     }
   } catch {}
 
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
 
   return {
     type: "password",
     target: "●".repeat(Math.min(value.length, 20)),
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `Пароль — ${passwordData.strength} (${Math.min(riskScore, 100)}/100)`,
+    summary: `Пароль — ${passwordData.strength} (${riskScore}/100)`,
     details: passwordData,
     findings,
     sources,
@@ -2735,14 +3070,15 @@ async function checkDNS(value: string, timestamp: Date): Promise<CheckResult> {
 
   findings.push(`📊 Всього записів: ${dnsData.totalRecords}`);
 
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
 
   return {
     type: "dns",
     target: domain,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `DNS ${domain} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `DNS ${domain} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: dnsData,
     findings,
     sources,
@@ -2855,14 +3191,15 @@ async function checkSSL(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
 
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
 
   return {
     type: "ssl",
     target: domain,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `SSL ${domain} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `SSL ${domain} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: sslData,
     findings,
     sources,
@@ -2979,14 +3316,15 @@ async function checkMAC(value: string, timestamp: Date): Promise<CheckResult> {
     findings.push("✅ Базова перевірка пройшла");
   }
 
+  riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
 
   return {
     type: "mac",
     target: macData.normalized,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `MAC ${macData.normalized} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `MAC ${macData.normalized} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details: macData,
     findings,
     sources,
@@ -3146,9 +3484,9 @@ export async function extractExifFromBuffer(buffer: Buffer, filename: string): P
   return {
     type: "exif",
     target: filename,
-    riskScore: Math.min(riskScore, 100),
+    riskScore,
     riskLevel,
-    summary: `EXIF analysis for ${filename} — ${riskLevel.toUpperCase()} (${Math.min(riskScore, 100)}/100)`,
+    summary: `EXIF analysis for ${filename} — ${riskLevel.toUpperCase()} (${riskScore}/100)`,
     details,
     findings,
     sources,
