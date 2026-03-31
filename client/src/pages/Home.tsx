@@ -1776,7 +1776,7 @@ export default function Home() {
                 <tbody>
                   {[
                     { feature: lang === "uk" ? "Перевірок на день" : lang === "ru" ? "Проверок в день" : "Daily checks", free: "5", pro: "50", ent: "∞", grp: "∞" },
-                    { feature: lang === "uk" ? "Типів перевірок" : lang === "ru" ? "Типов проверок" : "Check types", free: "11", pro: "17", ent: "17", grp: "17" },
+                    { feature: lang === "uk" ? "Типів перевірок" : lang === "ru" ? "Типов проверок" : "Check types", free: "15", pro: "17", ent: "17", grp: "17" },
                     { feature: "AI " + (lang === "uk" ? "аналіз" : lang === "ru" ? "анализ" : "analysis"), free: "—", pro: "✓", ent: "✓", grp: "✓" },
                     { feature: "PDF " + (lang === "uk" ? "звіти" : lang === "ru" ? "отчёты" : "reports"), free: "—", pro: "✓", ent: "✓", grp: "✓" },
                     { feature: lang === "uk" ? "Моніторинг 24/7" : lang === "ru" ? "Мониторинг 24/7" : "24/7 Monitoring", free: "—", pro: "5", ent: "25", grp: "50" },

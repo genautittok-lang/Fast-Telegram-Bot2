@@ -43,8 +43,14 @@ export function validateInput(type: string, value: string): { valid: boolean; er
         return { valid: false, error: "Невірний формат IP. Приклад: 8.8.8.8" };
       }
       const octets = cleanValue.split('.').map(Number);
-      if (octets.some(o => o > 255)) {
-        return { valid: false, error: "IP октет не може бути більше 255" };
+      if (octets.some(o => o < 0 || o > 255)) {
+        return { valid: false, error: "IP октет не може бути більше 255. Кожна частина має бути від 0 до 255." };
+      }
+      if (octets[0] === 0) {
+        return { valid: false, error: "Перший октет IP не може бути 0" };
+      }
+      if (octets.every(o => o === 0)) {
+        return { valid: false, error: "Невалідна IP адреса" };
       }
       break;
     case "wallet":
@@ -2301,7 +2307,7 @@ async function checkCard(value: string, timestamp: Date): Promise<CheckResult> {
       // Extract bank info
       if (data.bank) {
         cardData.bank = {
-          name: data.bank.name || null,
+          name: data.bank.name || "Невідомий",
           url: data.bank.url || null,
           phone: data.bank.phone || null,
           city: data.bank.city || null
@@ -2315,21 +2321,25 @@ async function checkCard(value: string, timestamp: Date): Promise<CheckResult> {
         }
       } else {
         riskScore += 10;
+        cardData.bank = { name: "Невідомий", url: null, phone: null, city: null };
         findings.push("⚠️ Інформація про банк недоступна");
       }
       
       // Extract country
       if (data.country) {
+        const cName = data.country.name || "Невідомо";
+        const cCode = data.country.alpha2 || null;
+        const cEmoji = data.country.emoji || "🌍";
         cardData.country = {
-          name: data.country.name || null,
-          code: data.country.alpha2 || null,
-          emoji: data.country.emoji || null,
+          name: cName,
+          code: cCode,
+          emoji: cEmoji,
           currency: data.country.currency || null,
           latitude: data.country.latitude || null,
           longitude: data.country.longitude || null
         };
         
-        const countryDisplay = data.country.emoji ? `${data.country.emoji} ${data.country.name}` : data.country.name;
+        const countryDisplay = cEmoji !== "🌍" ? `${cEmoji} ${cName}` : cName;
         findings.push(`🌍 Країна: ${countryDisplay}`);
         
         // Check high-risk country

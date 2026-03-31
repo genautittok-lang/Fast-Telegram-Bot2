@@ -122,7 +122,7 @@ export async function setupBot(storage: IStorage) {
           { tag: "li", children: [tl("4. Отримайте детальний звіт з risk score, findings та metadata", "4. Получите детальный отчёт с risk score, findings и metadata", "4. Get a detailed report with risk score, findings, and metadata", pl)] },
         ]},
 
-        { tag: "h3", children: [tl("🔍 Типи перевірок (11 модулів)", "🔍 Типы проверок (11 модулей)", "🔍 Check Types (11 Modules)", pl)] },
+        { tag: "h3", children: [tl("🔍 Типи перевірок (17 модулів)", "🔍 Типы проверок (17 модулей)", "🔍 Check Types (17 Modules)", pl)] },
 
         { tag: "p", children: [{ tag: "b", children: ["🌐 IP Address Analysis"] }] },
         { tag: "p", children: ["Geolocation, ISP identification, VPN/proxy/Tor detection, blacklist checks across 80+ databases, ASN info, abuse contact data, hosting provider, risk score assessment."] },
@@ -173,7 +173,7 @@ export async function setupBot(storage: IStorage) {
         { tag: "h3", children: [tl("⚡ Inline режим (у будь-якому чаті!)", "⚡ Inline режим (в любом чате!)", "⚡ Inline Mode (Use in Any Chat!)", pl)] },
         { tag: "p", children: ["Type @DarkShare1Bot followed by check type and value directly in any Telegram chat — personal, group, or channel. Results appear as inline messages."] },
         { tag: "pre", children: ["@DarkShare1Bot ip 8.8.8.8\n@DarkShare1Bot email test@mail.com\n@DarkShare1Bot domain google.com\n@DarkShare1Bot wallet 0x742d35Cc...\n@DarkShare1Bot phone +380501234567\n@DarkShare1Bot cve CVE-2021-44228\n@DarkShare1Bot hash d41d8cd98f...\n@DarkShare1Bot username johndoe\n@DarkShare1Bot card 424242\n@DarkShare1Bot url https://site.com"] },
-        { tag: "p", children: ["All 11 modules work in inline mode. Each result includes risk score, key findings, and a link to the full report."] },
+        { tag: "p", children: ["All 17 modules work in inline mode. Each result includes risk score, key findings, and a link to the full report."] },
 
         { tag: "h3", children: [tl("🖥 Можливості веб-дашборду", "🖥 Возможности веб-дашборда", "🖥 Web Dashboard Features", pl)] },
         { tag: "ul", children: [

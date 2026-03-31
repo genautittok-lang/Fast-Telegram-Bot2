@@ -389,7 +389,7 @@ export default function DownloadPage() {
                 {
                   title: L("Сканер", "Сканер", "Scanner", "Escáner", "Scanner"),
                   gradient: "from-purple-500/20 to-pink-500/10",
-                  desc: L("11 модулів перевірки", "11 модулей проверки", "11 check modules", "11 módulos", "11 Module"),
+                  desc: L("15 модулів перевірки", "15 модулей проверки", "15 check modules", "15 módulos", "15 Module"),
                   icon: Scan,
                 },
                 {

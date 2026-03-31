@@ -42,7 +42,7 @@ const steps: OnboardingStep[] = [
     iconBg: "from-blue-500/20 to-cyan-500/10",
     title: "Select a Check Type",
     description:
-      "Choose from 11 check types including IP, Email, Phone, Wallet, Domain, URL, Bot Token, CVE, Hash, Username, and Card BIN.",
+      "Choose from 17 check types including IP, Email, Phone, Wallet, Domain, URL, Bot Token, CVE, Hash, Username, Card BIN, Password, DNS, SSL/TLS, MAC, EXIF, and GeoINT.",
     tip: "Each type runs specialized analysis engines for accurate results.",
   },
   {

@@ -316,7 +316,7 @@ export default function Guide() {
           <Card className="p-4 sm:p-5 bg-card/60 border-white/10 space-y-4">
             <StepCard step={1} title={L("Відкрийте бота", "Откройте бота", "Open the bot")} description={L("Знайдіть @DarkShare1Bot у Telegram і натисніть /start. Бот автоматично створить ваш акаунт.", "Найдите @DarkShare1Bot в Telegram и нажмите /start. Бот автоматически создаст ваш аккаунт.", "Find @DarkShare1Bot on Telegram and press /start. Bot auto-creates your account.")} />
             <StepCard step={2} title={L("Увійдіть на сайт", "Войдите на сайт", "Sign in to website")} description={L("Авторизуйтесь через Telegram або Google на darkshare.store для повного доступу до дашборду, історії та налаштувань.", "Авторизуйтесь через Telegram или Google на darkshare.store для полного доступа к дашборду, истории и настройкам.", "Auth via Telegram or Google at darkshare.store for full dashboard, history and settings access.")} />
-            <StepCard step={3} title={L("Оберіть тип перевірки", "Выберите тип проверки", "Choose check type")} description={L("Натисніть «Перевірка» в боті або введіть дані на дашборді. Підтримується 11 типів аналізу.", "Нажмите «Проверка» в боте или введите данные на дашборде. Поддерживается 11 типов анализа.", "Press 'Check' in bot or enter data on dashboard. 11 analysis types supported.")} />
+            <StepCard step={3} title={L("Оберіть тип перевірки", "Выберите тип проверки", "Choose check type")} description={L("Натисніть «Перевірка» в боті або введіть дані на дашборді. Підтримується 17 типів аналізу.", "Нажмите «Проверка» в боте или введите данные на дашборде. Поддерживается 17 типов анализа.", "Press 'Check' in bot or enter data on dashboard. 17 analysis types supported.")} />
             <StepCard step={4} title={L("Отримайте звіт", "Получите отчёт", "Get report")} description={L("Детальний аналіз з risk score, findings, metadata. Збережіть у PDF, додайте до обраних або налаштуйте моніторинг.", "Детальный анализ с risk score, findings, metadata. Сохраните в PDF, добавьте в избранное или настройте мониторинг.", "Detailed analysis with risk score, findings, metadata. Save as PDF, add to favorites or set up monitoring.")} />
           </Card>
           <div className="flex flex-col sm:flex-row gap-2">
@@ -336,7 +336,7 @@ export default function Guide() {
           </div>
         </Section>
 
-        <Section title={L("Типи перевірок (11 модулів)", "Типы проверок (11 модулей)", "Check Types (11 modules)")} icon={<Search className="w-4 h-4 text-primary" />} delay={0.08}>
+        <Section title={L("Типи перевірок (17 модулів)", "Типы проверок (17 модулей)", "Check Types (17 modules)")} icon={<Search className="w-4 h-4 text-primary" />} delay={0.08}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {checkTypes.map((ct) => (
               <Card key={ct.cmd} className="p-3.5 bg-card/60 border-white/10" data-testid={`card-guide-check-${ct.cmd}`}>
@@ -391,7 +391,7 @@ export default function Guide() {
               <p className="text-xs text-muted-foreground">1. {L("Відкрийте будь-який чат у Telegram", "Откройте любой чат в Telegram", "Open any Telegram chat")}</p>
               <p className="text-xs text-muted-foreground">2. {L("Введіть: @DarkShare1Bot ip 8.8.8.8", "Введите: @DarkShare1Bot ip 8.8.8.8", "Type: @DarkShare1Bot ip 8.8.8.8")}</p>
               <p className="text-xs text-muted-foreground">3. {L("Натисніть на результат для відправки у чат", "Нажмите на результат для отправки в чат", "Click the result to send it to chat")}</p>
-              <p className="text-xs text-muted-foreground">4. {L("Всі 11 модулів доступні в inline режимі!", "Все 11 модулей доступны в inline режиме!", "All 11 modules available in inline mode!")}</p>
+              <p className="text-xs text-muted-foreground">4. {L("Всі 17 модулів доступні в inline режимі!", "Все 17 модулей доступны в inline режиме!", "All 17 modules available in inline mode!")}</p>
             </div>
           </div>
         </Section>
