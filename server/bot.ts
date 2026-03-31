@@ -371,44 +371,6 @@ export async function setupBot(storage: IStorage) {
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
-        const welcomeName = ctx.from.first_name || ctx.from.username || "друг";
-        const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
-        const welcomeText = `🎉 *Добро пожаловать в DARKSHARE!*
-━━━━━━━━━━━━━━━━━━━━
-
-👋 Привет, *${welcomeName}*!
-
-Ты теперь часть сообщества DARKSHARE — платформы цифровой разведки и кибербезопасности.
-
-🎁 *Твой приветственный бонус:*
-
-╔══════════════════╗
-  💎 Промокод: \`DARKNEU\`
-  💰 Скидка: *-50%* на любой тариф
-╚══════════════════╝
-
-🔍 *Что можно проверить:*
-├ 🔑 IP-адреса, крипто-кошельки
-├ 📧 Email, телефоны, юзернеймы
-├ 🌐 Домены, URL, DNS, SSL
-├ 🔐 Пароли, хеши файлов
-└ 📡 MAC-адреса, CVE уязвимости
-
-🚀 У тебя уже есть *5 бесплатных проверок*!
-Нажми "Проверить" чтобы начать ⬇️`;
-
-        try {
-          await bot.telegram.sendMessage(tgId, welcomeText, {
-            parse_mode: "Markdown",
-            ...Markup.inlineKeyboard([
-              [cb("🔍 Проверить сейчас", "check_all", "primary", E.search)],
-              [cb("💎 Активировать промокод", "pricing", "success", E.gift)],
-              [urlS("🌐 Открыть сайт", webUrl, "primary", E.globe)]
-            ])
-          });
-        } catch (e) {
-          console.log(`[Welcome Bot] Failed to send welcome to ${tgId}:`, e);
-        }
       }
     }
     return next();
@@ -662,7 +624,7 @@ ${t(lang, "startWelcome.selectLang")}`;
     const startText = t(langCode, "common.languageSet");
     
     await ctx.editMessageText(startText, 
-      Markup.inlineKeyboard([[cb(t(langCode, "buttons.back").replace("⬅️ ", ""), "dashboard", "primary", E.home)]])
+      Markup.inlineKeyboard([[cb(langCode === "uk" ? "Увійти в панель" : langCode === "ru" ? "Войти в панель" : langCode === "es" ? "Entrar al panel" : langCode === "de" ? "Panel öffnen" : "Enter Panel", "enter_panel_first", "success", E.rocket)]])
     );
   });
 
@@ -934,6 +896,34 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
       await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    }
+  });
+
+  bot.action("enter_panel_first", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    await showDashboard(ctx, tgId, true);
+
+    const welcomeName = ctx.from!.first_name || ctx.from!.username || (lang === "uk" ? "друже" : lang === "ru" ? "друг" : lang === "es" ? "amigo" : lang === "de" ? "Freund" : "friend");
+    const welcomeText = lang === "uk"
+      ? `🎉 *Вітаємо в DARKSHARE!*\n\n👋 Привіт, *${welcomeName}*!\n\n🎁 Твій промокод: \`DARKNEU\` — *-50%* на будь-який тариф!\n🚀 У тебе *5 безкоштовних перевірок*!`
+      : lang === "ru"
+      ? `🎉 *Добро пожаловать в DARKSHARE!*\n\n👋 Привет, *${welcomeName}*!\n\n🎁 Твой промокод: \`DARKNEU\` — *-50%* на любой тариф!\n🚀 У тебя *5 бесплатных проверок*!`
+      : lang === "es"
+      ? `🎉 *¡Bienvenido a DARKSHARE!*\n\n👋 Hola, *${welcomeName}*!\n\n🎁 Tu código promocional: \`DARKNEU\` — *-50%* en cualquier plan!\n🚀 ¡Tienes *5 verificaciones gratuitas*!`
+      : lang === "de"
+      ? `🎉 *Willkommen bei DARKSHARE!*\n\n👋 Hallo, *${welcomeName}*!\n\n🎁 Dein Promo-Code: \`DARKNEU\` — *-50%* auf jeden Tarif!\n🚀 Du hast *5 kostenlose Prüfungen*!`
+      : `🎉 *Welcome to DARKSHARE!*\n\n👋 Hi, *${welcomeName}*!\n\n🎁 Your promo code: \`DARKNEU\` — *-50%* on any plan!\n🚀 You have *5 free checks*!`;
+
+    try {
+      await bot.telegram.sendMessage(tgId, welcomeText, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([
+          [cb(lang === "uk" ? "💎 Активувати промокод" : lang === "ru" ? "💎 Активировать промокод" : lang === "es" ? "💎 Activar código" : lang === "de" ? "💎 Code aktivieren" : "💎 Activate promo", "pricing", "success", E.gift)],
+        ])
+      });
+    } catch (e) {
+      console.log(`[Welcome Bot] Failed to send welcome to ${tgId}:`, e);
     }
   });
 
