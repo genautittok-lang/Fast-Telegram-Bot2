@@ -371,6 +371,44 @@ export async function setupBot(storage: IStorage) {
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
+        const welcomeName = ctx.from.first_name || ctx.from.username || "друг";
+        const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+        const welcomeText = `🎉 *Добро пожаловать в DARKSHARE!*
+━━━━━━━━━━━━━━━━━━━━
+
+👋 Привет, *${welcomeName}*!
+
+Ты теперь часть сообщества DARKSHARE — платформы цифровой разведки и кибербезопасности.
+
+🎁 *Твой приветственный бонус:*
+
+╔══════════════════╗
+  💎 Промокод: \`DARKNEU\`
+  💰 Скидка: *-50%* на любой тариф
+╚══════════════════╝
+
+🔍 *Что можно проверить:*
+├ 🔑 IP-адреса, крипто-кошельки
+├ 📧 Email, телефоны, юзернеймы
+├ 🌐 Домены, URL, DNS, SSL
+├ 🔐 Пароли, хеши файлов
+└ 📡 MAC-адреса, CVE уязвимости
+
+🚀 У тебя уже есть *5 бесплатных проверок*!
+Нажми "Проверить" чтобы начать ⬇️`;
+
+        try {
+          await bot.telegram.sendMessage(tgId, welcomeText, {
+            parse_mode: "Markdown",
+            ...Markup.inlineKeyboard([
+              [cb("🔍 Проверить сейчас", "check_all", "primary", E.search)],
+              [cb("💎 Активировать промокод", "pricing", "success", E.gift)],
+              [urlS("🌐 Открыть сайт", webUrl, "primary", E.globe)]
+            ])
+          });
+        } catch (e) {
+          console.log(`[Welcome Bot] Failed to send welcome to ${tgId}:`, e);
+        }
       }
     }
     return next();

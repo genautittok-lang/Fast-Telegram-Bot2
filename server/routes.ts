@@ -161,6 +161,11 @@ export async function registerRoutes(
             refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           });
           storage.logActivity({ eventType: "registration", userId: dsUser.id, username: dsUser.username || null, details: `New user registered via Google/Replit`, meta: { provider: "replit" } }).catch(() => {});
+          if (email) {
+            import("./emailService").then(({ sendWelcomeEmail }) => {
+              sendWelcomeEmail(email, username || "друг").catch(() => {});
+            }).catch(() => {});
+          }
         } else {
           const updates: any = {};
           if (photoUrl && !dsUser.photoUrl) updates.photoUrl = photoUrl;
