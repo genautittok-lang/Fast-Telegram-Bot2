@@ -1,5 +1,5 @@
 import { Shield, ExternalLink, Mail } from "lucide-react";
-import { SiTelegram } from "react-icons/si";
+import { SiTelegram, SiInstagram } from "react-icons/si";
 import { Link } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 
@@ -18,7 +18,7 @@ export function Footer() {
               </div>
               <div className="flex flex-col">
                 <span className="font-display font-bold text-lg tracking-tight text-white">DARKSHARE</span>
-                <span className="text-[10px] text-primary font-mono -mt-0.5 uppercase tracking-wider">v4.4 OSINT Platform</span>
+                <span className="text-[10px] text-primary font-mono -mt-0.5 uppercase tracking-wider">v4.5 OSINT Platform</span>
               </div>
             </div>
             <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
@@ -34,6 +34,17 @@ export function Footer() {
               >
                 <SiTelegram className="w-4 h-4" />
                 @DarkShare1Bot
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a 
+                href="https://www.instagram.com/darkshare.store" 
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#E4405F]/10 border border-[#E4405F]/25 text-[#E4405F] text-sm font-medium hover:bg-[#E4405F]/20 hover:border-[#E4405F]/40 transition-all duration-300 shadow-[0_0_15px_rgba(228,64,95,0.1)]"
+                data-testid="link-instagram-footer"
+              >
+                <SiInstagram className="w-4 h-4" />
+                @darkshare.store
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>

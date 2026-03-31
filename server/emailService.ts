@@ -173,6 +173,17 @@ export function buildBroadcastHtml(title: string, body: string): string {
                     </table>
                   </td>
                 </tr>
+                <tr>
+                  <td colspan="2" style="padding-top:8px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="border:1px solid #E4405F;border-radius:10px;background-color:#1a0910;">
+                          <a href="https://www.instagram.com/darkshare.store" target="_blank" style="display:block;padding:13px 8px;color:#E4405F;text-decoration:none;font-family:'Segoe UI',Roboto,Arial,sans-serif;font-size:14px;font-weight:700;text-align:center;">&#128247;&nbsp; Instagram @darkshare.store</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
               </table>
             </td>
           </tr>

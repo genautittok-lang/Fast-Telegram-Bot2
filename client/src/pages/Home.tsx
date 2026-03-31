@@ -47,7 +47,7 @@ import {
   MessageCircle,
   Download
 } from "lucide-react";
-import { SiTelegram } from "react-icons/si";
+import { SiTelegram, SiInstagram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
 import { useActivity, useLeaderboard } from "@/hooks/use-activity";
 import { TerminalText } from "@/components/TerminalText";
@@ -1966,6 +1966,17 @@ export default function Home() {
                   <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base border-[#229ED9]/30 text-[#229ED9] hover:bg-[#229ED9]/10 hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-launch-bot-cta">
                     <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {lang === "uk" ? "Telegram Бот" : lang === "ru" ? "Telegram Бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram Bot" : "Telegram Bot"}
+                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
+                  </Button>
+                </a>
+                <a 
+                  href="https://www.instagram.com/darkshare.store" 
+                  target="_blank" 
+                  rel="noreferrer"
+                >
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base border-[#E4405F]/30 text-[#E4405F] hover:bg-[#E4405F]/10 hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-instagram-cta">
+                    <SiInstagram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    Instagram
                     <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
                   </Button>
                 </a>

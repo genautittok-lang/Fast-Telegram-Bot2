@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Mail, MessageSquare, Send, Loader2, CheckCircle, Phone, User, ArrowLeft, Lock, Shield } from "lucide-react";
-import { SiTelegram } from "react-icons/si";
+import { SiTelegram, SiInstagram } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -71,6 +71,13 @@ function SupportForm() {
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Telegram Bot</p>
               <p className="text-sm font-medium">@DarkShare1Bot</p>
+            </div>
+          </a>
+          <a href="https://www.instagram.com/darkshare.store" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg bg-[#E4405F]/5 border border-[#E4405F]/20 active:bg-[#E4405F]/10" data-testid="link-support-instagram">
+            <SiInstagram className="w-5 h-5 text-[#E4405F] flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Instagram</p>
+              <p className="text-sm font-medium">@darkshare.store</p>
             </div>
           </a>
         </CardContent>
