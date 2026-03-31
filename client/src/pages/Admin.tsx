@@ -275,6 +275,44 @@ export default function Admin() {
   });
   const [editingBannerId, setEditingBannerId] = useState<number | null>(null);
 
+  const emailTemplates = [
+    {
+      name: "🛡 Щоденний звіт",
+      subject: "DARKSHARE — Ваш щоденний звіт безпеки",
+      title: "Щоденний звіт безпеки",
+      body: "Привіт!\n\nОсь ваш щоденний звіт від DARKSHARE:\n\n🔍 Нові загрози виявлені за останні 24 години — перевірте свої контакти, адреси та гаманці.\n\n⚠️ Щодня десятки людей стають жертвами шахрайства. Не будьте серед них!\n\n💡 Порада дня: Завжди перевіряйте крипто-адресу перед відправкою коштів, навіть якщо її надав довірений контакт.\n\nЗахистіть себе — використайте свої безкоштовні перевірки прямо зараз!\n\n— Команда DARKSHARE"
+    },
+    {
+      name: "💡 Порада безпеки",
+      subject: "DARKSHARE — Порада з кібербезпеки",
+      title: "Порада з кібербезпеки",
+      body: "Привіт!\n\n🔐 Порада від DARKSHARE:\n\nНе використовуйте один і той самий пароль на різних сервісах. Якщо один з них зламають — всі ваші акаунти під загрозою.\n\n✅ Що робити:\n• Використовуйте унікальні паролі для кожного сервісу\n• Увімкніть двофакторну автентифікацію (2FA)\n• Перевірте свій email на витоки даних через DARKSHARE\n• Регулярно змінюйте паролі на критичних сервісах\n\n🛡 DARKSHARE допоможе перевірити чи ваші дані не потрапили в витоки.\n\n— Команда DARKSHARE"
+    },
+    {
+      name: "🚨 Алерт про загрози",
+      subject: "⚠️ DARKSHARE — Нова хвиля кіберзагроз",
+      title: "Увага: Нові кіберзагрози",
+      body: "Привіт!\n\n🚨 DARKSHARE фіксує підвищену активність шахраїв:\n\n• Фішингові сайти, що імітують криптобіржі\n• Підроблені Telegram-боти для \"обміну\" криптовалюти\n• Шкідливі посилання у месенджерах під виглядом документів\n\n🔍 Як захиститися:\n1. Перевіряйте URL-адреси перед введенням даних\n2. Не переходьте за підозрілими посиланнями\n3. Перевіряйте контакти через DARKSHARE перед будь-якими фінансовими операціями\n\n⚡ Використайте DARKSHARE для перевірки підозрілих адрес, доменів та гаманців прямо зараз!\n\n— Команда DARKSHARE"
+    },
+    {
+      name: "⭐ Нові функції",
+      subject: "DARKSHARE — Нові можливості платформи",
+      title: "Нові функції DARKSHARE",
+      body: "Привіт!\n\n🎉 Ми додали нові можливості до DARKSHARE:\n\n🔑 Перевірка паролів — дізнайтесь наскільки надійний ваш пароль та чи є він у базах витоків\n🌍 DNS перевірка — повний аналіз DNS-записів будь-якого домену\n🔒 SSL/TLS аналіз — перевірте сертифікат безпеки сайту\n📡 MAC адреса — визначте виробника пристрою за MAC-адресою\n\n💡 Всього у DARKSHARE вже 17 типів перевірок для вашої безпеки!\n\nСпробуйте нові функції прямо зараз — вони доступні на сайті та у Telegram-боті.\n\n— Команда DARKSHARE"
+    },
+    {
+      name: "🎁 Промо / Знижка",
+      subject: "🎁 DARKSHARE — Спеціальна пропозиція для вас",
+      title: "Спеціальна пропозиція",
+      body: "Привіт!\n\n🎁 Маємо для вас спеціальну пропозицію!\n\nОновіть свій план до PRO та отримайте:\n• 50 перевірок на день замість 5\n• Пріоритетну підтримку\n• Розширені звіти з детальним аналізом\n• Моніторинг загроз 24/7\n\n⭐ PRO-план — максимальний захист для ваших цифрових активів.\n\nДізнайтесь більше на нашому сайті або напишіть у підтримку.\n\n— Команда DARKSHARE"
+    },
+    {
+      name: "📊 Тижневий дайджест",
+      subject: "DARKSHARE — Тижневий дайджест безпеки",
+      title: "Тижневий дайджест безпеки",
+      body: "Привіт!\n\n📊 Підсумки тижня від DARKSHARE:\n\n🔍 Цього тижня наші користувачі:\n• Перевірили тисячі адрес, доменів та гаманців\n• Виявили десятки підозрілих контактів\n• Заблокували шахрайські транзакції\n\n🏆 Топ загроз тижня:\n1. Фішингові сайти під крипто-біржі\n2. Підроблені інвестиційні платформи\n3. Шкідливе ПЗ у листах від \"банків\"\n\n💡 Не забувайте перевіряти всі підозрілі контакти та адреси через DARKSHARE!\n\n— Команда DARKSHARE"
+    }
+  ];
   const [emailForm, setEmailForm] = useState({
     subject: "",
     title: "",
@@ -2285,6 +2323,20 @@ export default function Admin() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {emailTemplates.map((tpl, i) => (
+                      <Button
+                        key={i}
+                        data-testid={`button-email-template-${i}`}
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2.5 text-[11px] border-white/10 hover:border-primary/50 hover:bg-primary/10"
+                        onClick={() => setEmailForm(f => ({ ...f, subject: tpl.subject, title: tpl.title, body: tpl.body }))}
+                      >
+                        {tpl.name}
+                      </Button>
+                    ))}
+                  </div>
                   <Input
                     data-testid="input-email-subject"
                     placeholder="Тема листа"
@@ -2377,6 +2429,28 @@ export default function Admin() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {emailTemplates.map((tpl, i) => (
+                      <Button
+                        key={i}
+                        data-testid={`button-daily-template-${i}`}
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2.5 text-[11px] border-green-500/20 hover:border-green-500/50 hover:bg-green-500/10 text-green-300"
+                        onClick={async () => {
+                          await adminPost("/api/admin/settings", {
+                            dailyEmailSubject: tpl.subject,
+                            dailyEmailTitle: tpl.title,
+                            dailyEmailBody: tpl.body,
+                          });
+                          queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+                          toast({ title: `Шаблон "${tpl.name}" застосовано` });
+                        }}
+                      >
+                        {tpl.name}
+                      </Button>
+                    ))}
+                  </div>
                   <Input
                     data-testid="input-daily-email-subject"
                     placeholder="Тема щоденного листа"
