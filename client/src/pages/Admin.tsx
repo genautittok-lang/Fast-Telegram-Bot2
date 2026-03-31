@@ -2111,33 +2111,65 @@ export default function Admin() {
                 Email розсилка
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Card className="border-white/10 bg-white/5">
                   <CardContent className="p-4 text-center">
-                    <Mail className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                    <Mail className="w-5 h-5 text-green-400 mx-auto mb-2" />
                     <p className="text-2xl font-bold">{emailSubscribers?.total ?? 0}</p>
                     <p className="text-xs text-muted-foreground">Підписників</p>
                   </CardContent>
                 </Card>
-                {emailResult && (
-                  <>
-                    <Card className="border-green-500/20 bg-green-500/5">
-                      <CardContent className="p-4 text-center">
-                        <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-green-400">{emailResult.sent}</p>
-                        <p className="text-xs text-muted-foreground">Відправлено</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-red-500/20 bg-red-500/5">
-                      <CardContent className="p-4 text-center">
-                        <AlertCircle className="w-6 h-6 text-red-400 mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-red-400">{emailResult.failed}</p>
-                        <p className="text-xs text-muted-foreground">Помилок</p>
-                      </CardContent>
-                    </Card>
-                  </>
-                )}
+                <Card className="border-white/10 bg-white/5">
+                  <CardContent className="p-4 text-center">
+                    <Clock className="w-5 h-5 text-blue-400 mx-auto mb-2" />
+                    <p className="text-2xl font-bold">{settings?.dailyEmailEnabled ? <span className="text-green-400">ON</span> : <span className="text-red-400">OFF</span>}</p>
+                    <p className="text-xs text-muted-foreground">Авторозсилка</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-white/10 bg-white/5">
+                  <CardContent className="p-4 text-center">
+                    <Send className="w-5 h-5 text-purple-400 mx-auto mb-2" />
+                    <p className="text-2xl font-bold">{settings?.dailyEmailLastReach || 0}</p>
+                    <p className="text-xs text-muted-foreground">Останнє авто</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-white/10 bg-white/5">
+                  <CardContent className="p-4 text-center">
+                    <Calendar className="w-5 h-5 text-orange-400 mx-auto mb-2" />
+                    <p className="text-sm font-bold mt-1">{settings?.dailyEmailLastSent ? new Date(settings.dailyEmailLastSent).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</p>
+                    <p className="text-xs text-muted-foreground">Дата авто</p>
+                  </CardContent>
+                </Card>
               </div>
+
+              {emailResult && (
+                <Card className="border-green-500/20 bg-green-500/5">
+                  <CardContent className="p-4">
+                    <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-green-400" />
+                      Результат останньої ручної розсилки
+                    </p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
+                        <p className="text-xs text-muted-foreground">Всього</p>
+                        <p className="text-xl font-bold">{emailResult.total}</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
+                        <p className="text-xs text-green-400">Відправлено</p>
+                        <p className="text-xl font-bold text-green-400">{emailResult.sent}</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                        <p className="text-xs text-red-400">Помилок</p>
+                        <p className="text-xl font-bold text-red-400">{emailResult.failed}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                      <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${emailResult.total > 0 ? (emailResult.sent / emailResult.total * 100) : 0}%` }}></div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-right">{emailResult.total > 0 ? Math.round(emailResult.sent / emailResult.total * 100) : 0}% успішно</p>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="border-white/10 bg-white/5">
                 <CardHeader>
