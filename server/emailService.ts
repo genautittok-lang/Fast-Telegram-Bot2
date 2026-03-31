@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "DarkShare <onboarding@resend.dev>";
+const FROM_EMAIL = "DarkShare <noreply@darkshare.store>";
 
 export interface EmailBroadcastOptions {
   to: string[];
