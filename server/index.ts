@@ -362,7 +362,11 @@ async function ensureTablesExist() {
 }
 
 const app = express();
+
+app.disable('x-powered-by');
+
 const httpServer = createServer(app);
+
 
 declare module "http" {
   interface IncomingMessage {
@@ -370,11 +374,34 @@ declare module "http" {
   }
 }
 
-// Session is configured by Replit Auth in routes.ts via setupAuth
-// PostgreSQL session store is used with table "sessions"
 console.log("Using PostgreSQL session store");
 
-// Apply JSON middleware for all routes
+app.use((_req, res, next) => {
+  res.removeHeader('X-Powered-By');
+  res.setHeader('Server', 'DarkShare');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://replit.com https://telegram.org https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://replit.com https://oauth.telegram.org https://telegram.org; object-src 'none'; base-uri 'self'");
+
+  if (_req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  } else {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+  }
+
+  next();
+});
+
 app.use(
   express.json({
     verify: (req, _res, buf) => {
@@ -385,8 +412,7 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 
-// Early health check - responds before full initialization for Railway
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
@@ -400,19 +426,6 @@ export function log(message: string, source = "express") {
 
   console.log(`${formattedTime} [${source}] ${message}`);
 }
-
-app.disable('x-powered-by');
-
-app.use((_req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://replit.com https://telegram.org https://oauth.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://replit.com https://oauth.telegram.org https://telegram.org; object-src 'none'; base-uri 'self'");
-  next();
-});
 
 app.use((req, res, next) => {
   const start = Date.now();

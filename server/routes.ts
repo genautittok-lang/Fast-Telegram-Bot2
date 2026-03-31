@@ -639,11 +639,13 @@ export async function registerRoutes(
               const ip = sessData?.ip || "Unknown";
               const device = /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
               const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)/i)?.[1] || "Unknown";
+              const ipStr = typeof ip === "string" ? ip : String(ip);
+              const maskedIp = ipStr.match(/^(::1|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0)/) ? "Internal" : ipStr;
               sessions.push({
                 id: row.sid,
                 current: row.sid === req.sessionID,
                 device: `${device} - ${browser}`,
-                ip: typeof ip === "string" ? ip : ip,
+                ip: maskedIp,
                 lastActive: row.expire ? new Date(row.expire).toISOString() : new Date().toISOString(),
                 loginTime: sessData?.loginTime || new Date().toISOString(),
               });
@@ -657,11 +659,13 @@ export async function registerRoutes(
         const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "Unknown";
         const device = /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
         const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)/i)?.[1] || "Unknown";
+        const rawIp = typeof ip === "string" ? ip : ip[0];
+        const safeIp = rawIp.match(/^(::1|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0)/) ? "Internal" : rawIp;
         sessions.push({
           id: req.sessionID,
           current: true,
           device: `${device} - ${browser}`,
-          ip: typeof ip === "string" ? ip : ip[0],
+          ip: safeIp,
           lastActive: new Date().toISOString(),
           loginTime: user.lastLogin?.toISOString() || new Date().toISOString(),
         });
