@@ -30,6 +30,15 @@ DARKSHARE is a professional security OSINT platform designed for analyzing 17 da
 - **Chat accessibility** — `aria-label` on all icon-only buttons; `data-testid` on interactive elements; fixed empty `alt`
 - **ExifTool error messages** — Specific messages for 413/415/403 errors
 
+### Free API Enrichment (no keys required)
+5 of 6 previously key-only APIs now have free fallbacks; AbuseIPDB still requires key:
+- **IP** — AbuseIPDB still requires API key (skips if not set; IP check works fine via ipwhois/ipapi/Shodan)
+- **Wallet (ETH)** — Etherscan works without key (empty apikey param); added **Ethplorer** (`freekey`) for token data
+- **Phone** — Added **Veriphone.io** as free fallback when Numverify key not set
+- **Email** — Added **Disify** (disposable check, fallback for Hunter) + **EmailRep.io** (reputation, breaches, spam — always runs)
+- **URL** — Added **PhishTank** as free fallback when Google Safe Browsing key not set; URLhaus already existed
+- **Hash** — Added **ThreatFox** (IOC lookup, fallback for VT) + **CIRCL hashlookup** (known file DB — always runs)
+
 ## Recent Changes (Mar 2026)
 - **Security Headers Hardening**: Added comprehensive HTTP security headers — `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Strict-Transport-Security` (HSTS 1yr), `Referrer-Policy`, `Permissions-Policy` (camera/mic/geo disabled), full `Content-Security-Policy` with whitelisted sources. Disabled `X-Powered-By` header. Addresses all 11 OWASP scanner warnings.
 - **IP Validation Fix**: Enhanced IP validation to reject invalid octets (>255), reject first octet=0, reject all-zeros IP. Previously `883.837.938.938` passed regex but wasn't properly rejected.

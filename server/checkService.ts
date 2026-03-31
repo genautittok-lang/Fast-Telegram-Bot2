@@ -421,13 +421,12 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
 
-  // API 7: AbuseIPDB (free community check via HTML scraping fallback)
+  // API 7: AbuseIPDB (requires API key, optional enrichment)
   try {
+    const abuseipdbKey = process.env.ABUSEIPDB_API_KEY;
+    if (!abuseipdbKey) throw new Error("skip");
     const response = await fetchWithTimeout(`https://api.abuseipdb.com/api/v2/check?ipAddress=${value}&maxAgeInDays=90`, 4000, {
-      headers: {
-        'Key': process.env.ABUSEIPDB_API_KEY || '',
-        'Accept': 'application/json'
-      }
+      headers: { 'Key': abuseipdbKey, 'Accept': 'application/json' }
     });
     if (response.ok) {
       const data = await response.json();
@@ -598,25 +597,51 @@ async function checkWallet(value: string, timestamp: Date): Promise<CheckResult>
       }
     } catch {}
     
-    // API: Etherscan free for basic info
-    const etherscanKey = process.env.ETHERSCAN_API_KEY;
-    if (etherscanKey) {
-      try {
-        const response = await fetchWithTimeout(
-          `https://api.etherscan.io/api?module=account&action=balance&address=${value}&tag=latest&apikey=${etherscanKey}`,
-          4000
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.status === "1") {
-            sources.push("etherscan.io");
-            const balanceWei = BigInt(data.result);
-            const balanceEth = Number(balanceWei) / 1e18;
-            walletData.balanceETH = balanceEth.toFixed(6);
+    // API: Etherscan (uses key if available, otherwise free public endpoint)
+    try {
+      const etherscanKey = process.env.ETHERSCAN_API_KEY || '';
+      const ethUrl = `https://api.etherscan.io/api?module=account&action=balance&address=${value}&tag=latest&apikey=${etherscanKey}`;
+      const response = await fetchWithTimeout(ethUrl, 4000);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === "1") {
+          sources.push("etherscan.io");
+          const balanceWei = BigInt(data.result);
+          const balanceEth = Number(balanceWei) / 1e18;
+          walletData.balanceETH = balanceEth.toFixed(6);
+        }
+      }
+    } catch {}
+
+    // API: Ethplorer (free, no key needed)
+    try {
+      const response = await fetchWithTimeout(
+        `https://api.ethplorer.io/getAddressInfo/${value}?apiKey=freekey`,
+        4000
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (!sources.includes("ethplorer.io")) sources.push("ethplorer.io");
+        if (data.ETH) {
+          if (!walletData.balanceETH || walletData.balanceETH === "0.000000") {
+            walletData.balanceETH = (data.ETH.balance || 0).toFixed(6);
+          }
+          walletData.ethTxCount = data.ETH.rawBalance ? data.countTxs || 0 : 0;
+          if (data.ETH.totalIn !== undefined) {
+            walletData.totalInETH = data.ETH.totalIn?.toFixed?.(4) || null;
           }
         }
-      } catch {}
-    }
+        if (data.tokens && data.tokens.length > 0) {
+          walletData.tokenCount = data.tokens.length;
+          walletData.topTokens = data.tokens.slice(0, 5).map((t: any) => ({
+            name: t.tokenInfo?.name || "Unknown",
+            symbol: t.tokenInfo?.symbol || "?",
+            balance: t.balance ? (Number(t.balance) / Math.pow(10, Number(t.tokenInfo?.decimals || 18))).toFixed(4) : "0"
+          }));
+          findings.push(`🪙 ${data.tokens.length} токенів на гаманці`);
+        }
+      }
+    } catch {}
   }
   
   // API: Blockchain.com for Bitcoin
@@ -813,7 +838,7 @@ async function checkPhone(value: string, timestamp: Date): Promise<CheckResult> 
     phoneData.isPremiumRate = true;
   }
   
-  // API: Numverify (free 100/month if key exists)
+  // API: Numverify (uses key if available, otherwise free veriphone fallback)
   const numverifyKey = process.env.NUMVERIFY_API_KEY;
   if (numverifyKey) {
     try {
@@ -839,6 +864,39 @@ async function checkPhone(value: string, timestamp: Date): Promise<CheckResult> 
           } else {
             riskScore += 30;
             findings.push("🔴 Невалідний номер");
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // Fallback: Veriphone.io (free, no key needed)
+  if (!numverifyKey) {
+    try {
+      const response = await fetchWithTimeout(
+        `https://api.veriphone.io/v2/verify?phone=${encodeURIComponent(cleanNumber)}`,
+        4000
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === "success") {
+          sources.push("veriphone.io");
+          phoneData.numverifyValid = data.phone_valid;
+          phoneData.carrier = data.carrier || null;
+          phoneData.lineType = data.phone_type || null;
+          phoneData.internationalFormat = data.international_number || null;
+          phoneData.countryName = data.country || null;
+
+          if (data.phone_valid) {
+            findings.push("✅ Номер валідний (Veriphone)");
+            if (data.carrier) findings.push(`📡 Оператор: ${data.carrier}`);
+            if (data.phone_type === "voip") {
+              riskScore += 20;
+              findings.push("⚠️ VOIP номер");
+            }
+          } else {
+            riskScore += 30;
+            findings.push("🔴 Невалідний номер (Veriphone)");
           }
         }
       }
@@ -982,7 +1040,7 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     
   } catch {}
   
-  // API: Hunter.io for email verification (free 25/month if key exists)
+  // API: Hunter.io (uses key if available)
   const hunterKey = process.env.HUNTER_API_KEY;
   if (hunterKey) {
     try {
@@ -1013,6 +1071,84 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
       }
     } catch {}
   }
+
+  // Fallback: Disify (free, no key needed) — disposable email check
+  if (!hunterKey) {
+    try {
+      const response = await fetchWithTimeout(
+        `https://www.disify.com/api/email/${encodeURIComponent(value)}`,
+        4000
+      );
+      if (response.ok) {
+        const data = await response.json();
+        sources.push("disify.com");
+        emailData.hunterStatus = data.format ? "valid" : "invalid";
+
+        if (data.disposable) {
+          riskScore += 40;
+          findings.push("🔴 Одноразовий email (Disify)");
+          emailData.isDisposable = true;
+        }
+        if (data.dns === false) {
+          riskScore += 30;
+          findings.push("🔴 Домен без DNS (Disify)");
+        }
+        if (data.format === false) {
+          riskScore += 20;
+          findings.push("⚠️ Невірний формат email");
+        }
+      }
+    } catch {}
+  }
+
+  // API: EmailRep.io (free, no key needed, 100/day)
+  try {
+    const response = await fetchWithTimeout(
+      `https://emailrep.io/${encodeURIComponent(value)}`,
+      4000,
+      { headers: { 'User-Agent': 'DarkShare OSINT Platform' } }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      sources.push("emailrep.io");
+      emailData.emailReputation = data.reputation || null;
+      emailData.emailSuspicious = data.suspicious || false;
+      emailData.emailReferences = data.references || 0;
+
+      if (data.suspicious) {
+        riskScore += 30;
+        findings.push("⚠️ Підозрілий email (EmailRep)");
+      }
+      if (data.details) {
+        if (data.details.credentials_leaked) {
+          riskScore += 25;
+          findings.push("🔴 Витік паролів (EmailRep)");
+          emailData.credentialsLeaked = true;
+        }
+        if (data.details.data_breach) {
+          findings.push("⚠️ Був у витоках даних (EmailRep)");
+          emailData.dataBreach = true;
+        }
+        if (data.details.spam) {
+          riskScore += 15;
+          findings.push("⚠️ Спам-активність (EmailRep)");
+        }
+        if (data.details.free_provider) {
+          findings.push("ℹ️ Безкоштовний провайдер");
+        }
+        if (data.details.deliverable === false) {
+          riskScore += 25;
+          findings.push("🔴 Не доставляється (EmailRep)");
+        }
+      }
+      if (data.reputation === "high") {
+        findings.push("✅ Висока репутація (EmailRep)");
+      } else if (data.reputation === "low" || data.reputation === "none") {
+        riskScore += 15;
+        findings.push("⚠️ Низька репутація (EmailRep)");
+      }
+    }
+  } catch {}
   
   // ==================== DATA BREACH CHECK ====================
   let breachCheckSuccess = false;
@@ -1157,65 +1293,6 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     }
   }
   
-  // API: Disify (free - disposable email detection)
-  try {
-    const response = await fetchWithTimeout(`https://disify.com/api/email/${value}`, 3000);
-    if (response.ok) {
-      const data = await response.json();
-      sources.push("disify.com");
-      if (data.disposable && !emailData.isDisposable) {
-        riskScore += 40;
-        emailData.isDisposable = true;
-        findings.push("🔴 Одноразовий email підтверджено (Disify)");
-      }
-      if (data.dns === false) {
-        riskScore += 20;
-        findings.push("⚠️ DNS домену не валідний (Disify)");
-      }
-      if (data.format === false) {
-        riskScore += 15;
-        findings.push("⚠️ Невалідний формат email (Disify)");
-      }
-    }
-  } catch {}
-
-  // API: EmailRep.io (free basic tier)
-  try {
-    const response = await fetchWithTimeout(`https://emailrep.io/${value}`, 3000, {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'DarkShare OSINT Platform' }
-    });
-    if (response.ok) {
-      const data = await response.json();
-      sources.push("emailrep.io");
-      emailData.reputation = data.reputation;
-      emailData.suspicious = data.suspicious;
-      if (data.reputation === 'none' || data.reputation === 'low') {
-        riskScore += 15;
-        findings.push(`⚠️ EmailRep: Репутація — ${data.reputation}`);
-      } else if (data.reputation === 'high') {
-        findings.push(`✅ EmailRep: Репутація — висока`);
-      }
-      if (data.suspicious) {
-        riskScore += 25;
-        findings.push("🔴 EmailRep: Підозрілий email");
-      }
-      if (data.details) {
-        if (data.details.credentials_leaked) {
-          riskScore += 20;
-          findings.push("⚠️ EmailRep: Знайдено у витоках паролів");
-        }
-        if (data.details.malicious_activity) {
-          riskScore += 30;
-          findings.push("🔴 EmailRep: Зафіксовано шкідливу активність");
-        }
-        if (data.details.profiles && data.details.profiles.length > 0) {
-          emailData.socialProfiles = data.details.profiles;
-          findings.push(`👤 Профілі: ${data.details.profiles.slice(0, 5).join(', ')}`);
-        }
-      }
-    }
-  } catch {}
-
   riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
@@ -1851,7 +1928,7 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
       }
     } catch {}
     
-    // API: Google Safe Browsing (requires API key)
+    // API: Google Safe Browsing (uses key if available)
     const safeBrowsingKey = process.env.GOOGLE_SAFE_BROWSING_KEY;
     if (safeBrowsingKey) {
       try {
@@ -1887,6 +1964,33 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
       } catch {}
     }
 
+    // Fallback: PhishTank (free, no key needed)
+    if (!safeBrowsingKey) {
+      try {
+        const response = await fetchWithTimeout(
+          `https://checkurl.phishtank.com/checkurl/`,
+          4000,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `url=${encodeURIComponent(value)}&format=json&app_key=`
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          sources.push("PhishTank");
+          if (data.results?.in_database && data.results?.valid) {
+            riskScore += 60;
+            findings.push("🔴 ФІШИНГ (PhishTank)");
+            urlData.phishTankMatch = true;
+          } else {
+            findings.push("✅ Не в PhishTank");
+          }
+        }
+      } catch {}
+    }
+
+
     // API: URLhaus (abuse.ch) - malicious URL database
     try {
       const response = await fetchWithTimeout('https://urlhaus-api.abuse.ch/v1/url/', 4000, {
@@ -1910,23 +2014,6 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
       }
     } catch {}
 
-    // API: PhishTank (free lookup)
-    try {
-      const response = await fetchWithTimeout(`https://checkurl.phishtank.com/checkurl/`, 3000, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `url=${encodeURIComponent(value)}&format=json&app_key=`
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.results?.in_database === true && data.results?.valid === true) {
-          sources.push("phishtank.com");
-          riskScore += 50;
-          findings.push("🔴 ФІШИНГ підтверджено (PhishTank)");
-          urlData.phishtankVerified = true;
-        }
-      }
-    } catch {}
     
   } catch {
     return {
@@ -2334,7 +2421,7 @@ async function checkHash(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
-  // API: VirusTotal (free 4 req/min with API key)
+  // API: VirusTotal (uses key if available)
   const vtKey = process.env.VIRUSTOTAL_API_KEY;
   if (vtKey) {
     try {
@@ -2377,6 +2464,65 @@ async function checkHash(value: string, timestamp: Date): Promise<CheckResult> {
       }
     } catch {}
   }
+
+  // Fallback: ThreatFox (free, no key needed)
+  if (!vtKey) {
+    try {
+      const response = await fetchWithTimeout(
+        'https://threatfox-api.abuse.ch/api/v1/',
+        4000,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: "search_hash", hash })
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.query_status === "ok" && data.data && data.data.length > 0) {
+          sources.push("ThreatFox");
+          const ioc = data.data[0];
+          riskScore += 60;
+          findings.push(`🔴 IOC знайдено (ThreatFox: ${ioc.malware || "malware"})`);
+          hashData.threatFoxMalware = ioc.malware || "Unknown";
+          hashData.threatFoxThreatType = ioc.threat_type || "Unknown";
+          hashData.threatFoxConfidence = ioc.confidence_level || 0;
+          if (ioc.tags && ioc.tags.length > 0) {
+            findings.push(`🏷️ Теги: ${ioc.tags.join(", ")}`);
+          }
+        } else if (data.query_status === "no_result") {
+          sources.push("ThreatFox");
+          findings.push("✅ В ThreatFox не знайдено");
+        }
+      }
+    } catch {}
+  }
+
+  // API: CIRCL hashlookup (free, no key needed)
+  try {
+    const lookupType = hash.length === 32 ? 'md5' : hash.length === 40 ? 'sha1' : 'sha256';
+    const response = await fetchWithTimeout(
+      `https://hashlookup.circl.lu/lookup/${lookupType}/${hash}`,
+      4000
+    );
+    if (response.ok) {
+      const data = await response.json();
+      if (data.FileName || data.KnownMalicious) {
+        sources.push("CIRCL hashlookup");
+        if (data.KnownMalicious) {
+          riskScore += 50;
+          findings.push("🔴 Відомий шкідливий (CIRCL)");
+        } else {
+          findings.push(`✅ Відомий файл: ${data.FileName || "N/A"} (CIRCL)`);
+          hashData.circlFileName = data.FileName || null;
+          hashData.circlFileSize = data.FileSize || null;
+        }
+        if (data.source) {
+          hashData.circlSource = data.source;
+        }
+      }
+    }
+  } catch {}
   
   // API: URLhaus for hash (free)
   try {
@@ -2406,53 +2552,6 @@ async function checkHash(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
-  // API: CIRCL hashlookup (free, no key - known file identification)
-  try {
-    const lookupType = hashData.type === 'SHA-256' ? 'sha256' : hashData.type === 'SHA-1' ? 'sha1' : 'md5';
-    const response = await fetchWithTimeout(
-      `https://hashlookup.circl.lu/lookup/${lookupType}/${hash}`,
-      3000,
-      { headers: { 'Accept': 'application/json' } }
-    );
-    if (response.ok) {
-      const data = await response.json();
-      sources.push("CIRCL hashlookup");
-      if (data.FileName) {
-        hashData.circlFileName = data.FileName;
-        findings.push(`📁 CIRCL: Відомий файл — ${data.FileName}`);
-        if (data.KnownMalicious) {
-          riskScore += 40;
-          findings.push("🔴 CIRCL: Позначено як шкідливий");
-        } else {
-          riskScore = Math.max(riskScore - 10, 5);
-          findings.push("✅ CIRCL: Легітимний відомий файл");
-        }
-      }
-      if (data.PackageName) {
-        hashData.packageName = data.PackageName;
-        findings.push(`📦 Пакет: ${data.PackageName}`);
-      }
-    }
-  } catch {}
-
-  // API: ThreatFox IOC lookup for hashes
-  try {
-    const response = await fetchWithTimeout('https://threatfox-api.abuse.ch/api/v1/', 3000, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: 'search_hash', hash: hash })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      if (data.query_status === 'ok' && data.data && data.data.length > 0) {
-        sources.push("threatfox.abuse.ch");
-        riskScore += 55;
-        const threat = data.data[0];
-        findings.push(`🔴 ThreatFox: ${threat.malware_printable || 'Malware'}`);
-        hashData.threatfoxMalware = threat.malware_printable;
-      }
-    }
-  } catch {}
 
   if (findings.length <= 1) {
     findings.push("✅ Хеш чистий");
