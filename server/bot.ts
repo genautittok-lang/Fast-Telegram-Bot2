@@ -1830,10 +1830,10 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       card: t(lang, "checkResult.cardBinAnalysis"),
       iot: "IOT SCAN",
       cloud: "CLOUD CHECK",
-      password: "PASSWORD CHECK",
-      dns: "DNS RECORDS",
-      ssl: "SSL/TLS CHECK",
-      mac: "MAC OUI LOOKUP"
+      password: t(lang, "checkResult.passwordCheck"),
+      dns: t(lang, "checkResult.dnsRecords"),
+      ssl: t(lang, "checkResult.sslCheck"),
+      mac: t(lang, "checkResult.macLookup")
     };
     
     // Create visual risk indicator
@@ -5083,11 +5083,17 @@ ${allTypesText}
         `• ${t(lang, "quickCheck.typeUrl")}\n` +
         `• ${t(lang, "quickCheck.typeUsername")}\n` +
         `• ${t(lang, "quickCheck.typeHash")}\n` +
-        `• ${t(lang, "quickCheck.typeCve")}\n\n` +
+        `• ${t(lang, "quickCheck.typeCve")}\n` +
+        `• ${t(lang, "quickCheck.typePassword")}\n` +
+        `• ${t(lang, "quickCheck.typeDns")}\n` +
+        `• ${t(lang, "quickCheck.typeSsl")}\n` +
+        `• ${t(lang, "quickCheck.typeMac")}\n\n` +
         `${t(lang, "quickCheck.examples")}\n` +
         `\`/check ip 8.8.8.8\`\n` +
         `\`/check email test@gmail.com\`\n` +
-        `\`/check wallet 0x123...\``,
+        `\`/check wallet 0x123...\`\n` +
+        `\`/check password MyP@ss123\`\n` +
+        `\`/check dns example.com\``,
         { parse_mode: "Markdown" }
       );
     }
