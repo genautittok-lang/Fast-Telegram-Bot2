@@ -460,11 +460,16 @@ app.use((req, res, next) => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ message: "File too large" });
+    }
+    if (err.message?.includes("Invalid file type")) {
+      return res.status(415).json({ message: err.message });
+    }
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
+    console.error("Unhandled error:", message);
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after

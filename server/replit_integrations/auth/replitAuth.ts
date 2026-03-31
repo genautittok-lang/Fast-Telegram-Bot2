@@ -15,7 +15,7 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET || "darkshare-secret-key",
+    secret: process.env.SESSION_SECRET || process.env.REPL_ID || "darkshare-prod-" + (process.env.REPL_SLUG || "app"),
     store: sessionStore,
     resave: false,
     saveUninitialized: false,

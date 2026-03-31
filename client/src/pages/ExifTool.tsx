@@ -67,13 +67,17 @@ export default function ExifTool() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to extract metadata");
+        const status = response.status;
+        if (status === 413) throw new Error("File is too large. Maximum 10MB allowed.");
+        if (status === 415) throw new Error("Unsupported file format. Try JPEG, PNG, or TIFF.");
+        if (status === 403) throw new Error("EXIF extraction requires a PRO+ subscription.");
+        throw new Error("Server error. Please try again later.");
       }
 
       const data = await response.json();
       setResult(data);
-    } catch (err) {
-      toast({ title: "Error", description: "Failed to extract metadata from this image", variant: "destructive" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || "Failed to extract metadata from this image", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }

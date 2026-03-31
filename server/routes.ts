@@ -43,11 +43,20 @@ const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
 const CHAT_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"];
+const SAFE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf"]);
+const CHAT_SAFE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp4", ".mov", ".avi"]);
+
+function sanitizeFilename(original: string): string {
+  const ext = original.slice(original.lastIndexOf('.')).toLowerCase();
+  return `${Date.now()}-${randomUUID().slice(0, 8)}${ext}`;
+}
+
 const upload = multer({ storage: multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+  filename: (_req, file, cb) => cb(null, sanitizeFilename(file.originalname)),
 }), limits: { fileSize: 10 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
-  if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
+  const ext = file.originalname.slice(file.originalname.lastIndexOf('.')).toLowerCase();
+  if (ALLOWED_FILE_TYPES.includes(file.mimetype) && SAFE_EXTENSIONS.has(ext)) {
     cb(null, true);
   } else {
     cb(new Error("Invalid file type. Only images and PDF allowed."));
@@ -56,14 +65,22 @@ const upload = multer({ storage: multer.diskStorage({
 
 const chatUpload = multer({ storage: multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
-  filename: (_req, file, cb) => cb(null, `chat-${Date.now()}-${file.originalname}`),
+  filename: (_req, file, cb) => cb(null, `chat-${sanitizeFilename(file.originalname)}`),
 }), limits: { fileSize: 25 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
-  if (CHAT_FILE_TYPES.includes(file.mimetype)) {
+  const ext = file.originalname.slice(file.originalname.lastIndexOf('.')).toLowerCase();
+  if (CHAT_FILE_TYPES.includes(file.mimetype) && CHAT_SAFE_EXTENSIONS.has(ext)) {
     cb(null, true);
   } else {
     cb(new Error("Invalid file type. Only images and videos allowed."));
   }
 } });
+
+const TIER_REQUESTS: Record<string, number> = {
+  FREE: 5,
+  PRO: 50,
+  ENTERPRISE: 500,
+  GROUPS: 500,
+};
 
 function generateVerificationId(): string {
   return `DS-${randomUUID().split('-').slice(0, 2).join('').toUpperCase()}`;
@@ -98,7 +115,11 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  app.use("/uploads", express.static(uploadsDir));
+  app.use("/uploads", (_req, res, next) => {
+    res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    next();
+  }, express.static(uploadsDir, { dotfiles: "deny", index: false }));
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok", service: "DARKSHARE", timestamp: Date.now() });
@@ -215,14 +236,6 @@ export async function registerRoutes(
         uptime: 99.9,
       });
     }
-  });
-
-  app.get(api.users.get.path, async (req, res) => {
-    const user = await storage.getUserByTgId(req.params.tgId);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-    res.json(user);
   });
 
   // Activity feed endpoint
@@ -444,6 +457,21 @@ export async function registerRoutes(
     next();
   };
 
+  app.get(api.users.get.path, loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const requestedTgId = req.params.tgId;
+    if (authReq.user!.tgId !== requestedTgId && !ADMIN_IDS.includes(authReq.user!.tgId)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    const user = await storage.getUserByTgId(requestedTgId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const { ...safeUser } = user;
+    delete (safeUser as any).cardToken;
+    res.json(safeUser);
+  });
+
   // Telegram Login endpoint
   app.post("/api/auth/telegram", async (req, res) => {
     const ip = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
@@ -602,10 +630,17 @@ export async function registerRoutes(
     const authReq = req as AuthenticatedRequest;
     try {
       const user = authReq.user!;
-      const allowedFields = ["notifsOn", "digestsOn", "lang"];
+      const fieldValidators: Record<string, (v: any) => boolean> = {
+        notifsOn: (v) => typeof v === "boolean",
+        digestsOn: (v) => typeof v === "boolean",
+        lang: (v) => typeof v === "string" && ["uk", "en", "ru"].includes(v),
+      };
       const updates: Record<string, any> = {};
-      for (const field of allowedFields) {
+      for (const [field, validate] of Object.entries(fieldValidators)) {
         if (req.body[field] !== undefined) {
+          if (!validate(req.body[field])) {
+            return res.status(400).json({ error: `Invalid value for ${field}` });
+          }
           updates[field] = req.body[field];
         }
       }
@@ -686,7 +721,7 @@ export async function registerRoutes(
       if (tier !== "PRO" && tier !== "ENTERPRISE") {
         return res.status(403).json({ error: "API key available only for PRO/ENTERPRISE users" });
       }
-      const secret = process.env.SESSION_SECRET || "darkshare-secret";
+      const secret = process.env.SESSION_SECRET || process.env.REPL_ID || "darkshare-api-key-secret";
       const fullKey = "dk_" + createHmac("sha256", secret).update(user.tgId + "_" + user.id).digest("hex").slice(0, 32);
       const masked = fullKey.slice(0, 5) + "\u2022".repeat(8) + fullKey.slice(-4);
       res.json({ key: fullKey, masked });
@@ -704,7 +739,7 @@ export async function registerRoutes(
       if (tier !== "PRO" && tier !== "ENTERPRISE") {
         return res.status(403).json({ error: "API key available only for PRO/ENTERPRISE users" });
       }
-      const secret = process.env.SESSION_SECRET || "darkshare-secret";
+      const secret = process.env.SESSION_SECRET || process.env.REPL_ID || "darkshare-api-key-secret";
       const salt = req.body.regenerate ? Date.now().toString() : "";
       const fullKey = "dk_" + createHmac("sha256", secret).update(user.tgId + "_" + user.id + salt).digest("hex").slice(0, 32);
       const masked = fullKey.slice(0, 5) + "\u2022".repeat(8) + fullKey.slice(-4);
@@ -2102,11 +2137,30 @@ export async function registerRoutes(
           const payment = await storage.getPaymentById(paymentId);
 
           if (payment && payment.status === "pending") {
+            const MONO_TOKEN = process.env.MONOBANK_TOKEN;
+            if (MONO_TOKEN) {
+              try {
+                const verifyResp = await fetch(`https://api.monobank.ua/api/merchant/invoice/status?invoiceId=${invoiceId}`, {
+                  headers: { "X-Token": MONO_TOKEN },
+                });
+                const verifyData = await verifyResp.json() as any;
+                if (verifyData.status !== "success") {
+                  console.error("MonoPay webhook: API verification failed, status:", verifyData.status);
+                  return res.status(403).json({ error: "Payment not verified" });
+                }
+              } catch (verifyErr) {
+                console.error("MonoPay webhook: API verification error — rejecting:", verifyErr);
+                return res.status(500).json({ error: "Payment verification failed" });
+              }
+            } else {
+              console.error("MonoPay webhook: MONOBANK_TOKEN not set — cannot verify payment");
+              return res.status(500).json({ error: "Payment verification unavailable" });
+            }
             await storage.updatePaymentStatus(paymentId, "approved");
 
             if (payment.userId) {
               const tier = payment.tier?.toUpperCase() || "PRO";
-              const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
+              const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
               const periodDays = (payment as any).period === "yearly" ? 365 : 30;
               const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
               const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
@@ -2377,7 +2431,7 @@ export async function registerRoutes(
 
         if (payment.userId) {
           const tier = payment.tier?.toUpperCase() || "PRO";
-          const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
+          const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
           const periodDays = payment.period === "yearly" ? 365 : 30;
           const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
           const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
@@ -2448,7 +2502,7 @@ export async function registerRoutes(
 
             if (row.user_id) {
               const tier = row.tier?.toUpperCase() || "PRO";
-              const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
+              const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
               const periodDays = row.period === "yearly" ? 365 : 30;
               const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
 
@@ -2684,7 +2738,7 @@ export async function registerRoutes(
     
     if (payment.userId) {
       const tier = payment.tier?.toUpperCase() || "PRO";
-      const requests = tier === "ENTERPRISE" ? 500 : tier === "GROUPS" ? 500 : 50;
+      const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
       await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
       
       const user = await storage.getUserById(payment.userId);
@@ -3498,7 +3552,8 @@ export async function registerRoutes(
         return res.status(400).json({ error: "All fields are required" });
       }
 
-      const message = `🤝 Нова заявка на партнерство Reversh\n\n👤 Ім'я: ${name}\n📱 Телефон: ${phone}\n📧 Email: ${email}\n📊 Метод залучення: ${method}\n📈 Очікуваний обсяг: ${volume}\n\n⚡ Зв'яжіться з партнером`;
+      const sanitize = (s: string) => String(s).replace(/[<>&"'`]/g, "").slice(0, 200);
+      const message = `🤝 Нова заявка на партнерство\n\n👤 Ім'я: ${sanitize(name)}\n📱 Телефон: ${sanitize(phone)}\n📧 Email: ${sanitize(email)}\n📊 Метод залучення: ${sanitize(method)}\n📈 Очікуваний обсяг: ${sanitize(volume)}\n\n⚡ Зв'яжіться з партнером`;
 
       if (botInstance && ADMIN_IDS.length > 0) {
         for (const adminId of ADMIN_IDS) {
@@ -3554,14 +3609,14 @@ export async function registerRoutes(
   app.get("/api/widget/verify/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
+      if (isNaN(userId) || userId <= 0) return res.status(400).json({ verified: false });
       const user = await storage.getUserById(userId);
       if (!user) return res.status(404).json({ verified: false });
       const tier = (user.tier || "FREE").toUpperCase();
       res.json({
         verified: true,
-        username: user.username || "User",
+        username: (user.username || "User").slice(0, 3) + "***",
         tier,
-        memberSince: user.createdAt?.toISOString(),
       });
     } catch {
       res.status(500).json({ verified: false });

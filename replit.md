@@ -4,6 +4,21 @@
 
 DARKSHARE is a professional security OSINT platform designed for analyzing 17 data types including blockchain wallets, IP addresses, email addresses, phone numbers, domains, URLs, CVEs, file hashes, usernames, bank card BINs, passwords, DNS records, SSL/TLS certificates, and MAC addresses. It aims to identify potential risks, provide AI-enhanced risk scoring, generate verifiable multi-page PDF reports, and offer real-time monitoring. The platform comprises a React-based landing page, a full web dashboard, and a Telegram bot, all backed by a PostgreSQL database. Its core purpose is to deliver comprehensive security intelligence and risk assessment to users.
 
+## Full Audit (Mar 31, 2026)
+- **Security: User data endpoint protected** — `/api/users/:tgId` now requires authentication; only the user themselves or admins can access; `cardToken` stripped from response
+- **Security: MonoPay webhook hardened** — Always verifies payment via Monobank API (`/merchant/invoice/status`); rejects if MONOBANK_TOKEN not set or API fails
+- **Security: File upload double-validation** — Validates both MIME type AND file extension; filenames sanitized with UUID to prevent collisions and path traversal; uploads directory blocks dotfiles and directory listing
+- **Security: Session/API key secrets** — Removed `Date.now()` dynamic fallback; uses stable deterministic fallback chain
+- **Security: Partnership input sanitized** — HTML/injection chars stripped, input capped at 200 chars before sending to admin Telegram
+- **Security: Settings type validation** — `notifsOn`/`digestsOn` require boolean, `lang` requires valid enum value
+- **Security: Widget user privacy** — Username masked to first 3 chars + `***`; userId validated as positive integer
+- **Security: Upload headers** — `X-Robots-Tag: noindex`, private Cache-Control on uploaded files
+- **Security: Error handler** — Multer errors now return proper 413/415 status codes; removed `throw err` after response
+- **Code quality: TIER_REQUESTS centralized** — All payment flows (MonoPay, CryptoPay, Stars, manual admin approve) now use shared `TIER_REQUESTS` constant map
+- **Code quality: File upload sanitization** — Filenames use UUID-based naming, extension whitelist enforced
+- **UX/A11y: Chat accessibility** — Added `aria-label` to all icon-only close/clear/cancel buttons; added `data-testid` to search clear, share close, emoji close buttons; fixed empty `alt` on file preview
+- **UX: ExifTool error messages** — Specific error messages for file too large (413), unsupported format (415), PRO-only (403) instead of generic "Failed to extract metadata"
+
 ## Recent Changes (Mar 2026)
 - **Security Headers Hardening**: Added comprehensive HTTP security headers — `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Strict-Transport-Security` (HSTS 1yr), `Referrer-Policy`, `Permissions-Policy` (camera/mic/geo disabled), full `Content-Security-Policy` with whitelisted sources. Disabled `X-Powered-By` header. Addresses all 11 OWASP scanner warnings.
 - **IP Validation Fix**: Enhanced IP validation to reject invalid octets (>255), reject first octet=0, reject all-zeros IP. Previously `883.837.938.938` passed regex but wasn't properly rejected.

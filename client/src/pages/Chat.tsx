@@ -171,7 +171,7 @@ function EmojiPicker({ onSelect, onClose }: { onSelect: (emoji: string) => void;
             </button>
           ))}
         </div>
-        <button onClick={onClose} className="text-muted-foreground hover:text-white p-1 hover:bg-white/5 rounded-md transition-colors">
+        <button onClick={onClose} className="text-muted-foreground hover:text-white p-1 hover:bg-white/5 rounded-md transition-colors" aria-label="Close emoji picker" data-testid="button-close-emoji">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -343,7 +343,7 @@ function ShareReportModal({ onClose, onShare }: { onClose: () => void; onShare: 
               {lang === "uk" ? "Поділитися перевіркою" : lang === "ru" ? "Поделиться проверкой" : "Share Check Result"}
             </h3>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-white p-1 rounded-md hover:bg-white/5">
+          <button onClick={onClose} className="text-muted-foreground hover:text-white p-1 rounded-md hover:bg-white/5" aria-label="Close share dialog" data-testid="button-close-share">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -1033,6 +1033,8 @@ export default function Chat() {
                           <button
                             onClick={() => setSearchQuery("")}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white"
+                            aria-label="Clear search"
+                            data-testid="button-clear-search"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -1205,6 +1207,7 @@ export default function Chat() {
                     <button
                       onClick={() => setReplyingTo(null)}
                       className="text-muted-foreground hover:text-white flex-shrink-0"
+                      aria-label="Cancel reply"
                       data-testid="button-cancel-reply"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -1218,12 +1221,13 @@ export default function Chat() {
                   >
                     <div className="relative inline-block">
                       {previewFile.type.startsWith("image/") ? (
-                        <img src={previewUrl} alt="" className="h-20 rounded-md object-cover border border-white/10" />
+                        <img src={previewUrl} alt="File preview" className="h-20 rounded-md object-cover border border-white/10" />
                       ) : (
                         <video src={previewUrl} className="h-20 rounded-md object-cover border border-white/10" />
                       )}
                       <button onClick={removePreview}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-400 transition-colors"
+                        aria-label="Remove file preview"
                         data-testid="button-remove-preview"
                       >
                         <X className="w-3 h-3 text-white" />
