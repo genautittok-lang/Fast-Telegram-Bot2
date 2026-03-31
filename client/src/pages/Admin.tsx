@@ -326,7 +326,7 @@ export default function Admin() {
   const { data: settings, isLoading: settingsLoading } = useQuery<PaymentSettings>({
     queryKey: ["/api/admin/settings"],
     queryFn: () => adminFetch("/api/admin/settings"),
-    enabled: !!isAdmin && activeTab === "settings",
+    enabled: !!isAdmin && (activeTab === "settings" || activeTab === "email"),
   });
 
   const { data: revenueData } = useQuery<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }>({
@@ -709,22 +709,22 @@ export default function Admin() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-4 relative z-10">
-        <div className="flex gap-1 overflow-x-auto pb-2 mb-6 border-b border-white/5 scrollbar-hide">
+        <div className="flex gap-1 overflow-x-auto pb-2 mb-4 sm:mb-6 border-b border-white/5 scrollbar-hide -mx-4 px-4 snap-x snap-mandatory">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all snap-start min-h-[40px] ${
                 activeTab === tab.id
                   ? "bg-primary/10 text-primary border border-primary/30"
                   : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
               }`}
               data-testid={`tab-${tab.id}`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">{tab.label}</span>
               {tab.count !== undefined && tab.count > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-red-500/20 text-red-400 border-none text-xs px-1.5 py-0">
+                <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-none text-[10px] px-1 py-0">
                   {tab.count}
                 </Badge>
               )}
@@ -2106,262 +2106,223 @@ export default function Admin() {
 
           {activeTab === "email" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Mail className="w-5 h-5 text-blue-400" />
-                Email розсилка
-              </h2>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-blue-400" />
+                  Email розсилка
+                </h2>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2.5 h-2.5 rounded-full ${settings?.dailyEmailEnabled ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-red-500'}`} />
+                  <span className={`text-xs font-semibold ${settings?.dailyEmailEnabled ? 'text-green-400' : 'text-red-400'}`}>
+                    Авто: {settings?.dailyEmailEnabled ? 'ON' : 'OFF'}
+                  </span>
+                </div>
+              </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <Card className="border-white/10 bg-white/5">
-                  <CardContent className="p-4 text-center">
-                    <Mail className="w-5 h-5 text-green-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold">{emailSubscribers?.total ?? 0}</p>
-                    <p className="text-xs text-muted-foreground">Підписників</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-white/10 bg-white/5">
-                  <CardContent className="p-4 text-center">
-                    <Clock className="w-5 h-5 text-blue-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold">{settings?.dailyEmailEnabled ? <span className="text-green-400">ON</span> : <span className="text-red-400">OFF</span>}</p>
-                    <p className="text-xs text-muted-foreground">Авторозсилка</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-white/10 bg-white/5">
-                  <CardContent className="p-4 text-center">
-                    <Send className="w-5 h-5 text-purple-400 mx-auto mb-2" />
-                    <p className="text-2xl font-bold">{settings?.dailyEmailLastReach || 0}</p>
-                    <p className="text-xs text-muted-foreground">Останнє авто</p>
-                  </CardContent>
-                </Card>
-                <Card className="border-white/10 bg-white/5">
-                  <CardContent className="p-4 text-center">
-                    <Calendar className="w-5 h-5 text-orange-400 mx-auto mb-2" />
-                    <p className="text-sm font-bold mt-1">{settings?.dailyEmailLastSent ? new Date(settings.dailyEmailLastSent).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</p>
-                    <p className="text-xs text-muted-foreground">Дата авто</p>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/15 to-emerald-500/5 border border-green-500/20 text-center">
+                  <Mail className="w-4 h-4 text-green-400 mx-auto mb-1" />
+                  <p className="text-xl sm:text-2xl font-bold">{emailSubscribers?.total ?? 0}</p>
+                  <p className="text-[10px] text-muted-foreground">Підписників</p>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/15 to-cyan-500/5 border border-blue-500/20 text-center">
+                  <Send className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+                  <p className="text-xl sm:text-2xl font-bold">{settings?.dailyEmailLastReach || 0}</p>
+                  <p className="text-[10px] text-muted-foreground">Останнє охоп.</p>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/15 to-pink-500/5 border border-purple-500/20 text-center">
+                  <Calendar className="w-4 h-4 text-purple-400 mx-auto mb-1" />
+                  <p className="text-xs sm:text-sm font-bold mt-0.5">{settings?.dailyEmailLastSent ? new Date(settings.dailyEmailLastSent).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</p>
+                  <p className="text-[10px] text-muted-foreground">Останнє авто</p>
+                </div>
+                <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500/15 to-yellow-500/5 border border-orange-500/20 text-center">
+                  <Button
+                    data-testid="button-toggle-daily-email"
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full h-auto py-1 px-2 ${settings?.dailyEmailEnabled ? "text-green-400 hover:text-green-300" : "text-red-400 hover:text-red-300"}`}
+                    onClick={async () => {
+                      try {
+                        await adminPost("/api/admin/settings", { dailyEmailEnabled: !settings?.dailyEmailEnabled });
+                        queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+                        toast({ title: settings?.dailyEmailEnabled ? "Авторозсилку вимкнено" : "Авторозсилку увімкнено" });
+                      } catch {
+                        toast({ title: "Помилка", variant: "destructive" });
+                      }
+                    }}
+                  >
+                    {settings?.dailyEmailEnabled ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground">{settings?.dailyEmailEnabled ? 'Натисни вимкнути' : 'Натисни увімкнути'}</p>
+                </div>
               </div>
 
               {emailResult && (
-                <Card className="border-green-500/20 bg-green-500/5">
-                  <CardContent className="p-4">
-                    <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-green-400" />
-                      Результат останньої ручної розсилки
-                    </p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center">
-                        <p className="text-xs text-muted-foreground">Всього</p>
-                        <p className="text-xl font-bold">{emailResult.total}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-center">
-                        <p className="text-xs text-green-400">Відправлено</p>
-                        <p className="text-xl font-bold text-green-400">{emailResult.sent}</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-                        <p className="text-xs text-red-400">Помилок</p>
-                        <p className="text-xl font-bold text-red-400">{emailResult.failed}</p>
-                      </div>
+                <div className="p-3 rounded-xl border border-green-500/20 bg-green-500/5">
+                  <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-green-400" />
+                    Результат розсилки
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="p-2 rounded-lg bg-white/5 text-center">
+                      <p className="text-[10px] text-muted-foreground">Всього</p>
+                      <p className="text-lg font-bold">{emailResult.total}</p>
                     </div>
-                    <div className="mt-3 w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${emailResult.total > 0 ? (emailResult.sent / emailResult.total * 100) : 0}%` }}></div>
+                    <div className="p-2 rounded-lg bg-green-500/10 text-center">
+                      <p className="text-[10px] text-green-400">OK</p>
+                      <p className="text-lg font-bold text-green-400">{emailResult.sent}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 text-right">{emailResult.total > 0 ? Math.round(emailResult.sent / emailResult.total * 100) : 0}% успішно</p>
-                  </CardContent>
-                </Card>
+                    <div className="p-2 rounded-lg bg-red-500/10 text-center">
+                      <p className="text-[10px] text-red-400">Fail</p>
+                      <p className="text-lg font-bold text-red-400">{emailResult.failed}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${emailResult.total > 0 ? (emailResult.sent / emailResult.total * 100) : 0}%` }}></div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1 text-right">{emailResult.total > 0 ? Math.round(emailResult.sent / emailResult.total * 100) : 0}%</p>
+                </div>
               )}
 
-              <Card className="border-white/10 bg-white/5">
-                <CardHeader>
-                  <CardTitle className="text-base">Створити розсилку</CardTitle>
-                  <CardDescription>Відправити email всім підписникам з бази даних</CardDescription>
+              <Card className="border-primary/20 bg-white/[0.03]">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Send className="w-4 h-4 text-primary" />
+                    Ручна розсилка
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Тема листа (Subject)</label>
+                <CardContent className="space-y-3">
+                  <Input
+                    data-testid="input-email-subject"
+                    placeholder="Тема листа"
+                    value={emailForm.subject}
+                    onChange={(e) => setEmailForm(f => ({ ...f, subject: e.target.value }))}
+                    className="bg-white/5 border-white/10 h-9 text-sm"
+                  />
+                  <Input
+                    data-testid="input-email-title"
+                    placeholder="Заголовок в тілі листа"
+                    value={emailForm.title}
+                    onChange={(e) => setEmailForm(f => ({ ...f, title: e.target.value }))}
+                    className="bg-white/5 border-white/10 h-9 text-sm"
+                  />
+                  <Textarea
+                    data-testid="input-email-body"
+                    placeholder="Текст повідомлення..."
+                    value={emailForm.body}
+                    onChange={(e) => setEmailForm(f => ({ ...f, body: e.target.value }))}
+                    className="bg-white/5 border-white/10 min-h-[80px] text-sm"
+                    rows={4}
+                  />
+                  <div className="flex gap-2">
                     <Input
-                      data-testid="input-email-subject"
-                      placeholder="Нові можливості DarkShare v4.5"
-                      value={emailForm.subject}
-                      onChange={(e) => setEmailForm(f => ({ ...f, subject: e.target.value }))}
-                      className="bg-white/5 border-white/10"
+                      data-testid="input-email-test"
+                      placeholder="test@email.com"
+                      value={emailForm.testEmail}
+                      onChange={(e) => setEmailForm(f => ({ ...f, testEmail: e.target.value }))}
+                      className="bg-white/5 border-white/10 h-9 text-sm flex-1"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Заголовок (в тілі листа)</label>
-                    <Input
-                      data-testid="input-email-title"
-                      placeholder="Великі оновлення вже тут!"
-                      value={emailForm.title}
-                      onChange={(e) => setEmailForm(f => ({ ...f, title: e.target.value }))}
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Текст повідомлення</label>
-                    <Textarea
-                      data-testid="input-email-body"
-                      placeholder="Привіт! Ми додали нові функції..."
-                      value={emailForm.body}
-                      onChange={(e) => setEmailForm(f => ({ ...f, body: e.target.value }))}
-                      className="bg-white/5 border-white/10 min-h-[120px]"
-                      rows={5}
-                    />
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1 flex gap-2">
-                      <Input
-                        data-testid="input-email-test"
-                        placeholder="test@email.com"
-                        value={emailForm.testEmail}
-                        onChange={(e) => setEmailForm(f => ({ ...f, testEmail: e.target.value }))}
-                        className="bg-white/5 border-white/10"
-                      />
-                      <Button
-                        data-testid="button-email-test"
-                        variant="outline"
-                        size="sm"
-                        disabled={emailSending || !emailForm.subject || !emailForm.title || !emailForm.body || !emailForm.testEmail}
-                        onClick={async () => {
-                          setEmailSending(true);
-                          try {
-                            await adminPost("/api/admin/email-test", {
-                              email: emailForm.testEmail,
-                              subject: emailForm.subject,
-                              title: emailForm.title,
-                              body: emailForm.body,
-                            });
-                            toast({ title: "Тестовий лист відправлено!" });
-                          } catch {
-                            toast({ title: "Помилка відправки", variant: "destructive" });
-                          }
-                          setEmailSending(false);
-                        }}
-                      >
-                        {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                        Тест
-                      </Button>
-                    </div>
                     <Button
-                      data-testid="button-email-broadcast"
-                      className="bg-blue-600 hover:bg-blue-700"
-                      disabled={emailSending || !emailForm.subject || !emailForm.title || !emailForm.body || !emailSubscribers?.total}
+                      data-testid="button-email-test"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-3 shrink-0"
+                      disabled={emailSending || !emailForm.subject || !emailForm.title || !emailForm.body || !emailForm.testEmail}
                       onClick={async () => {
-                        if (!confirm(`Відправити email ${emailSubscribers?.total} підписникам?`)) return;
                         setEmailSending(true);
-                        setEmailResult(null);
                         try {
-                          const result = await adminPost("/api/admin/email-broadcast", {
+                          await adminPost("/api/admin/email-test", {
+                            email: emailForm.testEmail,
                             subject: emailForm.subject,
                             title: emailForm.title,
                             body: emailForm.body,
                           });
-                          setEmailResult(result);
-                          toast({ title: `Розсилка завершена: ${result.sent} відправлено` });
+                          toast({ title: "Тестовий лист відправлено!" });
                         } catch {
-                          toast({ title: "Помилка розсилки", variant: "destructive" });
+                          toast({ title: "Помилка відправки", variant: "destructive" });
                         }
                         setEmailSending(false);
                       }}
                     >
-                      {emailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-                      Відправити всім ({emailSubscribers?.total ?? 0})
+                      {emailSending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                      <span className="ml-1 hidden sm:inline">Тест</span>
                     </Button>
                   </div>
+                  <Button
+                    data-testid="button-email-broadcast"
+                    className="w-full bg-blue-600 hover:bg-blue-700 h-10 text-sm font-semibold"
+                    disabled={emailSending || !emailForm.subject || !emailForm.title || !emailForm.body || !emailSubscribers?.total}
+                    onClick={async () => {
+                      if (!confirm(`Відправити email ${emailSubscribers?.total} підписникам?`)) return;
+                      setEmailSending(true);
+                      setEmailResult(null);
+                      try {
+                        const result = await adminPost("/api/admin/email-broadcast", {
+                          subject: emailForm.subject,
+                          title: emailForm.title,
+                          body: emailForm.body,
+                        });
+                        setEmailResult(result);
+                        toast({ title: `Розсилка завершена: ${result.sent}/${result.total}` });
+                      } catch {
+                        toast({ title: "Помилка розсилки", variant: "destructive" });
+                      }
+                      setEmailSending(false);
+                    }}
+                  >
+                    {emailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                    Відправити всім ({emailSubscribers?.total ?? 0})
+                  </Button>
                 </CardContent>
               </Card>
 
-              <Card className="border-green-500/20 bg-green-500/5">
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
+              <Card className="border-green-500/20 bg-green-500/[0.03]">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
                     <Clock className="w-4 h-4 text-green-400" />
-                    Автоматична щоденна розсилка
+                    Авто-розсилка (10:00 UTC)
                   </CardTitle>
-                  <CardDescription>Відправляється щодня о 10:00 UTC всім підписникам</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Статус</span>
-                    <Button
-                      data-testid="button-toggle-daily-email"
-                      variant="outline"
-                      size="sm"
-                      className={settings?.dailyEmailEnabled ? "border-green-500/30 text-green-400" : "border-white/10"}
-                      onClick={async () => {
-                        try {
-                          await adminPost("/api/admin/settings", { dailyEmailEnabled: !settings?.dailyEmailEnabled });
-                          queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
-                          toast({ title: settings?.dailyEmailEnabled ? "Авторозсилку вимкнено" : "Авторозсилку увімкнено" });
-                        } catch {
-                          toast({ title: "Помилка", variant: "destructive" });
-                        }
-                      }}
-                    >
-                      {settings?.dailyEmailEnabled ? <><ToggleRight className="w-4 h-4 mr-1" /> Увімкнено</> : <><ToggleLeft className="w-4 h-4 mr-1" /> Вимкнено</>}
-                    </Button>
-                  </div>
-
-                  {settings?.dailyEmailLastSent && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                        <p className="text-[10px] text-muted-foreground uppercase">Остання розсилка</p>
-                        <p className="text-sm font-mono font-bold mt-1">
-                          {new Date(settings.dailyEmailLastSent).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-                        <p className="text-[10px] text-muted-foreground uppercase">Охоплення</p>
-                        <p className="text-sm font-mono font-bold mt-1">{settings?.dailyEmailLastReach || 0} email</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Тема щоденного листа</label>
-                    <Input
-                      data-testid="input-daily-email-subject"
-                      placeholder="DarkShare — Щоденний дайджест"
-                      defaultValue={settings?.dailyEmailSubject || ""}
-                      onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailSubject: e.target.value })}
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Заголовок</label>
-                    <Input
-                      data-testid="input-daily-email-title"
-                      placeholder="Що нового сьогодні"
-                      defaultValue={settings?.dailyEmailTitle || ""}
-                      onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailTitle: e.target.value })}
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">Текст повідомлення</label>
-                    <Textarea
-                      data-testid="input-daily-email-body"
-                      placeholder="Привіт! Ось ваш щоденний дайджест безпеки..."
-                      defaultValue={settings?.dailyEmailBody || ""}
-                      onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailBody: e.target.value })}
-                      className="bg-white/5 border-white/10 min-h-[100px]"
-                      rows={4}
-                    />
-                  </div>
+                <CardContent className="space-y-3">
+                  <Input
+                    data-testid="input-daily-email-subject"
+                    placeholder="Тема щоденного листа"
+                    defaultValue={settings?.dailyEmailSubject || ""}
+                    onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailSubject: e.target.value })}
+                    className="bg-white/5 border-white/10 h-9 text-sm"
+                  />
+                  <Input
+                    data-testid="input-daily-email-title"
+                    placeholder="Заголовок"
+                    defaultValue={settings?.dailyEmailTitle || ""}
+                    onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailTitle: e.target.value })}
+                    className="bg-white/5 border-white/10 h-9 text-sm"
+                  />
+                  <Textarea
+                    data-testid="input-daily-email-body"
+                    placeholder="Текст автоматичного листа..."
+                    defaultValue={settings?.dailyEmailBody || ""}
+                    onBlur={(e) => adminPost("/api/admin/settings", { dailyEmailBody: e.target.value })}
+                    className="bg-white/5 border-white/10 min-h-[70px] text-sm"
+                    rows={3}
+                  />
                 </CardContent>
               </Card>
 
               {emailSubscribers && emailSubscribers.emails.length > 0 && (
-                <Card className="border-white/10 bg-white/5">
-                  <CardHeader>
-                    <CardTitle className="text-base">Список підписників ({emailSubscribers.total})</CardTitle>
+                <Card className="border-white/10 bg-white/[0.03]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center justify-between">
+                      <span>Підписники</span>
+                      <Badge variant="secondary" className="bg-green-500/10 text-green-400 border-green-500/20">{emailSubscribers.total}</Badge>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="max-h-[300px] overflow-y-auto space-y-1">
-                      {emailSubscribers.emails.map((email, i) => (
-                        <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/5 text-sm" data-testid={`email-subscriber-${i}`}>
-                          <Mail className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                          <span className="text-white/80 truncate">{email}</span>
+                    <div className="max-h-[200px] overflow-y-auto space-y-1">
+                      {emailSubscribers.emails.map((email: string, i: number) => (
+                        <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/5 text-xs" data-testid={`email-subscriber-${i}`}>
+                          <Mail className="w-3 h-3 text-green-400 shrink-0" />
+                          <span className="text-white/70 truncate">{email}</span>
                         </div>
                       ))}
                     </div>

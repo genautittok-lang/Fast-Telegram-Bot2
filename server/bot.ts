@@ -791,7 +791,13 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
       ],
       [
         cb(t(lang, "modules.card"), "mod_card", "primary", E.card),
-        cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary", E.shield)
+        cb(t(lang, "modules.bot") || "🤖 Bot Token", "mod_bot", "primary", E.shield),
+        cb(t(lang, "modules.password"), "mod_password", "primary", E.key)
+      ],
+      [
+        cb(t(lang, "modules.dns"), "mod_dns", "primary", E.globe),
+        cb(t(lang, "modules.ssl"), "mod_ssl", "primary", E.shield),
+        cb(t(lang, "modules.mac"), "mod_mac", "primary", E.bolt)
       ],
       [
         cb("📸 EXIF", "mod_exif", "primary", E.doc),
@@ -815,6 +821,11 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
         cb(t(lang, "modules.ip"), "mod_ip", "primary", E.globe),
         cb(t(lang, "modules.domain"), "mod_business", "primary", E.globe),
         cb(t(lang, "modules.url"), "mod_url", "primary", E.globe)
+      ],
+      [
+        cb(t(lang, "modules.dns"), "mod_dns", "primary", E.globe),
+        cb(t(lang, "modules.ssl"), "mod_ssl", "primary", E.shield),
+        cb(t(lang, "modules.mac"), "mod_mac", "primary", E.bolt)
       ],
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
@@ -872,7 +883,8 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
     const keyboard = Markup.inlineKeyboard([
       [
         cb(t(lang, "modules.cve"), "mod_cve", "primary", E.warn),
-        cb(t(lang, "modules.hash"), "mod_hash", "primary", E.key)
+        cb(t(lang, "modules.hash"), "mod_hash", "primary", E.key),
+        cb(t(lang, "modules.password"), "mod_password", "primary", E.key)
       ],
       [
         cb(t(lang, "modules.iot"), "mod_iot", "primary", E.bolt),
@@ -987,7 +999,7 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     });
   });
 
-  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username", "mod_card", "mod_bot"];
+  const moduleActions = ["mod_ip", "mod_wallet", "mod_phone", "mod_email", "mod_business", "mod_url", "mod_cve", "mod_hash", "mod_username", "mod_card", "mod_bot", "mod_password", "mod_dns", "mod_ssl", "mod_mac"];
   const moduleMap: Record<string, string> = {
     "mod_ip": "ip",
     "mod_wallet": "wallet", 
@@ -999,7 +1011,11 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     "mod_hash": "hash",
     "mod_username": "username",
     "mod_card": "card",
-    "mod_bot": "bot"
+    "mod_bot": "bot",
+    "mod_password": "password",
+    "mod_dns": "dns",
+    "mod_ssl": "ssl",
+    "mod_mac": "mac"
   };
 
   for (const action of moduleActions) {
@@ -1797,7 +1813,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       ip: "🌐", wallet: "💰", phone: "📱", 
       email: "📧", domain: "🏢", url: "🔗",
       cve: "🔓", hash: "🔢", username: "👤",
-      card: "💳", iot: "📡", cloud: "☁️"
+      card: "💳", iot: "📡", cloud: "☁️",
+      password: "🔑", dns: "🌍", ssl: "🔒", mac: "📡"
     };
 
     const moduleNames: Record<string, string> = {
@@ -1812,7 +1829,11 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       username: "USERNAME OSINT",
       card: t(lang, "checkResult.cardBinAnalysis"),
       iot: "IOT SCAN",
-      cloud: "CLOUD CHECK"
+      cloud: "CLOUD CHECK",
+      password: "PASSWORD CHECK",
+      dns: "DNS RECORDS",
+      ssl: "SSL/TLS CHECK",
+      mac: "MAC OUI LOOKUP"
     };
     
     // Create visual risk indicator
@@ -5074,7 +5095,7 @@ ${allTypesText}
     const checkType = args[1].toLowerCase();
     const target = args.slice(2).join(" ");
     
-    const validTypes = ["ip", "wallet", "email", "phone", "domain", "url", "username", "hash", "cve"];
+    const validTypes = ["ip", "wallet", "email", "phone", "domain", "url", "username", "hash", "cve", "password", "dns", "ssl", "mac"];
     if (!validTypes.includes(checkType)) {
       return ctx.reply(t(lang, "quickCheck.unknownType", { type: checkType, available: validTypes.join(", ") }));
     }
@@ -5316,6 +5337,10 @@ ${allTypesText}
       hash: { label: "Hash Analysis", emoji: "🔢", example: "d41d8cd9...", desc: "Malware check, VirusTotal, signatures" },
       username: { label: "Username OSINT", emoji: "👤", example: "johndoe", desc: "Social media, forums, breaches" },
       card: { label: "BIN Lookup", emoji: "💳", example: "424242", desc: "Bank, card type, country" },
+      password: { label: "Password Check", emoji: "🔑", example: "MyP@ss123", desc: "Entropy, complexity, crack time" },
+      dns: { label: "DNS Records", emoji: "🌍", example: "example.com", desc: "A, AAAA, MX, NS, TXT, CNAME, SOA" },
+      ssl: { label: "SSL/TLS Check", emoji: "🔒", example: "google.com", desc: "Certificate, expiry, trust chain" },
+      mac: { label: "MAC OUI Lookup", emoji: "📡", example: "AA:BB:CC:DD:EE:FF", desc: "Device manufacturer, type" },
     };
 
     if (!query) {
