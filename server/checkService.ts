@@ -80,8 +80,8 @@ export function validateInput(type: string, value: string): { valid: boolean; er
       }
       break;
     case "url":
-      if (!cleanValue.match(/^https?:\/\/.+\..+/)) {
-        return { valid: false, error: "URL має починатися з http:// або https://" };
+      if (!cleanValue.match(/^https?:\/\/[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)+/)) {
+        return { valid: false, error: "URL має починатися з http:// або https:// та містити валідний домен" };
       }
       break;
     case "phone":
@@ -342,22 +342,26 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
-  // API 4: DNS Blacklist check
+  // API 4: DNS Blacklist check (parallel)
   try {
     const reversedIP = value.split('.').reverse().join('.');
     const dnsblServers = ["zen.spamhaus.org", "bl.spamcop.net", "dnsbl.sorbs.net"];
     
-    for (const dnsbl of dnsblServers) {
-      try {
+    const dnsblResults = await Promise.allSettled(
+      dnsblServers.map(async (dnsbl) => {
         const response = await fetchWithTimeout(`https://dns.google/resolve?name=${reversedIP}.${dnsbl}&type=A`, 2000);
         const dnsData = await response.json();
-        if (dnsData.Answer && dnsData.Answer.length > 0) {
-          riskScore += 35;
-          findings.push(`🔴 В чорному списку: ${dnsbl}`);
-          sources.push(dnsbl);
-          break;
-        }
-      } catch {}
+        return { dnsbl, listed: !!(dnsData.Answer && dnsData.Answer.length > 0) };
+      })
+    );
+    let blacklisted = false;
+    for (const r of dnsblResults) {
+      if (r.status === "fulfilled" && r.value.listed && !blacklisted) {
+        riskScore += 35;
+        findings.push(`🔴 В чорному списку: ${r.value.dnsbl}`);
+        sources.push(r.value.dnsbl);
+        blacklisted = true;
+      }
     }
   } catch {}
   
@@ -447,7 +451,9 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
-  if (findings.length === 0) {
+  if (sources.length <= 1) {
+    findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
+  } else if (findings.length === 0) {
     findings.push("✅ Чистий IP без підозрілих ознак");
   }
   
@@ -1293,6 +1299,10 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     }
   }
   
+  if (sources.length <= 1) {
+    findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
+  }
+
   riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
@@ -3010,111 +3020,116 @@ async function checkDNS(value: string, timestamp: Date): Promise<CheckResult> {
 
   const recordTypes = ['A', 'AAAA', 'MX', 'NS', 'TXT', 'CNAME', 'SOA', 'CAA'];
 
-  for (const type of recordTypes) {
-    try {
+  const dnsResults = await Promise.allSettled(
+    recordTypes.map(async (type) => {
       const response = await fetchWithTimeout(`https://dns.google/resolve?name=${domain}&type=${type}`, 3000);
-      if (response.ok) {
-        const data = await response.json();
-        if (!sources.includes("dns.google")) sources.push("dns.google");
+      if (!response.ok) return { type, records: null };
+      const data = await response.json();
+      const records = data.Answer?.map((a: any) => a.data).filter(Boolean) || [];
+      return { type, records: records.length > 0 ? records : null };
+    })
+  );
 
-        if (data.Answer && data.Answer.length > 0) {
-          const records = data.Answer.map((a: any) => a.data).filter(Boolean);
-          dnsData[`${type}_records`] = records;
+  for (const result of dnsResults) {
+    if (result.status !== "fulfilled") continue;
+    const { type, records } = result.value;
+    if (!sources.includes("dns.google")) sources.push("dns.google");
 
-          switch (type) {
-            case 'A':
-              findings.push(`📍 A записи: ${records.slice(0, 3).join(", ")}${records.length > 3 ? "..." : ""}`);
-              dnsData.ipCount = records.length;
-              if (records.length > 5) {
-                findings.push("⚡ CDN/Load Balancer (багато A записів)");
-              }
-              break;
-            case 'AAAA':
-              findings.push(`🌐 IPv6: ${records.length} записів`);
-              dnsData.hasIPv6 = true;
-              break;
-            case 'MX':
-              findings.push(`📧 MX: ${records.slice(0, 2).map((r: string) => r.split(' ').pop()).join(", ")}`);
-              dnsData.hasMX = true;
-              const mxProviders: Record<string, string> = {
-                "google": "Google Workspace",
-                "outlook": "Microsoft 365",
-                "protonmail": "ProtonMail",
-                "zoho": "Zoho Mail",
-                "yandex": "Yandex Mail"
-              };
-              for (const [key, provider] of Object.entries(mxProviders)) {
-                if (records.some((r: string) => r.toLowerCase().includes(key))) {
-                  findings.push(`📬 Пошта: ${provider}`);
-                  dnsData.mailProvider = provider;
-                  break;
-                }
-              }
-              break;
-            case 'NS':
-              findings.push(`🔧 NS: ${records.slice(0, 3).map((r: string) => r.replace(/\.$/, '')).join(", ")}`);
-              const nsProviders: Record<string, string> = {
-                "cloudflare": "Cloudflare",
-                "awsdns": "AWS Route53",
-                "azure": "Azure DNS",
-                "google": "Google DNS",
-                "digitalocean": "DigitalOcean"
-              };
-              for (const [key, provider] of Object.entries(nsProviders)) {
-                if (records.some((r: string) => r.toLowerCase().includes(key))) {
-                  findings.push(`☁️ DNS-провайдер: ${provider}`);
-                  dnsData.dnsProvider = provider;
-                  break;
-                }
-              }
-              break;
-            case 'TXT':
-              dnsData.txtCount = records.length;
-              const spfRecord = records.find((r: string) => r.includes('v=spf'));
-              const dmarcCheck = records.find((r: string) => r.includes('v=DMARC'));
-              const dkimHint = records.find((r: string) => r.includes('v=DKIM'));
-              const googleVerify = records.find((r: string) => r.includes('google-site-verification'));
+    if (records && records.length > 0) {
+      dnsData[`${type}_records`] = records;
 
-              if (spfRecord) {
-                findings.push("✅ SPF запис знайдено");
-                dnsData.hasSPF = true;
-                if (spfRecord.includes('-all')) {
-                  findings.push("🔒 Strict SPF (-all)");
-                } else if (spfRecord.includes('~all')) {
-                  findings.push("⚠️ Soft-fail SPF (~all)");
-                  riskScore += 5;
-                }
-              } else {
-                riskScore += 15;
-                findings.push("🔴 Немає SPF (спам-ризик)");
-                dnsData.hasSPF = false;
-              }
-
-              if (googleVerify) findings.push("🔍 Google Site Verification");
-              findings.push(`📝 TXT записів: ${records.length}`);
-              break;
-            case 'CNAME':
-              findings.push(`🔗 CNAME: ${records[0]}`);
-              break;
-            case 'SOA':
-              const soaParts = records[0]?.split(' ');
-              if (soaParts && soaParts.length >= 2) {
-                dnsData.primaryNS = soaParts[0];
-                dnsData.adminEmail = soaParts[1]?.replace(/\.$/, '').replace('.', '@');
-              }
-              break;
-            case 'CAA':
-              findings.push(`🔐 CAA: ${records.slice(0, 2).join(", ")}`);
-              dnsData.hasCAA = true;
-              break;
+      switch (type) {
+        case 'A':
+          findings.push(`📍 A записи: ${records.slice(0, 3).join(", ")}${records.length > 3 ? "..." : ""}`);
+          dnsData.ipCount = records.length;
+          if (records.length > 5) {
+            findings.push("⚡ CDN/Load Balancer (багато A записів)");
           }
-        } else if (type === 'A') {
-          riskScore += 20;
-          findings.push("⚠️ Немає A записів!");
-          dnsData.hasARecord = false;
-        }
+          break;
+        case 'AAAA':
+          findings.push(`🌐 IPv6: ${records.length} записів`);
+          dnsData.hasIPv6 = true;
+          break;
+        case 'MX':
+          findings.push(`📧 MX: ${records.slice(0, 2).map((r: string) => r.split(' ').pop()).join(", ")}`);
+          dnsData.hasMX = true;
+          const mxProviders: Record<string, string> = {
+            "google": "Google Workspace",
+            "outlook": "Microsoft 365",
+            "protonmail": "ProtonMail",
+            "zoho": "Zoho Mail",
+            "yandex": "Yandex Mail"
+          };
+          for (const [key, provider] of Object.entries(mxProviders)) {
+            if (records.some((r: string) => r.toLowerCase().includes(key))) {
+              findings.push(`📬 Пошта: ${provider}`);
+              dnsData.mailProvider = provider;
+              break;
+            }
+          }
+          break;
+        case 'NS':
+          findings.push(`🔧 NS: ${records.slice(0, 3).map((r: string) => r.replace(/\.$/, '')).join(", ")}`);
+          const nsProviders: Record<string, string> = {
+            "cloudflare": "Cloudflare",
+            "awsdns": "AWS Route53",
+            "azure": "Azure DNS",
+            "google": "Google DNS",
+            "digitalocean": "DigitalOcean"
+          };
+          for (const [key, provider] of Object.entries(nsProviders)) {
+            if (records.some((r: string) => r.toLowerCase().includes(key))) {
+              findings.push(`☁️ DNS-провайдер: ${provider}`);
+              dnsData.dnsProvider = provider;
+              break;
+            }
+          }
+          break;
+        case 'TXT':
+          dnsData.txtCount = records.length;
+          const spfRecord = records.find((r: string) => r.includes('v=spf'));
+          const dmarcCheck = records.find((r: string) => r.includes('v=DMARC'));
+          const dkimHint = records.find((r: string) => r.includes('v=DKIM'));
+          const googleVerify = records.find((r: string) => r.includes('google-site-verification'));
+
+          if (spfRecord) {
+            findings.push("✅ SPF запис знайдено");
+            dnsData.hasSPF = true;
+            if (spfRecord.includes('-all')) {
+              findings.push("🔒 Strict SPF (-all)");
+            } else if (spfRecord.includes('~all')) {
+              findings.push("⚠️ Soft-fail SPF (~all)");
+              riskScore += 5;
+            }
+          } else {
+            riskScore += 15;
+            findings.push("🔴 Немає SPF (спам-ризик)");
+            dnsData.hasSPF = false;
+          }
+
+          if (googleVerify) findings.push("🔍 Google Site Verification");
+          findings.push(`📝 TXT записів: ${records.length}`);
+          break;
+        case 'CNAME':
+          findings.push(`🔗 CNAME: ${records[0]}`);
+          break;
+        case 'SOA':
+          const soaParts = records[0]?.split(' ');
+          if (soaParts && soaParts.length >= 2) {
+            dnsData.primaryNS = soaParts[0];
+            dnsData.adminEmail = soaParts[1]?.replace(/\.$/, '').replace('.', '@');
+          }
+          break;
+        case 'CAA':
+          findings.push(`🔐 CAA: ${records.slice(0, 2).join(", ")}`);
+          dnsData.hasCAA = true;
+          break;
       }
-    } catch {}
+    } else if (type === 'A') {
+      riskScore += 20;
+      findings.push("⚠️ Немає A записів!");
+      dnsData.hasARecord = false;
+    }
   }
 
   // DMARC check (separate _dmarc subdomain)

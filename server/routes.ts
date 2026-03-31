@@ -3006,8 +3006,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/admin/users/:id/checks", requireAdmin, async (req, res) => {
-    const { amount } = req.body;
-    if (!amount || amount < 1) return res.status(400).json({ error: "Invalid amount" });
+    const amount = parseInt(req.body.amount, 10);
+    if (!Number.isFinite(amount) || amount < 1 || amount > 10000) return res.status(400).json({ error: "Invalid amount (1-10000)" });
     try {
       const user = await storage.addChecksToUser(parseInt(req.params.id), amount);
       res.json(user);

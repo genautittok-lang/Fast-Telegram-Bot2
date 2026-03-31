@@ -39,6 +39,14 @@ DARKSHARE is a professional security OSINT platform designed for analyzing 17 da
 - **URL** — Added **PhishTank** as free fallback when Google Safe Browsing key not set; URLhaus already existed
 - **Hash** — Added **ThreatFox** (IOC lookup, fallback for VT) + **CIRCL hashlookup** (known file DB — always runs)
 
+### Second Pass Audit Fixes (Mar 31, 2026)
+- **Performance: DNS checks parallelized** — 8 DNS record type queries now run via `Promise.allSettled` instead of sequential `await` loop (3x faster)
+- **Performance: DNSBL checks parallelized** — 3 blacklist lookups run in parallel instead of sequential loop
+- **Memory leak: Bot userStates cleanup** — Added auto-expiry (30min) via wrapper pattern; stale states cleaned every 5min
+- **Fail-open prevention** — IP and email checks now warn "Низька достовірність" when most API sources fail (prevents false "safe" results)
+- **URL validation strengthened** — Regex now requires valid domain format (rejects `http://.local`, `http://-.-`)
+- **Admin amount validation** — `/api/admin/users/:id/checks` now parses as integer, validates 1-10000 range
+
 ## Recent Changes (Mar 2026)
 - **Security Headers Hardening**: Added comprehensive HTTP security headers — `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Strict-Transport-Security` (HSTS 1yr), `Referrer-Policy`, `Permissions-Policy` (camera/mic/geo disabled), full `Content-Security-Policy` with whitelisted sources. Disabled `X-Powered-By` header. Addresses all 11 OWASP scanner warnings.
 - **IP Validation Fix**: Enhanced IP validation to reject invalid octets (>255), reject first octet=0, reject all-zeros IP. Previously `883.837.938.938` passed regex but wasn't properly rejected.

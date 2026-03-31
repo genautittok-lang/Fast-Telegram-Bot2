@@ -313,8 +313,22 @@ export async function setupBot(storage: IStorage) {
   bot.telegram.setChatMenuButton({ menuButton: { type: "commands" } })
     .catch(err => console.error("Failed to reset menu button:", err.message));
 
-  const userStates: Map<string, { module?: string; step?: string; data?: any }> = new Map();
+  const _userStatesMap = new Map<string, { module?: string; step?: string; data?: any; _ts: number }>();
+  const userStates = {
+    get: (key: string) => _userStatesMap.get(key),
+    set: (key: string, val: any) => { _userStatesMap.set(key, { ...val, _ts: Date.now() }); },
+    delete: (key: string) => _userStatesMap.delete(key),
+    has: (key: string) => _userStatesMap.has(key),
+  };
   const pendingReferrals: Map<string, string> = new Map();
+
+  setInterval(() => {
+    const now = Date.now();
+    const STALE_MS = 30 * 60 * 1000;
+    for (const [key, val] of _userStatesMap) {
+      if (now - val._ts > STALE_MS) _userStatesMap.delete(key);
+    }
+  }, 5 * 60 * 1000);
 
   async function creditPendingReferral(user: any) {
     if (!user?.pendingRefCode) return;
