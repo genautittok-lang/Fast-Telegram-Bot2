@@ -3028,6 +3028,68 @@ export async function registerRoutes(
     }
   });
 
+  // ============ Email Broadcast (Resend) ============
+
+  app.get("/api/admin/email-subscribers", requireAdmin, async (_req, res) => {
+    try {
+      const result = await pool.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != '' ORDER BY created_at DESC");
+      const emails = result.rows.map((r: any) => r.email);
+      res.json({ emails, total: emails.length });
+    } catch (err: any) {
+      console.error("[Email Subscribers] Error:", err);
+      res.status(500).json({ error: "Failed to fetch subscribers" });
+    }
+  });
+
+  app.post("/api/admin/email-broadcast", requireAdmin, async (req, res) => {
+    const { subject, title, body: msgBody, recipients } = req.body;
+    if (!subject || !title || !msgBody) {
+      return res.status(400).json({ error: "subject, title and body required" });
+    }
+
+    try {
+      const { sendEmailBroadcast, buildBroadcastHtml } = await import("./emailService");
+      const html = buildBroadcastHtml(title, msgBody);
+
+      let targetEmails: string[];
+      if (recipients && Array.isArray(recipients) && recipients.length > 0) {
+        targetEmails = recipients;
+      } else {
+        const result = await pool.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != ''");
+        targetEmails = result.rows.map((r: any) => r.email);
+      }
+
+      if (targetEmails.length === 0) {
+        return res.status(400).json({ error: "No email recipients found" });
+      }
+
+      console.log(`[Email Broadcast] Sending to ${targetEmails.length} recipients, subject: "${subject}"`);
+      const result = await sendEmailBroadcast({ to: targetEmails, subject, html });
+      console.log(`[Email Broadcast] Done: ${result.sent} sent, ${result.failed} failed`);
+      res.json({ ...result, total: targetEmails.length });
+    } catch (err: any) {
+      console.error("[Email Broadcast] Error:", err);
+      res.status(500).json({ error: "Failed to send email broadcast" });
+    }
+  });
+
+  app.post("/api/admin/email-test", requireAdmin, async (req, res) => {
+    const { email, subject, title, body: msgBody } = req.body;
+    if (!email || !subject || !title || !msgBody) {
+      return res.status(400).json({ error: "email, subject, title and body required" });
+    }
+
+    try {
+      const { sendSingleEmail, buildBroadcastHtml } = await import("./emailService");
+      const html = buildBroadcastHtml(title, msgBody);
+      await sendSingleEmail(email, subject, html);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("[Email Test] Error:", err);
+      res.status(500).json({ error: "Failed to send test email" });
+    }
+  });
+
   // ============ Admin Analytics ============
 
   app.get("/api/admin/revenue", requireAdmin, async (req, res) => {

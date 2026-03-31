@@ -187,7 +187,7 @@ interface ActivityLogResponse {
   offset: number;
 }
 
-type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages" | "activity" | "banners";
+type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages" | "activity" | "banners" | "email";
 
 function generateCouponCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -261,6 +261,15 @@ export default function Admin() {
     showForTiers: ["FREE", "PRO"],
   });
   const [editingBannerId, setEditingBannerId] = useState<number | null>(null);
+
+  const [emailForm, setEmailForm] = useState({
+    subject: "",
+    title: "",
+    body: "",
+    testEmail: "",
+  });
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult, setEmailResult] = useState<{ sent: number; failed: number; total: number } | null>(null);
 
   const adminFetch = async (url: string) => {
     const res = await fetch(url, { headers: { "x-admin-token": adminToken } });
@@ -401,6 +410,12 @@ export default function Admin() {
     queryKey: ["/api/admin/banners"],
     queryFn: () => adminFetch("/api/admin/banners"),
     enabled: !!isAdmin && activeTab === "banners",
+  });
+
+  const { data: emailSubscribers } = useQuery<{ emails: string[]; total: number }>({
+    queryKey: ["/api/admin/email-subscribers"],
+    queryFn: () => adminFetch("/api/admin/email-subscribers"),
+    enabled: !!isAdmin && activeTab === "email",
   });
 
   const [activityPage, setActivityPage] = useState(0);
@@ -613,6 +628,7 @@ export default function Admin() {
     { id: "users", label: "Користувачі", icon: Users },
     { id: "coupons", label: "Купони", icon: Ticket },
     { id: "banners", label: "Банери", icon: Megaphone },
+    { id: "email", label: "Email", icon: Mail },
     { id: "settings", label: "Налаштування", icon: Settings },
   ];
 
@@ -2079,6 +2095,162 @@ export default function Admin() {
                   </Card>
                 ))}
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === "email" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Mail className="w-5 h-5 text-blue-400" />
+                Email розсилка
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-white/10 bg-white/5">
+                  <CardContent className="p-4 text-center">
+                    <Mail className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                    <p className="text-2xl font-bold">{emailSubscribers?.total ?? 0}</p>
+                    <p className="text-xs text-muted-foreground">Підписників</p>
+                  </CardContent>
+                </Card>
+                {emailResult && (
+                  <>
+                    <Card className="border-green-500/20 bg-green-500/5">
+                      <CardContent className="p-4 text-center">
+                        <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                        <p className="text-2xl font-bold text-green-400">{emailResult.sent}</p>
+                        <p className="text-xs text-muted-foreground">Відправлено</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-red-500/20 bg-red-500/5">
+                      <CardContent className="p-4 text-center">
+                        <AlertCircle className="w-6 h-6 text-red-400 mx-auto mb-2" />
+                        <p className="text-2xl font-bold text-red-400">{emailResult.failed}</p>
+                        <p className="text-xs text-muted-foreground">Помилок</p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base">Створити розсилку</CardTitle>
+                  <CardDescription>Відправити email всім підписникам з бази даних</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Тема листа (Subject)</label>
+                    <Input
+                      data-testid="input-email-subject"
+                      placeholder="Нові можливості DarkShare v4.5"
+                      value={emailForm.subject}
+                      onChange={(e) => setEmailForm(f => ({ ...f, subject: e.target.value }))}
+                      className="bg-white/5 border-white/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Заголовок (в тілі листа)</label>
+                    <Input
+                      data-testid="input-email-title"
+                      placeholder="Великі оновлення вже тут!"
+                      value={emailForm.title}
+                      onChange={(e) => setEmailForm(f => ({ ...f, title: e.target.value }))}
+                      className="bg-white/5 border-white/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">Текст повідомлення</label>
+                    <Textarea
+                      data-testid="input-email-body"
+                      placeholder="Привіт! Ми додали нові функції..."
+                      value={emailForm.body}
+                      onChange={(e) => setEmailForm(f => ({ ...f, body: e.target.value }))}
+                      className="bg-white/5 border-white/10 min-h-[120px]"
+                      rows={5}
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1 flex gap-2">
+                      <Input
+                        data-testid="input-email-test"
+                        placeholder="test@email.com"
+                        value={emailForm.testEmail}
+                        onChange={(e) => setEmailForm(f => ({ ...f, testEmail: e.target.value }))}
+                        className="bg-white/5 border-white/10"
+                      />
+                      <Button
+                        data-testid="button-email-test"
+                        variant="outline"
+                        size="sm"
+                        disabled={emailSending || !emailForm.subject || !emailForm.title || !emailForm.body || !emailForm.testEmail}
+                        onClick={async () => {
+                          setEmailSending(true);
+                          try {
+                            await adminPost("/api/admin/email-test", {
+                              email: emailForm.testEmail,
+                              subject: emailForm.subject,
+                              title: emailForm.title,
+                              body: emailForm.body,
+                            });
+                            toast({ title: "Тестовий лист відправлено!" });
+                          } catch {
+                            toast({ title: "Помилка відправки", variant: "destructive" });
+                          }
+                          setEmailSending(false);
+                        }}
+                      >
+                        {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                        Тест
+                      </Button>
+                    </div>
+                    <Button
+                      data-testid="button-email-broadcast"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={emailSending || !emailForm.subject || !emailForm.title || !emailForm.body || !emailSubscribers?.total}
+                      onClick={async () => {
+                        if (!confirm(`Відправити email ${emailSubscribers?.total} підписникам?`)) return;
+                        setEmailSending(true);
+                        setEmailResult(null);
+                        try {
+                          const result = await adminPost("/api/admin/email-broadcast", {
+                            subject: emailForm.subject,
+                            title: emailForm.title,
+                            body: emailForm.body,
+                          });
+                          setEmailResult(result);
+                          toast({ title: `Розсилка завершена: ${result.sent} відправлено` });
+                        } catch {
+                          toast({ title: "Помилка розсилки", variant: "destructive" });
+                        }
+                        setEmailSending(false);
+                      }}
+                    >
+                      {emailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                      Відправити всім ({emailSubscribers?.total ?? 0})
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {emailSubscribers && emailSubscribers.emails.length > 0 && (
+                <Card className="border-white/10 bg-white/5">
+                  <CardHeader>
+                    <CardTitle className="text-base">Список підписників ({emailSubscribers.total})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="max-h-[300px] overflow-y-auto space-y-1">
+                      {emailSubscribers.emails.map((email, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/5 text-sm" data-testid={`email-subscriber-${i}`}>
+                          <Mail className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                          <span className="text-white/80 truncate">{email}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </motion.div>
           )}
 
