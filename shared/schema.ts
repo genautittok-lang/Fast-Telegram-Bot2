@@ -227,6 +227,7 @@ export const adBanners = pgTable("ds_ad_banners", {
   title: text("title").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
+  mediaType: text("media_type").default("image"),
   linkUrl: text("link_url"),
   linkText: text("link_text"),
   bgGradient: text("bg_gradient").default("from-purple-600/20 via-pink-500/10 to-transparent"),

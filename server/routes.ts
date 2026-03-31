@@ -3220,7 +3220,7 @@ export async function registerRoutes(
       const result = await pool.query(`SELECT * FROM ds_ad_banners WHERE is_active = true AND position = 'dashboard' ORDER BY priority DESC`);
       res.json(result.rows.map((r: any) => ({
         id: r.id, title: r.title, description: r.description, imageUrl: r.image_url,
-        linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient,
+        mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient,
         position: r.position, isActive: r.is_active, priority: r.priority,
         showForTiers: r.show_for_tiers, createdAt: r.created_at,
       })));
@@ -3234,7 +3234,7 @@ export async function registerRoutes(
       const result = await pool.query(`SELECT * FROM ds_ad_banners ORDER BY created_at DESC`);
       res.json(result.rows.map((r: any) => ({
         id: r.id, title: r.title, description: r.description, imageUrl: r.image_url,
-        linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient,
+        mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient,
         position: r.position, isActive: r.is_active, priority: r.priority,
         showForTiers: r.show_for_tiers, createdAt: r.created_at,
       })));
@@ -3243,18 +3243,35 @@ export async function registerRoutes(
     }
   });
 
+  const bannerUpload = multer({ storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadsDir),
+    filename: (_req, file, cb) => cb(null, `banner-${Date.now()}-${sanitizeFilename(file.originalname)}`),
+  }), limits: { fileSize: 50 * 1024 * 1024 }, fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"];
+    const ext = file.originalname.slice(file.originalname.lastIndexOf('.')).toLowerCase();
+    const safeExts = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp4", ".mov", ".webm"]);
+    cb(null, allowed.includes(file.mimetype) && safeExts.has(ext));
+  } });
+
+  app.post("/api/admin/banners/upload", requireAdmin, bannerUpload.single("media"), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    const isVideo = req.file.mimetype.startsWith("video/");
+    res.json({ url: `/uploads/${req.file.filename}`, mediaType: isVideo ? "video" : "image", filename: req.file.filename });
+  });
+
   app.post("/api/admin/banners", requireAdmin, async (req, res) => {
     try {
-      const { title, description, imageUrl, linkUrl, linkText, bgGradient, position, isActive, priority, showForTiers } = req.body;
+      const { title, description, imageUrl, mediaType, linkUrl, linkText, bgGradient, position, isActive, priority, showForTiers } = req.body;
       if (!title || typeof title !== 'string' || title.length > 200) return res.status(400).json({ error: "Invalid title" });
-      if (linkUrl && !/^https?:\/\//i.test(linkUrl)) return res.status(400).json({ error: "Link URL must start with http:// or https://" });
-      if (imageUrl && !/^https?:\/\//i.test(imageUrl)) return res.status(400).json({ error: "Image URL must start with http:// or https://" });
+      if (linkUrl && linkUrl.length > 0 && !/^https?:\/\//i.test(linkUrl)) return res.status(400).json({ error: "Link URL must start with http:// or https://" });
+      const validMediaTypes = ["image", "video"];
+      const safeMediaType = validMediaTypes.includes(mediaType) ? mediaType : "image";
       const result = await pool.query(
-        `INSERT INTO ds_ad_banners (title, description, image_url, link_url, link_text, bg_gradient, position, is_active, priority, show_for_tiers) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-        [title, description || null, imageUrl || null, linkUrl || null, linkText || null, bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent', position || 'dashboard', isActive !== false, priority || 0, showForTiers || ['FREE','PRO']]
+        `INSERT INTO ds_ad_banners (title, description, image_url, media_type, link_url, link_text, bg_gradient, position, is_active, priority, show_for_tiers) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+        [title, description || null, imageUrl || null, safeMediaType, linkUrl || null, linkText || null, bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent', position || 'dashboard', isActive !== false, priority || 0, showForTiers || ['FREE','PRO']]
       );
       const r = result.rows[0];
-      res.json({ id: r.id, title: r.title, description: r.description, imageUrl: r.image_url, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient, position: r.position, isActive: r.is_active, priority: r.priority, showForTiers: r.show_for_tiers, createdAt: r.created_at });
+      res.json({ id: r.id, title: r.title, description: r.description, imageUrl: r.image_url, mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient, position: r.position, isActive: r.is_active, priority: r.priority, showForTiers: r.show_for_tiers, createdAt: r.created_at });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }
@@ -3264,11 +3281,10 @@ export async function registerRoutes(
     try {
       const id = parseInt(req.params.id);
       if (req.body.linkUrl && !/^https?:\/\//i.test(req.body.linkUrl)) return res.status(400).json({ error: "Link URL must start with http:// or https://" });
-      if (req.body.imageUrl && !/^https?:\/\//i.test(req.body.imageUrl)) return res.status(400).json({ error: "Image URL must start with http:// or https://" });
       const fields: string[] = [];
       const values: any[] = [];
       let idx = 1;
-      const fieldMap: Record<string, string> = { title: 'title', description: 'description', imageUrl: 'image_url', linkUrl: 'link_url', linkText: 'link_text', bgGradient: 'bg_gradient', position: 'position', isActive: 'is_active', priority: 'priority', showForTiers: 'show_for_tiers' };
+      const fieldMap: Record<string, string> = { title: 'title', description: 'description', imageUrl: 'image_url', mediaType: 'media_type', linkUrl: 'link_url', linkText: 'link_text', bgGradient: 'bg_gradient', position: 'position', isActive: 'is_active', priority: 'priority', showForTiers: 'show_for_tiers' };
       for (const [key, col] of Object.entries(fieldMap)) {
         if (req.body[key] !== undefined) { fields.push(`${col} = $${idx++}`); values.push(req.body[key]); }
       }
@@ -3276,7 +3292,7 @@ export async function registerRoutes(
       values.push(id);
       const result = await pool.query(`UPDATE ds_ad_banners SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`, values);
       const r = result.rows[0];
-      res.json({ id: r.id, title: r.title, description: r.description, imageUrl: r.image_url, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient, position: r.position, isActive: r.is_active, priority: r.priority, showForTiers: r.show_for_tiers, createdAt: r.created_at });
+      res.json({ id: r.id, title: r.title, description: r.description, imageUrl: r.image_url, mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient, position: r.position, isActive: r.is_active, priority: r.priority, showForTiers: r.show_for_tiers, createdAt: r.created_at });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }

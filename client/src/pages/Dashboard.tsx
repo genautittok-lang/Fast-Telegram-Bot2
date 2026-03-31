@@ -82,7 +82,10 @@ import {
   Navigation,
   Compass,
   ArrowLeft,
-  Megaphone
+  Megaphone,
+  Play,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -834,8 +837,17 @@ export default function Dashboard() {
   const { t, lang } = useTranslation();
   const { data: platformStats } = useStats();
   const { showTour, completeTour } = useOnboardingTour();
-  const [dismissedBanners, setDismissedBanners] = useState<number[]>([]);
-  const { data: adBanners } = useQuery<Array<{ id: number; title: string; description?: string; imageUrl?: string; linkUrl?: string; linkText?: string; bgGradient?: string; showForTiers?: string[] }>>({
+  const [dismissedBanners, setDismissedBanners] = useState<number[]>(() => {
+    try { return JSON.parse(localStorage.getItem("ds_dismissed_banners") || "[]"); } catch { return []; }
+  });
+  const dismissBanner = (id: number) => {
+    setDismissedBanners(prev => {
+      const next = [...prev, id];
+      localStorage.setItem("ds_dismissed_banners", JSON.stringify(next));
+      return next;
+    });
+  };
+  const { data: adBanners } = useQuery<Array<{ id: number; title: string; description?: string; imageUrl?: string; mediaType?: string; linkUrl?: string; linkText?: string; bgGradient?: string; showForTiers?: string[] }>>({
     queryKey: ["/api/banners"],
   });
 
@@ -2781,58 +2793,83 @@ Sources: ${result.sources.join(', ')}`;
 
       </div>
 
-      {adBanners && adBanners.filter(b => !dismissedBanners.includes(b.id) && (!b.showForTiers || b.showForTiers.includes((user?.tier || "FREE").toUpperCase()))).length > 0 && (
-        <div className="px-3 lg:px-6 pb-2">
-          <div className="flex flex-col gap-3">
-            <AnimatePresence>
-              {adBanners.filter(b => !dismissedBanners.includes(b.id) && (!b.showForTiers || b.showForTiers.includes((user?.tier || "FREE").toUpperCase()))).map((banner) => (
-                <motion.div
-                  key={banner.id}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -100, scale: 0.9 }}
-                  transition={{ duration: 0.4, type: "spring" }}
-                  className={`relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r ${banner.bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent'} backdrop-blur-xl`}
-                  data-testid={`banner-ad-${banner.id}`}
+      <AnimatePresence>
+        {adBanners && adBanners.filter(b => !dismissedBanners.includes(b.id) && (!b.showForTiers || b.showForTiers.includes((user?.tier || "FREE").toUpperCase()))).length > 0 && (
+          <div className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-50 flex flex-col gap-3 max-w-[calc(100vw-24px)] sm:max-w-[340px] w-[300px] sm:w-[340px]">
+            {adBanners.filter(b => !dismissedBanners.includes(b.id) && (!b.showForTiers || b.showForTiers.includes((user?.tier || "FREE").toUpperCase()))).slice(0, 2).map((banner) => (
+              <motion.div
+                key={banner.id}
+                initial={{ opacity: 0, x: 100, scale: 0.9 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 100, scale: 0.9 }}
+                transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+                className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl shadow-black/50"
+                data-testid={`banner-ad-${banner.id}`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${banner.bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent'} opacity-40`} />
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/80 via-pink-500/60 to-transparent" />
+
+                <button
+                  onClick={() => dismissBanner(banner.id)}
+                  className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-all hover:rotate-90 duration-300"
+                  data-testid={`button-dismiss-banner-${banner.id}`}
                 >
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent" />
-                  <button
-                    onClick={() => setDismissedBanners(prev => [...prev, banner.id])}
-                    className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                    data-testid={`button-dismiss-banner-${banner.id}`}
-                  >
-                    <X className="w-3 h-3 text-white/60" />
-                  </button>
-                  <div className="relative flex items-center gap-4 p-4 lg:p-5">
-                    {banner.imageUrl ? (
-                      <img src={banner.imageUrl} alt={banner.title} className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl object-cover border border-white/10 flex-shrink-0" />
+                  <X className="w-3.5 h-3.5 text-white/70" />
+                </button>
+
+                <div className="absolute top-2.5 left-2.5 z-20">
+                  <Badge className="text-[8px] px-1.5 py-0 bg-white/10 border-white/10 text-white/50 uppercase tracking-wider font-normal backdrop-blur-sm">
+                    AD
+                  </Badge>
+                </div>
+
+                {banner.imageUrl && (
+                  <div className="relative">
+                    {banner.mediaType === "video" ? (
+                      <div className="relative group">
+                        <video
+                          src={banner.imageUrl}
+                          className="w-full aspect-video object-cover"
+                          muted
+                          autoPlay
+                          loop
+                          playsInline
+                          data-testid={`video-banner-${banner.id}`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                      </div>
                     ) : (
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center flex-shrink-0">
-                        <Megaphone className="w-6 h-6 text-pink-400" />
+                      <div className="relative">
+                        <img src={banner.imageUrl} alt={banner.title} className="w-full aspect-video object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm lg:text-base font-bold text-white truncate">{banner.title}</h3>
-                      {banner.description && <p className="text-xs lg:text-sm text-white/60 mt-0.5 line-clamp-2">{banner.description}</p>}
-                    </div>
-                    {banner.linkUrl && /^https?:\/\//i.test(banner.linkUrl) && (
-                      <a
-                        href={banner.linkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-shrink-0 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-sm font-medium text-white transition-all hover:scale-105"
-                        data-testid={`link-banner-${banner.id}`}
-                      >
-                        {banner.linkText || "Learn more"} →
-                      </a>
-                    )}
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                )}
+
+                <div className="relative p-4 space-y-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-white leading-tight">{banner.title}</h3>
+                    {banner.description && <p className="text-xs text-white/50 mt-1 line-clamp-2 leading-relaxed">{banner.description}</p>}
+                  </div>
+                  {banner.linkUrl && /^https?:\/\//i.test(banner.linkUrl) && (
+                    <a
+                      href={banner.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary/80 to-pink-500/60 hover:from-primary hover:to-pink-500/80 text-white text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20"
+                      data-testid={`link-banner-${banner.id}`}
+                    >
+                      {banner.linkText || "Дізнатись більше"}
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       <div className="px-3 lg:px-6 pb-6">
         <PromoBoard />

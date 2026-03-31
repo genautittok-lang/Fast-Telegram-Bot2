@@ -54,6 +54,10 @@ import {
   ExternalLink,
   ToggleLeft,
   ToggleRight,
+  Upload,
+  ImagePlus,
+  Film,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -254,10 +258,13 @@ export default function Admin() {
     enterprisePrice: "50",
   });
 
+  const bannerFileRef = useRef<HTMLInputElement>(null);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const [bannerForm, setBannerForm] = useState({
     title: "",
     description: "",
     imageUrl: "",
+    mediaType: "image" as "image" | "video",
     linkUrl: "",
     linkText: "",
     bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent",
@@ -1940,25 +1947,97 @@ export default function Admin() {
               </h2>
 
               <Card className="border-white/10 bg-white/5">
-                <CardHeader>
-                  <CardTitle className="text-base">{editingBannerId ? "Редагувати банер" : "Створити банер"}</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {editingBannerId ? <Save className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-pink-400" />}
+                    {editingBannerId ? "Редагувати банер" : "Створити банер"}
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <Input placeholder="Заголовок *" value={bannerForm.title} onChange={e => setBannerForm({...bannerForm, title: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-title" />
-                  <Textarea placeholder="Опис" value={bannerForm.description} onChange={e => setBannerForm({...bannerForm, description: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-description" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input placeholder="URL зображення" value={bannerForm.imageUrl} onChange={e => setBannerForm({...bannerForm, imageUrl: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-image" />
-                    <Input placeholder="URL посилання" value={bannerForm.linkUrl} onChange={e => setBannerForm({...bannerForm, linkUrl: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-link" />
-                    <Input placeholder="Текст кнопки (напр. Дізнатись більше)" value={bannerForm.linkText} onChange={e => setBannerForm({...bannerForm, linkText: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-link-text" />
-                    <Input placeholder="Пріоритет (0-100)" type="number" value={bannerForm.priority} onChange={e => setBannerForm({...bannerForm, priority: parseInt(e.target.value) || 0})} className="bg-white/5 border-white/10" data-testid="input-banner-priority" />
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-[1fr,auto] gap-4">
+                    <div className="space-y-3">
+                      <Input placeholder="Заголовок *" value={bannerForm.title} onChange={e => setBannerForm({...bannerForm, title: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-title" />
+                      <Textarea placeholder="Опис (необов'язково)" rows={2} value={bannerForm.description} onChange={e => setBannerForm({...bannerForm, description: e.target.value})} className="bg-white/5 border-white/10 resize-none" data-testid="input-banner-description" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input placeholder="URL посилання (https://...)" value={bannerForm.linkUrl} onChange={e => setBannerForm({...bannerForm, linkUrl: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-link" />
+                        <Input placeholder="Текст кнопки" value={bannerForm.linkText} onChange={e => setBannerForm({...bannerForm, linkText: e.target.value})} className="bg-white/5 border-white/10" data-testid="input-banner-link-text" />
+                      </div>
+                    </div>
+
+                    <div className="w-full lg:w-48 space-y-2">
+                      <input
+                        ref={bannerFileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                        className="hidden"
+                        data-testid="input-banner-file"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setBannerUploading(true);
+                          try {
+                            const fd = new FormData();
+                            fd.append("media", file);
+                            const resp = await fetch("/api/admin/banners/upload", { method: "POST", headers: { "x-admin-token": adminToken }, body: fd });
+                            const data = await resp.json();
+                            if (data.url) {
+                              setBannerForm(prev => ({ ...prev, imageUrl: data.url, mediaType: data.mediaType }));
+                              toast({ title: "Файл завантажено" });
+                            }
+                          } catch { toast({ title: "Помилка завантаження", variant: "destructive" }); }
+                          setBannerUploading(false);
+                          if (bannerFileRef.current) bannerFileRef.current.value = "";
+                        }}
+                      />
+                      {bannerForm.imageUrl ? (
+                        <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/30 aspect-video">
+                          {bannerForm.mediaType === "video" ? (
+                            <video src={bannerForm.imageUrl} className="w-full h-full object-cover" muted playsInline />
+                          ) : (
+                            <img src={bannerForm.imageUrl} alt="" className="w-full h-full object-cover" />
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <Button size="sm" variant="secondary" className="h-7 text-xs gap-1" onClick={() => bannerFileRef.current?.click()} data-testid="button-change-media">
+                              <RefreshCw className="w-3 h-3" /> Змінити
+                            </Button>
+                            <Button size="sm" variant="destructive" className="h-7 text-xs gap-1" onClick={() => setBannerForm(prev => ({ ...prev, imageUrl: "", mediaType: "image" }))} data-testid="button-remove-media">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          <div className="absolute top-1.5 left-1.5">
+                            <Badge className="text-[9px] px-1.5 py-0 bg-black/60 border-none">
+                              {bannerForm.mediaType === "video" ? <><Film className="w-2.5 h-2.5 mr-0.5" />Video</> : <><ImagePlus className="w-2.5 h-2.5 mr-0.5" />Image</>}
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => bannerFileRef.current?.click()}
+                          disabled={bannerUploading}
+                          className="w-full aspect-video rounded-xl border-2 border-dashed border-white/15 hover:border-primary/50 bg-white/[0.02] hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                          data-testid="button-upload-media"
+                        >
+                          {bannerUploading ? (
+                            <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                          ) : (
+                            <>
+                              <Upload className="w-6 h-6 text-muted-foreground" />
+                              <span className="text-[11px] text-muted-foreground">Фото або відео</span>
+                              <span className="text-[9px] text-muted-foreground/50">JPG, PNG, MP4, WebM</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Градієнт фону</label>
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Градієнт</label>
                       <select
                         value={bannerForm.bgGradient}
                         onChange={e => setBannerForm({...bannerForm, bgGradient: e.target.value})}
-                        className="w-full h-10 rounded-md bg-white/5 border border-white/10 text-sm px-3"
+                        className="w-full h-9 rounded-lg bg-white/5 border border-white/10 text-xs px-2.5"
                         data-testid="select-banner-gradient"
                       >
                         <option value="from-purple-600/20 via-pink-500/10 to-transparent">Purple-Pink</option>
@@ -1970,13 +2049,17 @@ export default function Admin() {
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Показувати для тарифів</label>
-                      <div className="flex gap-2 flex-wrap">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Пріоритет</label>
+                      <Input type="number" min={0} max={100} value={bannerForm.priority} onChange={e => setBannerForm({...bannerForm, priority: parseInt(e.target.value) || 0})} className="bg-white/5 border-white/10 h-9 text-xs" data-testid="input-banner-priority" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Тарифи</label>
+                      <div className="flex gap-1.5 flex-wrap">
                         {["FREE", "PRO", "ENTERPRISE", "GROUPS"].map(tier => (
                           <Badge
                             key={tier}
                             variant={bannerForm.showForTiers.includes(tier) ? "default" : "outline"}
-                            className="cursor-pointer"
+                            className="cursor-pointer text-[10px] px-1.5 py-0"
                             onClick={() => {
                               setBannerForm({
                                 ...bannerForm,
@@ -1993,7 +2076,8 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+
+                  <div className="flex gap-2 pt-1">
                     <Button
                       onClick={async () => {
                         if (!bannerForm.title) { toast({ title: "Помилка", description: "Вкажіть заголовок", variant: "destructive" }); return; }
@@ -2005,7 +2089,7 @@ export default function Admin() {
                             await fetch("/api/admin/banners", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-token": adminToken }, body: JSON.stringify(bannerForm) });
                             toast({ title: "Банер створено" });
                           }
-                          setBannerForm({ title: "", description: "", imageUrl: "", linkUrl: "", linkText: "", bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent", position: "dashboard", isActive: true, priority: 0, showForTiers: ["FREE", "PRO"] });
+                          setBannerForm({ title: "", description: "", imageUrl: "", mediaType: "image", linkUrl: "", linkText: "", bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent", position: "dashboard", isActive: true, priority: 0, showForTiers: ["FREE", "PRO"] });
                           setEditingBannerId(null);
                           queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/banners"] });
                         } catch { toast({ title: "Помилка", variant: "destructive" }); }
@@ -2017,7 +2101,7 @@ export default function Admin() {
                       {editingBannerId ? "Зберегти" : "Створити"}
                     </Button>
                     {editingBannerId && (
-                      <Button variant="outline" onClick={() => { setEditingBannerId(null); setBannerForm({ title: "", description: "", imageUrl: "", linkUrl: "", linkText: "", bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent", position: "dashboard", isActive: true, priority: 0, showForTiers: ["FREE", "PRO"] }); }} data-testid="button-cancel-edit-banner">
+                      <Button variant="outline" onClick={() => { setEditingBannerId(null); setBannerForm({ title: "", description: "", imageUrl: "", mediaType: "image", linkUrl: "", linkText: "", bgGradient: "from-purple-600/20 via-pink-500/10 to-transparent", position: "dashboard", isActive: true, priority: 0, showForTiers: ["FREE", "PRO"] }); }} data-testid="button-cancel-edit-banner">
                         Скасувати
                       </Button>
                     )}
@@ -2039,9 +2123,17 @@ export default function Admin() {
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         {banner.imageUrl ? (
-                          <img src={banner.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-white/10" />
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                            {banner.mediaType === "video" ? (
+                              <div className="w-full h-full bg-black/30 flex items-center justify-center">
+                                <Play className="w-4 h-4 text-white/80" />
+                              </div>
+                            ) : (
+                              <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
+                            )}
+                          </div>
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center"><Megaphone className="w-5 h-5 text-pink-400" /></div>
+                          <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center flex-shrink-0"><Megaphone className="w-5 h-5 text-pink-400" /></div>
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -2074,6 +2166,7 @@ export default function Admin() {
                               setEditingBannerId(banner.id);
                               setBannerForm({
                                 title: banner.title || "", description: banner.description || "", imageUrl: banner.imageUrl || "",
+                                mediaType: banner.mediaType || "image",
                                 linkUrl: banner.linkUrl || "", linkText: banner.linkText || "", bgGradient: banner.bgGradient || "from-purple-600/20 via-pink-500/10 to-transparent",
                                 position: banner.position || "dashboard", isActive: banner.isActive, priority: banner.priority || 0, showForTiers: banner.showForTiers || ["FREE", "PRO"],
                               });

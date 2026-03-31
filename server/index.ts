@@ -330,6 +330,7 @@ async function ensureTablesExist() {
         title TEXT NOT NULL,
         description TEXT,
         image_url TEXT,
+        media_type TEXT DEFAULT 'image',
         link_url TEXT,
         link_text TEXT,
         bg_gradient TEXT DEFAULT 'from-purple-600/20 via-pink-500/10 to-transparent',
@@ -340,6 +341,7 @@ async function ensureTablesExist() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    await pool.query(`ALTER TABLE ds_ad_banners ADD COLUMN IF NOT EXISTS media_type TEXT DEFAULT 'image'`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS auth_users (
