@@ -115,9 +115,10 @@ const localeMap: Record<string, string> = {
 
 export default function History() {
   const isStandalone = useIsStandalone();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const { t, lang } = useTranslation();
+  const isFreeTier = !user?.tier || user.tier === "FREE";
   
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -372,27 +373,66 @@ export default function History() {
   };
 
   const csvLabel = lang === "uk" ? "Експорт CSV" : lang === "ru" ? "Экспорт CSV" : lang === "es" ? "Exportar CSV" : lang === "de" ? "CSV exportieren" : "Export CSV";
+  const freeLimitTooltip = lang === "uk"
+    ? "FREE: останні 10 звітів + водяний знак. PRO — повний експорт без обмежень."
+    : lang === "ru"
+    ? "FREE: последние 10 отчётов + водяной знак. PRO — полный экспорт без ограничений."
+    : lang === "es"
+    ? "FREE: últimos 10 informes + marca de agua. PRO — exportación completa sin límites."
+    : lang === "de"
+    ? "FREE: letzte 10 Berichte + Wasserzeichen. PRO — voller Export ohne Limits."
+    : "FREE: last 10 reports + watermark. PRO — full export, no limits.";
 
   const headerActions = (
     <>
       <Button 
         variant="ghost" 
         size="icon"
-        className="hidden md:flex h-8 w-8 text-muted-foreground"
-        onClick={() => window.open('/api/reports/export/json', '_blank')}
+        className="hidden md:flex h-8 w-8 text-muted-foreground relative"
+        onClick={() => {
+          if (isFreeTier) {
+            toast({ title: "FREE", description: freeLimitTooltip });
+          }
+          window.open('/api/reports/export/json', '_blank');
+        }}
+        title={isFreeTier ? freeLimitTooltip : "Export JSON"}
+        aria-label={isFreeTier ? `Export JSON — ${freeLimitTooltip}` : "Export JSON"}
         data-testid="button-export-json"
       >
         <FileJson className="w-4 h-4" />
+        {isFreeTier && (
+          <span
+            aria-hidden="true"
+            className="absolute -top-1.5 -right-1.5 text-[10px] font-bold text-cyan-300 bg-zinc-950 border border-cyan-500/60 rounded px-1 leading-none py-0.5 shadow-[0_0_6px_rgba(34,211,238,0.3)]"
+          >
+            10
+          </span>
+        )}
       </Button>
       <Button 
         variant="outline" 
         size="sm"
-        className="hidden sm:flex gap-1.5 text-[10px] sm:text-xs"
-        onClick={exportCSV}
+        className="hidden sm:flex gap-1.5 text-[10px] sm:text-xs relative"
+        onClick={() => {
+          if (isFreeTier) {
+            toast({ title: "FREE", description: freeLimitTooltip });
+          }
+          exportCSV();
+        }}
+        title={isFreeTier ? freeLimitTooltip : csvLabel}
+        aria-label={isFreeTier ? `${csvLabel} — ${freeLimitTooltip}` : csvLabel}
         data-testid="button-export-csv"
       >
         <Download className="w-3.5 h-3.5" />
         {csvLabel}
+        {isFreeTier && (
+          <span
+            aria-hidden="true"
+            className="text-[10px] font-bold text-cyan-300 bg-zinc-950 border border-cyan-500/60 rounded px-1 leading-none py-0.5 ml-1 shadow-[0_0_6px_rgba(34,211,238,0.3)]"
+          >
+            10
+          </span>
+        )}
       </Button>
       <Button
         variant={compareMode ? "default" : "outline"}

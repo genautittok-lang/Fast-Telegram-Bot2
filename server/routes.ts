@@ -1322,8 +1322,19 @@ export async function registerRoutes(
   // JSON export endpoint (requires auth)
   app.get(api.reports.exportJson.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
-    const reports = await storage.getReports(authReq.user!.id);
-    const exportData = reports.map(r => {
+    const user = authReq.user!;
+    const isPaid = user.tier && user.tier !== "FREE";
+    const FREE_LIMIT = 10;
+
+    const allReports = await storage.getReports(user.id);
+    const reports = allReports.slice().sort((a, b) => {
+      const aT = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
+      const bT = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
+      return bT - aT;
+    });
+    const limitedReports = isPaid ? reports : reports.slice(0, FREE_LIMIT);
+
+    const exportData = limitedReports.map(r => {
       const data = r.dataJson as any || {};
       return {
         id: r.id,
@@ -1334,17 +1345,38 @@ export async function registerRoutes(
         createdAt: r.generatedAt?.toISOString() || new Date().toISOString(),
       };
     });
-    
+
+    // Backward-compatible: response body is the array (consumers reading [0..n] still work).
+    // Watermark/meta delivered via custom HTTP headers for FREE.
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', 'attachment; filename=darkshare_reports.json');
+    res.setHeader('Content-Disposition', `attachment; filename=darkshare_reports${isPaid ? '' : '_free'}.json`);
+    res.setHeader('X-Darkshare-Tier', isPaid ? String(user.tier) : 'FREE');
+    res.setHeader('X-Darkshare-Total', String(reports.length));
+    res.setHeader('X-Darkshare-Exported', String(exportData.length));
+    if (!isPaid) {
+      res.setHeader('X-Darkshare-Watermark', 'FREE PLAN — last 10 reports. Upgrade to PRO with code DARKNEU for -50% off.');
+      res.setHeader('X-Darkshare-Promo', 'DARKNEU');
+      res.setHeader('X-Darkshare-Upgrade-Url', 'https://darkshare.store/pricing');
+    }
     res.json(exportData);
   });
 
   // CSV export endpoint (requires auth)
   app.get(api.reports.exportCsv.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
-    const reports = await storage.getReports(authReq.user!.id);
-    const exportData = reports.map(r => {
+    const user = authReq.user!;
+    const isPaid = user.tier && user.tier !== "FREE";
+    const FREE_LIMIT = 10;
+
+    const allReports = await storage.getReports(user.id);
+    const reports = allReports.slice().sort((a, b) => {
+      const aT = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
+      const bT = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
+      return bT - aT;
+    });
+    const limitedReports = isPaid ? reports : reports.slice(0, FREE_LIMIT);
+
+    const exportData = limitedReports.map(r => {
       const data = r.dataJson as any || {};
       return {
         id: r.id,
@@ -1355,10 +1387,23 @@ export async function registerRoutes(
         createdAt: r.generatedAt?.toISOString() || new Date().toISOString(),
       };
     });
-    
+
     const headers = ['id', 'type', 'target', 'riskLevel', 'riskScore', 'createdAt'];
-    const csvRows = [headers.join(',')];
-    
+    const csvRows: string[] = [];
+
+    if (!isPaid) {
+      csvRows.push('# ============================================================');
+      csvRows.push('# DARKSHARE — FREE PLAN EXPORT');
+      csvRows.push(`# Limited to last ${FREE_LIMIT} reports (you have ${reports.length} total)`);
+      csvRows.push('# Upgrade to PRO to remove watermark + unlock full history');
+      csvRows.push('# Promo code: DARKNEU  |  -50% on first subscription');
+      csvRows.push('# https://darkshare.store/pricing');
+      csvRows.push('# ============================================================');
+    } else {
+      csvRows.push(`# DARKSHARE — ${user.tier} export · ${new Date().toISOString()} · ${exportData.length} reports`);
+    }
+    csvRows.push(headers.join(','));
+
     for (const report of exportData) {
       const row = headers.map(header => {
         const value = report[header as keyof typeof report];
@@ -1370,9 +1415,16 @@ export async function registerRoutes(
       });
       csvRows.push(row.join(','));
     }
-    
+
+    if (!isPaid) {
+      csvRows.push('');
+      csvRows.push('# === END OF FREE EXPORT ===');
+      csvRows.push(`# Showing ${exportData.length} of ${reports.length} reports`);
+      csvRows.push('# Use code DARKNEU for -50% on PRO at darkshare.store/pricing');
+    }
+
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=darkshare_reports.csv');
+    res.setHeader('Content-Disposition', `attachment; filename=darkshare_reports${isPaid ? '' : '_free'}.csv`);
     res.send(csvRows.join('\n'));
   });
 
@@ -3313,28 +3365,7 @@ export async function registerRoutes(
     }
   });
 
-  // ============ CSV Export & Breach Check Routes ============
-
-  app.get("/api/reports/export/csv", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    try {
-      const reports = await storage.getReportsByUserId(authReq.user!.id);
-      const csvHeader = "ID,Type,Target,Risk Level,Risk Score,Date\n";
-      const csvRows = reports.map(r => {
-        const data = r.dataJson as any || {};
-        const target = (data.target || "").replace(/,/g, ";").replace(/"/g, '""');
-        const date = r.generatedAt ? new Date(r.generatedAt).toISOString() : "";
-        return `${r.id},"${r.objectType}","${target}","${data.riskLevel || "unknown"}",${data.riskScore || 0},"${date}"`;
-      }).join("\n");
-      
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="darkshare-reports-${Date.now()}.csv"`);
-      res.send(csvHeader + csvRows);
-    } catch (error: any) {
-      console.error("CSV export error:", error.message);
-      res.status(500).json({ error: "Failed to export reports" });
-    }
-  });
+  // ============ Breach Check Route ============
 
   app.post("/api/breach-check", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;

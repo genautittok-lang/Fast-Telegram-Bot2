@@ -73,9 +73,10 @@ Preferred communication style: Simple, everyday language.
 ### Phase 2 — Reports & Visualization (in progress)
 - **RiskGauge** (`client/src/components/RiskGauge.tsx`) — DONE (used in QuickCheck, ready for Reports/Dashboard).
 - **ActivityTimeline** (`client/src/components/ActivityTimeline.tsx`) — DONE. Premium 14-day stacked-bar chart for History page. Per-day risk distribution (cyan/yellow/orange/red), animated bars, hover tooltips with avg score, totals/avg/threats summary. Mobile-friendly. 5 languages. Auto-renders only when reports exist.
+- **Export FREE-watermark + 10-record cap** (`server/routes.ts`, `client/src/pages/History.tsx`) — DONE. JSON/CSV exports now tier-aware: FREE users get last 10 reports + prominent watermark with DARKNEU promo + upgrade URL (CSV: `#`-prefixed header/footer comments; JSON: `_watermark`/`_promoCode`/`_upgradeUrl` keys at root). PRO/ENTERPRISE/GROUPS get full unlimited export with clean meta header. UI: cyan "10" badge + tooltip on export buttons for FREE tier, plus toast on click. Removed dead duplicate CSV endpoint at line 3365.
 
 ### Pending Phases (next sessions)
-- **Phase 2 cont.** — Force-directed entity graph (react-flow), in-browser PDF preview (pdf.js), CSV/JSON export with FREE-watermark, Dashboard SecurityGauge → RiskGauge swap.
+- **Phase 2 cont.** — Force-directed entity graph (react-flow), in-browser PDF preview (pdf.js).
 - **Phase 3** — New OSINT services: Image reverse search, Domain WHOIS+SSL+DNS, Phone reputation, Crypto wallet trace, Dark web monitoring.
 - **Phase 4** — PWA polish (full manifest, install prompt, push notifications for alerts).
 - **Phase 5** — Native mobile apps via Capacitor (Google Play $25 + App Store $99/yr).
