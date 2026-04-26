@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import PromoBoard from "@/components/PromoBoard";
 import { PremiumLock, PostResultUpsell } from "@/components/PremiumLock";
+import ScanInsights from "@/components/ScanInsights";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -1617,6 +1618,13 @@ Sources: ${result.sources.join(', ')}`;
                 })()}
               </div>
             </motion.div>
+
+            {/* Scan Insights with charts - shown for all authenticated users */}
+            {user && (
+              <div className="hidden md:block">
+                <ScanInsights />
+              </div>
+            )}
 
             {/* Quick Actions Widget - hidden on mobile */}
             {recentReports.length > 0 && (

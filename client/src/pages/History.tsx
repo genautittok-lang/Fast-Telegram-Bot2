@@ -57,6 +57,7 @@ import { useIsStandalone } from "@/hooks/use-mobile";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
 import EntityGraph from "@/components/EntityGraph";
 import PdfPreview from "@/components/PdfPreview";
+import ScanInsights from "@/components/ScanInsights";
 
 interface Report {
   id: number;
@@ -474,6 +475,7 @@ export default function History() {
         </div>
 
         <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6 relative z-10 space-y-3 sm:space-y-6">
+        <ScanInsights langProp={lang} />
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
