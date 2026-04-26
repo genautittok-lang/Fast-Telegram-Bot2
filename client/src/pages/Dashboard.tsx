@@ -113,6 +113,8 @@ import { useStats } from "@/hooks/use-stats";
 import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 import { useIsStandalone } from "@/hooks/use-mobile";
 import DomainOsintCard from "@/components/DomainOsintCard";
+import PhoneOsintCard from "@/components/PhoneOsintCard";
+import CryptoOsintCard from "@/components/CryptoOsintCard";
 import { NotificationToggle } from "@/components/NotificationToggle";
 
 interface AIInsights {
@@ -2470,6 +2472,29 @@ Sources: ${result.sources.join(', ')}`;
             {result && selectedType === "domain" && result.target && (
               <div className="mt-3 lg:mt-6">
                 <DomainOsintCard domain={result.target} lang={lang as any} autoRun={true} />
+              </div>
+            )}
+
+            {result && selectedType === "phone" && result.details && (
+              <div className="mt-3 lg:mt-6">
+                <PhoneOsintCard
+                  data={result.details}
+                  findings={result.findings}
+                  sources={result.sources}
+                  lang={lang as any}
+                />
+              </div>
+            )}
+
+            {result && selectedType === "wallet" && result.details && result.target && (
+              <div className="mt-3 lg:mt-6">
+                <CryptoOsintCard
+                  data={result.details}
+                  target={result.target}
+                  findings={result.findings}
+                  sources={result.sources}
+                  lang={lang as any}
+                />
               </div>
             )}
 

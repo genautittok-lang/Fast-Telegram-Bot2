@@ -54,6 +54,7 @@ Preferred communication style: Simple, everyday language.
 - **Interactive Tools**: `Compromise Wizard` for remediation steps and `GDPR Takedown Generator` for legal letter generation.
 - **AI Threat Profile**: PRO+ feature for generating AI-hedged threat profiles.
 - **PWA (v5.1)**: Cyan-themed `manifest.json` (#22d3ee, display_override, 4 icons any/maskable, 3 shortcuts), redesigned `InstallBanner` (5-language, iOS-aware, 7-day dismiss, role=region+aria-live), and `NotificationToggle` in Profile dialog (5-language, durable unsubscribe retry queue, getSubscription pre-check, re-sync on visibility/online/SW controllerchange). Service worker cache version `v5.1-pwa`.
+- **Premium Result Cards**: `PhoneOsintCard` (carrier, line type, country, validity, risk indicators with Numverify+Veriphone backend) and `CryptoOsintCard` (chain detection for Bitcoin/EVM/Solana/Tron with tolerant matching, balance, tx count, smart contract status, sanctioned-address alert with role=alert, top tokens, totals) — both 5-language with SUPPORTED-guard fallback to "en", auto-rendered in Dashboard when result.details available for selectedType phone/wallet.
 
 ## External Dependencies
 
