@@ -137,14 +137,14 @@ const checkTypeStyles = [
   { id: "ip", icon: Globe, gradient: "from-blue-500/20 via-cyan-500/10 to-transparent", iconColor: "text-blue-400", borderColor: "border-blue-500/30 hover:border-blue-400/50", glowColor: "shadow-blue-500/20", btn3d: "btn-3d-blue", serviceIcons: [MapPin, Server, ShieldAlert, Ban] },
   { id: "wallet", icon: Wallet, gradient: "from-orange-500/20 via-yellow-500/10 to-transparent", iconColor: "text-orange-400", borderColor: "border-orange-500/30 hover:border-orange-400/50", glowColor: "shadow-orange-500/20", btn3d: "btn-3d-orange", serviceIcons: [Fingerprint, Shuffle, Coins, Hash] },
   { id: "email", icon: Mail, gradient: "from-purple-500/20 via-pink-500/10 to-transparent", iconColor: "text-purple-400", borderColor: "border-purple-500/30 hover:border-purple-400/50", glowColor: "shadow-purple-500/20", btn3d: "btn-3d-purple", serviceIcons: [AtSign, Trash2, Lock, Search] },
-  { id: "phone", icon: Phone, gradient: "from-green-500/20 via-emerald-500/10 to-transparent", iconColor: "text-green-400", borderColor: "border-green-500/30 hover:border-green-400/50", glowColor: "shadow-green-500/20", btn3d: "btn-3d-green", serviceIcons: [Globe2, Signal, FileCheck, Phone] },
+  { id: "phone", icon: Phone, gradient: "from-green-500/20 via-cyan-500/10 to-transparent", iconColor: "text-green-400", borderColor: "border-green-500/30 hover:border-green-400/50", glowColor: "shadow-green-500/20", btn3d: "btn-3d-green", serviceIcons: [Globe2, Signal, FileCheck, Phone] },
   { id: "domain", icon: Building, gradient: "from-indigo-500/20 via-violet-500/10 to-transparent", iconColor: "text-indigo-400", borderColor: "border-indigo-500/30 hover:border-indigo-400/50", glowColor: "shadow-indigo-500/20", btn3d: "btn-3d-indigo", serviceIcons: [Globe, Type, AlertTriangle, ShieldCheck] },
   { id: "url", icon: Link2, gradient: "from-red-500/20 via-rose-500/10 to-transparent", iconColor: "text-red-400", borderColor: "border-red-500/30 hover:border-red-400/50", glowColor: "shadow-red-500/20", btn3d: "btn-3d-red", serviceIcons: [LinkIcon, ExternalLink, Bug, ChevronRight] },
   { id: "bot", icon: Bot, gradient: "from-cyan-500/20 via-teal-500/10 to-transparent", iconColor: "text-cyan-400", borderColor: "border-cyan-500/30 hover:border-cyan-400/50", glowColor: "shadow-cyan-500/20", btn3d: "btn-3d-cyan", serviceIcons: [Key, Bot, Users, Sparkles] },
   { id: "cve", icon: Bug, gradient: "from-rose-500/20 via-red-500/10 to-transparent", iconColor: "text-rose-400", borderColor: "border-rose-500/30 hover:border-rose-400/50", glowColor: "shadow-rose-500/20", btn3d: "btn-3d-rose", serviceIcons: [Database, AlertCircle, ShieldAlert, FileText] },
   { id: "hash", icon: Hash, gradient: "from-slate-500/20 via-zinc-500/10 to-transparent", iconColor: "text-slate-400", borderColor: "border-slate-500/30 hover:border-slate-400/50", glowColor: "shadow-slate-500/20", btn3d: "btn-3d-slate", serviceIcons: [Bug, Link2, Shield, FileCheck] },
   { id: "username", icon: User, gradient: "from-amber-500/20 via-yellow-500/10 to-transparent", iconColor: "text-amber-400", borderColor: "border-amber-500/30 hover:border-amber-400/50", glowColor: "shadow-amber-500/20", btn3d: "btn-3d-amber", serviceIcons: [Users, Globe, MessageSquare, Lock] },
-  { id: "card", icon: CreditCard, gradient: "from-emerald-500/20 via-teal-500/10 to-transparent", iconColor: "text-emerald-400", borderColor: "border-emerald-500/30 hover:border-emerald-400/50", glowColor: "shadow-emerald-500/20", btn3d: "btn-3d-emerald", serviceIcons: [CreditCard, Building, Wallet, Globe] },
+  { id: "card", icon: CreditCard, gradient: "from-cyan-500/20 via-teal-500/10 to-transparent", iconColor: "text-cyan-400", borderColor: "border-cyan-500/30 hover:border-cyan-400/50", glowColor: "shadow-cyan-500/20", btn3d: "btn-3d-emerald", serviceIcons: [CreditCard, Building, Wallet, Globe] },
   { id: "password", icon: KeyRound, gradient: "from-yellow-500/20 via-amber-500/10 to-transparent", iconColor: "text-yellow-400", borderColor: "border-yellow-500/30 hover:border-yellow-400/50", glowColor: "shadow-yellow-500/20", btn3d: "btn-3d-amber", serviceIcons: [KeyRound, Lock, ShieldAlert, Hash] },
   { id: "dns", icon: Network, gradient: "from-sky-500/20 via-blue-500/10 to-transparent", iconColor: "text-sky-400", borderColor: "border-sky-500/30 hover:border-sky-400/50", glowColor: "shadow-sky-500/20", btn3d: "btn-3d-blue", serviceIcons: [Network, Globe, Server, ShieldCheck] },
   { id: "ssl", icon: ShieldQuestion, gradient: "from-lime-500/20 via-green-500/10 to-transparent", iconColor: "text-lime-400", borderColor: "border-lime-500/30 hover:border-lime-400/50", glowColor: "shadow-lime-500/20", btn3d: "btn-3d-green", serviceIcons: [Lock, ShieldCheck, Globe, FileCheck] },
@@ -225,7 +225,7 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
       labelKey: "dashboard.riskLevels.medium"
     },
     low: {
-      className: "bg-gradient-to-r from-green-600 to-emerald-500 text-white border-green-400/50",
+      className: "bg-gradient-to-r from-green-600 to-cyan-500 text-white border-green-400/50",
       glow: "shadow-[0_0_12px_rgba(34,197,94,0.3)]",
       icon: ShieldCheck,
       labelKey: "dashboard.riskLevels.low"
@@ -257,7 +257,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
       className="relative rounded-[1.5rem] overflow-hidden glass-strong"
       data-testid="widget-status-bar"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-emerald-500/10 to-cyan-500/15" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-cyan-500/10 to-cyan-500/15" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
       <motion.div
         className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/10 blur-[60px]"
@@ -272,7 +272,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
       <div className="relative p-5 lg:p-6">
         <div className="flex items-center gap-4 mb-4">
           <motion.div
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)]"
+            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)]"
             animate={{ boxShadow: ["0 4px 20px rgba(34,197,94,0.25)", "0 4px 30px rgba(34,197,94,0.45)", "0 4px 20px rgba(34,197,94,0.25)"] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
@@ -298,19 +298,19 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
           </div>
         </div>
         <div className="flex items-center gap-2 bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
-          <div className={`app-icon-circle ${pct <= 20 ? 'bg-red-500/15' : 'bg-emerald-500/15'}`} style={{ width: '2rem', height: '2rem' }}>
-            <Zap className={`w-4 h-4 ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`} />
+          <div className={`app-icon-circle ${pct <= 20 ? 'bg-red-500/15' : 'bg-cyan-500/15'}`} style={{ width: '2rem', height: '2rem' }}>
+            <Zap className={`w-4 h-4 ${pct <= 20 ? 'text-red-400' : 'text-cyan-400'}`} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] text-muted-foreground">Checks remaining</span>
-              <span className={`text-xs font-bold font-mono ${pct <= 20 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <span className={`text-xs font-bold font-mono ${pct <= 20 ? 'text-red-400' : 'text-cyan-400'}`}>
                 {isUnlimited ? '∞' : `${checksLeft}/${maxChecks}`}
               </span>
             </div>
             <div className="h-2 rounded-full bg-white/10 overflow-hidden">
               <motion.div
-                className={`h-full rounded-full ${pct <= 20 ? 'bg-gradient-to-r from-red-500 to-red-400' : pct <= 50 ? 'bg-gradient-to-r from-orange-500 to-yellow-400' : 'bg-gradient-to-r from-emerald-500 to-cyan-400'}`}
+                className={`h-full rounded-full ${pct <= 20 ? 'bg-gradient-to-r from-red-500 to-red-400' : pct <= 50 ? 'bg-gradient-to-r from-orange-500 to-yellow-400' : 'bg-gradient-to-r from-cyan-500 to-cyan-400'}`}
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
@@ -546,7 +546,7 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
     {
       icon: Scan,
       label: "New Scan",
-      color: "from-primary to-emerald-400",
+      color: "from-primary to-cyan-400",
       onClick: () => { triggerHaptic(); onNewScan(); setIsExpanded(false); },
     },
     {
@@ -620,7 +620,7 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
       </AnimatePresence>
 
       <motion.button
-        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)] relative`}
+        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)] relative`}
         onClick={() => {
           triggerHaptic();
           setIsExpanded(!isExpanded);
@@ -1308,7 +1308,7 @@ Sources: ${result.sources.join(', ')}`;
     cve: "bg-orange-500/20 border-orange-500/30 text-orange-400",
     username: "bg-indigo-500/20 border-indigo-500/30 text-indigo-400",
     bot: "bg-cyan-500/20 border-cyan-500/30 text-cyan-400",
-    card: "bg-emerald-500/20 border-emerald-500/30 text-emerald-400",
+    card: "bg-cyan-500/20 border-cyan-500/30 text-cyan-400",
   };
 
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
@@ -1386,22 +1386,22 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4 }}
-                  className={`hidden lg:flex p-3 lg:p-4 rounded-xl border backdrop-blur-xl items-center gap-3 ${isZero ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-orange-500/10 border-orange-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}
+                  className={`hidden lg:flex p-3 lg:p-4 rounded-xl border backdrop-blur-xl items-center gap-3 ${isZero ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-orange-500/10 border-orange-500/30' : 'bg-cyan-500/10 border-cyan-500/30'}`}
                   data-testid="checks-counter"
                 >
-                  <div className={`p-2 rounded-lg ${isZero ? 'bg-red-500/20' : isLow ? 'bg-orange-500/20' : 'bg-emerald-500/20'}`}>
-                    <Zap className={`w-4 h-4 ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-emerald-400'}`} />
+                  <div className={`p-2 rounded-lg ${isZero ? 'bg-red-500/20' : isLow ? 'bg-orange-500/20' : 'bg-cyan-500/20'}`}>
+                    <Zap className={`w-4 h-4 ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-cyan-400'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-medium text-muted-foreground">{t('dashboard.checksRemaining')}</span>
-                      <span className={`text-sm font-mono font-bold ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-emerald-400'}`}>
+                      <span className={`text-sm font-mono font-bold ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-cyan-400'}`}>
                         {maxLimit >= 9999 ? '∞' : `${left}/${maxLimit}`}
                       </span>
                     </div>
                     <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                       <motion.div
-                        className={`h-full rounded-full ${isZero ? 'bg-red-500' : isLow ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                        className={`h-full rounded-full ${isZero ? 'bg-red-500' : isLow ? 'bg-orange-500' : 'bg-cyan-500'}`}
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -1431,11 +1431,11 @@ Sources: ${result.sources.join(', ')}`;
               const progressPct = Math.max(0, Math.min(100, (daysRemaining / totalDays) * 100));
               const isExpired = daysRemaining <= 0;
 
-              const colorClass = isExpired ? "text-red-400" : daysRemaining <= 3 ? "text-red-400" : daysRemaining <= 7 ? "text-orange-400" : "text-emerald-400";
-              const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-emerald-500";
-              const borderColor = isExpired ? "border-red-500/30" : daysRemaining <= 3 ? "border-red-500/30" : daysRemaining <= 7 ? "border-orange-500/30" : "border-emerald-500/30";
-              const glowColor = isExpired ? "shadow-red-500/10" : daysRemaining <= 3 ? "shadow-red-500/10" : daysRemaining <= 7 ? "shadow-orange-500/10" : "shadow-emerald-500/10";
-              const iconBg = isExpired ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 3 ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 7 ? "bg-orange-500/20 border-orange-500/30" : "bg-emerald-500/20 border-emerald-500/30";
+              const colorClass = isExpired ? "text-red-400" : daysRemaining <= 3 ? "text-red-400" : daysRemaining <= 7 ? "text-orange-400" : "text-cyan-400";
+              const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-cyan-500";
+              const borderColor = isExpired ? "border-red-500/30" : daysRemaining <= 3 ? "border-red-500/30" : daysRemaining <= 7 ? "border-orange-500/30" : "border-cyan-500/30";
+              const glowColor = isExpired ? "shadow-red-500/10" : daysRemaining <= 3 ? "shadow-red-500/10" : daysRemaining <= 7 ? "shadow-orange-500/10" : "shadow-cyan-500/10";
+              const iconBg = isExpired ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 3 ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 7 ? "bg-orange-500/20 border-orange-500/30" : "bg-cyan-500/20 border-cyan-500/30";
 
               const subLabels = {
                 title: lang === "uk" ? "Підписка" : lang === "ru" ? "Подписка" : "Subscription",
@@ -1469,7 +1469,7 @@ Sources: ${result.sources.join(', ')}`;
                       <span className="text-xs font-medium text-muted-foreground">{subLabels.title}</span>
                       <div className="flex items-center gap-2 flex-wrap">
                         {user?.autoRenew ? (
-                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 border text-[10px] px-1.5 py-0" data-testid="badge-auto-renew">
+                          <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 border text-[10px] px-1.5 py-0" data-testid="badge-auto-renew">
                             {subLabels.autoRenew}: {subLabels.on}
                           </Badge>
                         ) : (
@@ -1521,7 +1521,7 @@ Sources: ${result.sources.join(', ')}`;
                     const paidTiers = ["PRO", "ENTERPRISE", "GROUPS"];
                     const hasApiAccess = paidTiers.includes((user?.tier || "FREE").toUpperCase());
                     return (
-                      <Badge className={`text-[9px] lg:text-[10px] ${hasApiAccess ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'} border`} data-testid="badge-api-status">
+                      <Badge className={`text-[9px] lg:text-[10px] ${hasApiAccess ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'} border`} data-testid="badge-api-status">
                         {hasApiAccess ? 'Active' : 'Inactive'}
                       </Badge>
                     );
@@ -1559,12 +1559,12 @@ Sources: ${result.sources.join(', ')}`;
               </div>
 
               <div
-                className="p-3 lg:p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-transparent border border-emerald-500/20 backdrop-blur-xl"
+                className="p-3 lg:p-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-green-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl"
                 data-testid="widget-scan-frequency"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center bg-emerald-500/20 border border-emerald-500/30">
-                    <BarChart3 className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-emerald-400" />
+                  <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center bg-cyan-500/20 border border-cyan-500/30">
+                    <BarChart3 className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-cyan-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xs lg:text-sm font-display font-semibold">Scan Frequency</h3>
@@ -1598,7 +1598,7 @@ Sources: ${result.sources.join(', ')}`;
                             </span>
                             <div className="w-full flex items-end" style={{ height: '60px' }}>
                               <div
-                                className="w-full rounded-t-sm bg-gradient-to-t from-emerald-500/60 to-emerald-400/30 border border-emerald-500/20 border-b-0 transition-all duration-500"
+                                className="w-full rounded-t-sm bg-gradient-to-t from-cyan-500/60 to-cyan-400/30 border border-cyan-500/20 border-b-0 transition-all duration-500"
                                 style={{ height: `${heightPct}%`, minHeight: '3px' }}
                                 data-testid={`bar-scan-day-${idx}`}
                               />
@@ -2054,7 +2054,7 @@ Sources: ${result.sources.join(', ')}`;
                       <Button 
                         onClick={selectedType === "exif" ? () => exifFile && exifMutation.mutate(exifFile) : bulkMode ? handleBulkCheck : handleCheck} 
                         disabled={checkMutation.isPending || bulkCheckMutation.isPending || exifMutation.isPending || (selectedType === "exif" && !exifFile)}
-                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold ${selectedType === "exif" ? 'bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 hover:from-pink-500/90 hover:via-pink-400/90 hover:to-rose-400/90' : 'bg-gradient-to-r from-primary via-emerald-400 to-cyan-400 hover:from-primary/90 hover:via-emerald-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-emerald-400/80 active:to-cyan-400/80'} text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode && selectedType !== "exif" ? 'animate-subtle-pulse ring-pulse' : ''}`}
+                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold ${selectedType === "exif" ? 'bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 hover:from-pink-500/90 hover:via-pink-400/90 hover:to-rose-400/90' : 'bg-gradient-to-r from-primary via-cyan-400 to-cyan-400 hover:from-primary/90 hover:via-cyan-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-cyan-400/80 active:to-cyan-400/80'} text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode && selectedType !== "exif" ? 'animate-subtle-pulse ring-pulse' : ''}`}
                         data-testid="button-perform-check"
                       >
                         {exifMutation.isPending ? (
@@ -2917,9 +2917,9 @@ Sources: ${result.sources.join(', ')}`;
               </div>
             </div>
             
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2" data-testid="status-bot-sync">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs text-emerald-400">{t('dashboard.botSyncOk')}</span>
+            <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-2" data-testid="status-bot-sync">
+              <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+              <span className="text-xs text-cyan-400">{t('dashboard.botSyncOk')}</span>
             </div>
           </div>
         </DialogContent>

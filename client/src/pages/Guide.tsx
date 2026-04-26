@@ -92,7 +92,7 @@ function InlineExample({ command, description }: { command: string; description:
 function ApiEndpoint({ method, path, description, params, response, labels }: { method: string; path: string; description: string; params?: string[]; response?: string; labels?: { params: string; response: string } }) {
   const [open, setOpen] = useState(false);
   const methodColors: Record<string, string> = {
-    GET: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+    GET: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
     POST: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     PATCH: "bg-orange-500/20 text-orange-400 border-orange-500/30",
     DELETE: "bg-red-500/20 text-red-400 border-red-500/30",
@@ -502,12 +502,12 @@ export default function Guide() {
           </Link>
         </Section>
 
-        <Section title={L("Безпека та поради", "Безопасность и советы", "Security Tips")} icon={<ShieldCheck className="w-4 h-4 text-emerald-400" />} delay={0.22}>
+        <Section title={L("Безпека та поради", "Безопасность и советы", "Security Tips")} icon={<ShieldCheck className="w-4 h-4 text-cyan-400" />} delay={0.22}>
           <Card className="p-4 bg-card/60 border-white/10 space-y-2.5">
             {securityTips.map((tip, i) => (
               <div key={i} className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-[10px] font-bold text-emerald-400">{i + 1}</span>
+                <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[10px] font-bold text-cyan-400">{i + 1}</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">{tip}</p>
               </div>

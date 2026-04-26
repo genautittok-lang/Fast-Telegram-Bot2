@@ -214,7 +214,7 @@ export default function ExifTool() {
           >
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <CheckCircle className="w-5 h-5 text-cyan-400" />
                 Results
               </h2>
               <Button variant="outline" size="sm" onClick={clearResult} data-testid="button-clear-exif">
@@ -249,11 +249,11 @@ export default function ExifTool() {
 
               <div className={`space-y-3 ${previewUrl ? "lg:col-span-2" : "lg:col-span-3"}`}>
                 {result.hasGps && result.gps && (
-                  <Card className="p-4 bg-gradient-to-br from-emerald-500/10 to-transparent border-emerald-500/20 backdrop-blur-xl">
+                  <Card className="p-4 bg-gradient-to-br from-cyan-500/10 to-transparent border-cyan-500/20 backdrop-blur-xl">
                     <div className="flex items-center gap-2 mb-3">
-                      <MapPin className="w-5 h-5 text-emerald-400" />
-                      <span className="font-bold text-emerald-400">GPS Location Found</span>
-                      <Badge variant="outline" className="text-emerald-400 border-emerald-500/30 text-xs">
+                      <MapPin className="w-5 h-5 text-cyan-400" />
+                      <span className="font-bold text-cyan-400">GPS Location Found</span>
+                      <Badge variant="outline" className="text-cyan-400 border-cyan-500/30 text-xs">
                         <AlertTriangle className="w-3 h-3 mr-1" /> Privacy Risk
                       </Badge>
                     </div>

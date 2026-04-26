@@ -249,20 +249,20 @@ function AppSplashLogin() {
             transition={{ duration: 0.4 }}
           >
             <div className="absolute inset-0 -mx-4 overflow-hidden rounded-2xl opacity-30 pointer-events-none">
-              <div className="font-mono text-[10px] leading-[14px] text-emerald-500/60 p-3 whitespace-pre select-none">
+              <div className="font-mono text-[10px] leading-[14px] text-cyan-500/60 p-3 whitespace-pre select-none">
                 {hackerLines.map((line, i) => (
                   <motion.div
                     key={`${i}-${line.slice(0,10)}`}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: i === hackerLines.length - 1 ? 0.9 : 0.4, x: 0 }}
                     transition={{ duration: 0.15 }}
-                    className={line.startsWith("[") ? "text-cyan-400/50" : line.startsWith("$") ? "text-emerald-300/60" : ""}
+                    className={line.startsWith("[") ? "text-cyan-400/50" : line.startsWith("$") ? "text-cyan-300/60" : ""}
                   >
                     {line}
                   </motion.div>
                 ))}
                 <motion.span
-                  className="inline-block w-[6px] h-[12px] bg-emerald-400 ml-0.5"
+                  className="inline-block w-[6px] h-[12px] bg-cyan-400 ml-0.5"
                   animate={{ opacity: [1, 0, 1] }}
                   transition={{ duration: 0.8, repeat: Infinity }}
                 />
@@ -275,11 +275,11 @@ function AppSplashLogin() {
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 15 }}
             >
-              <div className="w-28 h-28 rounded-[2.2rem] bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center relative"
+              <div className="w-28 h-28 rounded-[2.2rem] bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center relative"
                 style={{ boxShadow: "0 0 80px rgba(34,197,94,0.35), 0 0 30px rgba(34,197,94,0.2) inset" }}>
                 <Shield className="w-14 h-14 text-black" />
                 <motion.div
-                  className="absolute inset-0 rounded-[2.2rem] border-2 border-emerald-400/40"
+                  className="absolute inset-0 rounded-[2.2rem] border-2 border-cyan-400/40"
                   animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
                 />
@@ -300,7 +300,7 @@ function AppSplashLogin() {
               <h1 className="text-4xl font-black text-white tracking-tight" style={{ textShadow: "0 0 30px rgba(34,197,94,0.3)" }}>
                 DARKSHARE
               </h1>
-              <p className="text-[11px] text-emerald-400/80 font-mono mt-1.5 tracking-[0.25em] uppercase">
+              <p className="text-[11px] text-cyan-400/80 font-mono mt-1.5 tracking-[0.25em] uppercase">
                 Security OSINT Platform
               </p>
             </motion.div>
@@ -314,7 +314,7 @@ function AppSplashLogin() {
               >
                 <div className="h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-emerald-500 via-cyan-400 to-emerald-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-500 rounded-full"
                     initial={{ width: "0%" }}
                     animate={{ width: "100%" }}
                     transition={{ duration: 1.2, ease: "easeInOut" }}
@@ -339,7 +339,7 @@ function AppSplashLogin() {
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                  className="w-1.5 h-1.5 rounded-full bg-cyan-400"
                   animate={{ scale: [1, 1.8, 1], opacity: [0.2, 1, 0.2] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
                 />
@@ -356,7 +356,7 @@ function AppSplashLogin() {
           >
             <div className="flex flex-col items-center gap-3">
               <motion.div
-                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center"
+                className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center"
                 style={{ boxShadow: "0 0 40px rgba(34,197,94,0.25)" }}
               >
                 <Shield className="w-8 h-8 text-black" />
@@ -505,7 +505,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
                 </button>
               </Link>
               <div className="w-px h-4 bg-white/[0.06]" />
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center shadow-[0_0_8px_rgba(34,197,94,0.25)]">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(34,197,94,0.25)]">
                 <Shield className="w-3 h-3 text-black" />
               </div>
               {title ? (

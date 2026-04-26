@@ -33,7 +33,7 @@ interface WizardResult {
 }
 
 const RISK_COLORS: Record<string, string> = {
-  LOW: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  LOW: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
   MEDIUM: "bg-amber-500/15 text-amber-300 border-amber-500/30",
   HIGH: "bg-orange-500/15 text-orange-300 border-orange-500/30",
   CRITICAL: "bg-red-500/15 text-red-300 border-red-500/30",
@@ -257,9 +257,9 @@ function WizardContent() {
         </CardContent>
       </Card>
 
-      <Card className="border-emerald-500/20 bg-emerald-500/5">
+      <Card className="border-cyan-500/20 bg-cyan-500/5">
         <CardContent className="pt-4">
-          <p className="text-xs text-emerald-200/80 leading-relaxed">
+          <p className="text-xs text-cyan-200/80 leading-relaxed">
             <ShieldCheck className="w-3 h-3 inline mr-1" />
             Ми не зберігаємо ваші відповіді. Усі дані обробляються в момент запиту та одразу видаляються.
           </p>

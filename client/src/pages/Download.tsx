@@ -84,7 +84,7 @@ export default function DownloadPage() {
   const features = [
     { icon: Shield, title: tr.instantChecks, desc: L("IP, Email, Wallet, Domain, Phone, URL, CVE, Hash", "IP, Email, Wallet, Domain, Phone, URL, CVE, Hash", "IP, Email, Wallet, Domain, Phone, URL, CVE, Hash", "IP, Email, Wallet, Domain, Phone, URL, CVE, Hash", "IP, Email, Wallet, Domain, Phone, URL, CVE, Hash"), color: "from-blue-500 to-cyan-500" },
     { icon: Bell, title: tr.pushNotifs, desc: L("Алерти про загрози в реальному часі", "Алерты об угрозах в реальном времени", "Real-time threat alerts", "Alertas de amenazas en tiempo real", "Echtzeit-Bedrohungswarnungen"), color: "from-purple-500 to-pink-500" },
-    { icon: Wifi, title: tr.worksOffline, desc: L("Доступ до звітів без інтернету", "Доступ к отчётам без интернета", "Access reports without internet", "Accede a informes sin conexión", "Berichte ohne Internet abrufen"), color: "from-green-500 to-emerald-500" },
+    { icon: Wifi, title: tr.worksOffline, desc: L("Доступ до звітів без інтернету", "Доступ к отчётам без интернета", "Access reports without internet", "Accede a informes sin conexión", "Berichte ohne Internet abrufen"), color: "from-green-500 to-cyan-500" },
     { icon: Fingerprint, title: tr.biometric, desc: L("Face ID та відбиток пальця", "Face ID и отпечаток пальца", "Face ID and fingerprint", "Face ID y huella dactilar", "Face ID und Fingerabdruck"), color: "from-orange-500 to-amber-500" },
     { icon: Scan, title: tr.quickScan, desc: L("Перевірка одним дотиком", "Проверка одним касанием", "One-tap verification", "Verificación con un toque", "Ein-Tipp-Prüfung"), color: "from-red-500 to-rose-500" },
     { icon: Eye, title: tr.monitoring247, desc: L("Фоновий моніторинг активів", "Фоновый мониторинг активов", "Background asset monitoring", "Monitoreo en segundo plano", "Hintergrundüberwachung"), color: "from-indigo-500 to-violet-500" },
@@ -93,8 +93,8 @@ export default function DownloadPage() {
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden overflow-y-auto flex flex-col bg-background max-w-[100vw]">
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 via-background to-background" />
-        <div className="absolute top-0 left-1/3 w-80 h-80 bg-emerald-500/12 rounded-full blur-[150px] animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 via-background to-background" />
+        <div className="absolute top-0 left-1/3 w-80 h-80 bg-cyan-500/12 rounded-full blur-[150px] animate-pulse" />
         <div className="absolute bottom-1/3 right-1/4 w-60 h-60 bg-cyan-500/8 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "2s" }} />
       </div>
       <FloatingParticles count={12} />
@@ -126,14 +126,14 @@ export default function DownloadPage() {
             className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 mb-16"
           >
             <div className="flex-1 text-center lg:text-left space-y-5">
-              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-xs" data-testid="badge-free">
+              <Badge className="bg-cyan-500/15 text-cyan-400 border-cyan-500/30 text-xs" data-testid="badge-free">
                 {tr.free}
               </Badge>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight" data-testid="text-download-title">
                 {tr.title}
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-400">
                   {tr.securityPlatform}
                 </span>
               </h1>
@@ -147,7 +147,7 @@ export default function DownloadPage() {
                   <span className="font-semibold text-white">{tr.rating}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-emerald-400" />
+                  <Users className="w-4 h-4 text-cyan-400" />
                   <span>{tr.installs}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -160,7 +160,7 @@ export default function DownloadPage() {
                 {isInstalled ? (
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto h-14 text-base px-8 bg-gradient-to-r from-emerald-600 to-green-500 btn-3d-press neon-text shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                    className="w-full sm:w-auto h-14 text-base px-8 bg-gradient-to-r from-cyan-600 to-green-500 btn-3d-press neon-text shadow-[0_0_30px_rgba(16,185,129,0.3)]"
                     onClick={() => window.open('/', '_blank')}
                     data-testid="button-open-app"
                   >
@@ -170,7 +170,7 @@ export default function DownloadPage() {
                 ) : canInstall ? (
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto h-14 text-base px-8 bg-gradient-to-r from-emerald-600 to-green-500 btn-3d-press animate-glow-pulse transition-all"
+                    className="w-full sm:w-auto h-14 text-base px-8 bg-gradient-to-r from-cyan-600 to-green-500 btn-3d-press animate-glow-pulse transition-all"
                     onClick={handleInstall}
                     disabled={installing}
                     data-testid="button-install-app"
@@ -185,7 +185,7 @@ export default function DownloadPage() {
                 ) : (
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto h-14 text-base px-8 bg-gradient-to-r from-emerald-600 to-green-500 btn-3d-press animate-glow-pulse"
+                    className="w-full sm:w-auto h-14 text-base px-8 bg-gradient-to-r from-cyan-600 to-green-500 btn-3d-press animate-glow-pulse"
                     onClick={() => {
                       if (isIOS) {
                         const el = document.getElementById('ios-instructions');
@@ -202,7 +202,7 @@ export default function DownloadPage() {
                 )}
 
                 {isInstalled && (
-                  <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 px-3 py-2" data-testid="badge-installed">
+                  <Badge className="bg-cyan-500/15 text-cyan-400 border-cyan-500/30 px-3 py-2" data-testid="badge-installed">
                     <CheckCircle className="w-4 h-4 mr-1.5" />
                     {tr.alreadyInstalled}
                   </Badge>
@@ -225,30 +225,30 @@ export default function DownloadPage() {
                     <div className="pt-8 px-3 space-y-2.5 h-full overflow-hidden">
                       <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center">
+                          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-cyan-500 to-green-500 flex items-center justify-center">
                             <Shield className="w-3 h-3 text-white" />
                           </div>
                           <span className="text-[9px] font-bold text-white">DARKSHARE</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="text-[8px] text-emerald-400">Online</span>
+                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                          <span className="text-[8px] text-cyan-400">Online</span>
                         </div>
                       </div>
 
                       <div className="bg-zinc-900/80 rounded-xl p-2.5 border border-white/5">
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          <div className="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                            <ShieldCheck className="w-4 h-4 text-cyan-400" />
                           </div>
                           <div>
                             <div className="text-[9px] text-muted-foreground">{L("Рівень безпеки", "Уровень безопасности", "Security Score", "Puntuación", "Sicherheit")}</div>
-                            <div className="text-sm font-bold text-emerald-400 score-glow-text">92/100</div>
+                            <div className="text-sm font-bold text-cyan-400 score-glow-text">92/100</div>
                           </div>
                         </div>
                         <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                           <motion.div
-                            className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full progress-bar-glow"
+                            className="h-full bg-gradient-to-r from-cyan-500 to-green-400 rounded-full progress-bar-glow"
                             initial={{ width: 0 }}
                             animate={{ width: "92%" }}
                             transition={{ delay: 1, duration: 1.5 }}
@@ -277,7 +277,7 @@ export default function DownloadPage() {
 
                       <div className="space-y-1.5">
                         {[
-                          { risk: "low", color: "bg-emerald-500", target: "192.168.1.***", score: "12" },
+                          { risk: "low", color: "bg-cyan-500", target: "192.168.1.***", score: "12" },
                           { risk: "high", color: "bg-red-500", target: "0x7a2d***", score: "87" },
                           { risk: "medium", color: "bg-yellow-500", target: "test@***.com", score: "45" },
                         ].map((item, i) => (
@@ -303,9 +303,9 @@ export default function DownloadPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 1.8 + i * 0.1 }}
-                            className={`p-1.5 rounded-lg ${i === 0 ? "bg-emerald-500/20 tab-glow-active" : ""}`}
+                            className={`p-1.5 rounded-lg ${i === 0 ? "bg-cyan-500/20 tab-glow-active" : ""}`}
                           >
-                            <Icon className={`w-3.5 h-3.5 ${i === 0 ? "text-emerald-400" : "text-zinc-500"}`} />
+                            <Icon className={`w-3.5 h-3.5 ${i === 0 ? "text-cyan-400" : "text-zinc-500"}`} />
                           </motion.div>
                         ))}
                       </div>
@@ -313,13 +313,13 @@ export default function DownloadPage() {
                   </div>
                 </div>
 
-                <div className="absolute -inset-4 rounded-[50px] bg-gradient-to-b from-emerald-500/10 via-transparent to-cyan-500/10 blur-xl pointer-events-none" />
+                <div className="absolute -inset-4 rounded-[50px] bg-gradient-to-b from-cyan-500/10 via-transparent to-cyan-500/10 blur-xl pointer-events-none" />
 
                 <div className="absolute inset-0 pointer-events-none hidden sm:block" style={{ perspective: "800px" }}>
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0 h-0">
                     <div className="orbit absolute">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center backdrop-blur-sm">
-                        <Shield className="w-4 h-4 text-emerald-400" />
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center backdrop-blur-sm">
+                        <Shield className="w-4 h-4 text-cyan-400" />
                       </div>
                     </div>
                     <div className="orbit-reverse absolute" style={{ animationDelay: "-3s" }}>
@@ -382,7 +382,7 @@ export default function DownloadPage() {
               {[
                 {
                   title: L("Дашборд", "Дашборд", "Dashboard", "Panel", "Dashboard"),
-                  gradient: "from-emerald-500/20 to-cyan-500/10",
+                  gradient: "from-cyan-500/20 to-cyan-500/10",
                   desc: L("Аналіз в реальному часі", "Анализ в реальном времени", "Real-time analysis", "Análisis en tiempo real", "Echtzeit-Analyse"),
                   icon: Monitor,
                 },
@@ -442,10 +442,10 @@ export default function DownloadPage() {
                     className="flex-1"
                   >
                     <Card className="p-5 bg-card/30 backdrop-blur-sm border-white/5 text-center h-full">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-3">
-                        <span className="text-sm font-bold text-emerald-400">{s.step}</span>
+                      <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center mx-auto mb-3">
+                        <span className="text-sm font-bold text-cyan-400">{s.step}</span>
                       </div>
-                      <s.icon className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+                      <s.icon className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
                       <p className="text-xs text-white">{s.text}</p>
                     </Card>
                   </motion.div>
@@ -478,10 +478,10 @@ export default function DownloadPage() {
                     className="flex-1"
                   >
                     <Card className="p-5 bg-card/30 backdrop-blur-sm border-white/5 text-center h-full">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-3">
-                        <span className="text-sm font-bold text-emerald-400">{s.step}</span>
+                      <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center mx-auto mb-3">
+                        <span className="text-sm font-bold text-cyan-400">{s.step}</span>
                       </div>
-                      <s.icon className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+                      <s.icon className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
                       <p className="text-xs text-white">{s.text}</p>
                     </Card>
                   </motion.div>
@@ -496,8 +496,8 @@ export default function DownloadPage() {
             transition={{ delay: 1, duration: 0.6 }}
             className="mb-12"
           >
-            <Card className="p-6 sm:p-8 bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-emerald-500/10 backdrop-blur-sm border-emerald-500/20 max-w-lg mx-auto text-center cyber-border holographic">
-              <Smartphone className="w-10 h-10 text-emerald-400 mx-auto mb-4" />
+            <Card className="p-6 sm:p-8 bg-gradient-to-r from-cyan-500/10 via-cyan-500/5 to-cyan-500/10 backdrop-blur-sm border-cyan-500/20 max-w-lg mx-auto text-center cyber-border holographic">
+              <Smartphone className="w-10 h-10 text-cyan-400 mx-auto mb-4" />
               <h3 className="text-lg font-bold text-white mb-2">
                 {tr.nativeExperience}
               </h3>

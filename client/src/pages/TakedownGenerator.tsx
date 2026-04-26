@@ -188,10 +188,10 @@ function TakedownContent() {
       </Card>
 
       {letter && (
-        <Card className="border-emerald-500/20">
+        <Card className="border-cyan-500/20">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-cyan-400" />
               Згенерований лист
             </CardTitle>
           </CardHeader>

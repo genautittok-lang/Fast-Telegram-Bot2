@@ -107,7 +107,7 @@ function WidgetContent() {
                 }}
                 data-testid="widget-preview"
               >
-                <Shield className="w-5 h-5 text-emerald-500" />
+                <Shield className="w-5 h-5 text-cyan-500" />
                 <span className="font-semibold" style={{ color: style === "dark" ? "#fff" : style === "light" ? "#1a1a2e" : "#e2e8f0" }}>
                   Verified by DARKSHARE
                 </span>
@@ -172,7 +172,7 @@ function WidgetContent() {
       <Card className="border-border/50 bg-card/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-            <ExternalLink className="w-4 h-4 text-emerald-400" />
+            <ExternalLink className="w-4 h-4 text-cyan-400" />
             How to install
           </CardTitle>
         </CardHeader>

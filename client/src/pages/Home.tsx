@@ -486,7 +486,7 @@ export default function Home() {
                 className="space-y-4 sm:space-y-5 md:space-y-6"
               >
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-primary/15 to-emerald-500/10 border border-primary/30 text-xs sm:text-sm font-semibold text-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-primary/15 to-cyan-500/10 border border-primary/30 text-xs sm:text-sm font-semibold text-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
@@ -515,7 +515,7 @@ export default function Home() {
                   <Link href="/login">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-primary to-emerald-400 text-black font-bold shadow-[0_0_30px_rgba(34,197,94,0.35)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl"
+                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-[0_0_30px_rgba(34,197,94,0.35)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl"
                       data-testid="button-web-dashboard"
                     >
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -542,7 +542,7 @@ export default function Home() {
                   <Link href="/download">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-emerald-600 to-green-500 text-white font-bold border-none hover:scale-[1.03] transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.3)] rounded-xl"
+                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-cyan-600 to-green-500 text-white font-bold border-none hover:scale-[1.03] transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.3)] rounded-xl"
                       data-testid="button-download-apk"
                     >
                       <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -795,13 +795,13 @@ export default function Home() {
                   border: "border-orange-500/20"
                 },
                 { 
-                  icon: <TrendingUp className="w-5 h-5 text-emerald-400" />, 
+                  icon: <TrendingUp className="w-5 h-5 text-cyan-400" />, 
                   value: stats?.checksToday ?? 53, 
                   label: t("landing.stats.today"), 
                   loading: statsLoading,
-                  color: "text-emerald-400",
-                  bg: "from-emerald-500/10 to-emerald-500/5",
-                  border: "border-emerald-500/20"
+                  color: "text-cyan-400",
+                  bg: "from-cyan-500/10 to-cyan-500/5",
+                  border: "border-cyan-500/20"
                 }
               ].map((stat, idx) => (
                 <motion.div
@@ -1878,7 +1878,7 @@ export default function Home() {
               className="text-center mt-6"
             >
               <Link href="/pricing">
-                <Button size="lg" className="px-8 h-12 bg-gradient-to-r from-primary to-emerald-400 text-black font-bold rounded-xl hover:scale-[1.03] transition-all duration-300 shadow-[0_0_30px_rgba(34,197,94,0.2)]" data-testid="button-view-pricing">
+                <Button size="lg" className="px-8 h-12 bg-gradient-to-r from-primary to-cyan-400 text-black font-bold rounded-xl hover:scale-[1.03] transition-all duration-300 shadow-[0_0_30px_rgba(34,197,94,0.2)]" data-testid="button-view-pricing">
                   {lang === "uk" ? "Детальніше про тарифи" : lang === "ru" ? "Подробнее о тарифах" : lang === "es" ? "Más sobre los planes" : lang === "de" ? "Mehr über Tarife" : "View Full Pricing"}
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -2011,7 +2011,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
                 <Link href="/login">
-                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-primary to-emerald-400 text-black font-bold shadow-[0_0_40px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-dashboard-cta">
+                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-dashboard-cta">
                     <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {t("landing.cta.webDashboard")}
                   </Button>

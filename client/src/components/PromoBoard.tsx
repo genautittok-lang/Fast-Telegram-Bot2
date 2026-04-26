@@ -23,7 +23,7 @@ const PROMO_GRADIENTS = [
   "from-violet-600/20 via-purple-600/10 to-fuchsia-600/5",
   "from-blue-600/20 via-cyan-600/10 to-teal-600/5",
   "from-amber-600/20 via-orange-600/10 to-red-600/5",
-  "from-emerald-600/20 via-green-600/10 to-lime-600/5",
+  "from-cyan-600/20 via-green-600/10 to-lime-600/5",
   "from-rose-600/20 via-pink-600/10 to-fuchsia-600/5",
 ];
 
@@ -31,7 +31,7 @@ const PROMO_BORDERS = [
   "border-violet-500/30",
   "border-blue-500/30",
   "border-amber-500/30",
-  "border-emerald-500/30",
+  "border-cyan-500/30",
   "border-rose-500/30",
 ];
 
@@ -39,7 +39,7 @@ const PROMO_ACCENTS = [
   "text-violet-400",
   "text-blue-400",
   "text-amber-400",
-  "text-emerald-400",
+  "text-cyan-400",
   "text-rose-400",
 ];
 

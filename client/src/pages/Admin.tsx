@@ -686,7 +686,7 @@ export default function Admin() {
   const statsCards = [
     { label: "Користувачі", value: stats?.totalUsers ?? 0, icon: Users, gradient: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-400" },
     { label: "Звіти", value: stats?.totalReports ?? 0, icon: FileText, gradient: "from-purple-500/20 to-pink-500/10", iconColor: "text-purple-400" },
-    { label: "Моніторинг", value: stats?.activeWatches ?? 0, icon: Activity, gradient: "from-green-500/20 to-emerald-500/10", iconColor: "text-green-400" },
+    { label: "Моніторинг", value: stats?.activeWatches ?? 0, icon: Activity, gradient: "from-green-500/20 to-cyan-500/10", iconColor: "text-green-400" },
     { label: "Очікують оплату", value: stats?.pendingPayments ?? 0, icon: CreditCard, gradient: "from-orange-500/20 to-yellow-500/10", iconColor: "text-orange-400" },
     { label: "Відкриті тікети", value: openTickets, icon: AlertCircle, gradient: "from-red-500/20 to-rose-500/10", iconColor: "text-red-400" },
     { label: "Діалоги", value: conversations?.length ?? 0, icon: MessagesSquare, gradient: "from-indigo-500/20 to-violet-500/10", iconColor: "text-indigo-400" },
@@ -737,7 +737,7 @@ export default function Admin() {
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
                 <Shield className="w-4 h-4 text-black" />
               </div>
               <span className="font-display font-bold text-lg">ADMIN</span>
@@ -812,15 +812,15 @@ export default function Admin() {
                 <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-emerald-400" />
+                      <DollarSign className="w-4 h-4 text-cyan-400" />
                       Дохід
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                        <p className="text-xs text-emerald-300/70">Загальний</p>
-                        <p className="text-xl font-bold text-emerald-400">${revenueData?.totalRevenue?.toFixed(0) || '0'}</p>
+                      <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                        <p className="text-xs text-cyan-300/70">Загальний</p>
+                        <p className="text-xl font-bold text-cyan-400">${revenueData?.totalRevenue?.toFixed(0) || '0'}</p>
                       </div>
                       <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
                         <p className="text-xs text-blue-300/70">За 30 днів</p>
@@ -973,7 +973,7 @@ export default function Admin() {
                           </div>
                           <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                             <motion.div
-                              className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
+                              className="h-full rounded-full bg-gradient-to-r from-green-500 to-cyan-400"
                               initial={{ width: 0 }}
                               animate={{ width: `${Math.min((systemHealth.heapUsedMB / systemHealth.heapTotalMB) * 100, 100)}%` }}
                               transition={{ duration: 0.8, ease: "easeOut" }}
@@ -989,7 +989,7 @@ export default function Admin() {
               <Card className="border-white/10 bg-white/[0.03] backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Download className="w-4 h-4 text-emerald-400" />
+                    <Download className="w-4 h-4 text-cyan-400" />
                     Посилання на застосунок
                   </CardTitle>
                   <Button
@@ -1006,8 +1006,8 @@ export default function Admin() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="p-3 rounded-lg bg-white/5 border border-white/10 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                          <Download className="w-4 h-4 text-emerald-400" />
+                        <div className="w-9 h-9 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
+                          <Download className="w-4 h-4 text-cyan-400" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium">PWA Web App</p>
@@ -1894,7 +1894,7 @@ export default function Admin() {
                           check: { icon: Shield, color: "text-cyan-400", label: "Перевірка" },
                           payment: { icon: CreditCard, color: "text-orange-400", label: "Оплата" },
                           tier_change: { icon: Crown, color: "text-purple-400", label: "Зміна тарифу" },
-                          app_download: { icon: Download, color: "text-emerald-400", label: "Завантаження" },
+                          app_download: { icon: Download, color: "text-cyan-400", label: "Завантаження" },
                         };
                         const config = eventConfig[event.eventType] || { icon: Activity, color: "text-muted-foreground", label: event.eventType };
                         const EventIcon = config.icon;
@@ -2080,7 +2080,7 @@ export default function Admin() {
                       >
                         <option value="from-purple-600/20 via-pink-500/10 to-transparent">Purple-Pink</option>
                         <option value="from-blue-600/20 via-cyan-500/10 to-transparent">Blue-Cyan</option>
-                        <option value="from-green-600/20 via-emerald-500/10 to-transparent">Green-Emerald</option>
+                        <option value="from-green-600/20 via-cyan-500/10 to-transparent">Green-Emerald</option>
                         <option value="from-amber-600/20 via-orange-500/10 to-transparent">Amber-Orange</option>
                         <option value="from-red-600/20 via-rose-500/10 to-transparent">Red-Rose</option>
                         <option value="from-indigo-600/20 via-violet-500/10 to-transparent">Indigo-Violet</option>
@@ -2251,7 +2251,7 @@ export default function Admin() {
               </div>
 
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/15 to-emerald-500/5 border border-green-500/20 text-center">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/15 to-cyan-500/5 border border-green-500/20 text-center">
                   <Mail className="w-4 h-4 text-green-400 mx-auto mb-1" />
                   <p className="text-xl sm:text-2xl font-bold">{emailSubscribers?.total ?? 0}</p>
                   <p className="text-[10px] text-muted-foreground">Підписників</p>

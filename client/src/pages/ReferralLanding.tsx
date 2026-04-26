@@ -19,7 +19,7 @@ import { SiTelegram } from "react-icons/si";
 
 const features = [
   { icon: Search, text: "10+ OSINT модулів аналізу", color: "text-cyan-400" },
-  { icon: Lock, text: "AI-powered звіти безпеки", color: "text-emerald-400" },
+  { icon: Lock, text: "AI-powered звіти безпеки", color: "text-cyan-400" },
   { icon: Globe, text: "Аналіз IP, крипто, email...", color: "text-purple-400" },
   { icon: Zap, text: "Миттєві результати", color: "text-amber-400" },
 ];
@@ -94,7 +94,7 @@ export default function ReferralLanding() {
       >
         <div className="text-center mb-8">
           <motion.div
-            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 mb-6 shadow-[0_0_60px_rgba(34,197,94,0.5)]"
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 mb-6 shadow-[0_0_60px_rgba(34,197,94,0.5)]"
             animate={{ 
               boxShadow: [
                 "0 0 40px rgba(34,197,94,0.4)",
@@ -145,7 +145,7 @@ export default function ReferralLanding() {
           <div className="p-4 rounded-xl bg-black/40 border border-primary/20 mb-4">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-sm">Реферальний код:</span>
-              <Badge className="bg-gradient-to-r from-primary/20 to-emerald-500/20 text-primary border-primary/30 font-mono text-sm px-3">
+              <Badge className="bg-gradient-to-r from-primary/20 to-cyan-500/20 text-primary border-primary/30 font-mono text-sm px-3">
                 {code}
               </Badge>
             </div>

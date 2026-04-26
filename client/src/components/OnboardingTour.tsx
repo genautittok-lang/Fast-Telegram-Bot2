@@ -29,8 +29,8 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     icon: Shield,
-    iconColor: "text-emerald-400",
-    iconBg: "from-emerald-500/20 to-green-500/10",
+    iconColor: "text-cyan-400",
+    iconBg: "from-cyan-500/20 to-green-500/10",
     title: "Welcome to DARKSHARE",
     description:
       "Your all-in-one OSINT security scanner. Check IPs, emails, wallets, domains, and more — all from a single dashboard.",
@@ -75,7 +75,7 @@ const steps: OnboardingStep[] = [
   {
     icon: History,
     iconColor: "text-green-400",
-    iconBg: "from-green-500/20 to-emerald-500/10",
+    iconBg: "from-green-500/20 to-cyan-500/10",
     title: "History & Monitoring",
     description:
       "Access your past scans from the History page and set up continuous monitoring from the sidebar navigation.",
@@ -134,13 +134,13 @@ export function OnboardingTour({ onComplete }: { onComplete: () => void }) {
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
           </div>
 
           <div className="relative p-6 sm:p-8">
             <div className="flex items-center justify-between gap-2 mb-6">
-              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2.5 py-0.5 text-xs font-mono">
+              <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-2.5 py-0.5 text-xs font-mono">
                 {currentStep + 1}/{steps.length}
               </Badge>
               <Button
@@ -185,13 +185,13 @@ export function OnboardingTour({ onComplete }: { onComplete: () => void }) {
 
               {step.tip && (
                 <motion.div
-                  className="mt-4 flex items-start gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10"
+                  className="mt-4 flex items-start gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/5 border border-cyan-500/10"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
                 >
-                  <Sparkles className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                  <span className="text-xs sm:text-sm text-emerald-300/80 text-left">
+                  <Sparkles className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                  <span className="text-xs sm:text-sm text-cyan-300/80 text-left">
                     {step.tip}
                   </span>
                 </motion.div>
@@ -205,7 +205,7 @@ export function OnboardingTour({ onComplete }: { onComplete: () => void }) {
                   className="flex-1 h-1 rounded-full overflow-hidden bg-white/10"
                 >
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400"
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-green-400"
                     initial={false}
                     animate={{ width: idx <= currentStep ? "100%" : "0%" }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
@@ -231,7 +231,7 @@ export function OnboardingTour({ onComplete }: { onComplete: () => void }) {
                 variant="default"
                 size="sm"
                 onClick={handleNext}
-                className="bg-gradient-to-r from-emerald-600 to-green-500 border-emerald-400/30 text-white px-5"
+                className="bg-gradient-to-r from-cyan-600 to-green-500 border-cyan-400/30 text-white px-5"
                 data-testid="button-tour-next"
               >
                 {isLast ? "Get Started" : "Next"}

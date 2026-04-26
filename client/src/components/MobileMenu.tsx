@@ -105,7 +105,7 @@ export function MobileMenu({
 
   const getTierBadge = (t: string) => {
     switch(t?.toUpperCase()) {
-      case 'PRO': return { bg: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', icon: <Zap className="w-3 h-3" /> };
+      case 'PRO': return { bg: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', icon: <Zap className="w-3 h-3" /> };
       case 'ENTERPRISE': return { bg: 'bg-amber-500/20 text-amber-400 border-amber-500/30', icon: <Zap className="w-3 h-3" /> };
       default: return { bg: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30', icon: null };
     }
@@ -179,7 +179,7 @@ export function MobileMenu({
             <div className="flex flex-col h-full w-full overflow-y-auto">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-background sticky top-0 z-10">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
                     <Shield className="w-5 h-5 text-black" />
                   </div>
                   <div>

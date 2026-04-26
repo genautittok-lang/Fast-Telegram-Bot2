@@ -112,9 +112,9 @@ function AUPContent() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-emerald-500/20 bg-emerald-500/5">
+        <Card className="border-cyan-500/20 bg-cyan-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-emerald-300">
+            <CardTitle className="text-base flex items-center gap-2 text-cyan-300">
               <CheckCircle2 className="w-4 h-4" />
               Дозволене використання
             </CardTitle>
@@ -122,8 +122,8 @@ function AUPContent() {
           <CardContent>
             <ul className="space-y-2">
               {ALLOWED.map((item, i) => (
-                <li key={i} className="text-sm text-emerald-100/80 leading-relaxed flex gap-2" data-testid={`text-aup-allowed-${i + 1}`}>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <li key={i} className="text-sm text-cyan-100/80 leading-relaxed flex gap-2" data-testid={`text-aup-allowed-${i + 1}`}>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>
               ))}

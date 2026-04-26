@@ -88,14 +88,14 @@ const typeGradients: Record<string, string> = {
   ip: "from-blue-500 to-cyan-400",
   wallet: "from-orange-500 to-amber-400",
   email: "from-purple-500 to-pink-400",
-  phone: "from-green-500 to-emerald-400",
+  phone: "from-green-500 to-cyan-400",
   domain: "from-indigo-500 to-violet-400",
   url: "from-red-500 to-rose-400",
   bot: "from-cyan-500 to-teal-400",
   cve: "from-rose-500 to-red-400",
   hash: "from-slate-500 to-zinc-400",
   username: "from-amber-500 to-yellow-400",
-  card: "from-emerald-500 to-teal-400",
+  card: "from-cyan-500 to-teal-400",
   password: "from-yellow-500 to-amber-400",
   dns: "from-sky-500 to-blue-400",
   ssl: "from-lime-500 to-green-400",
@@ -767,7 +767,7 @@ export default function History() {
                       <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       {t('history.startChecking')}
                     </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-cyan-400 to-primary bg-[length:200%_100%] animate-[shimmer_2s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Button>
                 </motion.div>
               </Link>

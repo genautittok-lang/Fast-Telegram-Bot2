@@ -417,16 +417,16 @@ export default function Referral() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <motion.div
-                className="p-4 lg:p-5 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-transparent backdrop-blur-xl"
+                className="p-4 lg:p-5 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-green-500/5 to-transparent backdrop-blur-xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <UserPlus className="w-4 h-4 text-emerald-400" />
+                  <UserPlus className="w-4 h-4 text-cyan-400" />
                   <span className="text-xs text-muted-foreground">{t('referral.totalReferrals')}</span>
                 </div>
-                <p className="text-3xl font-bold text-emerald-400 font-mono">
+                <p className="text-3xl font-bold text-cyan-400 font-mono">
                   {statsLoading ? "—" : referralStats?.referralCount || 0}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">{t('referral.referralsLabel')}</p>
@@ -498,7 +498,7 @@ export default function Referral() {
                     >
                       {isActive && (
                         <div className="absolute -top-2 -right-2">
-                          <Badge className="bg-gradient-to-r from-primary to-emerald-400 text-black text-[10px] px-2 py-0.5">
+                          <Badge className="bg-gradient-to-r from-primary to-cyan-400 text-black text-[10px] px-2 py-0.5">
                             {t('referral.current')}
                           </Badge>
                         </div>
@@ -603,13 +603,13 @@ export default function Referral() {
             </motion.div>
 
             <motion.div
-              className="p-4 lg:p-6 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent backdrop-blur-xl"
+              className="p-4 lg:p-6 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent backdrop-blur-xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-emerald-500/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-cyan-500/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
                   <Gift className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">

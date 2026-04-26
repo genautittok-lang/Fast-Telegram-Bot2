@@ -81,10 +81,10 @@ const typeStyleConfig: Record<string, {
   },
   phone: {
     icon: Phone,
-    gradient: "from-green-500 to-emerald-400",
+    gradient: "from-green-500 to-cyan-400",
     borderColor: "border-l-green-500",
     bgGradient: "from-green-500/20 via-green-500/5 to-transparent",
-    iconBg: "bg-gradient-to-br from-green-500/30 to-emerald-500/20",
+    iconBg: "bg-gradient-to-br from-green-500/30 to-cyan-500/20",
   },
   domain: {
     icon: Building,
@@ -130,10 +130,10 @@ const typeStyleConfig: Record<string, {
   },
   card: {
     icon: Activity,
-    gradient: "from-emerald-500 to-teal-400",
-    borderColor: "border-l-emerald-500",
-    bgGradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
-    iconBg: "bg-gradient-to-br from-emerald-500/30 to-teal-500/20",
+    gradient: "from-cyan-500 to-teal-400",
+    borderColor: "border-l-cyan-500",
+    bgGradient: "from-cyan-500/20 via-cyan-500/5 to-transparent",
+    iconBg: "bg-gradient-to-br from-cyan-500/30 to-teal-500/20",
   },
   password: {
     icon: Activity,
@@ -447,7 +447,7 @@ export default function Monitoring() {
             icon={Eye}
             label={t('monitoring.totalMonitors')}
             value={isLoading ? "..." : activeCount}
-            gradient="from-primary/80 to-emerald-500/80"
+            gradient="from-primary/80 to-cyan-500/80"
             delay={0}
           />
           <StatCard
@@ -530,7 +530,7 @@ export default function Monitoring() {
               <Button 
                 onClick={handleCreate} 
                 disabled={createMutation.isPending}
-                className={`w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 border-0 ${!createMutation.isPending && 'animate-subtle-pulse'}`}
+                className={`w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 border-0 ${!createMutation.isPending && 'animate-subtle-pulse'}`}
                 data-testid="button-create-monitor"
               >
                 {createMutation.isPending ? (

@@ -89,7 +89,7 @@ export function BottomTabBar() {
                     data-testid="tab-scan"
                   >
                     <motion.div
-                      className="w-[3.25rem] h-[3.25rem] rounded-[1.1rem] bg-gradient-to-br from-primary via-emerald-400 to-cyan-400 flex items-center justify-center relative"
+                      className="w-[3.25rem] h-[3.25rem] rounded-[1.1rem] bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center relative"
                       style={{ boxShadow: "0 4px 20px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.2)" }}
                       animate={{
                         boxShadow: [

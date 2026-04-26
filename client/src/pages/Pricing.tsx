@@ -280,11 +280,23 @@ function PricingContent() {
 
   return (
     <div className="min-h-full">
-      <div className="relative container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+      {/* Promo Banner */}
+      <div className="bg-gradient-to-r from-cyan-900/40 via-cyan-600/20 to-cyan-900/40 border-b border-cyan-500/20 text-center py-2.5 px-4">
+        <p className="text-sm font-medium text-cyan-100 flex items-center justify-center gap-2 flex-wrap">
+          <span className="animate-pulse">🔥</span>
+          <span>
+            {lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código promo" : lang === "de" ? "Promo-Code" : "Promo code"}{" "}
+            <strong className="text-cyan-400 font-mono px-1.5 py-0.5 bg-cyan-500/10 rounded">DARKNEU</strong>{" "}
+            — {lang === "uk" ? "знижка 50% на перші 3 місяці" : lang === "ru" ? "скидка 50% на первые 3 месяца" : lang === "es" ? "50% de descuento los primeros 3 meses" : lang === "de" ? "50% Rabatt für die ersten 3 Monate" : "50% off first 3 months"}
+          </span>
+        </p>
+      </div>
+
+      <div className="relative container mx-auto px-4 py-10 sm:py-16 max-w-6xl">
         {!isAuthenticated && (
           <Button
             variant="ghost"
-            className="mb-6"
+            className="mb-6 text-zinc-400 hover:text-white"
             onClick={() => setLocation("/")}
             data-testid="button-back"
           >
@@ -293,27 +305,25 @@ function PricingContent() {
           </Button>
         )}
 
+        {/* New Hero — clean centered */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6 sm:mb-8"
+          className="text-center mb-10 sm:mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-medium mb-4">
-            <Zap className="w-3 h-3" />
-            <span>{lang === "uk" ? "Преміум OSINT · 2800+ користувачів" : lang === "ru" ? "Премиум OSINT · 2800+ пользователей" : "Premium OSINT · 2800+ users"}</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent" data-testid="text-pricing-title">
-            {t('pricing.title')}
+          <Badge variant="outline" className="mb-6 border-cyan-500/30 text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/10 px-3 py-1">
+            {lang === "uk" ? "Тарифні плани" : lang === "ru" ? "Тарифные планы" : lang === "es" ? "Planes" : lang === "de" ? "Preispläne" : "Pricing Plans"}
+          </Badge>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight mb-6 leading-[1.05]" data-testid="text-pricing-title">
+            {lang === "uk" ? "Прості тарифи." : lang === "ru" ? "Простые тарифы." : lang === "es" ? "Precios simples." : lang === "de" ? "Klare Tarife." : "Simple pricing."}
+            <br/>
+            <span className="text-zinc-500">
+              {lang === "uk" ? "Без прихованих платежів." : lang === "ru" ? "Без скрытых платежей." : lang === "es" ? "Sin cargos ocultos." : lang === "de" ? "Keine versteckten Kosten." : "No hidden fees."}
+            </span>
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-8">
             {t('pricing.subtitle')}
           </p>
-          
-          <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
-            <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-400 px-3 py-1.5">
-              {t('pricing.paymentUSDT')}
-            </Badge>
-          </div>
         </motion.div>
 
         <motion.div
@@ -348,7 +358,7 @@ function PricingContent() {
                   <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                   <span className="text-white font-medium">{recentBuyers[activeBuyerIdx]?.name}</span>
                   <span className="text-muted-foreground">{lang === "uk" ? "придбав" : lang === "ru" ? "купил" : "bought"}</span>
-                  <span className={`font-bold ${recentBuyers[activeBuyerIdx]?.plan === "PRO" ? "text-emerald-400" : recentBuyers[activeBuyerIdx]?.plan === "ENTERPRISE" ? "text-amber-400" : "text-violet-400"}`}>
+                  <span className={`font-bold ${recentBuyers[activeBuyerIdx]?.plan === "PRO" ? "text-cyan-400" : recentBuyers[activeBuyerIdx]?.plan === "ENTERPRISE" ? "text-amber-400" : "text-violet-400"}`}>
                     {recentBuyers[activeBuyerIdx]?.plan}
                   </span>
                   <span className="text-muted-foreground/60">{recentBuyers[activeBuyerIdx]?.time}</span>
@@ -377,7 +387,7 @@ function PricingContent() {
           />
           <span className={`text-sm flex items-center gap-2 ${isYearly ? "text-foreground font-medium" : "text-muted-foreground"}`}>
             {t('pricing.yearly')}
-            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
               -17%
             </Badge>
           </span>
@@ -405,7 +415,7 @@ function PricingContent() {
                 <ul className="space-y-2">
                   {features.free.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <Check className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -430,14 +440,14 @@ function PricingContent() {
             transition={{ delay: 0.2 }}
             className="pricing-card-hover"
           >
-            <Card className="h-full border-emerald-500/50 bg-gradient-to-b from-emerald-500/10 to-transparent relative shadow-[0_0_30px_rgba(34,197,94,0.12)] hover:shadow-[0_0_50px_rgba(34,197,94,0.22)] transition-all duration-300 spotlight-sweep shimmer-border-effect" data-testid="card-pro-plan">
-              <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-emerald-500 text-white text-xs font-medium rounded-bl-lg">
+            <Card className="h-full border-cyan-500/50 bg-gradient-to-b from-cyan-500/10 to-transparent relative shadow-[0_0_30px_rgba(34,197,94,0.12)] hover:shadow-[0_0_50px_rgba(34,197,94,0.22)] transition-all duration-300 spotlight-sweep shimmer-border-effect" data-testid="card-pro-plan">
+              <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-cyan-500 text-white text-xs font-medium rounded-bl-lg">
                 {t('pricing.popular')}
               </div>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <Star className="h-5 w-5 text-emerald-500" />
-                  <CardTitle className="text-lg text-emerald-400">PRO</CardTitle>
+                  <Star className="h-5 w-5 text-cyan-500" />
+                  <CardTitle className="text-lg text-cyan-400">PRO</CardTitle>
                 </div>
                 <CardDescription className="text-xs">{t('pricing.forProfessionals')}</CardDescription>
                 <div className="mt-1 flex items-center gap-1.5">
@@ -450,13 +460,13 @@ function PricingContent() {
                   </span>
                 </div>
                 <div className="mt-2">
-                  <span className="text-3xl font-bold text-emerald-400">${getPrice("PRO")}</span>
+                  <span className="text-3xl font-bold text-cyan-400">${getPrice("PRO")}</span>
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
                     <span className="ml-2 text-xs text-muted-foreground line-through">$120</span>
                   )}
                   {isYearly && (
-                    <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
+                    <Badge className="ml-1 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px]">-17%</Badge>
                   )}
                 </div>
               </CardHeader>
@@ -464,7 +474,7 @@ function PricingContent() {
                 <ul className="space-y-2">
                   {features.pro.map((feature, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <Check className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -503,7 +513,7 @@ function PricingContent() {
                     <span className="ml-2 text-xs text-muted-foreground line-through">$420</span>
                   )}
                   {isYearly && (
-                    <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
+                    <Badge className="ml-1 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px]">-17%</Badge>
                   )}
                 </div>
               </CardHeader>
@@ -553,7 +563,7 @@ function PricingContent() {
                     <span className="ml-2 text-xs text-muted-foreground line-through">$660</span>
                   )}
                   {isYearly && (
-                    <Badge className="ml-1 bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">-17%</Badge>
+                    <Badge className="ml-1 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px]">-17%</Badge>
                   )}
                 </div>
               </CardHeader>
@@ -604,8 +614,8 @@ function PricingContent() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.06] text-center">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-cyan-400" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">
@@ -649,7 +659,7 @@ function PricingContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="mt-6 sm:mt-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/[0.05] via-transparent to-cyan-500/[0.05] border border-emerald-500/15"
+          className="mt-6 sm:mt-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-500/[0.05] via-transparent to-cyan-500/[0.05] border border-cyan-500/15"
         >
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex items-center gap-3 flex-1">
@@ -666,7 +676,7 @@ function PricingContent() {
                     lang === "uk" ? "Telegram бот" : lang === "ru" ? "Telegram бот" : "Telegram bot",
                   ].map((item, i) => (
                     <span key={i} className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                      <Check className="w-3 h-3 text-cyan-500 shrink-0" />
                       {item}
                     </span>
                   ))}
@@ -706,7 +716,7 @@ function PricingContent() {
               >
                 <div className={`relative px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-white/[0.06] ${
                   showPaymentModal === "PRO" 
-                    ? "bg-gradient-to-br from-emerald-500/[0.08] to-transparent" 
+                    ? "bg-gradient-to-br from-cyan-500/[0.08] to-transparent" 
                     : showPaymentModal === "ENTERPRISE"
                     ? "bg-gradient-to-br from-amber-500/[0.08] to-transparent"
                     : "bg-gradient-to-br from-violet-500/[0.08] to-transparent"
@@ -733,13 +743,13 @@ function PricingContent() {
                     )}
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
                       showPaymentModal === "PRO" 
-                        ? "bg-gradient-to-br from-emerald-500/30 to-emerald-600/10 border border-emerald-500/30 shadow-emerald-500/20" 
+                        ? "bg-gradient-to-br from-cyan-500/30 to-cyan-600/10 border border-cyan-500/30 shadow-cyan-500/20" 
                         : showPaymentModal === "ENTERPRISE"
                         ? "bg-gradient-to-br from-amber-500/30 to-amber-600/10 border border-amber-500/30 shadow-amber-500/20"
                         : "bg-gradient-to-br from-violet-500/30 to-violet-600/10 border border-violet-500/30 shadow-violet-500/20"
                     }`}>
                       {showPaymentModal === "PRO" ? (
-                        <Star className="w-5 h-5 text-emerald-400" />
+                        <Star className="w-5 h-5 text-cyan-400" />
                       ) : showPaymentModal === "ENTERPRISE" ? (
                         <Crown className="w-5 h-5 text-amber-400" />
                       ) : (
@@ -754,7 +764,7 @@ function PricingContent() {
                         {isYearly ? t('pricing.yearlySubscription') : t('pricing.monthlySubscription')} — {getFinalAmount(showPaymentModal) < getPrice(showPaymentModal) ? (
                           <>
                             <span className="line-through text-muted-foreground/50">${getPrice(showPaymentModal)}</span>{" "}
-                            <span className={`font-semibold ${showPaymentModal === "PRO" ? "text-emerald-400" : showPaymentModal === "ENTERPRISE" ? "text-amber-400" : "text-violet-400"}`}>${getFinalAmount(showPaymentModal)} USD</span>
+                            <span className={`font-semibold ${showPaymentModal === "PRO" ? "text-cyan-400" : showPaymentModal === "ENTERPRISE" ? "text-amber-400" : "text-violet-400"}`}>${getFinalAmount(showPaymentModal)} USD</span>
                           </>
                         ) : (
                           <span className="font-semibold text-white">${getPrice(showPaymentModal)} USD</span>
@@ -910,16 +920,16 @@ function PricingContent() {
                         </Button>
                       </div>
                       {promoError && <p className="text-xs text-red-400 mt-1">{promoError}</p>}
-                      {promoApplied && <p className="text-xs text-emerald-400 mt-1">-{promoDiscount}% {t('pricing.promoAppliedLabel') || "discount applied"}</p>}
+                      {promoApplied && <p className="text-xs text-cyan-400 mt-1">-{promoDiscount}% {t('pricing.promoAppliedLabel') || "discount applied"}</p>}
                     </div>
 
                     {promoApplied && showPaymentModal && (
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/30">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/30">
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">{t('pricing.totalAmount') || "Total"}</span>
                           <div className="flex items-center gap-2">
                             <span className="line-through text-muted-foreground text-xs">${getPrice(showPaymentModal)}</span>
-                            <span className="text-emerald-400 font-bold text-lg">${getFinalAmount(showPaymentModal)}</span>
+                            <span className="text-cyan-400 font-bold text-lg">${getFinalAmount(showPaymentModal)}</span>
                           </div>
                         </div>
                       </div>
@@ -928,7 +938,7 @@ function PricingContent() {
                     <Button
                       className={`w-full py-5 font-semibold text-sm rounded-2xl transition-all duration-200 ${
                         showPaymentModal === "PRO" 
-                          ? "bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-lg shadow-emerald-500/20" 
+                          ? "bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 shadow-lg shadow-cyan-500/20" 
                           : showPaymentModal === "ENTERPRISE" 
                           ? "bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 shadow-lg shadow-amber-500/20" 
                           : "bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 shadow-lg shadow-violet-500/20"
@@ -950,10 +960,10 @@ function PricingContent() {
                         ? "bg-red-500/[0.08] border-red-500/25" 
                         : timeLeft <= 60 
                         ? "bg-amber-500/[0.08] border-amber-500/25" 
-                        : "bg-emerald-500/[0.08] border-emerald-500/25"
+                        : "bg-cyan-500/[0.08] border-cyan-500/25"
                     }`} data-testid="timer-display">
-                      <Clock className={`w-4 h-4 ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`} />
-                      <span className={`font-mono text-xl font-bold tracking-wider ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-emerald-400"}`}>
+                      <Clock className={`w-4 h-4 ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-cyan-400"}`} />
+                      <span className={`font-mono text-xl font-bold tracking-wider ${timerExpired ? "text-red-400" : timeLeft <= 60 ? "text-amber-400" : "text-cyan-400"}`}>
                         {timerExpired ? (t('pricing.expired')) : formatTimer(timeLeft)}
                       </span>
                     </div>

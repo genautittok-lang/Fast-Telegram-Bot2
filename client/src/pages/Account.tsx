@@ -655,8 +655,8 @@ export default function Account() {
           >
             <div className="flex items-center justify-between gap-2 mb-4 lg:mb-6 flex-wrap">
               <div className="flex items-center gap-2 lg:gap-3">
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 flex items-center justify-center">
-                  <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400" />
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-cyan-500/20 to-cyan-500/10 flex items-center justify-center">
+                  <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
                 </div>
                 <h2 className="text-lg lg:text-xl font-bold text-white" data-testid="text-security-level-title">{t('account.securityLevel')}</h2>
               </div>
@@ -695,7 +695,7 @@ export default function Account() {
           >
             <div className="flex items-center justify-between gap-2 mb-4 lg:mb-6 flex-wrap">
               <div className="flex items-center gap-2 lg:gap-3">
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10 flex items-center justify-center">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-cyan-500/10 flex items-center justify-center">
                   <Activity className="w-4 h-4 lg:w-5 lg:h-5 text-green-400" />
                 </div>
                 <h2 className="text-lg lg:text-xl font-bold text-white" data-testid="text-heatmap-title">{t('account.activityHeatmap')}</h2>
@@ -943,8 +943,8 @@ export default function Account() {
                   const daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
                   const isExpired = daysRemaining <= 0;
                   const progressPct = Math.max(0, Math.min(100, (daysRemaining / 30) * 100));
-                  const colorClass = isExpired ? "text-red-400" : daysRemaining <= 3 ? "text-red-400" : daysRemaining <= 7 ? "text-orange-400" : "text-emerald-400";
-                  const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-emerald-500";
+                  const colorClass = isExpired ? "text-red-400" : daysRemaining <= 3 ? "text-red-400" : daysRemaining <= 7 ? "text-orange-400" : "text-cyan-400";
+                  const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-cyan-500";
 
                   const subLabels = {
                     daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : "days left",
@@ -979,7 +979,7 @@ export default function Account() {
                       </div>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs text-muted-foreground">
-                          {subLabels.autoRenew}: <span className={user?.autoRenew ? "text-emerald-400" : "text-zinc-400"}>{user?.autoRenew ? subLabels.on : subLabels.off}</span>
+                          {subLabels.autoRenew}: <span className={user?.autoRenew ? "text-cyan-400" : "text-zinc-400"}>{user?.autoRenew ? subLabels.on : subLabels.off}</span>
                         </span>
                         {(isExpired || daysRemaining <= 5) && (
                           <Link href="/pricing">
@@ -1062,16 +1062,16 @@ export default function Account() {
                 </div>
               </div>
 
-              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 via-zinc-900/50 to-transparent border border-emerald-500/20">
+              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
                 <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-                    <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-400 flex-shrink-0" />
+                    <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="font-medium text-white text-sm lg:text-base">{t('account.twoFactorAuth')}</p>
                       <p className="text-xs lg:text-sm text-muted-foreground">{t('account.twoFactorDesc')}</p>
                     </div>
                   </div>
-                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-zinc-700/50 text-zinc-400 border-zinc-600/50'}`}>
+                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-zinc-700/50 text-zinc-400 border-zinc-600/50'}`}>
                     {user?.totpEnabled ? t('account.twoFactorEnabled') : t('account.twoFactorDisabled')}
                   </Badge>
                 </div>
@@ -1081,14 +1081,14 @@ export default function Account() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                       <Button
                         variant="ghost"
-                        className="w-full mt-2 text-emerald-400"
+                        className="w-full mt-2 text-cyan-400"
                         onClick={startTwoFASetup}
                         disabled={twoFALoading}
                         data-testid="button-2fa-enable"
                       >
                         <KeyRound className="w-3.5 h-3.5 mr-1.5" />
                         {twoFALoading ? (
-                          <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+                          <div className="w-4 h-4 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
                         ) : t('account.twoFactorEnable')}
                       </Button>
                     </motion.div>
@@ -1111,7 +1111,7 @@ export default function Account() {
                         <div className="w-full">
                           <p className="text-xs text-muted-foreground mb-1">{t('account.twoFactorManualKey')}</p>
                           <div className="flex items-center gap-2">
-                            <code className="flex-1 text-xs font-mono text-emerald-400 bg-zinc-800 px-2 py-1.5 rounded border border-zinc-700 break-all" data-testid="text-2fa-secret">
+                            <code className="flex-1 text-xs font-mono text-cyan-400 bg-zinc-800 px-2 py-1.5 rounded border border-zinc-700 break-all" data-testid="text-2fa-secret">
                               {twoFASetupData.secret}
                             </code>
                             <Button
@@ -1145,7 +1145,7 @@ export default function Account() {
                             <Button
                               onClick={verifyTwoFA}
                               disabled={twoFACode.length !== 6 || twoFALoading}
-                              className="flex-1 bg-emerald-600"
+                              className="flex-1 bg-cyan-600"
                               data-testid="button-2fa-verify"
                             >
                               {twoFALoading ? (

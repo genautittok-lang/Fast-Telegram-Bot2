@@ -43,22 +43,22 @@ function DataDeletionContent() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+            <CheckCircle2 className="w-8 h-8 text-cyan-400" />
           </div>
           <h1 className="text-2xl font-bold" data-testid="text-deletion-success">Запит прийнято</h1>
           <p className="text-muted-foreground">Номер заявки: <span className="text-primary font-mono">#{submittedId}</span></p>
         </div>
 
-        <Card className="border-emerald-500/20 bg-emerald-500/5">
+        <Card className="border-cyan-500/20 bg-cyan-500/5">
           <CardContent className="pt-6 space-y-3">
             <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+              <Clock className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
               <div className="space-y-2 text-sm">
                 <p><strong>Що відбувається далі:</strong></p>
                 <ul className="space-y-1.5 text-muted-foreground list-disc ml-5">
                   <li>Ваш запит передано команді DARKSHARE та внесено до журналу обробки.</li>
-                  <li>Ми відповімо на вказаний email протягом <strong className="text-emerald-300">30 календарних днів</strong> згідно зі ст. 12(3) GDPR.</li>
+                  <li>Ми відповімо на вказаний email протягом <strong className="text-cyan-300">30 календарних днів</strong> згідно зі ст. 12(3) GDPR.</li>
                   <li>За потреби ми можемо запитати додаткову верифікацію особи (ст. 12(6) GDPR).</li>
                   <li>Після підтвердження дані будуть видалені з активних баз протягом 7 днів та з резервних копій протягом 90 днів.</li>
                 </ul>

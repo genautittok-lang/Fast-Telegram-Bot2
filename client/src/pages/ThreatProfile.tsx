@@ -30,7 +30,7 @@ interface ThreatProfileResult {
 }
 
 const CLASS_COLORS: Record<string, string> = {
-  MINIMAL: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  MINIMAL: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
   LOW: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
   ELEVATED: "bg-amber-500/15 text-amber-300 border-amber-500/30",
   HIGH: "bg-orange-500/15 text-orange-300 border-orange-500/30",
