@@ -741,7 +741,7 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
         cb(t(lang, "support.command"), "open_support", "primary", E.msg)
       ],
       [
-        cb((lang === "uk" ? "🛡 VPN" : lang === "ru" ? "🛡 VPN" : lang === "es" ? "🛡 VPN" : lang === "de" ? "🛡 VPN" : "🛡 VPN"), "vpn_menu", "success", ""),
+        cb((lang === "uk" ? "VPN" : lang === "ru" ? "VPN" : lang === "es" ? "VPN" : lang === "de" ? "VPN" : "VPN") + " ✨", "vpn_menu", "success", E.shield),
         cb((lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : lang === "es" ? "Guía" : lang === "de" ? "Anleitung" : "Guide"), "open_guide", "primary", E.doc),
       ],
       [
@@ -3041,7 +3041,7 @@ ${faqText}`;
     const lang = getUserLang(user?.lang);
     if (!user) {
       const text = `${vpnT(lang, "title")}\n\n${vpnT(lang, "tagline")}\n\n${vpnT(lang, "proRequired")}`;
-      const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "back_to_dashboard", "danger", "")]]);
+      const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]]);
       return ctx.reply(text, { parse_mode: "Markdown", ...kb });
     }
     const tier = (user.tier || "FREE").toUpperCase();
@@ -3050,8 +3050,8 @@ ${faqText}`;
     if (!isProTier(tier)) {
       const text = `${vpnT(lang, "title")}\n\n${vpnT(lang, "tagline")}\n\n${vpnT(lang, "proRequired")}`;
       const kb = Markup.inlineKeyboard([
-        [Markup.button.url(vpnT(lang, "buyPro"), `${webUrl}/pricing?plan=PRO&code=DARKNEU&src=bot_vpn`)],
-        [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", "")],
+        [urlS(vpnT(lang, "buyPro"), `${webUrl}/pricing?plan=PRO&code=DARKNEU&src=bot_vpn`, "success", E.diamond)],
+        [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
       ]);
       try { await ctx.editMessageText(text, { parse_mode: "Markdown", ...kb }); } catch { await ctx.reply(text, { parse_mode: "Markdown", ...kb }); }
       return;
@@ -3087,15 +3087,15 @@ ${faqText}`;
           row.map((s) => {
             const cap = s.capacity > 0 ? Math.min(100, Math.round(((s.used || 0) / s.capacity) * 100)) : 0;
             const label = `${s.flag} ${s.region} · ${cap}%`;
-            return cb(label, `vpn_create_${s.id}`, "success", "");
+            return cb(label, `vpn_create_${s.id}`, "success", E.globe);
           })
         );
       }
     }
     if (peers.length > 0) {
-      rows.push([cb(vpnT(lang, "myPeers"), "vpn_my_peers", "primary", "")]);
+      rows.push([cb(vpnT(lang, "myPeers"), "vpn_my_peers", "primary", E.eye)]);
     }
-    rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", "")]);
+    rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
     try { await ctx.editMessageText(text, { parse_mode: "Markdown", ...kb }); } catch { await ctx.reply(text, { parse_mode: "Markdown", ...kb }); }

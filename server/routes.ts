@@ -469,6 +469,29 @@ export async function registerRoutes(
   // VPN routes (Phase 6 — own WireGuard infrastructure)
   registerVpnRoutes(app, loadUser, requireAuth);
 
+  // Auto-seed demo VPN servers on first run so the /vpn flow has stock to show.
+  // Endpoints/keys are placeholders — replace via /admin VPN panel when real boxes come online.
+  // Awaited (not fire-and-forget) so /api/vpn/servers never returns empty after restart.
+  try {
+    const existingServers = await storage.listVpnServers(true);
+    if (existingServers.length === 0) {
+      const demoServers = [
+        { region: "Frankfurt",  countryCode: "DE", flag: "🇩🇪", hostname: "de1.vpn.darkshare.store", publicEndpoint: "vpn-de1.darkshare.store",  serverPublicKey: "DE1xQwertyAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa0=" },
+        { region: "Amsterdam",  countryCode: "NL", flag: "🇳🇱", hostname: "nl1.vpn.darkshare.store", publicEndpoint: "vpn-nl1.darkshare.store",  serverPublicKey: "NL1xQwertyBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb0=" },
+        { region: "Stockholm",  countryCode: "SE", flag: "🇸🇪", hostname: "se1.vpn.darkshare.store", publicEndpoint: "vpn-se1.darkshare.store",  serverPublicKey: "SE1xQwertyCcCcCcCcCcCcCcCcCcCcCcCcCcCcCcCc0=" },
+        { region: "Singapore",  countryCode: "SG", flag: "🇸🇬", hostname: "sg1.vpn.darkshare.store", publicEndpoint: "vpn-sg1.darkshare.store",  serverPublicKey: "SG1xQwertyDdDdDdDdDdDdDdDdDdDdDdDdDdDdDdDd0=" },
+        { region: "Tokyo",      countryCode: "JP", flag: "🇯🇵", hostname: "jp1.vpn.darkshare.store", publicEndpoint: "vpn-jp1.darkshare.store",  serverPublicKey: "JP1xQwertyEeEeEeEeEeEeEeEeEeEeEeEeEeEeEeEe0=" },
+        { region: "New York",   countryCode: "US", flag: "🇺🇸", hostname: "us1.vpn.darkshare.store", publicEndpoint: "vpn-us1.darkshare.store",  serverPublicKey: "US1xQwertyFfFfFfFfFfFfFfFfFfFfFfFfFfFfFfFf0=" },
+      ];
+      for (const s of demoServers) {
+        await storage.createVpnServer({ ...s, port: 51820, capacity: 100, status: "active", isPremium: false });
+      }
+      console.log(`[VPN] Seeded ${demoServers.length} demo servers`);
+    }
+  } catch (e: any) {
+    console.warn("[VPN] Server seed skipped:", e?.message || e);
+  }
+
   app.get(api.users.get.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     const requestedTgId = req.params.tgId;
