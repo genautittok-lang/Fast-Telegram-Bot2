@@ -13,6 +13,7 @@ import { Markup } from "telegraf";
 import { randomUUID, createHmac } from "crypto";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
+import { registerVpnRoutes } from "./vpn";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -464,6 +465,9 @@ export async function registerRoutes(
     }
     next();
   };
+
+  // VPN routes (Phase 6 — own WireGuard infrastructure)
+  registerVpnRoutes(app, loadUser, requireAuth);
 
   app.get(api.users.get.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;

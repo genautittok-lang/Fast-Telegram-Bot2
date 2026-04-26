@@ -282,6 +282,39 @@ export const adBanners = pgTable("ds_ad_banners", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// VPN — own WireGuard infrastructure (Phase 6)
+export const vpnServers = pgTable("ds_vpn_servers", {
+  id: serial("id").primaryKey(),
+  region: text("region").notNull(),
+  countryCode: text("country_code").notNull(),
+  flag: text("flag").notNull(),
+  hostname: text("hostname").notNull(),
+  publicEndpoint: text("public_endpoint").notNull(),
+  port: integer("port").notNull().default(51820),
+  serverPublicKey: text("server_public_key").notNull(),
+  capacity: integer("capacity").notNull().default(100),
+  used: integer("used").notNull().default(0),
+  status: text("status").notNull().default("active"),
+  isPremium: boolean("is_premium").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const vpnPeers = pgTable("ds_vpn_peers", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  serverId: integer("server_id").notNull().references(() => vpnServers.id, { onDelete: "cascade" }),
+  peerPublicKey: text("peer_public_key").notNull(),
+  peerPrivateKey: text("peer_private_key").notNull(),
+  presharedKey: text("preshared_key"),
+  allowedIp: text("allowed_ip").notNull(),
+  dns: text("dns").default("1.1.1.1, 1.0.0.1"),
+  expiresAt: timestamp("expires_at"),
+  trafficUsed: integer("traffic_used").default(0),
+  status: text("status").notNull().default("active"),
+  lastHandshakeAt: timestamp("last_handshake_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastReminderSent: true });
 export const insertReportSchema = createInsertSchema(reports).omit({ id: true, generatedAt: true });
@@ -302,6 +335,13 @@ export const insertAdBannerSchema = createInsertSchema(adBanners).omit({ id: tru
 export const insertDataDeletionRequestSchema = createInsertSchema(dataDeletionRequests).omit({ id: true, createdAt: true, resolvedAt: true, status: true, adminNotes: true });
 export const insertThreatProfileSchema = createInsertSchema(threatProfiles).omit({ id: true, createdAt: true });
 export const insertTakedownLetterSchema = createInsertSchema(takedownLetters).omit({ id: true, createdAt: true });
+export const insertVpnServerSchema = createInsertSchema(vpnServers).omit({ id: true, createdAt: true, used: true });
+export const insertVpnPeerSchema = createInsertSchema(vpnPeers).omit({ id: true, createdAt: true, lastHandshakeAt: true, trafficUsed: true });
+
+export type VpnServer = typeof vpnServers.$inferSelect;
+export type InsertVpnServer = z.infer<typeof insertVpnServerSchema>;
+export type VpnPeer = typeof vpnPeers.$inferSelect;
+export type InsertVpnPeer = z.infer<typeof insertVpnPeerSchema>;
 
 // Types
 export type User = typeof users.$inferSelect;

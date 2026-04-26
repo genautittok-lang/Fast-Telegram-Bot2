@@ -16,6 +16,7 @@ export interface TranslationSchema {
     guide: string;
     exif: string;
     geoint: string;
+    vpn: string;
   };
   common: {
     loading: string;
@@ -895,6 +896,7 @@ export const translations: Record<Language, TranslationSchema> = {
       guide: "Guide",
       exif: "EXIF Metadata",
       geoint: "GEOINT",
+      vpn: "VPN",
     },
     common: {
       loading: "Loading...",
@@ -1772,6 +1774,7 @@ export const translations: Record<Language, TranslationSchema> = {
       guide: "Інструкція",
       exif: "EXIF Метадані",
       geoint: "GEOINT",
+      vpn: "VPN",
     },
     common: {
       loading: "Завантаження...",
@@ -2649,6 +2652,7 @@ export const translations: Record<Language, TranslationSchema> = {
       guide: "Инструкция",
       exif: "EXIF Метаданные",
       geoint: "GEOINT",
+      vpn: "VPN",
     },
     common: {
       loading: "Загрузка...",
@@ -3526,6 +3530,7 @@ export const translations: Record<Language, TranslationSchema> = {
       guide: "Guía",
       exif: "EXIF Metadatos",
       geoint: "GEOINT",
+      vpn: "VPN",
     },
     common: {
       loading: "Cargando...",
@@ -4403,6 +4408,7 @@ export const translations: Record<Language, TranslationSchema> = {
       guide: "Anleitung",
       exif: "EXIF-Metadaten",
       geoint: "GEOINT",
+      vpn: "VPN",
     },
     common: {
       loading: "Laden...",

@@ -18,6 +18,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import VpnPage from "@/pages/VpnPage";
 import History from "@/pages/History";
 import Monitoring from "@/pages/Monitoring";
 import Referral from "@/pages/Referral";
@@ -93,6 +94,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/login" component={Login} />
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/vpn" component={VpnPage} />
           <Route path="/history" component={History} />
           <Route path="/monitoring" component={Monitoring} />
           <Route path="/referral" component={Referral} />

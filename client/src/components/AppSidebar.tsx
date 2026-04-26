@@ -30,6 +30,7 @@ const navItems = [
   { id: "dashboard", labelKey: "nav.dashboard", icon: Home, href: "/dashboard" },
   { id: "history", labelKey: "nav.history", icon: History, href: "/history" },
   { id: "monitoring", labelKey: "nav.monitoring", icon: Activity, href: "/monitoring" },
+  { id: "vpn", labelKey: "nav.vpn", icon: Shield, href: "/vpn" },
   { id: "referral", labelKey: "nav.referral", icon: Users, href: "/referral" },
   { id: "pricing", labelKey: "nav.pricing", icon: CreditCard, href: "/pricing" },
   { id: "account", labelKey: "nav.account", icon: User, href: "/account" },

@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, dataDeletionRequests, threatProfiles, takedownLetters, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog, type DataDeletionRequest, type InsertDataDeletionRequest, type ThreatProfile, type InsertThreatProfile, type TakedownLetter, type InsertTakedownLetter } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, dataDeletionRequests, threatProfiles, takedownLetters, vpnServers, vpnPeers, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog, type DataDeletionRequest, type InsertDataDeletionRequest, type ThreatProfile, type InsertThreatProfile, type TakedownLetter, type InsertTakedownLetter, type VpnServer, type InsertVpnServer, type VpnPeer, type InsertVpnPeer } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
@@ -150,6 +150,19 @@ export interface IStorage {
   // Takedown Letters
   createTakedownLetter(letter: InsertTakedownLetter): Promise<TakedownLetter>;
   getTakedownLetters(userId: number, limit?: number): Promise<TakedownLetter[]>;
+
+  // VPN — own WireGuard infrastructure
+  listVpnServers(includeInactive?: boolean): Promise<VpnServer[]>;
+  getVpnServer(id: number): Promise<VpnServer | undefined>;
+  createVpnServer(server: InsertVpnServer): Promise<VpnServer>;
+  updateVpnServer(id: number, updates: Partial<InsertVpnServer>): Promise<VpnServer>;
+  deleteVpnServer(id: number): Promise<void>;
+  incrementVpnServerUsed(id: number, delta: number): Promise<void>;
+  listUserVpnPeers(userId: number): Promise<Array<VpnPeer & { serverRegion: string; serverFlag: string; serverHostname: string; serverEndpoint: string; serverPort: number; serverPublicKey: string }>>;
+  getVpnPeer(id: number): Promise<VpnPeer | undefined>;
+  createVpnPeer(peer: InsertVpnPeer): Promise<VpnPeer>;
+  revokeVpnPeer(id: number, userId: number): Promise<void>;
+  countActiveVpnPeers(userId: number): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -828,6 +841,97 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     return await db.select().from(takedownLetters).where(eq(takedownLetters.userId, userId)).orderBy(desc(takedownLetters.createdAt)).limit(limit);
   }
+
+  // ===== VPN =====
+  async listVpnServers(includeInactive: boolean = false): Promise<VpnServer[]> {
+    if (!db) throw new Error("Database not available");
+    const rows = includeInactive
+      ? await db.select().from(vpnServers).orderBy(desc(vpnServers.createdAt))
+      : await db.select().from(vpnServers).where(eq(vpnServers.status, "active")).orderBy(desc(vpnServers.createdAt));
+    return rows;
+  }
+
+  async getVpnServer(id: number): Promise<VpnServer | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.select().from(vpnServers).where(eq(vpnServers.id, id));
+    return row;
+  }
+
+  async createVpnServer(server: InsertVpnServer): Promise<VpnServer> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.insert(vpnServers).values(server).returning();
+    return row;
+  }
+
+  async updateVpnServer(id: number, updates: Partial<InsertVpnServer>): Promise<VpnServer> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.update(vpnServers).set(updates).where(eq(vpnServers.id, id)).returning();
+    return row;
+  }
+
+  async deleteVpnServer(id: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.delete(vpnServers).where(eq(vpnServers.id, id));
+  }
+
+  async incrementVpnServerUsed(id: number, delta: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.update(vpnServers).set({ used: sql`GREATEST(0, ${vpnServers.used} + ${delta})` }).where(eq(vpnServers.id, id));
+  }
+
+  async listUserVpnPeers(userId: number): Promise<Array<VpnPeer & { serverRegion: string; serverFlag: string; serverHostname: string; serverEndpoint: string; serverPort: number; serverPublicKey: string }>> {
+    if (!db) throw new Error("Database not available");
+    const rows = await db
+      .select({
+        id: vpnPeers.id,
+        userId: vpnPeers.userId,
+        serverId: vpnPeers.serverId,
+        peerPublicKey: vpnPeers.peerPublicKey,
+        peerPrivateKey: vpnPeers.peerPrivateKey,
+        presharedKey: vpnPeers.presharedKey,
+        allowedIp: vpnPeers.allowedIp,
+        dns: vpnPeers.dns,
+        expiresAt: vpnPeers.expiresAt,
+        trafficUsed: vpnPeers.trafficUsed,
+        status: vpnPeers.status,
+        lastHandshakeAt: vpnPeers.lastHandshakeAt,
+        createdAt: vpnPeers.createdAt,
+        serverRegion: vpnServers.region,
+        serverFlag: vpnServers.flag,
+        serverHostname: vpnServers.hostname,
+        serverEndpoint: vpnServers.publicEndpoint,
+        serverPort: vpnServers.port,
+        serverPublicKey: vpnServers.serverPublicKey,
+      })
+      .from(vpnPeers)
+      .innerJoin(vpnServers, eq(vpnPeers.serverId, vpnServers.id))
+      .where(eq(vpnPeers.userId, userId))
+      .orderBy(desc(vpnPeers.createdAt));
+    return rows as any;
+  }
+
+  async getVpnPeer(id: number): Promise<VpnPeer | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.select().from(vpnPeers).where(eq(vpnPeers.id, id));
+    return row;
+  }
+
+  async createVpnPeer(peer: InsertVpnPeer): Promise<VpnPeer> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.insert(vpnPeers).values(peer).returning();
+    return row;
+  }
+
+  async revokeVpnPeer(id: number, userId: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.update(vpnPeers).set({ status: "revoked" }).where(and(eq(vpnPeers.id, id), eq(vpnPeers.userId, userId)));
+  }
+
+  async countActiveVpnPeers(userId: number): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.select({ c: sql<number>`count(*)::int` }).from(vpnPeers).where(and(eq(vpnPeers.userId, userId), eq(vpnPeers.status, "active")));
+    return row?.c || 0;
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -1357,6 +1461,19 @@ export class MemStorage implements IStorage {
     return { id: 1, userId: letter.userId ?? null, recipientType: letter.recipientType, recipientName: letter.recipientName ?? null, recipientEmail: letter.recipientEmail ?? null, dataDescription: letter.dataDescription, jurisdiction: letter.jurisdiction ?? "EU", language: letter.language ?? "uk", letterText: letter.letterText, createdAt: new Date() } as any;
   }
   async getTakedownLetters(_userId: number, _limit?: number): Promise<TakedownLetter[]> { return []; }
+
+  // VPN stubs (memory mode disabled — server fails fast)
+  async listVpnServers(_includeInactive?: boolean): Promise<VpnServer[]> { return []; }
+  async getVpnServer(_id: number): Promise<VpnServer | undefined> { return undefined; }
+  async createVpnServer(_server: InsertVpnServer): Promise<VpnServer> { throw new Error("VPN requires PostgreSQL storage"); }
+  async updateVpnServer(_id: number, _updates: Partial<InsertVpnServer>): Promise<VpnServer> { throw new Error("VPN requires PostgreSQL storage"); }
+  async deleteVpnServer(_id: number): Promise<void> { throw new Error("VPN requires PostgreSQL storage"); }
+  async incrementVpnServerUsed(_id: number, _delta: number): Promise<void> { /* noop */ }
+  async listUserVpnPeers(_userId: number): Promise<any[]> { return []; }
+  async getVpnPeer(_id: number): Promise<VpnPeer | undefined> { return undefined; }
+  async createVpnPeer(_peer: InsertVpnPeer): Promise<VpnPeer> { throw new Error("VPN requires PostgreSQL storage"); }
+  async revokeVpnPeer(_id: number, _userId: number): Promise<void> { /* noop */ }
+  async countActiveVpnPeers(_userId: number): Promise<number> { return 0; }
 }
 
 // Export the appropriate storage based on database availability
