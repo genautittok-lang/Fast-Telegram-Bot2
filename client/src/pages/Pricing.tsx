@@ -65,6 +65,28 @@ function PricingContent() {
   const buyerTickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const planParam = params.get("plan");
+    const codeParam = params.get("code");
+    const validPlans: Array<"PRO" | "ENTERPRISE" | "GROUPS"> = ["PRO", "ENTERPRISE", "GROUPS"];
+    if (planParam && validPlans.includes(planParam as any)) {
+      const tier = planParam as "PRO" | "ENTERPRISE" | "GROUPS";
+      if (!user) {
+        setLocation("/login");
+        return;
+      }
+      setPaymentStep("method");
+      setSelectedMethod(null);
+      setShowPaymentModal(tier);
+      if (codeParam) {
+        setPromoCode(codeParam);
+        setTimeout(() => { validatePromo(codeParam, tier); }, 50);
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (!showPaymentModal || paymentStep !== "details") {
       setTimeLeft(600);
       setTimerExpired(false);
@@ -138,8 +160,10 @@ function PricingContent() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const validatePromo = async () => {
-    if (!promoCode.trim()) return;
+  const validatePromo = async (overrideCode?: string, overrideTier?: "PRO" | "ENTERPRISE" | "GROUPS") => {
+    const code = (overrideCode ?? promoCode).trim();
+    const tierForValidation = overrideTier ?? showPaymentModal;
+    if (!code) return;
     setPromoLoading(true);
     setPromoError("");
     try {
@@ -147,7 +171,7 @@ function PricingContent() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoCode.trim(), tier: showPaymentModal }),
+        body: JSON.stringify({ code, tier: tierForValidation }),
       });
       const data = await response.json();
       if (response.ok && data.valid) {
@@ -482,6 +506,35 @@ function PricingContent() {
             >
               {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")}
             </Button>
+            <div className="mt-3 space-y-1.5" data-testid="pro-trust-block">
+              <div className="flex items-center gap-1.5 text-[11px] text-cyan-300/90">
+                <Check className="w-3 h-3 shrink-0" />
+                <span>
+                  {lang === "uk" ? "Гарантія повернення 7 днів" :
+                   lang === "ru" ? "Возврат денег 7 дней" :
+                   lang === "es" ? "Garantía de devolución 7 días" :
+                   lang === "de" ? "7 Tage Geld-zurück-Garantie" :
+                   "7-day money-back guarantee"}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <Check className="w-3 h-3 shrink-0 text-cyan-400/70" />
+                <span>
+                  {lang === "uk" ? "Скасувати в будь-який момент • без прихованих платежів" :
+                   lang === "ru" ? "Отмена в любой момент • без скрытых платежей" :
+                   lang === "es" ? "Cancela cuando quieras • sin cargos ocultos" :
+                   lang === "de" ? "Jederzeit kündbar • keine versteckten Gebühren" :
+                   "Cancel anytime • no hidden fees"}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-orange-400/90">
+                <span className="font-bold">DARKNEU</span>
+                <span className="text-zinc-400">→</span>
+                <span className="text-white font-semibold">${(getPrice("PRO") * 0.5).toFixed(0)}</span>
+                <span className="text-zinc-500">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
+                <span className="text-zinc-500 line-through">${getPrice("PRO")}</span>
+              </div>
+            </div>
           </motion.div>
 
           {/* ENTERPRISE */}

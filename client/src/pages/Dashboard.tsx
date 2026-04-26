@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import PromoBoard from "@/components/PromoBoard";
+import { PremiumLock, PostResultUpsell } from "@/components/PremiumLock";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -2264,8 +2265,37 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                     </div>
 
+                    {(() => {
+                      const _tier = (user?.tier || "FREE").toUpperCase();
+                      const _isFree = _tier === "FREE" || _tier === "BASIC";
+                      if (!_isFree) return null;
+                      return (
+                        <div className="mb-3 lg:mb-6">
+                          <PostResultUpsell lang={lang} testId="upsell-after-findings" />
+                        </div>
+                      );
+                    })()}
+
                     {/* AI INSIGHTS SECTION */}
-                    {result.aiInsights && (
+                    {(() => {
+                      const _tier = (user?.tier || "FREE").toUpperCase();
+                      const _isFree = _tier === "FREE" || _tier === "BASIC";
+                      if (_isFree) {
+                        return (
+                          <div className="mb-3 lg:mb-6">
+                            <PremiumLock lang={lang} variant="replace" testId="lock-ai-insights" >
+                              <div />
+                            </PremiumLock>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    {result.aiInsights && (() => {
+                      const _tier = (user?.tier || "FREE").toUpperCase();
+                      const _isFree = _tier === "FREE" || _tier === "BASIC";
+                      if (_isFree) return null;
+                      return (
                       <motion.div 
                         className="mb-3 lg:mb-6 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(34,197,94,0.08)]"
                         initial={{ opacity: 0, y: 10 }}
@@ -2300,7 +2330,7 @@ Sources: ${result.sources.join(', ')}`;
                           ))}
                         </div>
                       </motion.div>
-                    )}
+                    );})()}
 
                     <div className="relative mb-3 lg:mb-6">
                       <h4 className="text-xs lg:text-sm font-semibold mb-2.5 lg:mb-4 flex items-center gap-2">
