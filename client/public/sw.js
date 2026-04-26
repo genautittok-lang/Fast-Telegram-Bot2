@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'darkshare-v5.0-redesign';
+const CACHE_VERSION = 'darkshare-v5.1-pwa';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 

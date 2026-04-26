@@ -113,6 +113,7 @@ import { useStats } from "@/hooks/use-stats";
 import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 import { useIsStandalone } from "@/hooks/use-mobile";
 import DomainOsintCard from "@/components/DomainOsintCard";
+import { NotificationToggle } from "@/components/NotificationToggle";
 
 interface AIInsights {
   summary: string;
@@ -2928,6 +2929,8 @@ Sources: ${result.sources.join(', ')}`;
               <CheckCircle2 className="w-4 h-4 text-cyan-400" />
               <span className="text-xs text-cyan-400">{t('dashboard.botSyncOk')}</span>
             </div>
+
+            <NotificationToggle />
           </div>
         </DialogContent>
       </Dialog>
