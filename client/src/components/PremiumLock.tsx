@@ -65,10 +65,10 @@ export function PremiumLock({ lang, children, variant = "blur", testId = "premiu
         <div className="text-zinc-400 text-sm mb-4 max-w-md mx-auto" data-testid={`${testId}-sub`}>
           {L.sub}
         </div>
-        <Link href="/pricing?plan=PRO&code=DARKNEU&src=scan_lock">
+        <Link href="/pricing?plan=PRO&code=DARKNEU&src=scan_lock" className="block w-full sm:w-auto sm:inline-block">
           <Button
             size="sm"
-            className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-semibold shadow-[0_0_24px_rgba(34,211,238,0.4)]"
+            className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-semibold shadow-[0_0_24px_rgba(34,211,238,0.4)] h-11 text-sm"
             data-testid={`${testId}-cta`}
           >
             <Sparkles className="h-4 w-4 mr-1.5" />
@@ -141,10 +141,10 @@ export function PostResultUpsell({ lang, testId = "post-result-upsell" }: { lang
         <div className="text-cyan-100 font-semibold text-sm" data-testid={`${testId}-line1`}>{L.line1}</div>
         <div className="text-zinc-400 text-xs mt-0.5" data-testid={`${testId}-line2`}>{L.line2}</div>
       </div>
-      <Link href="/pricing?plan=PRO&code=DARKNEU&src=post_result">
+      <Link href="/pricing?plan=PRO&code=DARKNEU&src=post_result" className="w-full sm:w-auto">
         <Button
           size="sm"
-          className="bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-semibold whitespace-nowrap"
+          className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-semibold"
           data-testid={`${testId}-cta`}
         >
           {L.cta}

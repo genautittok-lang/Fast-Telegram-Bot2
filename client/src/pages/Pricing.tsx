@@ -527,7 +527,7 @@ function PricingContent() {
                    "Cancel anytime • no hidden fees"}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-orange-400/90">
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-orange-400/90">
                 <span className="font-bold">DARKNEU</span>
                 <span className="text-zinc-400">→</span>
                 <span className="text-white font-semibold">${(getPrice("PRO") * 0.5).toFixed(0)}</span>
@@ -946,7 +946,7 @@ function PricingContent() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={validatePromo}
+                          onClick={() => validatePromo()}
                           disabled={promoLoading || promoApplied || !promoCode.trim()}
                           data-testid="button-apply-promo"
                         >

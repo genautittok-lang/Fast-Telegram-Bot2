@@ -519,11 +519,11 @@ export default function Home() {
                   {t("landing.hero.description")}
                 </p>
 
-                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
-                  <Link href="/login">
+                <div className="flex flex-col gap-3 pt-2">
+                  <Link href="/login" className="block w-full sm:w-auto sm:inline-block">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-14 group bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(6,182,212,0.35)] hover:shadow-[0_0_60px_rgba(6,182,212,0.55)] hover:scale-[1.03] transition-all duration-300 rounded-xl border-0"
+                      className="w-full sm:w-auto text-base px-7 sm:px-8 h-12 sm:h-14 group bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(6,182,212,0.35)] hover:shadow-[0_0_60px_rgba(6,182,212,0.55)] sm:hover:scale-[1.03] transition-all duration-300 rounded-xl border-0"
                       data-testid="button-web-dashboard"
                     >
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -531,34 +531,37 @@ export default function Home() {
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <a 
-                    href="https://t.me/DarkShare1Bot" 
-                    target="_blank" 
-                    rel="noreferrer"
-                  >
-                    <Button 
-                      variant="outline"
-                      size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-14 group border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/30 hover:text-white transition-all duration-300 rounded-xl"
-                      data-testid="button-launch-bot"
+                  <div className="grid grid-cols-2 sm:flex sm:flex-row sm:flex-wrap gap-2 sm:gap-3">
+                    <a 
+                      href="https://t.me/DarkShare1Bot" 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="block w-full sm:w-auto"
                     >
-                      <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#229ED9]" />
-                      {t("landing.cta.telegramBot")}
-                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </a>
-                  <Link href="/download">
-                    <Button 
-                      variant="outline"
-                      size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-14 group border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/30 hover:text-white transition-all duration-300 rounded-xl"
-                      data-testid="button-download-apk"
-                    >
-                      <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-cyan-400" />
-                      {lang === "uk" ? "Встановити додаток" : lang === "ru" ? "Установить приложение" : lang === "es" ? "Instalar app" : lang === "de" ? "App installieren" : "Install App"}
-                      <Download className="w-4 h-4 ml-1" />
-                    </Button>
-                  </Link>
+                      <Button 
+                        variant="outline"
+                        size="lg"
+                        className="w-full sm:w-auto text-xs sm:text-base px-3 sm:px-8 h-12 sm:h-14 group border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/30 hover:text-white transition-all duration-300 rounded-xl"
+                        data-testid="button-launch-bot"
+                      >
+                        <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 text-[#229ED9] flex-shrink-0" />
+                        <span className="truncate">{t("landing.cta.telegramBot")}</span>
+                      </Button>
+                    </a>
+                    <Link href="/download" className="block w-full sm:w-auto">
+                      <Button 
+                        variant="outline"
+                        size="lg"
+                        className="w-full sm:w-auto text-xs sm:text-base px-3 sm:px-8 h-12 sm:h-14 group border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/30 hover:text-white transition-all duration-300 rounded-xl"
+                        data-testid="button-download-apk"
+                      >
+                        <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2 text-cyan-400 flex-shrink-0" />
+                        <span className="truncate">
+                          {lang === "uk" ? "Додаток" : lang === "ru" ? "Приложение" : lang === "es" ? "App" : lang === "de" ? "App" : "Install App"}
+                        </span>
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 text-[11px] sm:text-xs uppercase tracking-wider text-zinc-500 font-medium">
