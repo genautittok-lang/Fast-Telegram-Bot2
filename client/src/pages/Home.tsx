@@ -440,6 +440,22 @@ export default function Home() {
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none opacity-60" />
       <FloatingParticles count={20} />
 
+      {/* TOP ANNOUNCEMENT BAR — VPN visibility */}
+      <Link href="/pricing?plan=PRO&code=DARKNEU&src=top_bar" className="block w-full">
+        <div className="relative z-50 w-full bg-gradient-to-r from-cyan-600 via-cyan-500 to-cyan-600 text-black border-b border-cyan-300/40 shadow-[0_2px_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all cursor-pointer group" data-testid="banner-vpn-top">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm font-bold">
+            <Shield className="w-4 h-4 flex-shrink-0 animate-pulse" />
+            <span className="hidden sm:inline-flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-black/25 text-[10px] uppercase tracking-wider font-extrabold">New</span>
+              <span>{lang === "uk" ? "WireGuard VPN тепер у комплекті з PRO — 6 локацій, без логів" : lang === "ru" ? "WireGuard VPN теперь в комплекте с PRO — 6 локаций, без логов" : lang === "es" ? "WireGuard VPN ahora incluido con PRO — 6 ubicaciones, sin logs" : lang === "de" ? "WireGuard VPN jetzt mit PRO — 6 Standorte, keine Logs" : "WireGuard VPN now included with PRO — 6 locations, no logs"}</span>
+            </span>
+            <span className="sm:hidden truncate">{lang === "uk" ? "VPN у PRO — 6 локацій" : lang === "ru" ? "VPN в PRO — 6 локаций" : lang === "es" ? "VPN en PRO — 6 ubicaciones" : lang === "de" ? "VPN mit PRO — 6 Standorte" : "VPN with PRO — 6 locations"}</span>
+            <span className="px-2 py-0.5 rounded-full bg-black text-cyan-400 text-[10px] sm:text-xs font-extrabold whitespace-nowrap">DARKNEU −50%</span>
+            <ChevronRight className="w-4 h-4 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </Link>
+
       <nav className="relative z-50 w-full border-b border-white/[0.08] bg-[rgba(5,5,8,0.75)] backdrop-blur-2xl backdrop-saturate-150 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -640,44 +656,51 @@ export default function Home() {
                 </Card>
               </motion.div>
 
+              {/* VPN NETWORK STATUS — replaces Top Hunters for higher VPN visibility */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
               >
-                <Card className="premium-card backdrop-blur-sm p-4 sm:p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Flame className="w-4 h-4 text-orange-500" />
-                      {t("landing.topHunters")}
-                    </h3>
-                  </div>
-                  <div className="space-y-2">
-                    {leaderboard?.slice(0, 3).map((user, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                            idx === 0 ? 'bg-yellow-500/20 text-yellow-500' :
-                            idx === 1 ? 'bg-gray-400/20 text-gray-400' :
-                            idx === 2 ? 'bg-orange-500/20 text-orange-500' :
-                            'bg-white/10 text-muted-foreground'
-                          }`}>
-                            {idx + 1}
-                          </span>
-                          <span className="font-mono truncate">{user.username}</span>
+                <Card className="relative p-4 sm:p-5 border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-zinc-950 to-zinc-900 shadow-[0_0_40px_rgba(6,182,212,0.12)] overflow-hidden" data-testid="card-vpn-network-hero">
+                  <div className="absolute -top-12 -right-12 w-40 h-40 bg-cyan-500/15 rounded-full blur-[60px] pointer-events-none" />
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold flex items-center gap-2 text-white">
+                        <Shield className="w-4 h-4 text-cyan-400" />
+                        {lang === "uk" ? "VPN мережа" : lang === "ru" ? "VPN сеть" : lang === "es" ? "Red VPN" : lang === "de" ? "VPN-Netzwerk" : "VPN Network"}
+                        <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/40 text-[9px] font-extrabold text-cyan-300 uppercase tracking-wider">PRO+</span>
+                      </h3>
+                      <span className="text-[10px] text-cyan-400/80 font-mono flex items-center gap-1">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
+                        </span>
+                        ONLINE
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5 mb-3" data-testid="vpn-hero-locations">
+                      {[
+                        { flag: "🇩🇪", code: "DE", city: "Frankfurt", load: 24 },
+                        { flag: "🇳🇱", code: "NL", city: "Amsterdam", load: 38 },
+                        { flag: "🇸🇪", code: "SE", city: "Stockholm", load: 19 },
+                        { flag: "🇸🇬", code: "SG", city: "Singapore", load: 52 },
+                        { flag: "🇯🇵", code: "JP", city: "Tokyo", load: 31 },
+                        { flag: "🇺🇸", code: "US", city: "New York", load: 47 },
+                      ].map((loc) => (
+                        <div key={loc.code} className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-white/[0.03] border border-cyan-500/10 hover:border-cyan-500/30 transition-colors" data-testid={`vpn-hero-loc-${loc.code}`}>
+                          <span className="text-sm">{loc.flag}</span>
+                          <span className="text-[10px] font-mono text-zinc-300 truncate flex-1">{loc.city}</span>
+                          <span className={`text-[9px] font-bold ${loc.load < 35 ? "text-cyan-400" : loc.load < 50 ? "text-amber-400" : "text-orange-400"}`}>{loc.load}%</span>
                         </div>
-                        <div className="flex items-center gap-2 text-muted-foreground flex-shrink-0">
-                          <span className="text-[11px]">{user.checks}</span>
-                          <Flame className="w-3 h-3 text-orange-500" />
-                        </div>
-                      </motion.div>
-                    ))}
+                      ))}
+                    </div>
+                    <Link href="/pricing?plan=PRO&code=DARKNEU&src=vpn_hero_card" className="block">
+                      <Button size="sm" className="w-full h-9 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs" data-testid="button-vpn-hero-card">
+                        {lang === "uk" ? "Активувати VPN — $5/міс" : lang === "ru" ? "Активировать VPN — $5/мес" : lang === "es" ? "Activar VPN — $5/mes" : lang === "de" ? "VPN aktivieren — $5/Mo" : "Activate VPN — $5/mo"}
+                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                      </Button>
+                    </Link>
                   </div>
                 </Card>
               </motion.div>

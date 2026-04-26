@@ -29,7 +29,8 @@ import {
   Eye,
   ShieldCheck,
   Award,
-  RefreshCw
+  RefreshCw,
+  Zap
 } from "lucide-react";
 
 
@@ -461,20 +462,30 @@ function PricingContent() {
             </Button>
           </motion.div>
 
-          {/* PRO — recommended */}
+          {/* PRO — recommended (visually dominant) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-2xl bg-zinc-900/60 backdrop-blur-sm border border-cyan-500/40 shadow-[0_0_40px_rgba(6,182,212,0.15)] p-6 flex flex-col lg:scale-[1.03] z-10"
+            className="relative rounded-2xl bg-gradient-to-br from-cyan-950/60 via-zinc-900/80 to-zinc-950 backdrop-blur-sm border-2 border-cyan-500/60 shadow-[0_0_70px_rgba(6,182,212,0.35)] p-6 flex flex-col lg:scale-[1.06] z-10 overflow-hidden"
             data-testid="card-pro-plan"
           >
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-zinc-950 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">
+            <div className="absolute -top-24 -right-24 w-56 h-56 bg-cyan-500/20 rounded-full blur-[80px] pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-cyan-400/10 rounded-full blur-[60px] pointer-events-none" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-cyan-400 to-cyan-500 text-zinc-950 text-[11px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider whitespace-nowrap shadow-[0_0_20px_rgba(6,182,212,0.6)] flex items-center gap-1.5">
+              <Zap className="w-3 h-3" />
               {t('pricing.popular') || "Most Popular"}
             </div>
-            <div className="mb-5">
-              <h3 className="text-lg font-bold text-white mb-1.5">PRO</h3>
-              <p className="text-xs text-zinc-500">{t('pricing.forProfessionals')}</p>
+            <div className="relative mb-5 mt-2">
+              <div className="flex items-center gap-2 mb-1.5">
+                <h3 className="text-2xl font-extrabold text-white tracking-tight">PRO</h3>
+                <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 border border-cyan-500/40 text-[10px] font-bold text-cyan-300 uppercase tracking-wider">
+                  + VPN
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400">{t('pricing.forProfessionals')}</p>
               <div className="mt-2 inline-flex items-center gap-1.5">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
