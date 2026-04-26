@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "dNKiK020U7AGjHG7rZasE"
@@ -36,3 +35,27 @@ id = "ngH5vvt0mMtMsPmOtW4-Z"
 uri = "file://artifacts/mockup-sandbox/public/images/ds-login-bg.png"
 type = "image"
 title = "Abstract cyan network graph visualization"
+
+[[outputs]]
+id = "jTTb5eQUnenZ6CFWKejWW"
+uri = "file://attached_assets/screenshots/fe8751ae-0314-46ff-b35e-8e4dda8e7e7d-00-1vmd2logwd6l8_picard_replit_dev_mockup_preview_ds-redesign_Home.png"
+type = "image"
+title = "1. Home / Лендинг — DARKSHARE редизайн"
+
+[[outputs]]
+id = "2THfFBqezc0xpHpItSCOl"
+uri = "file://attached_assets/screenshots/fe8751ae-0314-46ff-b35e-8e4dda8e7e7d-00-1vmd2logwd6l8_picard_replit_dev_mockup_preview_ds-redesign_Pricing.png"
+type = "image"
+title = "2. Pricing — 3 тарифа з промо DARKNEU −50%"
+
+[[outputs]]
+id = "Hyq8M-zNhDPjOO2sE47yO"
+uri = "file://attached_assets/screenshots/fe8751ae-0314-46ff-b35e-8e4dda8e7e7d-00-1vmd2logwd6l8_picard_replit_dev_mockup_preview_ds-redesign_Login.png"
+type = "image"
+title = "3. Login — Telegram + Google + Magic Link"
+
+[[outputs]]
+id = "HLZeoAcDCKK179y0WjhP1"
+uri = "file://attached_assets/screenshots/fe8751ae-0314-46ff-b35e-8e4dda8e7e7d-00-1vmd2logwd6l8_picard_replit_dev_mockup_preview_ds-redesign_Dashboard.png"
+type = "image"
+title = "4. Dashboard — пошук, утечки, AI-панель (locked)"
