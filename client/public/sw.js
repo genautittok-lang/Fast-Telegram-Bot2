@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'darkshare-v4.4';
+const CACHE_VERSION = 'darkshare-v5.0-redesign';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
@@ -25,7 +25,15 @@ self.addEventListener('activate', (event) => {
           .filter((key) => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
           .map((key) => caches.delete(key))
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()).then(() => {
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          if ('navigate' in client) {
+            client.navigate(client.url);
+          }
+        });
+      });
+    })
   );
 });
 
@@ -50,7 +58,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (request.destination === 'image' || request.destination === 'font' || request.destination === 'style' || request.destination === 'script') {
+  if (url.pathname.startsWith('/src/') || url.pathname.startsWith('/@') || url.pathname.startsWith('/node_modules/') || url.search.includes('?t=') || url.search.includes('?v=')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  if (request.destination === 'image' || request.destination === 'font' || request.destination === 'style') {
     event.respondWith(
       caches.match(request).then((cached) => {
         return cached || fetch(request).then((response) => {
@@ -59,6 +72,19 @@ self.addEventListener('fetch', (event) => {
           return response;
         });
       })
+    );
+    return;
+  }
+
+  if (request.destination === 'script') {
+    event.respondWith(
+      fetch(request).then((response) => {
+        const clone = response.clone();
+        caches.open(STATIC_CACHE).then((cache) => {
+          if (request.method === 'GET') cache.put(request, clone);
+        });
+        return response;
+      }).catch(() => caches.match(request))
     );
     return;
   }

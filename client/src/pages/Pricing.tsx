@@ -27,8 +27,6 @@ import {
   ArrowLeftIcon,
   Flame,
   Eye,
-  TrendingUp,
-  Zap,
   ShieldCheck,
   Award,
   RefreshCw
@@ -393,201 +391,184 @@ function PricingContent() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 max-w-6xl mx-auto">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+          {/* Background glow behind cards */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-500/[0.07] blur-[120px] rounded-full pointer-events-none -z-10"></div>
+
+          {/* FREE */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="relative rounded-2xl bg-zinc-900/50 backdrop-blur-sm border border-white/[0.06] p-6 flex flex-col hover:border-white/10 transition-colors"
+            data-testid="card-free-plan"
           >
-            <Card className="h-full border-border/50 bg-card/50 backdrop-blur" data-testid="card-free-plan">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <Shield className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">FREE</CardTitle>
-                </div>
-                <CardDescription className="text-xs">{t('pricing.forBeginners')}</CardDescription>
-                <div className="mt-3">
-                  <span className="text-3xl font-bold">$0</span>
-                  <span className="text-muted-foreground text-sm">{t('pricing.perMonth')}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="pb-3">
-                <ul className="space-y-2">
-                  {features.free.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setLocation(isAuthenticated ? "/dashboard" : "/login")}
-                  data-testid="button-free-plan"
-                >
-                  {isAuthenticated ? t('nav.dashboard') : t('pricing.startFree')}
-                </Button>
-              </CardFooter>
-            </Card>
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-white mb-1.5">FREE</h3>
+              <p className="text-xs text-zinc-500">{t('pricing.forBeginners')}</p>
+            </div>
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-white tracking-tight">$0</span>
+                <span className="text-zinc-500 text-sm ml-1">{t('pricing.perMonth')}</span>
+              </div>
+            </div>
+            <ul className="space-y-3 mb-6 flex-grow">
+              {features.free.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="text-zinc-300">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button
+              variant="outline"
+              className="w-full bg-white/5 hover:bg-white/10 text-white border-white/10 hover:border-white/20 h-11"
+              onClick={() => setLocation(isAuthenticated ? "/dashboard" : "/login")}
+              data-testid="button-free-plan"
+            >
+              {isAuthenticated ? t('nav.dashboard') : t('pricing.startFree')}
+            </Button>
           </motion.div>
 
+          {/* PRO — recommended */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="pricing-card-hover"
+            className="relative rounded-2xl bg-zinc-900/60 backdrop-blur-sm border border-cyan-500/40 shadow-[0_0_40px_rgba(6,182,212,0.15)] p-6 flex flex-col lg:scale-[1.03] z-10"
+            data-testid="card-pro-plan"
           >
-            <Card className="h-full border-cyan-500/50 bg-gradient-to-b from-cyan-500/10 to-transparent relative shadow-[0_0_30px_rgba(34,197,94,0.12)] hover:shadow-[0_0_50px_rgba(34,197,94,0.22)] transition-all duration-300 spotlight-sweep shimmer-border-effect" data-testid="card-pro-plan">
-              <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-cyan-500 text-white text-xs font-medium rounded-bl-lg">
-                {t('pricing.popular')}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-zinc-950 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider whitespace-nowrap">
+              {t('pricing.popular') || "Most Popular"}
+            </div>
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-white mb-1.5">PRO</h3>
+              <p className="text-xs text-zinc-500">{t('pricing.forProfessionals')}</p>
+              <div className="mt-2 inline-flex items-center gap-1.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
+                </span>
+                <span className="text-[10px] text-orange-400 font-medium">
+                  {lang === "uk" ? "Лише 12 місць залишилось" : lang === "ru" ? "Только 12 мест осталось" : "Only 12 spots left"}
+                </span>
               </div>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <Star className="h-5 w-5 text-cyan-500" />
-                  <CardTitle className="text-lg text-cyan-400">PRO</CardTitle>
+            </div>
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-white tracking-tight">${getPrice("PRO")}</span>
+                <span className="text-zinc-500 text-sm ml-1">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
+              </div>
+              {isYearly && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="text-xs text-zinc-500 line-through">$120</span>
+                  <Badge className="bg-cyan-500/15 text-cyan-400 border-cyan-500/30 text-[10px] px-1.5 py-0">-17%</Badge>
                 </div>
-                <CardDescription className="text-xs">{t('pricing.forProfessionals')}</CardDescription>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
-                  </span>
-                  <span className="text-[10px] text-orange-400 font-medium">
-                    {lang === "uk" ? "Лише 12 місць залишилось" : lang === "ru" ? "Только 12 мест осталось" : "Only 12 spots left"}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <span className="text-3xl font-bold text-cyan-400">${getPrice("PRO")}</span>
-                  <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
-                  {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$120</span>
-                  )}
-                  {isYearly && (
-                    <Badge className="ml-1 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px]">-17%</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="pb-3">
-                <ul className="space-y-2">
-                  {features.pro.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-cyan-500 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <button
-                  className="w-full btn-3d btn-3d-green text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm"
-                  onClick={() => handlePayment("PRO")}
-                  data-testid="button-pro-plan"
-                >
-                  <span className="btn-3d-icon"><Star className="h-4 w-4" /></span>
-                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")} USD
-                </button>
-              </CardFooter>
-            </Card>
+              )}
+            </div>
+            <ul className="space-y-3 mb-6 flex-grow">
+              {features.pro.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="text-zinc-200">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button
+              className="w-full bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-semibold h-11 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+              onClick={() => handlePayment("PRO")}
+              data-testid="button-pro-plan"
+            >
+              {t('pricing.subscribe') || "Subscribe"} — ${getPrice("PRO")}
+            </Button>
           </motion.div>
 
+          {/* ENTERPRISE */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="pricing-card-hover"
+            className="relative rounded-2xl bg-zinc-900/50 backdrop-blur-sm border border-white/[0.06] p-6 flex flex-col hover:border-white/10 transition-colors"
+            data-testid="card-enterprise-plan"
           >
-            <Card className="h-full border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent shimmer-border-effect" data-testid="card-enterprise-plan">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <Crown className="h-5 w-5 text-amber-500" />
-                  <CardTitle className="text-lg text-amber-400">ENTERPRISE</CardTitle>
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-white mb-1.5">ENTERPRISE</h3>
+              <p className="text-xs text-zinc-500">{t('pricing.forTeams')}</p>
+            </div>
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-white tracking-tight">${getPrice("ENTERPRISE")}</span>
+                <span className="text-zinc-500 text-sm ml-1">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
+              </div>
+              {isYearly && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="text-xs text-zinc-500 line-through">$420</span>
+                  <Badge className="bg-cyan-500/15 text-cyan-400 border-cyan-500/30 text-[10px] px-1.5 py-0">-17%</Badge>
                 </div>
-                <CardDescription className="text-xs">{t('pricing.forTeams')}</CardDescription>
-                <div className="mt-3">
-                  <span className="text-3xl font-bold text-amber-400">${getPrice("ENTERPRISE")}</span>
-                  <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
-                  {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$420</span>
-                  )}
-                  {isYearly && (
-                    <Badge className="ml-1 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px]">-17%</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="pb-3">
-                <ul className="space-y-2">
-                  {features.enterprise.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <button
-                  className="w-full btn-3d btn-3d-amber text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm"
-                  onClick={() => handlePayment("ENTERPRISE")}
-                  data-testid="button-enterprise-plan"
-                >
-                  <span className="btn-3d-icon"><Crown className="h-4 w-4" /></span>
-                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("ENTERPRISE")} USD
-                </button>
-              </CardFooter>
-            </Card>
+              )}
+            </div>
+            <ul className="space-y-3 mb-6 flex-grow">
+              {features.enterprise.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="text-zinc-300">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button
+              variant="outline"
+              className="w-full bg-white/5 hover:bg-white/10 text-white border-white/10 hover:border-white/20 h-11"
+              onClick={() => handlePayment("ENTERPRISE")}
+              data-testid="button-enterprise-plan"
+            >
+              {t('pricing.subscribe') || "Subscribe"} — ${getPrice("ENTERPRISE")}
+            </Button>
           </motion.div>
 
+          {/* GROUPS */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="sm:col-span-2 lg:col-span-1 pricing-card-hover"
+            className="relative rounded-2xl bg-zinc-900/50 backdrop-blur-sm border border-white/[0.06] p-6 flex flex-col sm:col-span-2 lg:col-span-1 hover:border-white/10 transition-colors"
+            data-testid="card-groups-plan"
           >
-            <Card className="h-full border-violet-500/50 bg-gradient-to-b from-violet-500/10 to-transparent relative shimmer-border-effect" data-testid="card-groups-plan">
-              <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-violet-500 text-white text-xs font-medium rounded-bl-lg">
-                {t('pricing.newLabel')}
+            <div className="absolute top-4 right-4 px-2 py-0.5 bg-violet-500/15 text-violet-300 border border-violet-500/30 text-[10px] font-medium rounded-md">
+              {t('pricing.newLabel') || "New"}
+            </div>
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-white mb-1.5">GROUPS</h3>
+              <p className="text-xs text-zinc-500">{t('pricing.forGroups')}</p>
+            </div>
+            <div className="mb-6">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-bold text-white tracking-tight">${getPrice("GROUPS")}</span>
+                <span className="text-zinc-500 text-sm ml-1">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
               </div>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <Users className="h-5 w-5 text-violet-500" />
-                  <CardTitle className="text-lg text-violet-400">GROUPS</CardTitle>
+              {isYearly && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="text-xs text-zinc-500 line-through">$660</span>
+                  <Badge className="bg-cyan-500/15 text-cyan-400 border-cyan-500/30 text-[10px] px-1.5 py-0">-17%</Badge>
                 </div>
-                <CardDescription className="text-xs">{t('pricing.forGroups')}</CardDescription>
-                <div className="mt-3">
-                  <span className="text-3xl font-bold text-violet-400">${getPrice("GROUPS")}</span>
-                  <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
-                  {isYearly && (
-                    <span className="ml-2 text-xs text-muted-foreground line-through">$660</span>
-                  )}
-                  {isYearly && (
-                    <Badge className="ml-1 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-[10px]">-17%</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="pb-3">
-                <ul className="space-y-2">
-                  {features.groups.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-violet-500 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <button
-                  className="w-full btn-3d btn-3d-violet text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm"
-                  onClick={() => handlePayment("GROUPS")}
-                  data-testid="button-groups-plan"
-                >
-                  <span className="btn-3d-icon"><Users className="h-4 w-4" /></span>
-                  {t('pricing.subscribe') || "Subscribe"} — ${getPrice("GROUPS")} USD
-                </button>
-              </CardFooter>
-            </Card>
+              )}
+            </div>
+            <ul className="space-y-3 mb-6 flex-grow">
+              {features.groups.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-sm">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="text-zinc-300">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button
+              variant="outline"
+              className="w-full bg-white/5 hover:bg-white/10 text-white border-white/10 hover:border-white/20 h-11"
+              onClick={() => handlePayment("GROUPS")}
+              data-testid="button-groups-plan"
+            >
+              {t('pricing.subscribe') || "Subscribe"} — ${getPrice("GROUPS")}
+            </Button>
           </motion.div>
         </div>
 
