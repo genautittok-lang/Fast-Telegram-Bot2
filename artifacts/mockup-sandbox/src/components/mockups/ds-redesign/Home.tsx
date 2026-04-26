@@ -181,7 +181,7 @@ function Features() {
       example: "Found in: xss.is, exploit.in"
     },
     {
-      icon: <LockKeyhole className="w-5 h-5 text-zinc-500" />,
+      icon: <Lock className="w-5 h-5 text-zinc-500" />,
       title: "AI-анализ угроз",
       description: "Автоматическая корреляция данных и выявление паттернов поведения.",
       example: "PRO FEATURE",
