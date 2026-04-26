@@ -55,6 +55,8 @@ import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
 import { useIsStandalone } from "@/hooks/use-mobile";
 import { ActivityTimeline } from "@/components/ActivityTimeline";
+import EntityGraph from "@/components/EntityGraph";
+import PdfPreview from "@/components/PdfPreview";
 
 interface Report {
   id: number;
@@ -119,6 +121,8 @@ export default function History() {
   const { toast } = useToast();
   const { t, lang } = useTranslation();
   const isFreeTier = !user?.tier || user.tier === "FREE";
+  const [pdfPreview, setPdfPreview] = useState<{ url: string; name: string } | null>(null);
+  const [showGraph, setShowGraph] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -319,6 +323,10 @@ export default function History() {
 
   const handleDownload = (id: number) => {
     window.open(`/api/reports/${id}/pdf`, '_blank');
+  };
+
+  const handlePreview = (id: number) => {
+    setPdfPreview({ url: `/api/reports/${id}/pdf`, name: `darkshare-report-${id}.pdf` });
   };
 
   const handleCopyTarget = async (report: Report) => {
@@ -616,10 +624,61 @@ export default function History() {
         </motion.div>
 
         {!isLoading && reports && reports.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
             <ActivityTimeline reports={reports} days={14} lang={lang} />
+
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[11px] uppercase tracking-wider text-zinc-500 font-display">
+                {lang === "uk" ? "Інтерактивна мапа сутностей" : lang === "ru" ? "Интерактивная карта сущностей" : lang === "es" ? "Mapa interactivo de entidades" : lang === "de" ? "Interaktive Entitätskarte" : "Interactive entity map"}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGraph(v => !v)}
+                className={`h-7 text-[10px] sm:text-xs gap-1.5 border-cyan-500/30 ${showGraph ? "bg-cyan-500/10 text-cyan-300" : "text-zinc-400"}`}
+                aria-pressed={showGraph}
+                aria-label={lang === "uk" ? "Перемкнути граф" : lang === "ru" ? "Переключить граф" : "Toggle graph"}
+                data-testid="button-toggle-graph"
+              >
+                <Network className="w-3.5 h-3.5" />
+                {showGraph
+                  ? (lang === "uk" ? "Сховати" : lang === "ru" ? "Скрыть" : lang === "es" ? "Ocultar" : lang === "de" ? "Ausblenden" : "Hide")
+                  : (lang === "uk" ? "Показати граф" : lang === "ru" ? "Показать граф" : lang === "es" ? "Mostrar grafo" : lang === "de" ? "Graph anzeigen" : "Show graph")}
+              </Button>
+            </div>
+
+            {showGraph && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <EntityGraph
+                  reports={reports.map(r => ({
+                    id: r.id,
+                    target: r.target,
+                    type: r.type,
+                    riskLevel: r.riskLevel,
+                    riskScore: r.riskScore,
+                    createdAt: r.createdAt,
+                  }))}
+                  lang={lang}
+                  height={420}
+                  onNodeClick={(id) => handlePreview(id)}
+                />
+              </motion.div>
+            )}
           </div>
         )}
+
+        <PdfPreview
+          open={!!pdfPreview}
+          onOpenChange={(open) => { if (!open) setPdfPreview(null); }}
+          pdfUrl={pdfPreview?.url || ""}
+          fileName={pdfPreview?.name}
+          lang={lang}
+        />
 
         <motion.div 
           initial={{ opacity: 0 }}
@@ -714,7 +773,18 @@ export default function History() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 sm:h-8 sm:w-8"
+                            onClick={(e) => { e.stopPropagation(); handlePreview(report.id); }}
+                            aria-label={lang === "uk" ? "Перегляд PDF" : lang === "ru" ? "Просмотр PDF" : lang === "es" ? "Vista previa PDF" : lang === "de" ? "PDF-Vorschau" : "Preview PDF"}
+                            data-testid={`button-preview-${report.id}`}
+                          >
+                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 sm:h-8 sm:w-8"
                             onClick={(e) => { e.stopPropagation(); handleDownload(report.id); }}
+                            aria-label={lang === "uk" ? "Завантажити PDF" : lang === "ru" ? "Скачать PDF" : lang === "es" ? "Descargar PDF" : lang === "de" ? "PDF herunterladen" : "Download PDF"}
                             data-testid={`button-download-${report.id}`}
                           >
                             <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
