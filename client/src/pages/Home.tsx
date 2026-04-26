@@ -485,9 +485,19 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 className="space-y-4 sm:space-y-5 md:space-y-6"
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-primary/15 to-emerald-500/10 border border-primary/30 text-xs sm:text-sm font-semibold text-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]">
-                  <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>{t("landing.hero.badge")}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-primary/15 to-emerald-500/10 border border-primary/30 text-xs sm:text-sm font-semibold text-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                    </span>
+                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span>{t("landing.hero.badge")}</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-medium text-amber-400">
+                    <Star className="w-3 h-3" />
+                    <span>v4.5</span>
+                  </div>
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1] overflow-hidden">
@@ -550,6 +560,26 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500" />
                     <span>{t("landing.cta.apiIntegration")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span>
+                      {lang === "uk" ? "17 типів перевірок" : lang === "ru" ? "17 типов проверок" : lang === "es" ? "17 tipos de análisis" : lang === "de" ? "17 Prüfungsarten" : "17 check types"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-1">
+                  <div className="flex -space-x-2">
+                    {["🧑", "👩", "🧔", "👨"].map((emoji, i) => (
+                      <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-xs">
+                        {emoji}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <span className="text-white font-semibold">2,800+</span>{" "}
+                    {lang === "uk" ? "активних користувачів" : lang === "ru" ? "активных пользователей" : lang === "es" ? "usuarios activos" : lang === "de" ? "aktive Nutzer" : "active users"}
                   </div>
                 </div>
 
@@ -737,10 +767,42 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full overflow-hidden relative">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {[
-                { icon: <Users className="w-4 h-4 text-primary" />, value: stats?.totalUsers ?? 14582, label: t("landing.stats.users"), loading: statsLoading },
-                { icon: <Eye className="w-4 h-4 text-cyan-400" />, value: stats?.activeWatches ?? 3841, label: t("landing.stats.monitors"), loading: statsLoading },
-                { icon: <AlertTriangle className="w-4 h-4 text-orange-400" />, value: stats?.threatsBlocked ?? 12459, label: t("landing.stats.threats"), loading: statsLoading },
-                { icon: <TrendingUp className="w-4 h-4 text-emerald-400" />, value: stats?.checksToday ?? 842, label: t("landing.stats.today"), loading: statsLoading }
+                { 
+                  icon: <Users className="w-5 h-5 text-primary" />, 
+                  value: stats?.totalUsers ?? 2853, 
+                  label: t("landing.stats.users"), 
+                  loading: statsLoading,
+                  color: "text-primary",
+                  bg: "from-primary/10 to-primary/5",
+                  border: "border-primary/20"
+                },
+                { 
+                  icon: <Eye className="w-5 h-5 text-cyan-400" />, 
+                  value: stats?.activeWatches ?? 160, 
+                  label: t("landing.stats.monitors"), 
+                  loading: statsLoading,
+                  color: "text-cyan-400",
+                  bg: "from-cyan-500/10 to-cyan-500/5",
+                  border: "border-cyan-500/20"
+                },
+                { 
+                  icon: <AlertTriangle className="w-5 h-5 text-orange-400" />, 
+                  value: stats?.threatsBlocked ?? 3895, 
+                  label: t("landing.stats.threats"), 
+                  loading: statsLoading,
+                  color: "text-orange-400",
+                  bg: "from-orange-500/10 to-orange-500/5",
+                  border: "border-orange-500/20"
+                },
+                { 
+                  icon: <TrendingUp className="w-5 h-5 text-emerald-400" />, 
+                  value: stats?.checksToday ?? 53, 
+                  label: t("landing.stats.today"), 
+                  loading: statsLoading,
+                  color: "text-emerald-400",
+                  bg: "from-emerald-500/10 to-emerald-500/5",
+                  border: "border-emerald-500/20"
+                }
               ].map((stat, idx) => (
                 <motion.div
                   key={idx}
@@ -748,7 +810,7 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1, duration: 0.5 }}
-                  className="stats-card text-center space-y-2"
+                  className="stats-card text-center space-y-3 group"
                 >
                   {stat.loading ? (
                     <div className="flex flex-col items-center gap-2">
@@ -757,11 +819,13 @@ export default function Home() {
                     </div>
                   ) : (
                     <>
-                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.bg} border ${stat.border} flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300`}>
+                        {stat.icon}
+                      </div>
+                      <div className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight ${stat.color}`}>
                         <AnimatedNumber value={stat.value} />
                       </div>
-                      <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground flex items-center justify-center gap-1.5">
-                        {stat.icon}
+                      <div className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">
                         {stat.label}
                       </div>
                     </>

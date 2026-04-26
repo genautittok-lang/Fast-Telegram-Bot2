@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,14 @@ import {
   Clock,
   Loader2,
   ChevronRight,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  Flame,
+  Eye,
+  TrendingUp,
+  Zap,
+  ShieldCheck,
+  Award,
+  RefreshCw
 } from "lucide-react";
 
 
@@ -38,7 +45,7 @@ function PricingContent() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [isYearly, setIsYearly] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState<"PRO" | "ENTERPRISE" | "GROUPS" | null>(null);
   const [cryptoPayLoading, setCryptoPayLoading] = useState(false);
@@ -51,6 +58,13 @@ function PricingContent() {
   const [timerExpired, setTimerExpired] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
   const [selectedMethod, setSelectedMethod] = useState<"crypto" | "monobank" | "stars" | null>(null);
+
+  const [viewerCount, setViewerCount] = useState(0);
+  const [recentBuyers, setRecentBuyers] = useState<Array<{ name: string; plan: string; time: string }>>([]);
+  const [activeBuyerIdx, setActiveBuyerIdx] = useState(0);
+  const [pageTimer, setPageTimer] = useState(23 * 60 + 47);
+  const [pageTimerExpired, setPageTimerExpired] = useState(false);
+  const buyerTickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!showPaymentModal || paymentStep !== "details") {
@@ -71,7 +85,56 @@ function PricingContent() {
     return () => clearInterval(interval);
   }, [showPaymentModal, paymentStep]);
 
+  useEffect(() => {
+    const base = Math.floor(Math.random() * 18) + 27;
+    setViewerCount(base);
+    const viewerInterval = setInterval(() => {
+      setViewerCount(prev => {
+        const delta = Math.random() < 0.5 ? 1 : -1;
+        return Math.max(15, Math.min(60, prev + delta));
+      });
+    }, 4500);
+
+    const buyerNames = [
+      { name: "A***v", plan: "PRO", time: "2 хв тому" },
+      { name: "S***k", plan: "ENTERPRISE", time: "5 хв тому" },
+      { name: "M***a", plan: "PRO", time: "8 хв тому" },
+      { name: "D***o", plan: "GROUPS", time: "12 хв тому" },
+      { name: "O***n", plan: "PRO", time: "15 хв тому" },
+      { name: "K***s", plan: "ENTERPRISE", time: "19 хв тому" },
+      { name: "R***l", plan: "PRO", time: "23 хв тому" },
+    ];
+    setRecentBuyers(buyerNames);
+
+    buyerTickerRef.current = setInterval(() => {
+      setActiveBuyerIdx(prev => (prev + 1) % buyerNames.length);
+    }, 4000);
+
+    const pageTimerInterval = setInterval(() => {
+      setPageTimer(prev => {
+        if (prev <= 1) {
+          setPageTimerExpired(true);
+          clearInterval(pageTimerInterval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(viewerInterval);
+      if (buyerTickerRef.current) clearInterval(buyerTickerRef.current);
+      clearInterval(pageTimerInterval);
+    };
+  }, []);
+
   const formatTimer = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const formatPageTimer = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
@@ -235,6 +298,10 @@ function PricingContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-6 sm:mb-8"
         >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-medium mb-4">
+            <Zap className="w-3 h-3" />
+            <span>{lang === "uk" ? "Преміум OSINT · 2800+ користувачів" : lang === "ru" ? "Премиум OSINT · 2800+ пользователей" : "Premium OSINT · 2800+ users"}</span>
+          </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent" data-testid="text-pricing-title">
             {t('pricing.title')}
           </h1>
@@ -242,10 +309,60 @@ function PricingContent() {
             {t('pricing.subtitle')}
           </p>
           
-          <div className="flex items-center justify-center gap-2 mt-4">
+          <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
             <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-400 px-3 py-1.5">
               {t('pricing.paymentUSDT')}
             </Badge>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-5 sm:mb-6"
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-3 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-zinc-900/80 to-zinc-900/60 border border-white/[0.07] backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+              </span>
+              <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground text-xs">{viewerCount}</span>
+              <span className="text-muted-foreground/60 text-xs">{lang === "uk" ? "переглядають зараз" : lang === "ru" ? "смотрят сейчас" : "viewing now"}</span>
+            </div>
+
+            <div className="hidden sm:block w-px h-4 bg-white/10" />
+
+            <AnimatePresence mode="wait">
+              {recentBuyers.length > 0 && (
+                <motion.div
+                  key={activeBuyerIdx}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35 }}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                  <span className="text-white font-medium">{recentBuyers[activeBuyerIdx]?.name}</span>
+                  <span className="text-muted-foreground">{lang === "uk" ? "придбав" : lang === "ru" ? "купил" : "bought"}</span>
+                  <span className={`font-bold ${recentBuyers[activeBuyerIdx]?.plan === "PRO" ? "text-emerald-400" : recentBuyers[activeBuyerIdx]?.plan === "ENTERPRISE" ? "text-amber-400" : "text-violet-400"}`}>
+                    {recentBuyers[activeBuyerIdx]?.plan}
+                  </span>
+                  <span className="text-muted-foreground/60">{recentBuyers[activeBuyerIdx]?.time}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="sm:ml-auto flex items-center gap-2 text-xs">
+              <Clock className={`w-3.5 h-3.5 ${pageTimerExpired ? "text-red-400" : "text-amber-400"}`} />
+              <span className="text-muted-foreground/70">{lang === "uk" ? "Знижка діє:" : lang === "ru" ? "Скидка активна:" : "Offer ends:"}</span>
+              <span className={`font-mono font-bold ${pageTimerExpired ? "text-red-400" : "text-amber-400"}`}>
+                {pageTimerExpired ? (lang === "uk" ? "ЗАКІНЧИЛАСЬ" : lang === "ru" ? "ИСТЕКЛО" : "EXPIRED") : formatPageTimer(pageTimer)}
+              </span>
+            </div>
           </div>
         </motion.div>
 
@@ -311,8 +428,9 @@ function PricingContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="pricing-card-hover"
           >
-            <Card className="h-full border-emerald-500/50 bg-gradient-to-b from-emerald-500/10 to-transparent relative" data-testid="card-pro-plan">
+            <Card className="h-full border-emerald-500/50 bg-gradient-to-b from-emerald-500/10 to-transparent relative shadow-[0_0_30px_rgba(34,197,94,0.12)] hover:shadow-[0_0_50px_rgba(34,197,94,0.22)] transition-all duration-300 spotlight-sweep shimmer-border-effect" data-testid="card-pro-plan">
               <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-emerald-500 text-white text-xs font-medium rounded-bl-lg">
                 {t('pricing.popular')}
               </div>
@@ -322,7 +440,16 @@ function PricingContent() {
                   <CardTitle className="text-lg text-emerald-400">PRO</CardTitle>
                 </div>
                 <CardDescription className="text-xs">{t('pricing.forProfessionals')}</CardDescription>
-                <div className="mt-3">
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
+                  </span>
+                  <span className="text-[10px] text-orange-400 font-medium">
+                    {lang === "uk" ? "Лише 12 місць залишилось" : lang === "ru" ? "Только 12 мест осталось" : "Only 12 spots left"}
+                  </span>
+                </div>
+                <div className="mt-2">
                   <span className="text-3xl font-bold text-emerald-400">${getPrice("PRO")}</span>
                   <span className="text-muted-foreground text-sm">{isYearly ? t('pricing.perYear') : t('pricing.perMonth')}</span>
                   {isYearly && (
@@ -360,8 +487,9 @@ function PricingContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            className="pricing-card-hover"
           >
-            <Card className="h-full border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent" data-testid="card-enterprise-plan">
+            <Card className="h-full border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-transparent shimmer-border-effect" data-testid="card-enterprise-plan">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Crown className="h-5 w-5 text-amber-500" />
@@ -406,9 +534,9 @@ function PricingContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="sm:col-span-2 lg:col-span-1"
+            className="sm:col-span-2 lg:col-span-1 pricing-card-hover"
           >
-            <Card className="h-full border-violet-500/50 bg-gradient-to-b from-violet-500/10 to-transparent" data-testid="card-groups-plan">
+            <Card className="h-full border-violet-500/50 bg-gradient-to-b from-violet-500/10 to-transparent relative shimmer-border-effect" data-testid="card-groups-plan">
               <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-violet-500 text-white text-xs font-medium rounded-bl-lg">
                 {t('pricing.newLabel')}
               </div>
@@ -465,6 +593,96 @@ function PricingContent() {
           <div className="flex items-center justify-center gap-4 sm:gap-6 mt-3 opacity-50 flex-wrap">
             <span className="text-xs">TON / ERC-20 / BEP-20 / Solana / XRP</span>
             <span className="text-xs">{t('pricing.instantProcessing')}</span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-8 sm:mt-10"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.06] text-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {lang === "uk" ? "Безпечна оплата" : lang === "ru" ? "Безопасная оплата" : "Secure Payment"}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {lang === "uk" ? "Шифрування та захист даних" : lang === "ru" ? "Шифрование и защита данных" : "Encrypted & protected"}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.06] text-center">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {lang === "uk" ? "Миттєва активація" : lang === "ru" ? "Мгновенная активация" : "Instant Activation"}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {lang === "uk" ? "Доступ відразу після оплати" : lang === "ru" ? "Доступ сразу после оплаты" : "Access right after payment"}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.06] text-center">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                <Award className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {lang === "uk" ? "Підтримка 24/7" : lang === "ru" ? "Поддержка 24/7" : "24/7 Support"}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {lang === "uk" ? "Відповідаємо у Telegram" : lang === "ru" ? "Отвечаем в Telegram" : "We respond in Telegram"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="mt-6 sm:mt-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/[0.05] via-transparent to-cyan-500/[0.05] border border-emerald-500/15"
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="text-3xl">💎</div>
+              <div>
+                <p className="text-sm font-bold text-white">
+                  {lang === "uk" ? "Чому обирають DARKSHARE?" : lang === "ru" ? "Почему выбирают DARKSHARE?" : "Why choose DARKSHARE?"}
+                </p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                  {[
+                    lang === "uk" ? "17 типів перевірок" : lang === "ru" ? "17 типов проверок" : "17 check types",
+                    lang === "uk" ? "AI аналіз ризиків" : lang === "ru" ? "AI анализ рисков" : "AI risk analysis",
+                    lang === "uk" ? "PDF звіти" : lang === "ru" ? "PDF отчёты" : "PDF reports",
+                    lang === "uk" ? "Telegram бот" : lang === "ru" ? "Telegram бот" : "Telegram bot",
+                  ].map((item, i) => (
+                    <span key={i} className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="sm:text-right">
+              <div className="flex items-center gap-1 justify-center sm:justify-end">
+                {[1,2,3,4,5].map(i => (
+                  <span key={i} className="text-amber-400 text-sm">★</span>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {lang === "uk" ? "Оцінка 4.9 · 2800+ користувачів" : lang === "ru" ? "Оценка 4.9 · 2800+ пользователей" : "Rated 4.9 · 2800+ users"}
+              </p>
+            </div>
           </div>
         </motion.div>
 

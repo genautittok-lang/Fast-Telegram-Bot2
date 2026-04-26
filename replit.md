@@ -50,6 +50,14 @@ Preferred communication style: Simple, everyday language.
 ### Internationalization (i18n)
 - Supports 5 languages (en, uk, ru, es, de) across both frontend and Telegram bot, using centralized translation files and helpers.
 
+## v4.5 Premium Mega-Level Upgrade (April 2026)
+
+### Conversion & Visual Upgrades
+- **Pricing page** — Live social proof ticker (viewer count + recent buyers), urgency countdown timer, scarcity badge ("Only 12 spots left" on PRO), trust section (secure payment / instant activation / 24/7 support), star ratings row.
+- **Home page** — Animated live dot badge, v4.5 version badge, "17 check types" CTA checklist item, avatar stack + "2,800+ active users" social proof row, stats section with colored icon boxes + hover scale effects.
+- **Premium CSS** (`index.css`) — 300+ lines: aurora-bg, shimmer-border-effect, levitate-card, neon-border-green, hero-gradient-text, typewriter-cursor, pricing-card-hover, live-indicator, cta-ring, animated-gradient-border, spotlight-sweep, burst-in, savings-pulse, plan-card-3d, particle-float, urgency-shake, float-badge, glow-card, social-slide-in, ticker-in/out animations.
+- **Plan card effects** — All plan cards use `.pricing-card-hover` (translateY + scale on hover) + `.shimmer-border-effect` (animated shimmer border on hover). PRO card additionally uses `.spotlight-sweep` for a sweep light effect.
+
 ## v4.5 Compliance & Wow Features (April 2026)
 
 ### Phase 1 — Legal Compliance
