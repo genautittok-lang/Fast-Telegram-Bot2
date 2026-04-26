@@ -71,6 +71,20 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/aup">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-aup">
+                    Acceptable Use Policy
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/data-deletion">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-data-deletion">
+                    Видалення даних (GDPR)
+                  </span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/support">
                   <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-contact">
                     <Mail className="w-3.5 h-3.5" />

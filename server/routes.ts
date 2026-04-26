@@ -4008,5 +4008,204 @@ export async function registerRoutes(
     }
   }, 60 * 60 * 1000);
 
+  // ============ DARKSHARE v4.5 — Compliance & Wow Features ============
+
+  // GDPR Data Deletion Request (public, no auth required for transparency)
+  app.post("/api/data-deletion", loadUser, async (req: Request, res: Response) => {
+    try {
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.ip || "anon";
+      if (rateLimit(`del:${ip}`, 3, 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Too many requests. Try again in an hour." });
+      }
+      const { insertDataDeletionRequestSchema } = await import("@shared/schema");
+      const parsed = insertDataDeletionRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
+      }
+      const userId = (req as any).user?.id ?? null;
+      const created = await storage.createDataDeletionRequest({ ...parsed.data, userId });
+      try {
+        for (const adminId of ADMIN_IDS) {
+          await botInstance?.telegram.sendMessage(
+            adminId,
+            `🗑 Новий GDPR-запит на видалення даних\n\nID: ${created.id}\nEmail: ${created.email}\nIdentifier: ${created.identifier ?? "—"}\nReason: ${created.reason ?? "—"}`
+          ).catch(() => {});
+        }
+      } catch {}
+      return res.json({ success: true, requestId: created.id, status: "pending" });
+    } catch (err: any) {
+      console.error("Data deletion request error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  // Compromise Wizard — free, public
+  app.post("/api/wizard/compromise", async (req: Request, res: Response) => {
+    try {
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.ip || "anon";
+      if (rateLimit(`wiz:${ip}`, 30, 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Rate limit. Спробуйте за годину." });
+      }
+      const { generateCompromiseChecklist } = await import("./wizardService");
+      const result = generateCompromiseChecklist({
+        exposureType: req.body?.exposureType ?? "unknown",
+        affectedServices: Array.isArray(req.body?.affectedServices) ? req.body.affectedServices.slice(0, 20) : [],
+        hasFinancialAccess: !!req.body?.hasFinancialAccess,
+        hasSensitiveData: !!req.body?.hasSensitiveData,
+        is2faEnabled: !!req.body?.is2faEnabled,
+        hasSimAccess: !!req.body?.hasSimAccess,
+        language: ["uk", "ru", "en"].includes(req.body?.language) ? req.body.language : "uk",
+      });
+      return res.json(result);
+    } catch (err: any) {
+      console.error("Wizard error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  // Takedown Letter Generator — free, public
+  app.post("/api/takedown-letter", loadUser, async (req: Request, res: Response) => {
+    try {
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.ip || "anon";
+      if (rateLimit(`tdn:${ip}`, 10, 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Rate limit. Try again later." });
+      }
+      const { generateTakedownLetter } = await import("./takedownService");
+      const language = ["uk", "ru", "en"].includes(req.body?.language) ? req.body.language : "uk";
+      const jurisdiction = ["EU", "UK", "UA", "US", "RU", "OTHER"].includes(req.body?.jurisdiction) ? req.body.jurisdiction : "EU";
+      const recipientType = ["website_admin", "hosting_provider", "search_engine", "social_platform", "data_broker"].includes(req.body?.recipientType) ? req.body.recipientType : "website_admin";
+      const dataDescription = String(req.body?.dataDescription ?? "").slice(0, 4000);
+      if (!dataDescription || dataDescription.length < 10) {
+        return res.status(400).json({ error: "dataDescription required (min 10 chars)" });
+      }
+      const letterText = generateTakedownLetter({
+        recipientType,
+        recipientName: String(req.body?.recipientName ?? "").slice(0, 200) || undefined,
+        recipientEmail: String(req.body?.recipientEmail ?? "").slice(0, 200) || undefined,
+        dataDescription,
+        jurisdiction,
+        language,
+        requesterName: String(req.body?.requesterName ?? "").slice(0, 200) || undefined,
+        requesterEmail: String(req.body?.requesterEmail ?? "").slice(0, 200) || undefined,
+        urlsContainingData: Array.isArray(req.body?.urlsContainingData) ? req.body.urlsContainingData.slice(0, 20).map((u: any) => String(u).slice(0, 500)) : undefined,
+      });
+      const userId = (req as any).user?.id;
+      if (userId) {
+        try {
+          await storage.createTakedownLetter({
+            userId,
+            recipientType,
+            recipientName: req.body?.recipientName ?? null,
+            recipientEmail: req.body?.recipientEmail ?? null,
+            dataDescription,
+            jurisdiction,
+            language,
+            letterText,
+          });
+        } catch (e) { console.error("Failed to save takedown letter:", e); }
+      }
+      return res.json({ letterText, jurisdiction, language });
+    } catch (err: any) {
+      console.error("Takedown letter error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  // AI Threat Profile — auth required, PRO+ tier
+  app.post("/api/threat-profile", loadUser, requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Auth required" });
+      const user = await storage.getUserById(userId);
+      if (!user) return res.status(401).json({ error: "User not found" });
+      const tier = (user.tier || "FREE").toUpperCase();
+      if (tier === "FREE") {
+        return res.status(403).json({ error: "PRO_REQUIRED", message: "AI Threat Profile доступний на PRO+ тарифі." });
+      }
+      if (rateLimit(`tp:${userId}`, 10, 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Rate limit. 10 профілів на годину." });
+      }
+      const query = String(req.body?.query ?? "").slice(0, 200);
+      const queryType = ["username", "email", "phone", "wallet", "ip", "domain"].includes(req.body?.queryType) ? req.body.queryType : "username";
+      if (!query || query.length < 2) {
+        return res.status(400).json({ error: "Query required" });
+      }
+      const { generateThreatProfile } = await import("./threatProfilerService");
+      const profile = await generateThreatProfile({
+        query,
+        queryType,
+        context: {
+          findings: Array.isArray(req.body?.context?.findings) ? req.body.context.findings.slice(0, 20) : [],
+          relatedAccounts: Array.isArray(req.body?.context?.relatedAccounts) ? req.body.context.relatedAccounts.slice(0, 20) : [],
+          breaches: Array.isArray(req.body?.context?.breaches) ? req.body.context.breaches.slice(0, 20) : [],
+          riskScore: typeof req.body?.context?.riskScore === "number" ? req.body.context.riskScore : 0,
+        },
+      });
+      const saved = await storage.createThreatProfile({
+        userId,
+        query,
+        queryType,
+        profileJson: profile as any,
+        confidenceScore: profile.riskScore,
+      });
+      return res.json({ id: saved.id, profile });
+    } catch (err: any) {
+      console.error("Threat profile error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  // List user's threat profiles
+  app.get("/api/threat-profiles", loadUser, requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Auth required" });
+      const list = await storage.getThreatProfiles(userId, 30);
+      return res.json(list);
+    } catch (err: any) {
+      console.error("Threat profiles list error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  // Admin: list deletion requests
+  app.get("/api/admin/data-deletion", loadUser, requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Auth required" });
+      const user = await storage.getUserById(userId);
+      if (!user || !ADMIN_IDS.includes(String(user.tgId || ""))) {
+        return res.status(403).json({ error: "Admin only" });
+      }
+      const status = typeof req.query.status === "string" ? req.query.status : undefined;
+      const list = await storage.getDataDeletionRequests(status);
+      return res.json(list);
+    } catch (err: any) {
+      console.error("Admin deletion list error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  app.patch("/api/admin/data-deletion/:id", loadUser, requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Auth required" });
+      const user = await storage.getUserById(userId);
+      if (!user || !ADMIN_IDS.includes(String(user.tgId || ""))) {
+        return res.status(403).json({ error: "Admin only" });
+      }
+      const id = parseInt(req.params.id, 10);
+      const updates: any = {};
+      if (typeof req.body?.status === "string") updates.status = req.body.status;
+      if (typeof req.body?.adminNotes === "string") updates.adminNotes = req.body.adminNotes;
+      if (req.body?.status === "resolved") updates.resolvedAt = new Date();
+      const updated = await storage.updateDataDeletionRequest(id, updates);
+      return res.json(updated);
+    } catch (err: any) {
+      console.error("Admin deletion update error:", err);
+      return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
   return httpServer;
 }

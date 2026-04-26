@@ -37,6 +37,11 @@ import Guide from "@/pages/Guide";
 import Download from "@/pages/Download";
 import ExifTool from "@/pages/ExifTool";
 import GeointHints from "@/pages/GeointHints";
+import AUP from "@/pages/AUP";
+import DataDeletion from "@/pages/DataDeletion";
+import CompromiseWizard from "@/pages/CompromiseWizard";
+import TakedownGenerator from "@/pages/TakedownGenerator";
+import ThreatProfilePage from "@/pages/ThreatProfile";
 
 const APP_PATHS = ["/dashboard", "/history", "/monitoring", "/referral", "/account", "/teams", "/chat", "/admin", "/exif", "/geoint"];
 
@@ -107,6 +112,11 @@ function Router() {
           <Route path="/download" component={Download} />
           <Route path="/exif" component={ExifTool} />
           <Route path="/geoint" component={GeointHints} />
+          <Route path="/aup" component={AUP} />
+          <Route path="/data-deletion" component={DataDeletion} />
+          <Route path="/wizard" component={CompromiseWizard} />
+          <Route path="/takedown" component={TakedownGenerator} />
+          <Route path="/threat-profile" component={ThreatProfilePage} />
           <Route component={NotFound} />
         </Switch>
       </AnimatedPage>

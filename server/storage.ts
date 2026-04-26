@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, dataDeletionRequests, threatProfiles, takedownLetters, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog, type DataDeletionRequest, type InsertDataDeletionRequest, type ThreatProfile, type InsertThreatProfile, type TakedownLetter, type InsertTakedownLetter } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
@@ -136,6 +136,20 @@ export interface IStorage {
 
   getRevenueStats(): Promise<{ totalRevenue: number; monthlyRevenue: number; paymentsByTier: Record<string, number> }>;
   getUserGrowthStats(): Promise<Array<{ date: string; count: number }>>;
+
+  // GDPR Data Deletion Requests
+  createDataDeletionRequest(req: InsertDataDeletionRequest): Promise<DataDeletionRequest>;
+  getDataDeletionRequests(status?: string): Promise<DataDeletionRequest[]>;
+  updateDataDeletionRequest(id: number, updates: { status?: string; adminNotes?: string; resolvedAt?: Date }): Promise<DataDeletionRequest>;
+
+  // AI Threat Profiles
+  createThreatProfile(profile: InsertThreatProfile): Promise<ThreatProfile>;
+  getThreatProfiles(userId: number, limit?: number): Promise<ThreatProfile[]>;
+  getThreatProfileById(id: number): Promise<ThreatProfile | undefined>;
+
+  // Takedown Letters
+  createTakedownLetter(letter: InsertTakedownLetter): Promise<TakedownLetter>;
+  getTakedownLetters(userId: number, limit?: number): Promise<TakedownLetter[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -766,6 +780,54 @@ export class DatabaseStorage implements IStorage {
     `);
     return (result.rows as any[]).map(r => ({ date: r.date, count: Number(r.count) }));
   }
+
+  async createDataDeletionRequest(req: InsertDataDeletionRequest): Promise<DataDeletionRequest> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.insert(dataDeletionRequests).values(req).returning();
+    return row;
+  }
+
+  async getDataDeletionRequests(status?: string): Promise<DataDeletionRequest[]> {
+    if (!db) throw new Error("Database not available");
+    if (status) {
+      return await db.select().from(dataDeletionRequests).where(eq(dataDeletionRequests.status, status)).orderBy(desc(dataDeletionRequests.createdAt));
+    }
+    return await db.select().from(dataDeletionRequests).orderBy(desc(dataDeletionRequests.createdAt));
+  }
+
+  async updateDataDeletionRequest(id: number, updates: { status?: string; adminNotes?: string; resolvedAt?: Date }): Promise<DataDeletionRequest> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.update(dataDeletionRequests).set(updates).where(eq(dataDeletionRequests.id, id)).returning();
+    return row;
+  }
+
+  async createThreatProfile(profile: InsertThreatProfile): Promise<ThreatProfile> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.insert(threatProfiles).values(profile).returning();
+    return row;
+  }
+
+  async getThreatProfiles(userId: number, limit: number = 50): Promise<ThreatProfile[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(threatProfiles).where(eq(threatProfiles.userId, userId)).orderBy(desc(threatProfiles.createdAt)).limit(limit);
+  }
+
+  async getThreatProfileById(id: number): Promise<ThreatProfile | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.select().from(threatProfiles).where(eq(threatProfiles.id, id));
+    return row;
+  }
+
+  async createTakedownLetter(letter: InsertTakedownLetter): Promise<TakedownLetter> {
+    if (!db) throw new Error("Database not available");
+    const [row] = await db.insert(takedownLetters).values(letter).returning();
+    return row;
+  }
+
+  async getTakedownLetters(userId: number, limit: number = 50): Promise<TakedownLetter[]> {
+    if (!db) throw new Error("Database not available");
+    return await db.select().from(takedownLetters).where(eq(takedownLetters.userId, userId)).orderBy(desc(takedownLetters.createdAt)).limit(limit);
+  }
 }
 
 // Memory storage fallback when database is not available
@@ -1278,6 +1340,23 @@ export class MemStorage implements IStorage {
     return { totalRevenue: 0, monthlyRevenue: 0, paymentsByTier: {} };
   }
   async getUserGrowthStats(): Promise<Array<{ date: string; count: number }>> { return []; }
+
+  async createDataDeletionRequest(req: InsertDataDeletionRequest): Promise<DataDeletionRequest> {
+    return { id: 1, userId: null, email: req.email, identifier: req.identifier ?? null, reason: req.reason ?? null, status: "pending", adminNotes: null, resolvedAt: null, createdAt: new Date() } as any;
+  }
+  async getDataDeletionRequests(_status?: string): Promise<DataDeletionRequest[]> { return []; }
+  async updateDataDeletionRequest(id: number, _updates: { status?: string; adminNotes?: string; resolvedAt?: Date }): Promise<DataDeletionRequest> {
+    return { id, userId: null, email: "", identifier: null, reason: null, status: "pending", adminNotes: null, resolvedAt: null, createdAt: new Date() } as any;
+  }
+  async createThreatProfile(profile: InsertThreatProfile): Promise<ThreatProfile> {
+    return { id: 1, userId: profile.userId, query: profile.query, queryType: profile.queryType, profileJson: profile.profileJson, confidenceScore: profile.confidenceScore ?? 0, createdAt: new Date() } as any;
+  }
+  async getThreatProfiles(_userId: number, _limit?: number): Promise<ThreatProfile[]> { return []; }
+  async getThreatProfileById(_id: number): Promise<ThreatProfile | undefined> { return undefined; }
+  async createTakedownLetter(letter: InsertTakedownLetter): Promise<TakedownLetter> {
+    return { id: 1, userId: letter.userId ?? null, recipientType: letter.recipientType, recipientName: letter.recipientName ?? null, recipientEmail: letter.recipientEmail ?? null, dataDescription: letter.dataDescription, jurisdiction: letter.jurisdiction ?? "EU", language: letter.language ?? "uk", letterText: letter.letterText, createdAt: new Date() } as any;
+  }
+  async getTakedownLetters(_userId: number, _limit?: number): Promise<TakedownLetter[]> { return []; }
 }
 
 // Export the appropriate storage based on database availability
