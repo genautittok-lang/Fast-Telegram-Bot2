@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,9 +25,8 @@ import {
   Loader2,
   ChevronRight,
   ArrowLeftIcon,
-  Flame,
-  Eye,
   ShieldCheck,
+  CheckCircle,
   Award,
   RefreshCw,
   Zap
@@ -57,13 +56,6 @@ function PricingContent() {
   const [timerExpired, setTimerExpired] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
   const [selectedMethod, setSelectedMethod] = useState<"crypto" | "monobank" | "stars" | null>(null);
-
-  const [viewerCount, setViewerCount] = useState(0);
-  const [recentBuyers, setRecentBuyers] = useState<Array<{ name: string; plan: string; time: string }>>([]);
-  const [activeBuyerIdx, setActiveBuyerIdx] = useState(0);
-  const [pageTimer, setPageTimer] = useState(23 * 60 + 47);
-  const [pageTimerExpired, setPageTimerExpired] = useState(false);
-  const buyerTickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -109,56 +101,7 @@ function PricingContent() {
     return () => clearInterval(interval);
   }, [showPaymentModal, paymentStep]);
 
-  useEffect(() => {
-    const base = Math.floor(Math.random() * 18) + 27;
-    setViewerCount(base);
-    const viewerInterval = setInterval(() => {
-      setViewerCount(prev => {
-        const delta = Math.random() < 0.5 ? 1 : -1;
-        return Math.max(15, Math.min(60, prev + delta));
-      });
-    }, 4500);
-
-    const buyerNames = [
-      { name: "A***v", plan: "PRO", time: "2 хв тому" },
-      { name: "S***k", plan: "ENTERPRISE", time: "5 хв тому" },
-      { name: "M***a", plan: "PRO", time: "8 хв тому" },
-      { name: "D***o", plan: "GROUPS", time: "12 хв тому" },
-      { name: "O***n", plan: "PRO", time: "15 хв тому" },
-      { name: "K***s", plan: "ENTERPRISE", time: "19 хв тому" },
-      { name: "R***l", plan: "PRO", time: "23 хв тому" },
-    ];
-    setRecentBuyers(buyerNames);
-
-    buyerTickerRef.current = setInterval(() => {
-      setActiveBuyerIdx(prev => (prev + 1) % buyerNames.length);
-    }, 4000);
-
-    const pageTimerInterval = setInterval(() => {
-      setPageTimer(prev => {
-        if (prev <= 1) {
-          setPageTimerExpired(true);
-          clearInterval(pageTimerInterval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      clearInterval(viewerInterval);
-      if (buyerTickerRef.current) clearInterval(buyerTickerRef.current);
-      clearInterval(pageTimerInterval);
-    };
-  }, []);
-
   const formatTimer = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-
-  const formatPageTimer = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
@@ -361,45 +304,27 @@ function PricingContent() {
           transition={{ delay: 0.15 }}
           className="mb-5 sm:mb-6"
         >
-          <div className="flex flex-col sm:flex-row items-center gap-3 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-zinc-900/80 to-zinc-900/60 border border-white/[0.07] backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2.5 sm:gap-6 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-zinc-900/80 to-zinc-900/60 border border-cyan-500/15 backdrop-blur-sm" data-testid="pricing-value-strip">
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs sm:text-sm">
+              <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span className="text-zinc-300">
+                {lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código promo" : lang === "de" ? "Promo-Code" : "Promo code"}
               </span>
-              <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground text-xs">{viewerCount}</span>
-              <span className="text-muted-foreground/60 text-xs">{lang === "uk" ? "переглядають зараз" : lang === "ru" ? "смотрят сейчас" : "viewing now"}</span>
+              <span className="font-mono font-bold tracking-tight text-cyan-400" data-testid="text-promo-code">DARKNEU</span>
+              <span className="text-zinc-500 hidden sm:inline">·</span>
+              <span className="text-zinc-300 font-medium w-full sm:w-auto">
+                {lang === "uk" ? "−50% на перші 3 місяці" : lang === "ru" ? "−50% на первые 3 месяца" : lang === "es" ? "−50% los primeros 3 meses" : lang === "de" ? "−50% für die ersten 3 Monate" : "−50% off first 3 months"}
+              </span>
             </div>
-
             <div className="hidden sm:block w-px h-4 bg-white/10" />
-
-            <AnimatePresence mode="wait">
-              {recentBuyers.length > 0 && (
-                <motion.div
-                  key={activeBuyerIdx}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.35 }}
-                  className="flex items-center gap-2 text-xs"
-                >
-                  <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                  <span className="text-white font-medium">{recentBuyers[activeBuyerIdx]?.name}</span>
-                  <span className="text-muted-foreground">{lang === "uk" ? "придбав" : lang === "ru" ? "купил" : "bought"}</span>
-                  <span className={`font-bold ${recentBuyers[activeBuyerIdx]?.plan === "PRO" ? "text-cyan-400" : recentBuyers[activeBuyerIdx]?.plan === "ENTERPRISE" ? "text-amber-400" : "text-violet-400"}`}>
-                    {recentBuyers[activeBuyerIdx]?.plan}
-                  </span>
-                  <span className="text-muted-foreground/60">{recentBuyers[activeBuyerIdx]?.time}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="sm:ml-auto flex items-center gap-2 text-xs">
-              <Clock className={`w-3.5 h-3.5 ${pageTimerExpired ? "text-red-400" : "text-amber-400"}`} />
-              <span className="text-muted-foreground/70">{lang === "uk" ? "Знижка діє:" : lang === "ru" ? "Скидка активна:" : "Offer ends:"}</span>
-              <span className={`font-mono font-bold ${pageTimerExpired ? "text-red-400" : "text-amber-400"}`}>
-                {pageTimerExpired ? (lang === "uk" ? "ЗАКІНЧИЛАСЬ" : lang === "ru" ? "ИСТЕКЛО" : "EXPIRED") : formatPageTimer(pageTimer)}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-x-4 text-[11px] sm:text-xs text-zinc-500">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-cyan-500/70 shrink-0" />
+                <span>{lang === "uk" ? "Без прихованих платежів" : lang === "ru" ? "Без скрытых платежей" : lang === "es" ? "Sin cargos ocultos" : lang === "de" ? "Keine versteckten Kosten" : "No hidden fees"}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-cyan-500/70 shrink-0" />
+                <span>{lang === "uk" ? "Скасування у будь-який момент" : lang === "ru" ? "Отмена в любой момент" : lang === "es" ? "Cancela cuando quieras" : lang === "de" ? "Jederzeit kündbar" : "Cancel anytime"}</span>
               </span>
             </div>
           </div>

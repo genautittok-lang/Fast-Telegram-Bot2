@@ -440,18 +440,22 @@ export default function Home() {
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none opacity-60" />
       <FloatingParticles count={20} />
 
-      {/* TOP ANNOUNCEMENT BAR — VPN visibility */}
-      <Link href="/pricing?plan=PRO&code=DARKNEU&src=top_bar" className="block w-full">
-        <div className="relative z-50 w-full bg-gradient-to-r from-cyan-600 via-cyan-500 to-cyan-600 text-black border-b border-cyan-300/40 shadow-[0_2px_20px_rgba(6,182,212,0.4)] hover:brightness-110 transition-all cursor-pointer group" data-testid="banner-vpn-top">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm font-bold">
-            <Shield className="w-4 h-4 flex-shrink-0 animate-pulse" />
-            <span className="hidden sm:inline-flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded bg-black/25 text-[10px] uppercase tracking-wider font-extrabold">New</span>
-              <span>{lang === "uk" ? "WireGuard VPN тепер у комплекті з PRO — 6 локацій, без логів" : lang === "ru" ? "WireGuard VPN теперь в комплекте с PRO — 6 локаций, без логов" : lang === "es" ? "WireGuard VPN ahora incluido con PRO — 6 ubicaciones, sin logs" : lang === "de" ? "WireGuard VPN jetzt mit PRO — 6 Standorte, keine Logs" : "WireGuard VPN now included with PRO — 6 locations, no logs"}</span>
+      {/* TOP ANNOUNCEMENT BAR — refined: subtle dark, single message, no shouting */}
+      <Link href="/pricing?plan=PRO&code=DARKNEU&src=top_bar" className="block w-full group">
+        <div className="relative z-50 w-full bg-[rgba(8,12,16,0.95)] border-b border-cyan-500/15 backdrop-blur-xl" data-testid="banner-vpn-top">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-center gap-2 text-[11px] sm:text-xs min-w-0">
+            <Shield className="w-3.5 h-3.5 flex-shrink-0 text-cyan-400" />
+            <span className="text-zinc-300 font-medium truncate min-w-0">
+              <span className="hidden sm:inline">
+                {lang === "uk" ? "WireGuard VPN включено в PRO · 6 локацій · без логів" : lang === "ru" ? "WireGuard VPN включён в PRO · 6 локаций · без логов" : lang === "es" ? "WireGuard VPN incluido en PRO · 6 ubicaciones · sin logs" : lang === "de" ? "WireGuard VPN in PRO enthalten · 6 Standorte · keine Logs" : "WireGuard VPN included with PRO · 6 locations · no logs"}
+              </span>
+              <span className="sm:hidden">
+                {lang === "uk" ? "VPN у PRO · 6 локацій" : lang === "ru" ? "VPN в PRO · 6 локаций" : lang === "es" ? "VPN en PRO · 6 ubicaciones" : lang === "de" ? "VPN in PRO · 6 Standorte" : "VPN in PRO · 6 locations"}
+              </span>
             </span>
-            <span className="sm:hidden truncate">{lang === "uk" ? "VPN у PRO — 6 локацій" : lang === "ru" ? "VPN в PRO — 6 локаций" : lang === "es" ? "VPN en PRO — 6 ubicaciones" : lang === "de" ? "VPN mit PRO — 6 Standorte" : "VPN with PRO — 6 locations"}</span>
-            <span className="px-2 py-0.5 rounded-full bg-black text-cyan-400 text-[10px] sm:text-xs font-extrabold whitespace-nowrap">DARKNEU −50%</span>
-            <ChevronRight className="w-4 h-4 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+            <span className="text-zinc-600 hidden sm:inline">·</span>
+            <span className="text-cyan-400 font-mono font-semibold tracking-tight whitespace-nowrap flex-shrink-0">DARKNEU&nbsp;−50%</span>
+            <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
       </Link>
@@ -522,20 +526,19 @@ export default function Home() {
                   transition={{ delay: 0.1 }}
                   className="flex items-center gap-2 flex-wrap"
                 >
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-xs font-medium text-cyan-400 backdrop-blur-sm">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-cyan-500/20 text-xs font-medium text-zinc-300 backdrop-blur-sm" data-testid="badge-hero-status">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-60" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
                     </span>
-                    <span>
-                      {lang === "uk" ? "AI Threat Analyzer v2.0 — доступно" : lang === "ru" ? "AI Threat Analyzer v2.0 — доступно" : lang === "es" ? "AI Threat Analyzer v2.0 — disponible" : lang === "de" ? "AI Threat Analyzer v2.0 — verfügbar" : "AI Threat Analyzer v2.0 — live"}
+                    <span className="text-cyan-400 font-semibold tracking-wide">
+                      {lang === "uk" ? "AI Threat Analyzer v2.0" : lang === "ru" ? "AI Threat Analyzer v2.0" : lang === "es" ? "AI Threat Analyzer v2.0" : lang === "de" ? "AI Threat Analyzer v2.0" : "AI Threat Analyzer v2.0"}
+                    </span>
+                    <span className="text-zinc-600">·</span>
+                    <span className="text-zinc-400 text-[11px]">
+                      {lang === "uk" ? "Доступно" : lang === "ru" ? "Доступно" : lang === "es" ? "Disponible" : lang === "de" ? "Verfügbar" : "Available now"}
                     </span>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-medium text-amber-400">
-                    <Flame className="w-3 h-3" />
-                    <span>DARKNEU −50%</span>
-                  </div>
-                  <ScarcityBadge lang={lang} />
                 </motion.div>
 
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-white leading-[1.05] overflow-hidden">
@@ -626,39 +629,60 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                <Card className="premium-card backdrop-blur-sm p-4 sm:p-5">
+                <Card className="premium-card backdrop-blur-sm p-4 sm:p-5" data-testid="card-platform-stats">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-primary" />
-                      {t("landing.activity")}
+                    <h3 className="text-sm font-semibold flex items-center gap-2 text-white">
+                      <Activity className="w-4 h-4 text-cyan-400" />
+                      {lang === "uk" ? "Статус платформи" : lang === "ru" ? "Статус платформы" : lang === "es" ? "Estado de la plataforma" : lang === "de" ? "Plattform-Status" : "Platform status"}
                     </h3>
-                    <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1.5">
-                      <span className="glow-dot animate-pulse" />
-                      {lang === "uk" ? "Реал-тайм" : lang === "ru" ? "Реал-тайм" : lang === "es" ? "Tiempo Real" : lang === "de" ? "Echtzeit" : "Real-time"}
+                    <span className="text-[10px] text-cyan-400/80 font-mono flex items-center gap-1.5">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
+                      </span>
+                      {lang === "uk" ? "Реал-тайм" : lang === "ru" ? "Реал-тайм" : lang === "es" ? "Tiempo real" : lang === "de" ? "Echtzeit" : "Real-time"}
                     </span>
                   </div>
-                  <div className="space-y-2 max-h-[180px] overflow-hidden">
-                    {activity?.slice(0, 4).map((item, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-primary">{getTypeIcon(item.type)}</span>
-                          <span className="font-mono text-muted-foreground truncate text-[11px]">{item.target}</span>
-                        </div>
-                        <span className={`font-bold uppercase text-[9px] flex-shrink-0 px-1.5 py-0.5 rounded ${getRiskColor(item.riskLevel)} ${
-                          item.riskLevel === 'critical' ? 'bg-red-500/20 animate-risk-pulse' :
-                          item.riskLevel === 'high' ? 'bg-orange-500/20 animate-risk-pulse-orange' :
-                          ''
-                        }`}>
-                          {item.riskLevel}
-                        </span>
-                      </motion.div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      {
+                        label: lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : lang === "es" ? "Análisis hoy" : lang === "de" ? "Checks heute" : "Checks today",
+                        value: stats?.checksToday?.toLocaleString() ?? "—",
+                        accent: "text-cyan-400",
+                        testId: "stat-checks-today",
+                      },
+                      {
+                        label: lang === "uk" ? "Загроз заблоковано" : lang === "ru" ? "Угроз заблокировано" : lang === "es" ? "Amenazas bloqueadas" : lang === "de" ? "Bedrohungen blockiert" : "Threats blocked",
+                        value: stats?.threatsBlocked?.toLocaleString() ?? "—",
+                        accent: "text-cyan-400",
+                        testId: "stat-threats-blocked",
+                      },
+                      {
+                        label: lang === "uk" ? "Активних моніторів" : lang === "ru" ? "Активных мониторов" : lang === "es" ? "Monitores activos" : lang === "de" ? "Aktive Monitore" : "Active watches",
+                        value: stats?.activeWatches?.toLocaleString() ?? "—",
+                        accent: "text-cyan-400",
+                        testId: "stat-active-watches",
+                      },
+                      {
+                        label: lang === "uk" ? "Звітів у базі" : lang === "ru" ? "Отчётов в базе" : lang === "es" ? "Informes generados" : lang === "de" ? "Berichte gesamt" : "Reports indexed",
+                        value: stats?.totalReports?.toLocaleString() ?? "—",
+                        accent: "text-cyan-400",
+                        testId: "stat-total-reports",
+                      },
+                    ].map((s) => (
+                      <div key={s.testId} className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-2.5 hover:border-cyan-500/25 transition-colors" data-testid={s.testId}>
+                        <div className={`text-base sm:text-lg font-bold ${s.accent} tabular-nums leading-tight`}>{s.value}</div>
+                        <div className="text-[10px] text-zinc-500 mt-0.5 leading-tight">{s.label}</div>
+                      </div>
                     ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
+                    <span className="text-zinc-500">
+                      {lang === "uk" ? "Доступність" : lang === "ru" ? "Доступность" : lang === "es" ? "Disponibilidad" : lang === "de" ? "Verfügbarkeit" : "Uptime"}
+                    </span>
+                    <span className="font-mono font-semibold text-cyan-400 tabular-nums" data-testid="stat-uptime">
+                      {stats?.uptime != null ? `${stats.uptime}%` : "—"}
+                    </span>
                   </div>
                 </Card>
               </motion.div>
