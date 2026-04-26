@@ -54,6 +54,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTranslation } from "@/lib/i18n";
 import { PageLayout } from "@/components/PageLayout";
 import { useIsStandalone } from "@/hooks/use-mobile";
+import { ActivityTimeline } from "@/components/ActivityTimeline";
 
 interface Report {
   id: number;
@@ -573,6 +574,12 @@ export default function History() {
             ))}
           </div>
         </motion.div>
+
+        {!isLoading && reports && reports.length > 0 && (
+          <div className="mb-4">
+            <ActivityTimeline reports={reports} days={14} lang={lang} />
+          </div>
+        )}
 
         <motion.div 
           initial={{ opacity: 0 }}

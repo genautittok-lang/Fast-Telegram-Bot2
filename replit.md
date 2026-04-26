@@ -70,8 +70,12 @@ Preferred communication style: Simple, everyday language.
 - **RiskGauge component** (`client/src/components/RiskGauge.tsx`) — Reusable animated SVG arc gauge (270° 3/4-circle). Props: score (0-100), size, thickness, lang, label, showLabel. Animated counter with cubic-easing, in-view trigger. Color-coded: cyan (low <25), yellow (25-49), orange (50-74), red (75+). Localized risk labels in 5 languages (LOW/MEDIUM/HIGH/CRITICAL). Used in QuickCheck result; ready for Reports phase.
 - **QuickCheck refactor** — Replaced inline progress bar with RiskGauge. Mobile-responsive (column on small screens, row on sm+). Localized "Risk" / "Partial results" labels.
 
+### Phase 2 — Reports & Visualization (in progress)
+- **RiskGauge** (`client/src/components/RiskGauge.tsx`) — DONE (used in QuickCheck, ready for Reports/Dashboard).
+- **ActivityTimeline** (`client/src/components/ActivityTimeline.tsx`) — DONE. Premium 14-day stacked-bar chart for History page. Per-day risk distribution (cyan/yellow/orange/red), animated bars, hover tooltips with avg score, totals/avg/threats summary. Mobile-friendly. 5 languages. Auto-renders only when reports exist.
+
 ### Pending Phases (next sessions)
-- **Phase 2** — Reports visualization: interactive risk gauge, force-directed entity graph, timeline, in-browser PDF preview, CSV/JSON export with FREE-watermark.
+- **Phase 2 cont.** — Force-directed entity graph (react-flow), in-browser PDF preview (pdf.js), CSV/JSON export with FREE-watermark, Dashboard SecurityGauge → RiskGauge swap.
 - **Phase 3** — New OSINT services: Image reverse search, Domain WHOIS+SSL+DNS, Phone reputation, Crypto wallet trace, Dark web monitoring.
 - **Phase 4** — PWA polish (full manifest, install prompt, push notifications for alerts).
 - **Phase 5** — Native mobile apps via Capacitor (Google Play $25 + App Store $99/yr).
