@@ -77,6 +77,7 @@ export function MobileMenu({
   
   const publicItems: Array<{ href: string; icon: any; label: string; highlight?: boolean; desc?: string }> = [
     { href: "/", icon: Home, label: t('mobile.home'), desc: "OSINT Platform" },
+    { href: "/vpn", icon: Lock, label: "VPN", highlight: true, desc: "WireGuard · No-logs" },
     { href: "/pricing", icon: CreditCard, label: t('nav.pricing'), desc: "PRO & Enterprise" },
     ...(isAuthenticated
       ? [{ href: "/dashboard", icon: Shield, label: "Open App", highlight: true, desc: "Security Scanner" }]
@@ -87,6 +88,7 @@ export function MobileMenu({
   const authItems: Array<{ href: string; icon: any; label: string; highlight?: boolean; desc?: string }> = [
     { href: "/", icon: Home, label: "Website", desc: "Landing Page" },
     { href: "/dashboard", icon: Shield, label: t('mobile.checks'), highlight: true, desc: "OSINT Scanner" },
+    { href: "/vpn", icon: Lock, label: "VPN", highlight: true, desc: "WireGuard · No-logs" },
     { href: "/history", icon: History, label: t('nav.history'), desc: "Check Results" },
     { href: "/monitoring", icon: Eye, label: t('nav.monitoring'), desc: "Real-time Alerts" },
     { href: "/referral", icon: Users, label: t('mobile.referrals'), desc: "Invite & Earn" },

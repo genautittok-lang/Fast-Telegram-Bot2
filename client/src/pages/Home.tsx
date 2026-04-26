@@ -469,6 +469,13 @@ export default function Home() {
           </div>
           
           <div className="hidden md:flex items-center gap-1">
+            <Link href="/vpn">
+              <Button variant="ghost" size="sm" className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 font-bold" data-testid="link-nav-vpn">
+                <Lock className="w-4 h-4 mr-1.5" />
+                VPN
+                <span className="ml-1.5 px-1.5 py-0.5 rounded bg-cyan-500/20 border border-cyan-500/40 text-[9px] font-extrabold uppercase tracking-wider">New</span>
+              </Button>
+            </Link>
             <Link href="/pricing">
               <Button variant="ghost" size="sm" data-testid="link-nav-pricing">
                 <CreditCard className="w-4 h-4 mr-1.5" />

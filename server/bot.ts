@@ -1945,40 +1945,45 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       let detailsSection = "";
       
       if (state.module === "ip" && checkResult.details) {
-        const countryInfo = checkResult.details.country ? `${checkResult.details.countryCode || ""} ${checkResult.details.country}` : "";
-        const cityInfo = checkResult.details.city || "";
-        const ispInfo = checkResult.details.isp || "";
-        
+        const d = checkResult.details;
+        const countryInfo = d.country ? `${d.countryCode || ""} ${d.country}` : "";
+        const cityInfo = d.city || "";
+        const ispInfo = d.isp || "";
         const locationLabel = t(lang, "checkResult.location");
         const ispLabel = t(lang, "checkResult.isp");
-        
-        if (countryInfo || cityInfo) {
-          detailsSection = `
-
-📋 *${t(lang, "checkResult.details")}*
-├ 🌍 ${locationLabel}: *${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}*
-└ 🏢 ${ispLabel}: *${ispInfo}*`;
+        const lines: string[] = [];
+        if (countryInfo || cityInfo) lines.push(`🌍 ${locationLabel}: *${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}*`);
+        if (ispInfo) lines.push(`🏢 ${ispLabel}: *${escMd(ispInfo)}*`);
+        if (d.isTor) lines.push(`🧅 *${lang === "uk" ? "TOR Exit Node — анонімний трафік" : lang === "ru" ? "TOR Exit Node — анонимный трафик" : lang === "es" ? "Nodo de salida TOR — tráfico anónimo" : lang === "de" ? "TOR Exit Node — anonymer Traffic" : "TOR Exit Node — anonymous traffic"}*`);
+        if (d.urlhausCount && d.urlhausCount > 0) lines.push(`🚨 URLhaus: *${d.urlhausCount} ${lang === "uk" ? "загроз" : lang === "ru" ? "угроз" : lang === "es" ? "amenazas" : lang === "de" ? "Bedrohungen" : "threats"}*${d.urlhausOnline ? ` (${d.urlhausOnline} online)` : ""}`);
+        if (d.isProxy || d.isVpn) lines.push(`🛡 ${d.isProxy ? "Proxy" : "VPN"} ${lang === "uk" ? "виявлено" : lang === "ru" ? "обнаружен" : "detected"}`);
+        if (lines.length > 0) {
+          detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
         }
       } else if (state.module === "wallet" && checkResult.details) {
         const chain = checkResult.details.chain || "";
         const chainLabel = t(lang, "checkResult.chain");
-        
         if (chain) {
-          detailsSection = `
-
-📋 *${t(lang, "checkResult.details")}*
-└ ⛓️ ${chainLabel}: *${chain}*`;
+          detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n└ ⛓️ ${chainLabel}: *${chain}*`;
         }
       } else if (state.module === "email" && checkResult.details) {
-        const domain = checkResult.details.domain || "";
-        const mx = checkResult.details.hasMx ? "✅" : "❌";
-        
-        if (domain) {
-          detailsSection = `
-
-📋 *${t(lang, "checkResult.details")}*
-├ 🌐 ${t(lang, "checkResult.domain")}: *${domain}*
-└ 📧 MX: ${mx}`;
+        const d = checkResult.details;
+        const lines: string[] = [];
+        if (d.domain) lines.push(`🌐 ${t(lang, "checkResult.domain")}: *${escMd(d.domain)}*`);
+        lines.push(`📧 MX: ${d.hasMx ? "✅" : "❌"}`);
+        if (d.isDisposable || d.evaDisposable) lines.push(`🗑 *${lang === "uk" ? "Одноразова пошта" : lang === "ru" ? "Одноразовая почта" : lang === "es" ? "Email desechable" : lang === "de" ? "Wegwerf-E-Mail" : "Disposable email"}*`);
+        if (d.smtpValid === false) lines.push(`⚠️ SMTP: ${lang === "uk" ? "не відповідає" : lang === "ru" ? "не отвечает" : "no response"}`);
+        detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
+      } else if ((state.module === "domain" || state.module === "business") && checkResult.details) {
+        const d = checkResult.details;
+        const lines: string[] = [];
+        if (d.registrar) lines.push(`🏷 ${lang === "uk" ? "Реєстратор" : lang === "ru" ? "Регистратор" : "Registrar"}: *${escMd(String(d.registrar))}*`);
+        if (d.creationDate || d.createdDate) lines.push(`📅 ${lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created"}: *${escMd(String(d.creationDate || d.createdDate))}*`);
+        if (d.dmarcMissing) lines.push(`⚠️ *DMARC ${lang === "uk" ? "відсутній — можливі spoofing-атаки" : lang === "ru" ? "отсутствует — возможен спуфинг" : "missing — spoofing risk"}*`);
+        if (d.spfMissing) lines.push(`⚠️ *SPF ${lang === "uk" ? "відсутній" : lang === "ru" ? "отсутствует" : "missing"}*`);
+        if (d.urlhausCount && d.urlhausCount > 0) lines.push(`🚨 URLhaus: *${d.urlhausCount} ${lang === "uk" ? "інцидентів" : lang === "ru" ? "инцидентов" : "incidents"}*`);
+        if (lines.length > 0) {
+          detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
         }
       }
 
