@@ -112,6 +112,7 @@ import { useTranslation } from "@/lib/i18n";
 import { useStats } from "@/hooks/use-stats";
 import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 import { useIsStandalone } from "@/hooks/use-mobile";
+import DomainOsintCard from "@/components/DomainOsintCard";
 
 interface AIInsights {
   summary: string;
@@ -2464,6 +2465,12 @@ Sources: ${result.sources.join(', ')}`;
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {result && selectedType === "domain" && result.target && (
+              <div className="mt-3 lg:mt-6">
+                <DomainOsintCard domain={result.target} lang={lang as any} autoRun={true} />
+              </div>
+            )}
 
             {(userFavorites.length > 0 || result) && (
               <motion.div

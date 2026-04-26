@@ -17,6 +17,9 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { TOTP, Secret } from "otpauth";
+import { promises as dnsPromises } from "dns";
+import * as tls from "tls";
+import * as net from "net";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -3363,6 +3366,214 @@ export async function registerRoutes(
     } catch (err: any) {
       res.status(400).json({ error: err.message });
     }
+  });
+
+  // ============ Domain OSINT (DNS + WHOIS/RDAP + SSL) ============
+
+  // Block private/loopback/link-local/CGNAT/multicast/reserved IPs to prevent SSRF.
+  function isPublicIp(ip: string): boolean {
+    if (!ip) return false;
+    const fam = net.isIP(ip);
+    if (fam === 4) {
+      const parts = ip.split(".").map((n) => parseInt(n, 10));
+      if (parts.length !== 4 || parts.some((n) => isNaN(n) || n < 0 || n > 255)) return false;
+      const [a, b] = parts;
+      if (a === 10) return false;
+      if (a === 127) return false;
+      if (a === 0) return false;
+      if (a === 169 && b === 254) return false; // link-local
+      if (a === 172 && b >= 16 && b <= 31) return false;
+      if (a === 192 && b === 168) return false;
+      if (a === 192 && b === 0) return false; // 192.0.0.0/24 + 192.0.2.0/24
+      if (a === 198 && (b === 18 || b === 19)) return false; // benchmark
+      if (a === 100 && b >= 64 && b <= 127) return false; // CGNAT
+      if (a >= 224) return false; // multicast/reserved
+      return true;
+    }
+    if (fam === 6) {
+      const lower = ip.toLowerCase();
+      if (lower === "::1" || lower === "::") return false;
+      if (lower.startsWith("fe80:") || lower.startsWith("fc") || lower.startsWith("fd")) return false;
+      if (lower.startsWith("ff")) return false; // multicast
+      if (lower.startsWith("::ffff:")) {
+        // IPv4-mapped — validate the embedded v4
+        return isPublicIp(lower.slice(7));
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
+    return new Promise((resolve) => {
+      let done = false;
+      const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, ms);
+      p.then((v) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } })
+       .catch(() => { if (!done) { done = true; clearTimeout(timer); resolve(null); } });
+    });
+  }
+
+  app.post("/api/osint/domain", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    if (rateLimit("domain-osint:" + authReq.user!.id, 10, 60000)) {
+      return res.status(429).json({ error: "Too many domain checks. Try again later." });
+    }
+
+    const rawDomain = String(req.body?.domain || "").trim().toLowerCase();
+    if (!rawDomain) return res.status(400).json({ error: "Domain required" });
+
+    const stripped = rawDomain
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "")
+      .replace(/:\d+$/, "");
+    if (!/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(stripped)) {
+      return res.status(400).json({ error: "Invalid domain" });
+    }
+    if (stripped.endsWith(".local") || stripped.endsWith(".internal") || stripped.endsWith(".localhost")) {
+      return res.status(400).json({ error: "Internal domains not allowed" });
+    }
+
+    const domain = stripped;
+
+    // ---- DNS lookups (each individually time-bounded) ----
+    const dnsTimeout = 4000;
+    const [a, aaaa, mx, ns, txt, cname, soa] = await Promise.all([
+      withTimeout(dnsPromises.resolve4(domain).catch(() => null as any), dnsTimeout),
+      withTimeout(dnsPromises.resolve6(domain).catch(() => null as any), dnsTimeout),
+      withTimeout(dnsPromises.resolveMx(domain).catch(() => null as any), dnsTimeout),
+      withTimeout(dnsPromises.resolveNs(domain).catch(() => null as any), dnsTimeout),
+      withTimeout(dnsPromises.resolveTxt(domain).catch(() => null as any), dnsTimeout),
+      withTimeout(dnsPromises.resolveCname(domain).catch(() => null as any), dnsTimeout),
+      withTimeout(dnsPromises.resolveSoa(domain).catch(() => null as any), dnsTimeout),
+    ]);
+
+    // SSRF guard: collect all resolved IPs; require at least one public IP for SSL probe.
+    const allIps: string[] = [...(a || []), ...(aaaa || [])];
+    const publicIps = allIps.filter(isPublicIp);
+    const hasPrivateIp = allIps.length > 0 && publicIps.length === 0;
+
+    // ---- RDAP / WHOIS ----
+    let whois: any = null;
+    try {
+      const rdapResp = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`, {
+        headers: { Accept: "application/rdap+json" },
+        signal: AbortSignal.timeout(7000),
+        redirect: "follow",
+      });
+      if (rdapResp.ok) {
+        const rdap: any = await rdapResp.json();
+        const eventDate = (name: string) =>
+          rdap.events?.find((e: any) => e.eventAction === name)?.eventDate || null;
+        const registrar =
+          rdap.entities?.find((e: any) => e.roles?.includes("registrar"))?.vcardArray?.[1]
+            ?.find((v: any) => v[0] === "fn")?.[3] || null;
+        whois = {
+          handle: rdap.handle || null,
+          ldhName: rdap.ldhName || domain,
+          status: rdap.status || [],
+          registrar,
+          registered: eventDate("registration"),
+          expires: eventDate("expiration"),
+          lastChanged: eventDate("last changed"),
+          nameservers: (rdap.nameservers || []).map((n: any) => n.ldhName).filter(Boolean),
+        };
+      }
+    } catch {}
+
+    // ---- SSL certificate (connect by VETTED IP, with SNI=domain to prevent rebinding) ----
+    let ssl: any = null;
+    let sslSkippedReason: "no_public_ip" | null = null;
+    if (publicIps.length === 0) {
+      sslSkippedReason = "no_public_ip";
+    } else {
+      const targetIp = publicIps[0]; // first public IP
+      try {
+        ssl = await new Promise<any>((resolve) => {
+          const socket = tls.connect({
+            host: targetIp,
+            port: 443,
+            servername: domain,
+            rejectUnauthorized: false,
+            timeout: 6000,
+          }, () => {
+            try {
+              const cert = socket.getPeerCertificate(false);
+              if (!cert || !cert.subject) {
+                socket.end();
+                return resolve(null);
+              }
+              const issuerCn = cert.issuer?.CN || cert.issuer?.O || null;
+              const subjectCn = cert.subject?.CN || null;
+              resolve({
+                valid: socket.authorized,
+                authorizationError: socket.authorizationError ? String(socket.authorizationError) : null,
+                issuer: issuerCn,
+                subject: subjectCn,
+                validFrom: cert.valid_from || null,
+                validTo: cert.valid_to || null,
+                altNames: typeof cert.subjectaltname === "string"
+                  ? cert.subjectaltname.split(",").map((s: string) => s.trim().replace(/^DNS:/, "")).slice(0, 30)
+                  : [],
+                fingerprint256: cert.fingerprint256 || null,
+                serialNumber: cert.serialNumber || null,
+              });
+              socket.end();
+            } catch {
+              try { socket.destroy(); } catch {}
+              resolve(null);
+            }
+          });
+          socket.on("error", () => resolve(null));
+          socket.on("timeout", () => { try { socket.destroy(); } catch {} resolve(null); });
+        });
+      } catch {}
+    }
+
+    // ---- Risk scoring (typed codes for client-side localization) ----
+    const findings: { code: string; params?: Record<string, string | number> }[] = [];
+    let score = 0;
+    if (hasPrivateIp) { findings.push({ code: "private_ip" }); score += 35; }
+    if (sslSkippedReason === "no_public_ip") {
+      findings.push({ code: "ssl_unreachable" }); score += 20;
+    } else if (!ssl) { findings.push({ code: "ssl_missing" }); score += 25; }
+    else if (ssl.validTo) {
+      const daysLeft = Math.floor((new Date(ssl.validTo).getTime() - Date.now()) / 86400000);
+      if (daysLeft < 0) { findings.push({ code: "ssl_expired", params: { days: -daysLeft } }); score += 40; }
+      else if (daysLeft < 14) { findings.push({ code: "ssl_expiring", params: { days: daysLeft } }); score += 20; }
+      if (!ssl.valid) { findings.push({ code: "ssl_chain_invalid", params: { reason: ssl.authorizationError || "unknown" } }); score += 15; }
+    }
+    if (whois?.expires) {
+      const days = Math.floor((new Date(whois.expires).getTime() - Date.now()) / 86400000);
+      if (days < 0) { findings.push({ code: "domain_expired", params: { days: -days } }); score += 30; }
+      else if (days < 30) { findings.push({ code: "domain_expiring", params: { days } }); score += 15; }
+    }
+    if (!a && !aaaa) { findings.push({ code: "no_a_records" }); score += 25; }
+    if (!mx || mx.length === 0) { findings.push({ code: "no_mx_records" }); score += 5; }
+    if ((whois?.status || []).some((s: string) => /hold|locked|prohibited/i.test(s))) {
+      findings.push({ code: "domain_status_locked" });
+      score += 5;
+    }
+    score = Math.min(100, score);
+    const riskLevel = score >= 75 ? "critical" : score >= 50 ? "high" : score >= 25 ? "medium" : "low";
+
+    res.json({
+      domain,
+      checkedAt: new Date().toISOString(),
+      riskScore: score,
+      riskLevel,
+      findings,
+      dns: {
+        a: a || [],
+        aaaa: aaaa || [],
+        mx: mx || [],
+        ns: ns || [],
+        txt: (txt || []).map((rr: string[]) => rr.join("")),
+        cname: cname || [],
+        soa: soa || null,
+      },
+      whois,
+      ssl,
+    });
   });
 
   // ============ Breach Check Route ============
