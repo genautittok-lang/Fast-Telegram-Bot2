@@ -1,0 +1,38 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "dNKiK020U7AGjHG7rZasE"
+uri = "file://artifacts/mockup-sandbox/public/images/login-bg-cyan.png"
+type = "image"
+title = "Abstract cyan data visualization"
+
+[[generated]]
+id = "Vd0QK8jzPesOAzWn3qsC7"
+uri = "file://artifacts/mockup-sandbox/public/images/ds-hero.png"
+type = "image"
+title = "Dark cyan network graph hero"
+
+[[generated]]
+id = "-H-7UJbWHGEIKqPR03yrS"
+uri = "file://artifacts/mockup-sandbox/public/images/ds-ai-report.png"
+type = "image"
+title = "Blurred AI report dashboard"
+
+[[generated]]
+id = "QHsLcvmWgjvKR3CJEtOUK"
+uri = "file://artifacts/mockup-sandbox/public/images/map-bg.png"
+type = "image"
+title = "Dark premium world map data"
+
+[[generated]]
+id = "NsoVDZ6LCn3j4YTFvNOWz"
+uri = "file://artifacts/mockup-sandbox/public/images/threat-ai-bg.png"
+type = "image"
+title = "AI threat analysis background"
+
+[[generated]]
+id = "ngH5vvt0mMtMsPmOtW4-Z"
+uri = "file://artifacts/mockup-sandbox/public/images/ds-login-bg.png"
+type = "image"
+title = "Abstract cyan network graph visualization"
