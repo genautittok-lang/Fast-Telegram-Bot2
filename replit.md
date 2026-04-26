@@ -50,6 +50,27 @@ Preferred communication style: Simple, everyday language.
 ### Internationalization (i18n)
 - Supports 5 languages (en, uk, ru, es, de) across both frontend and Telegram bot, using centralized translation files and helpers.
 
+## v5.0 Cyan Redesign + Conversion Engine (April 2026)
+
+### Phase 1 — Visual Redesign (Hero + Theme)
+- **Pricing.tsx** — Full redesign with promo banner DARKNEU, cyan "Pricing Plans" badge, "Simple pricing. No hidden fees." headline, live ticker, 4 plan cards (PRO highlighted MOST POPULAR pill, GROUPS New badge). All i18n preserved via `t()` and `lang` prop.
+- **Home.tsx Hero** — Replaced mixed green/cyan rainbow gradient with clean cyan-only mockup-style design. New cyan badge "AI Threat Analyzer v2.0 — live" (animated dot), DARKNEU −50% badge, ScarcityBadge ("Only N PRO spots left today"). Big H1 with cyan gradient on highlight. Three CTAs: solid cyan Web Dashboard + outline Telegram Bot + outline Install App. Trust line uppercase: 2,800+ researchers · 50M+ records · GDPR-compliant · 17 modules.
+- **Theme migration** — `rgba(34,197,94)` (green) → `rgba(6,182,212)` (cyan) across Home.tsx (4 occurrences). Background gradients, nav logo glow, all CTAs cyan-themed.
+- **Service Worker** — Cache version bumped to `darkshare-v5.0-redesign`. Skip-cache for `/src/`, `/@`, `/node_modules/`, `?t=`, `?v=` URLs to prevent stale dev modules. Auto-navigate clients on activate.
+
+### Phase 1 — Conversion Hooks (`client/src/components/ConversionHooks.tsx`)
+- **StickyPromoBar** — Bottom-floating promo banner with 24h countdown timer (HH:MM:SS), DARKNEU code, "Activate" CTA → /pricing. Persisted offer end in localStorage. Dismissible (stored). Hidden for authenticated users. Multi-language (en/uk/ru/es/de).
+- **ExitIntentPopup** — Triggered on `mouseleave` with `clientY <= 0` after 12s minimum delay. Once-per-session via sessionStorage. Shows DARKNEU code with −50% offer + Claim CTA. Full a11y (`role="dialog"`, `aria-modal`, `aria-labelledby`, Escape close, body-scroll-lock).
+- **ScarcityBadge** — "Only N PRO spots left today" with random 8-14 stored in sessionStorage. Pulsing orange dot. Multi-language.
+- **safeStorage helper** — Wraps localStorage/sessionStorage in try/catch + `window` check for SSR/private-mode/embedded-webview safety.
+
+### Pending Phases (next sessions)
+- **Phase 2** — Reports visualization: interactive risk gauge, force-directed entity graph, timeline, in-browser PDF preview, CSV/JSON export with FREE-watermark.
+- **Phase 3** — New OSINT services: Image reverse search, Domain WHOIS+SSL+DNS, Phone reputation, Crypto wallet trace, Dark web monitoring.
+- **Phase 4** — PWA polish (full manifest, install prompt, push notifications for alerts).
+- **Phase 5** — Native mobile apps via Capacitor (Google Play $25 + App Store $99/yr).
+- **Phase 6** — Own VPN service (WireGuard, integrated with PRO+ subscription).
+
 ## v4.5 Premium Mega-Level Upgrade (April 2026)
 
 ### Conversion & Visual Upgrades

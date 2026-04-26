@@ -58,6 +58,7 @@ import { Button } from "@/components/ui/button";
 import { MobileMenu } from "@/components/MobileMenu";
 import { ThreatFeed } from "@/components/ThreatFeed";
 import { Footer } from "@/components/Footer";
+import { StickyPromoBar, ExitIntentPopup, ScarcityBadge } from "@/components/ConversionHooks";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -114,7 +115,7 @@ function ModuleCard({ icon, title, description, apis, delay = 0, onClick }: {
       className="group relative flex flex-col items-center justify-center gap-3 p-5 sm:p-6 rounded-xl premium-card cursor-pointer min-h-[110px] sm:min-h-[130px]"
       data-testid={`card-module-${title}`}
     >
-      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] transition-all duration-300">
+      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/40 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all duration-300">
         <div className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center">
           {icon}
         </div>
@@ -424,10 +425,10 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden overflow-y-auto flex flex-col bg-background max-w-[100vw]">
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(34,197,94,0.15),transparent_60%)]" />
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/15 rounded-full blur-[180px]" />
-        <div className="absolute top-[30%] right-[10%] w-[400px] h-[400px] bg-cyan-500/8 rounded-full blur-[150px]" />
-        <div className="absolute top-[60%] left-[5%] w-[300px] h-[300px] bg-violet-500/6 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(6,182,212,0.18),transparent_60%)]" />
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[180px]" />
+        <div className="absolute top-[30%] right-[10%] w-[400px] h-[400px] bg-cyan-400/8 rounded-full blur-[150px]" />
+        <div className="absolute top-[60%] left-[5%] w-[300px] h-[300px] bg-cyan-600/6 rounded-full blur-[120px]" />
       </div>
       <div className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none opacity-60" />
       <FloatingParticles count={20} />
@@ -435,12 +436,12 @@ export default function Home() {
       <nav className="relative z-50 w-full border-b border-white/[0.08] bg-[rgba(5,5,8,0.75)] backdrop-blur-2xl backdrop-saturate-150 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.3)] flex-shrink-0 ring-1 ring-primary/10">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.3)] flex-shrink-0 ring-1 ring-cyan-500/10">
               <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex items-center">
               <span className="font-display font-bold text-base sm:text-lg tracking-tight text-white">DARKSHARE</span>
-              <span className="text-[10px] text-primary font-mono -mt-0.5 hidden sm:block tracking-wider uppercase">v4.4 OSINT Platform</span>
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full ml-1 mb-2 inline-block animate-pulse" />
             </div>
           </div>
           
@@ -485,37 +486,44 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 className="space-y-4 sm:space-y-5 md:space-y-6"
               >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-primary/15 to-cyan-500/10 border border-primary/30 text-xs sm:text-sm font-semibold text-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex items-center gap-2 flex-wrap"
+                >
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-xs font-medium text-cyan-400 backdrop-blur-sm">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
                     </span>
-                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>{t("landing.hero.badge")}</span>
+                    <span>
+                      {lang === "uk" ? "AI Threat Analyzer v2.0 — доступно" : lang === "ru" ? "AI Threat Analyzer v2.0 — доступно" : lang === "es" ? "AI Threat Analyzer v2.0 — disponible" : lang === "de" ? "AI Threat Analyzer v2.0 — verfügbar" : "AI Threat Analyzer v2.0 — live"}
+                    </span>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-medium text-amber-400">
-                    <Star className="w-3 h-3" />
-                    <span>v4.5</span>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-medium text-amber-400">
+                    <Flame className="w-3 h-3" />
+                    <span>DARKNEU −50%</span>
                   </div>
-                </div>
+                  <ScarcityBadge lang={lang} />
+                </motion.div>
 
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-[1.15] sm:leading-[1.1] overflow-hidden">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-white leading-[1.05] overflow-hidden">
                   {t("landing.hero.title")} <br />
-                  <span className="gradient-text-animated overflow-hidden">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-200">
                     {t("landing.hero.titleHighlight")}
                   </span>
                 </h1>
 
-                <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl leading-relaxed overflow-hidden">
+                <p className="text-base sm:text-lg md:text-xl text-zinc-400 max-w-xl leading-relaxed">
                   {t("landing.hero.description")}
                 </p>
 
-                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-3">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-2">
                   <Link href="/login">
                     <Button 
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-[0_0_30px_rgba(34,197,94,0.35)] hover:shadow-[0_0_50px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl"
+                      className="w-full sm:w-auto text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-14 group bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(6,182,212,0.35)] hover:shadow-[0_0_60px_rgba(6,182,212,0.55)] hover:scale-[1.03] transition-all duration-300 rounded-xl border-0"
                       data-testid="button-web-dashboard"
                     >
                       <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -531,7 +539,7 @@ export default function Home() {
                     <Button 
                       variant="outline"
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group border-white/15 bg-white/[0.04] hover:bg-white/[0.08] hover:border-primary/40 hover:shadow-[0_0_30px_rgba(34,197,94,0.15)] hover:scale-[1.03] transition-all duration-300 rounded-xl"
+                      className="w-full sm:w-auto text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-14 group border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/30 hover:text-white transition-all duration-300 rounded-xl"
                       data-testid="button-launch-bot"
                     >
                       <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-[#229ED9]" />
@@ -541,45 +549,37 @@ export default function Home() {
                   </a>
                   <Link href="/download">
                     <Button 
+                      variant="outline"
                       size="lg"
-                      className="w-full sm:w-auto text-sm sm:text-base px-6 sm:px-8 h-12 sm:h-14 group bg-gradient-to-r from-cyan-600 to-green-500 text-white font-bold border-none hover:scale-[1.03] transition-all duration-300 shadow-[0_4px_20px_rgba(16,185,129,0.3)] rounded-xl"
+                      className="w-full sm:w-auto text-sm sm:text-base px-7 sm:px-8 h-12 sm:h-14 group border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/30 hover:text-white transition-all duration-300 rounded-xl"
                       data-testid="button-download-apk"
                     >
-                      <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-cyan-400" />
                       {lang === "uk" ? "Встановити додаток" : lang === "ru" ? "Установить приложение" : lang === "es" ? "Instalar app" : lang === "de" ? "App installieren" : "Install App"}
                       <Download className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2 sm:pt-4 text-xs sm:text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>{t("landing.cta.freeStart")}</span>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 text-[11px] sm:text-xs uppercase tracking-wider text-zinc-500 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-cyan-500/70" />
+                    <span>2,800+ {lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "researchers"}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>{t("landing.cta.apiIntegration")}</span>
+                  <span className="text-zinc-700">·</span>
+                  <div className="flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-cyan-500/70" />
+                    <span>50M+ {lang === "uk" ? "записів" : lang === "ru" ? "записей" : lang === "es" ? "registros" : lang === "de" ? "Einträge" : "records"}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>
-                      {lang === "uk" ? "17 типів перевірок" : lang === "ru" ? "17 типов проверок" : lang === "es" ? "17 tipos de análisis" : lang === "de" ? "17 Prüfungsarten" : "17 check types"}
-                    </span>
+                  <span className="text-zinc-700">·</span>
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5 text-cyan-500/70" />
+                    <span>GDPR-compliant</span>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-1">
-                  <div className="flex -space-x-2">
-                    {["🧑", "👩", "🧔", "👨"].map((emoji, i) => (
-                      <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-xs">
-                        {emoji}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    <span className="text-white font-semibold">2,800+</span>{" "}
-                    {lang === "uk" ? "активних користувачів" : lang === "ru" ? "активных пользователей" : lang === "es" ? "usuarios activos" : lang === "de" ? "aktive Nutzer" : "active users"}
+                  <span className="text-zinc-700">·</span>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-cyan-500/70" />
+                    <span>17 {lang === "uk" ? "модулів" : lang === "ru" ? "модулей" : lang === "es" ? "módulos" : lang === "de" ? "Module" : "modules"}</span>
                   </div>
                 </div>
 
@@ -1878,7 +1878,7 @@ export default function Home() {
               className="text-center mt-6"
             >
               <Link href="/pricing">
-                <Button size="lg" className="px-8 h-12 bg-gradient-to-r from-primary to-cyan-400 text-black font-bold rounded-xl hover:scale-[1.03] transition-all duration-300 shadow-[0_0_30px_rgba(34,197,94,0.2)]" data-testid="button-view-pricing">
+                <Button size="lg" className="px-8 h-12 bg-gradient-to-r from-primary to-cyan-400 text-black font-bold rounded-xl hover:scale-[1.03] transition-all duration-300 shadow-[0_0_30px_rgba(6,182,212,0.2)]" data-testid="button-view-pricing">
                   {lang === "uk" ? "Детальніше про тарифи" : lang === "ru" ? "Подробнее о тарифах" : lang === "es" ? "Más sobre los planes" : lang === "de" ? "Mehr über Tarife" : "View Full Pricing"}
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -1987,7 +1987,7 @@ export default function Home() {
         </section>
 
         <section className="py-14 sm:py-18 md:py-24 relative">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(34,197,94,0.08),transparent_70%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -2011,7 +2011,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
                 <Link href="/login">
-                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(34,197,94,0.3)] hover:shadow-[0_0_60px_rgba(34,197,94,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-dashboard-cta">
+                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(6,182,212,0.3)] hover:shadow-[0_0_60px_rgba(6,182,212,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-dashboard-cta">
                     <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     {t("landing.cta.webDashboard")}
                   </Button>
@@ -2052,6 +2052,8 @@ export default function Home() {
 
       <Footer />
       <ScrollToTop />
+      <StickyPromoBar lang={lang} />
+      <ExitIntentPopup lang={lang} />
     </div>
   );
 }
