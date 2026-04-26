@@ -64,6 +64,12 @@ Preferred communication style: Simple, everyday language.
 - **ScarcityBadge** — "Only N PRO spots left today" with random 8-14 stored in sessionStorage. Pulsing orange dot. Multi-language.
 - **safeStorage helper** — Wraps localStorage/sessionStorage in try/catch + `window` check for SSR/private-mode/embedded-webview safety.
 
+### Phase 1 — Final CTA + Footer + RiskGauge (T105 + Phase 2 starter)
+- **Final CTA section** (Home.tsx) — Replaced 4-button row with single premium card: orange "First subscription bonus" pill, big H2 with cyan gradient, prominent DARKNEU code box with −50% badge, primary cyan "Claim −50%" CTA + outline "Web Dashboard" CTA, trust line ("No commitment · Cancel anytime · Instant activation"), small Telegram + Instagram icons in footer of card. Glow shadows + subtle radial gradients.
+- **Footer.tsx** — Migrated all green hover states (`text-primary`) to `text-cyan-400`. Logo border + shadow → cyan. v4.5 → v5.0. Status dot green → cyan. AUP + Data Deletion links localized via `lang` prop (5 languages). Top edge gradient line.
+- **RiskGauge component** (`client/src/components/RiskGauge.tsx`) — Reusable animated SVG arc gauge (270° 3/4-circle). Props: score (0-100), size, thickness, lang, label, showLabel. Animated counter with cubic-easing, in-view trigger. Color-coded: cyan (low <25), yellow (25-49), orange (50-74), red (75+). Localized risk labels in 5 languages (LOW/MEDIUM/HIGH/CRITICAL). Used in QuickCheck result; ready for Reports phase.
+- **QuickCheck refactor** — Replaced inline progress bar with RiskGauge. Mobile-responsive (column on small screens, row on sm+). Localized "Risk" / "Partial results" labels.
+
 ### Pending Phases (next sessions)
 - **Phase 2** — Reports visualization: interactive risk gauge, force-directed entity graph, timeline, in-browser PDF preview, CSV/JSON export with FREE-watermark.
 - **Phase 3** — New OSINT services: Image reverse search, Domain WHOIS+SSL+DNS, Phone reputation, Crypto wallet trace, Dark web monitoring.

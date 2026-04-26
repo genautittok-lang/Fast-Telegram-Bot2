@@ -59,6 +59,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { ThreatFeed } from "@/components/ThreatFeed";
 import { Footer } from "@/components/Footer";
 import { StickyPromoBar, ExitIntentPopup, ScarcityBadge } from "@/components/ConversionHooks";
+import { RiskGauge } from "@/components/RiskGauge";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -162,16 +163,6 @@ function QuickCheck({ lang }: { lang: string }) {
     }
   };
 
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case "low": return "text-green-400 border-green-500/30 bg-green-500/10";
-      case "medium": return "text-yellow-400 border-yellow-500/30 bg-yellow-500/10";
-      case "high": return "text-red-400 border-red-500/30 bg-red-500/10";
-      case "critical": return "text-red-500 border-red-600/30 bg-red-600/10";
-      default: return "text-gray-400";
-    }
-  };
-
   const tryItLabel = lang === "uk" ? "Спробуй безкоштовно" : lang === "ru" ? "Попробуй бесплатно" : lang === "es" ? "Prueba gratis" : lang === "de" ? "Kostenlos testen" : "Try it free";
   const noRegLabel = lang === "uk" ? "Без реєстрації · 3 перевірки/день" : lang === "ru" ? "Без регистрации · 3 проверки/день" : lang === "es" ? "Sin registro · 3 verificaciones/día" : lang === "de" ? "Ohne Registrierung · 3 Checks/Tag" : "No signup · 3 checks/day";
   const checkBtn = lang === "uk" ? "Перевірити" : lang === "ru" ? "Проверить" : lang === "es" ? "Verificar" : lang === "de" ? "Prüfen" : "Check";
@@ -243,24 +234,33 @@ function QuickCheck({ lang }: { lang: string }) {
             animate={{ opacity: 1, height: "auto" }}
             className="mt-3"
           >
-            <div className={`p-3 rounded-lg border ${getRiskColor(quickResult.riskLevel)}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-mono opacity-80">{quickResult.target}</span>
-                <span className="text-sm font-bold">{quickResult.riskScore}% {quickResult.riskLevel.toUpperCase()}</span>
+            <div className="p-3 rounded-xl bg-gradient-to-b from-zinc-900/60 to-zinc-950/60 border border-cyan-500/20 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-mono text-zinc-400 truncate">{quickResult.target}</span>
+                <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono">
+                  {lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : lang === "es" ? "Riesgo" : lang === "de" ? "Risiko" : "Risk"}
+                </span>
               </div>
-              <div className="w-full h-1.5 bg-white/10 rounded-full mb-2">
-                <div
-                  className={`h-full rounded-full transition-all duration-1000 ${quickResult.riskScore >= 60 ? "bg-red-500" : quickResult.riskScore >= 40 ? "bg-yellow-500" : "bg-green-500"}`}
-                  style={{ width: `${quickResult.riskScore}%` }}
-                />
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                <div className="shrink-0">
+                  <RiskGauge score={quickResult.riskScore} size={120} thickness={10} lang={lang} />
+                </div>
+                <div className="flex-1 min-w-0 w-full space-y-1.5 text-center sm:text-left">
+                  <p className="text-xs text-zinc-300 leading-relaxed line-clamp-3">{quickResult.summary}</p>
+                  {quickResult.findings?.slice(0, 3).map((f: string, i: number) => (
+                    <p key={i} className="text-[11px] text-zinc-500 flex items-start gap-1 justify-center sm:justify-start">
+                      <span className="text-cyan-400 mt-0.5 shrink-0">›</span>
+                      <span className="truncate">{f}</span>
+                    </p>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs opacity-80 mb-2">{quickResult.summary}</p>
-              {quickResult.findings?.map((f: string, i: number) => (
-                <p key={i} className="text-[11px] opacity-60">{i === quickResult.findings.length - 1 ? "└" : "├"} {f}</p>
-              ))}
-              <div className="mt-2 pt-2 border-t border-white/10">
+              <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                <span className="text-[10px] text-zinc-500 italic">
+                  {lang === "uk" ? "Часткові результати" : lang === "ru" ? "Частичные результаты" : lang === "es" ? "Resultados parciales" : lang === "de" ? "Teilergebnisse" : "Partial results"}
+                </span>
                 <Link href="/login">
-                  <span className="text-[11px] text-primary hover:underline cursor-pointer" data-testid="link-full-report">
+                  <span className="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer font-semibold" data-testid="link-full-report">
                     {fullReportLabel} →
                   </span>
                 </Link>
@@ -1986,63 +1986,131 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-14 sm:py-18 md:py-24 relative">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(6,182,212,0.08),transparent_70%)] pointer-events-none" />
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center w-full relative">
+        <section className="py-16 sm:py-20 md:py-28 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.06),transparent_70%)] pointer-events-none" />
+
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-5 sm:space-y-8"
+              transition={{ duration: 0.6 }}
+              className="relative rounded-3xl border border-cyan-500/20 bg-gradient-to-b from-cyan-500/[0.04] via-zinc-900/50 to-zinc-950/80 backdrop-blur-xl p-6 sm:p-10 md:p-14 text-center shadow-[0_20px_80px_-20px_rgba(6,182,212,0.25)] overflow-hidden"
             >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold px-2 gradient-text-animated">
-                {lang === "uk" ? "Готові почати?" : lang === "ru" ? "Готовы начать?" : lang === "es" ? "¿Listo para empezar?" : lang === "de" ? "Bereit loszulegen?" : "Ready to Start?"}
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
+              <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-cyan-400/5 blur-3xl pointer-events-none" />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 mb-6"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse shadow-[0_0_8px_rgba(251,146,60,0.6)]" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-orange-300">
+                  {lang === "uk" ? "Бонус першої підписки" : lang === "ru" ? "Бонус первой подписки" : lang === "es" ? "Bono de primera suscripción" : lang === "de" ? "Erstabonnement-Bonus" : "First subscription bonus"}
+                </span>
+              </motion.div>
+
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white px-2 leading-[1.05]">
+                {lang === "uk" ? "Почни захищати дані " : lang === "ru" ? "Начни защищать данные " : lang === "es" ? "Empieza a proteger tus datos " : lang === "de" ? "Schütze deine Daten " : "Start protecting data "}
+                <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-cyan-500 bg-clip-text text-transparent">
+                  {lang === "uk" ? "сьогодні" : lang === "ru" ? "сегодня" : lang === "es" ? "hoy" : lang === "de" ? "heute" : "today"}
+                </span>
               </h2>
-              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto px-2">
-                {lang === "uk" 
-                  ? "Приєднуйтесь до тисяч користувачів, які довіряють DARKSHARE для своєї кібербезпеки"
+
+              <p className="mt-5 text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+                {lang === "uk"
+                  ? "Активуй промокод DARKNEU і отримай −50% на будь-який план + 100 додаткових перевірок як бонус першої підписки."
                   : lang === "ru"
-                  ? "Присоединяйтесь к тысячам пользователей, которые доверяют DARKSHARE для своей кибербезопасности"
+                  ? "Активируй промокод DARKNEU и получи −50% на любой план + 100 дополнительных проверок как бонус первой подписки."
                   : lang === "es"
-                  ? "Únase a miles de usuarios que confían en DARKSHARE para su ciberseguridad"
+                  ? "Activa el código promocional DARKNEU y obtén un −50% en cualquier plan + 100 verificaciones adicionales como bono de primera suscripción."
                   : lang === "de"
-                  ? "Schließen Sie sich Tausenden von Nutzern an, die DARKSHARE für ihre Cybersicherheit vertrauen"
-                  : "Join thousands of users who trust DARKSHARE for their cybersecurity needs"}
+                  ? "Aktiviere den Promo-Code DARKNEU und erhalte −50% auf jeden Plan + 100 zusätzliche Checks als Erstabonnement-Bonus."
+                  : "Activate promo code DARKNEU and get −50% on any plan + 100 bonus checks as a first-subscription gift."}
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 px-2">
+
+              <div className="mt-7 inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-zinc-950/60 border border-cyan-500/30 backdrop-blur-sm">
+                <span className="text-xs uppercase tracking-widest text-zinc-500 font-mono">
+                  {lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código" : lang === "de" ? "Code" : "Promo code"}
+                </span>
+                <span className="font-mono text-base sm:text-lg font-bold text-cyan-400 tracking-widest" data-testid="text-cta-promo">
+                  DARKNEU
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/40 text-[10px] font-bold text-cyan-300">
+                  −50%
+                </span>
+              </div>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center px-2">
+                <Link href="/pricing">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto px-10 h-14 text-base bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl shadow-[0_0_50px_rgba(6,182,212,0.4)] hover:shadow-[0_0_70px_rgba(6,182,212,0.6)] hover:scale-[1.03] transition-all duration-300"
+                    data-testid="button-claim-discount"
+                  >
+                    <Zap className="w-5 h-5 mr-2" />
+                    {lang === "uk" ? "Активувати −50%" : lang === "ru" ? "Активировать −50%" : lang === "es" ? "Activar −50%" : lang === "de" ? "−50% aktivieren" : "Claim −50%"}
+                  </Button>
+                </Link>
                 <Link href="/login">
-                  <Button size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-gradient-to-r from-primary to-cyan-400 text-black font-bold shadow-[0_0_40px_rgba(6,182,212,0.3)] hover:shadow-[0_0_60px_rgba(6,182,212,0.5)] hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-dashboard-cta">
-                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto px-10 h-14 text-base border-white/15 bg-white/[0.04] text-white hover:bg-white/[0.08] hover:border-cyan-500/40 rounded-xl transition-all duration-300"
+                    data-testid="button-dashboard-cta"
+                  >
+                    <ShieldCheck className="w-5 h-5 mr-2 text-cyan-400" />
                     {t("landing.cta.webDashboard")}
                   </Button>
                 </Link>
-                <Link href="/pricing">
-                  <Button variant="secondary" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base bg-white/[0.06] hover:bg-white/[0.1] border border-white/15 text-white hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-pricing-cta">
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
-                    {t("nav.pricing")}
-                  </Button>
-                </Link>
-                <a 
-                  href="https://t.me/DarkShare1Bot" 
-                  target="_blank" 
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-zinc-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-cyan-400" />
+                  {lang === "uk" ? "Без зобов'язань" : lang === "ru" ? "Без обязательств" : lang === "es" ? "Sin compromiso" : lang === "de" ? "Keine Verpflichtung" : "No commitment"}
+                </span>
+                <span className="text-white/10">·</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-cyan-400" />
+                  {lang === "uk" ? "Скасування у будь-який час" : lang === "ru" ? "Отмена в любой момент" : lang === "es" ? "Cancela cuando quieras" : lang === "de" ? "Jederzeit kündbar" : "Cancel anytime"}
+                </span>
+                <span className="text-white/10">·</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-cyan-400" />
+                  {lang === "uk" ? "Миттєва активація" : lang === "ru" ? "Мгновенная активация" : lang === "es" ? "Activación instantánea" : lang === "de" ? "Sofortige Aktivierung" : "Instant activation"}
+                </span>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-white/[0.06] flex items-center justify-center gap-4">
+                <span className="text-[10px] uppercase tracking-widest text-zinc-600 font-mono">
+                  {lang === "uk" ? "Слідкуй за нами" : lang === "ru" ? "Следи за нами" : lang === "es" ? "Síguenos" : lang === "de" ? "Folge uns" : "Follow us"}
+                </span>
+                <a
+                  href="https://t.me/DarkShare1Bot"
+                  target="_blank"
                   rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-[#229ED9]/10 border border-[#229ED9]/25 text-[#229ED9] flex items-center justify-center hover:bg-[#229ED9]/20 hover:scale-110 transition-all duration-300"
+                  data-testid="link-telegram-cta"
+                  aria-label="Telegram"
                 >
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base border-[#229ED9]/30 text-[#229ED9] hover:bg-[#229ED9]/10 hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-launch-bot-cta">
-                    <SiTelegram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    {lang === "uk" ? "Telegram Бот" : lang === "ru" ? "Telegram Бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram Bot" : "Telegram Bot"}
-                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
-                  </Button>
+                  <SiTelegram className="w-4 h-4" />
                 </a>
-                <a 
-                  href="https://www.instagram.com/darkshare.store" 
-                  target="_blank" 
+                <a
+                  href="https://www.instagram.com/darkshare.store"
+                  target="_blank"
                   rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-[#E4405F]/10 border border-[#E4405F]/25 text-[#E4405F] flex items-center justify-center hover:bg-[#E4405F]/20 hover:scale-110 transition-all duration-300"
+                  data-testid="link-instagram-cta"
+                  aria-label="Instagram"
                 >
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto px-8 sm:px-10 h-13 sm:h-14 text-sm sm:text-base border-[#E4405F]/30 text-[#E4405F] hover:bg-[#E4405F]/10 hover:scale-[1.03] transition-all duration-300 rounded-xl" data-testid="button-instagram-cta">
-                    <SiInstagram className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Instagram
-                    <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-2" />
-                  </Button>
+                  <SiInstagram className="w-4 h-4" />
                 </a>
               </div>
             </motion.div>

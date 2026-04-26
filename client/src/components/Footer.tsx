@@ -4,24 +4,28 @@ import { Link } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 
 export function Footer() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+
+  const aupLabel = lang === "uk" ? "Правила використання" : lang === "ru" ? "Правила использования" : lang === "es" ? "Política de uso aceptable" : lang === "de" ? "Nutzungsrichtlinien" : "Acceptable Use Policy";
+  const dataDelLabel = lang === "uk" ? "Видалення даних (GDPR)" : lang === "ru" ? "Удаление данных (GDPR)" : lang === "es" ? "Eliminación de datos (GDPR)" : lang === "de" ? "Datenlöschung (DSGVO)" : "GDPR / Data Deletion";
 
   return (
     <footer className="relative z-10 border-t border-white/[0.06]">
       <div className="absolute inset-0 bg-gradient-to-t from-[#030305] via-[#050508] to-transparent pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           <div className="lg:col-span-2 space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl overflow-hidden border border-primary/30 shadow-[0_0_25px_rgba(34,197,94,0.25)] ring-1 ring-primary/10">
+              <div className="w-11 h-11 rounded-xl overflow-hidden border border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.25)] ring-1 ring-cyan-500/10">
                 <img src="/logo.png" alt="DARKSHARE" className="w-full h-full object-cover" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
                 <span className="font-display font-bold text-lg tracking-tight text-white">DARKSHARE</span>
-                <span className="text-[10px] text-primary font-mono -mt-0.5 uppercase tracking-wider">v4.5 OSINT Platform</span>
+                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+            <p className="text-sm text-zinc-400 max-w-md leading-relaxed">
               {t('footer.description')}
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -52,48 +56,48 @@ export function Footer() {
 
           <div className="space-y-4">
             <h4 className="font-semibold text-sm flex items-center gap-2 text-white">
-              <Shield className="w-4 h-4 text-primary" />
+              <Shield className="w-4 h-4 text-cyan-400" />
               {t('footer.legal')}
             </h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
+            <ul className="space-y-3 text-sm text-zinc-400">
               <li>
                 <Link href="/terms">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-terms">
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-terms">
                     {t('footer.termsOfService')}
                   </span>
                 </Link>
               </li>
               <li>
                 <Link href="/privacy">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-privacy">
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-privacy">
                     {t('footer.privacyPolicy')}
                   </span>
                 </Link>
               </li>
               <li>
                 <Link href="/aup">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-aup">
-                    Acceptable Use Policy
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-aup">
+                    {aupLabel}
                   </span>
                 </Link>
               </li>
               <li>
                 <Link href="/data-deletion">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-data-deletion">
-                    Видалення даних (GDPR)
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-data-deletion">
+                    {dataDelLabel}
                   </span>
                 </Link>
               </li>
               <li>
                 <Link href="/support">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-contact">
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-contact">
                     <Mail className="w-3.5 h-3.5" />
                     {t('footer.contact')}
                   </span>
                 </Link>
               </li>
               <li>
-                <a href="mailto:darkshare.store@gmail.com" className="hover:text-primary transition-colors flex items-center gap-1.5" data-testid="link-support-email">
+                <a href="mailto:darkshare.store@gmail.com" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5" data-testid="link-support-email">
                   darkshare.store@gmail.com
                 </a>
               </li>
@@ -104,31 +108,31 @@ export function Footer() {
             <h4 className="font-semibold text-sm text-white">
               {t('footer.disclaimer')}
             </h4>
-            <p className="text-xs text-muted-foreground/80 leading-relaxed">
+            <p className="text-xs text-zinc-500 leading-relaxed">
               {t('footer.disclaimerText')}
             </p>
           </div>
         </div>
 
         <div className="border-t border-white/[0.06] mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-xs text-muted-foreground/60 font-mono order-2 sm:order-1">
-            © 2026 DARKSHARE. All rights reserved.
+          <div className="text-xs text-zinc-600 font-mono order-2 sm:order-1">
+            © 2026 DARKSHARE · v5.0 · All rights reserved.
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground/70 order-1 sm:order-2">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-zinc-500 order-1 sm:order-2">
             <Link href="/terms">
-              <span className="hover:text-primary transition-colors cursor-pointer" data-testid="link-terms-bottom">
+              <span className="hover:text-cyan-400 transition-colors cursor-pointer" data-testid="link-terms-bottom">
                 {t('footer.terms')}
               </span>
             </Link>
             <span className="text-white/10">|</span>
             <Link href="/privacy">
-              <span className="hover:text-primary transition-colors cursor-pointer" data-testid="link-privacy-bottom">
+              <span className="hover:text-cyan-400 transition-colors cursor-pointer" data-testid="link-privacy-bottom">
                 {t('footer.privacy')}
               </span>
             </Link>
             <span className="text-white/10">|</span>
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)] animate-pulse" />
               {t('footer.systemsOnline')}
             </span>
           </div>
