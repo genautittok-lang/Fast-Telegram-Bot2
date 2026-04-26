@@ -72,15 +72,18 @@ function PricingContent() {
     const validPlans: Array<"PRO" | "ENTERPRISE" | "GROUPS"> = ["PRO", "ENTERPRISE", "GROUPS"];
     if (planParam && validPlans.includes(planParam as any)) {
       const tier = planParam as "PRO" | "ENTERPRISE" | "GROUPS";
+      if (codeParam) {
+        setPromoCode(codeParam);
+      }
       if (!user) {
-        setLocation("/login");
+        const card = document.querySelector(`[data-testid="card-${tier.toLowerCase()}-plan"]`);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
         return;
       }
       setPaymentStep("method");
       setSelectedMethod(null);
       setShowPaymentModal(tier);
       if (codeParam) {
-        setPromoCode(codeParam);
         setTimeout(() => { validatePromo(codeParam, tier); }, 50);
       }
     }
@@ -276,6 +279,7 @@ function PricingContent() {
       t('pricing.checksPerDay100'),
       t('pricing.aiAnalysis'),
       t('pricing.pdfReports'),
+      lang === "uk" ? "🛡️ Власний WireGuard VPN — 6 локацій, до 3 пристроїв" : lang === "ru" ? "🛡️ Свой WireGuard VPN — 6 локаций, до 3 устройств" : lang === "es" ? "🛡️ VPN WireGuard propio — 6 ubicaciones, 3 dispositivos" : lang === "de" ? "🛡️ Eigenes WireGuard VPN — 6 Standorte, 3 Geräte" : "🛡️ Own WireGuard VPN — 6 locations, up to 3 devices",
       t('pricing.prioritySupport'),
       t('pricing.realTimeMonitoring'),
       t('pricing.apiBeta'),
@@ -283,6 +287,7 @@ function PricingContent() {
     enterprise: [
       t('pricing.unlimitedChecks'),
       t('pricing.fullApiAccess'),
+      lang === "uk" ? "🛡️ Власний WireGuard VPN — до 10 пристроїв" : lang === "ru" ? "🛡️ Свой WireGuard VPN — до 10 устройств" : lang === "es" ? "🛡️ VPN WireGuard propio — hasta 10 dispositivos" : lang === "de" ? "🛡️ Eigenes WireGuard VPN — bis 10 Geräte" : "🛡️ Own WireGuard VPN — up to 10 devices",
       t('pricing.support247'),
       t('pricing.customReports'),
       t('pricing.whiteLabelIntegration'),
@@ -291,6 +296,7 @@ function PricingContent() {
     ],
     groups: [
       t('pricing.groupsAllEnterprise'),
+      lang === "uk" ? "🛡️ Командний VPN — до 25 пристроїв на учасника" : lang === "ru" ? "🛡️ Командный VPN — до 25 устройств на участника" : lang === "es" ? "🛡️ VPN de equipo — hasta 25 dispositivos por miembro" : lang === "de" ? "🛡️ Team-VPN — bis 25 Geräte pro Mitglied" : "🛡️ Team VPN — up to 25 devices per member",
       t('pricing.groupsTeamMembers'),
       t('pricing.groupsSharedReports'),
       t('pricing.groupsTeamDashboard'),

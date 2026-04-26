@@ -45,7 +45,8 @@ import {
   Handshake,
   ShoppingBag,
   MessageCircle,
-  Download
+  Download,
+  Sparkles
 } from "lucide-react";
 import { SiTelegram, SiInstagram } from "react-icons/si";
 import { useStats } from "@/hooks/use-stats";
@@ -387,6 +388,12 @@ export default function Home() {
       title: "GeoINT",
       description: lang === "uk" ? "Підказки для геолокації по регіонам світу" : lang === "ru" ? "Подсказки для геолокации по регионам мира" : lang === "es" ? "Consejos de geolocalización por regiones del mundo" : lang === "de" ? "Geolokalisierungstipps nach Weltregionen" : "Geolocation hints by world regions",
       apis: ["Regional DB"]
+    },
+    {
+      icon: <Shield className="w-5 h-5" />,
+      title: lang === "uk" ? "VPN (PRO+)" : lang === "ru" ? "VPN (PRO+)" : lang === "es" ? "VPN (PRO+)" : lang === "de" ? "VPN (PRO+)" : "VPN (PRO+)",
+      description: lang === "uk" ? "Власний WireGuard VPN: 6 локацій, без логів. PRO 3 / ENTERPRISE 10 / GROUPS 25 пристроїв" : lang === "ru" ? "Собственный WireGuard VPN: 6 локаций, без логов. PRO 3 / ENTERPRISE 10 / GROUPS 25 устройств" : lang === "es" ? "VPN WireGuard propio: 6 ubicaciones, sin logs. PRO 3 / ENTERPRISE 10 / GROUPS 25 dispositivos" : lang === "de" ? "Eigenes WireGuard VPN: 6 Standorte, keine Logs. PRO 3 / ENTERPRISE 10 / GROUPS 25 Geräte" : "Own WireGuard VPN: 6 locations, no-logs. PRO 3 / ENTERPRISE 10 / GROUPS 25 devices",
+      apis: ["WireGuard"]
     }
   ];
 
@@ -675,6 +682,118 @@ export default function Home() {
                 </Card>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* VPN FLAGSHIP SECTION — high visibility hook */}
+        <section className="py-8 sm:py-10 md:py-12 relative overflow-hidden" data-testid="section-vpn-flagship">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="relative rounded-2xl overflow-hidden border border-cyan-500/40 bg-gradient-to-br from-cyan-950/60 via-zinc-950 to-zinc-950 shadow-[0_0_60px_rgba(6,182,212,0.15)] p-5 sm:p-7 md:p-10"
+            >
+              <div className="absolute -top-24 -right-24 w-96 h-96 bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-cyan-400/10 rounded-full blur-[100px] pointer-events-none" />
+
+              <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="lg:col-span-7 space-y-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/40 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
+                      <Sparkles className="w-3 h-3" />
+                      {lang === "uk" ? "Новинка" : lang === "ru" ? "Новинка" : lang === "es" ? "Nuevo" : lang === "de" ? "Neu" : "New"}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-800/80 border border-cyan-500/20 text-[11px] font-medium text-cyan-400/90">
+                      {lang === "uk" ? "Включено в PRO+" : lang === "ru" ? "Включено в PRO+" : lang === "es" ? "Incluido en PRO+" : lang === "de" ? "In PRO+ enthalten" : "Included with PRO+"}
+                    </span>
+                  </div>
+
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-tight" data-testid="text-vpn-headline">
+                    {lang === "uk" ? "Власний " : lang === "ru" ? "Собственный " : lang === "es" ? "VPN " : lang === "de" ? "Eigenes " : "Own "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300">WireGuard VPN</span>
+                    {lang === "uk" ? " без логів" : lang === "ru" ? " без логов" : lang === "es" ? " WireGuard sin logs" : lang === "de" ? " WireGuard ohne Logs" : " — no-logs"}
+                  </h2>
+
+                  <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl" data-testid="text-vpn-description">
+                    {lang === "uk" ? "Працюйте з OSINT анонімно. 6 локацій (Франкфурт, Амстердам, Стокгольм, Сінгапур, Токіо, Нью-Йорк), власна інфраструктура, генерація ключів на льоту." :
+                     lang === "ru" ? "Работайте с OSINT анонимно. 6 локаций (Франкфурт, Амстердам, Стокгольм, Сингапур, Токио, Нью-Йорк), своя инфраструктура, генерация ключей на лету." :
+                     lang === "es" ? "Trabaja con OSINT de forma anónima. 6 ubicaciones (Frankfurt, Amsterdam, Estocolmo, Singapur, Tokio, Nueva York), infraestructura propia, claves al instante." :
+                     lang === "de" ? "Arbeite anonym mit OSINT. 6 Standorte (Frankfurt, Amsterdam, Stockholm, Singapur, Tokio, New York), eigene Infrastruktur, Schlüssel sofort." :
+                     "Run OSINT anonymously. 6 locations (Frankfurt, Amsterdam, Stockholm, Singapore, Tokyo, NYC), own infrastructure, on-the-fly key generation."}
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg">
+                    {[
+                      { val: "6", label: lang === "uk" ? "локацій" : lang === "ru" ? "локаций" : lang === "es" ? "ubicaciones" : lang === "de" ? "Standorte" : "locations" },
+                      { val: "0", label: lang === "uk" ? "логів" : lang === "ru" ? "логов" : lang === "es" ? "logs" : lang === "de" ? "Logs" : "logs" },
+                      { val: "3–25", label: lang === "uk" ? "пристроїв" : lang === "ru" ? "устройств" : lang === "es" ? "dispositivos" : lang === "de" ? "Geräte" : "devices" },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-xl border border-cyan-500/20 bg-zinc-900/60 p-2.5 sm:p-3 text-center" data-testid={`stat-vpn-${s.label}`}>
+                        <div className="text-xl sm:text-2xl font-bold text-cyan-400">{s.val}</div>
+                        <div className="text-[10px] sm:text-xs text-zinc-500 uppercase tracking-wider mt-0.5">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1">
+                    <Link href="/pricing?plan=PRO&code=DARKNEU&src=vpn_hero" className="block w-full sm:w-auto">
+                      <Button
+                        size="lg"
+                        className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-black font-bold h-11 sm:h-12 px-6 shadow-[0_0_30px_rgba(6,182,212,0.4)]"
+                        data-testid="button-vpn-get-pro"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        {lang === "uk" ? "Отримати з PRO — $5/міс" : lang === "ru" ? "Получить с PRO — $5/мес" : lang === "es" ? "Obtener con PRO — $5/mes" : lang === "de" ? "Mit PRO holen — $5/Mo" : "Get with PRO — $5/mo"}
+                      </Button>
+                    </Link>
+                    <Link href="/vpn" className="block w-full sm:w-auto">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full sm:w-auto border-cyan-500/30 bg-cyan-500/5 text-cyan-300 hover:bg-cyan-500/10 hover:text-white h-11 sm:h-12 px-6"
+                        data-testid="button-vpn-learn-more"
+                      >
+                        {lang === "uk" ? "Деталі VPN" : lang === "ru" ? "Подробнее" : lang === "es" ? "Más detalles" : lang === "de" ? "Mehr erfahren" : "Learn more"}
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <div className="text-[11px] text-zinc-500 flex items-center gap-1.5 pt-1">
+                    <Lock className="w-3 h-3" />
+                    {lang === "uk" ? "WireGuard • AES-256 • Auto-keypair generation" : lang === "ru" ? "WireGuard • AES-256 • Авто-генерация ключей" : lang === "es" ? "WireGuard • AES-256 • Generación automática de claves" : lang === "de" ? "WireGuard • AES-256 • Auto-Schlüsselgenerierung" : "WireGuard • AES-256 • Auto-keypair generation"}
+                  </div>
+                </div>
+
+                <div className="lg:col-span-5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3" data-testid="vpn-locations-grid">
+                    {[
+                      { flag: "🇩🇪", city: "Frankfurt", code: "DE", ping: "12ms" },
+                      { flag: "🇳🇱", city: "Amsterdam", code: "NL", ping: "18ms" },
+                      { flag: "🇸🇪", city: "Stockholm", code: "SE", ping: "24ms" },
+                      { flag: "🇸🇬", city: "Singapore", code: "SG", ping: "78ms" },
+                      { flag: "🇯🇵", city: "Tokyo", code: "JP", ping: "92ms" },
+                      { flag: "🇺🇸", city: "New York", code: "US", ping: "104ms" },
+                    ].map((loc) => (
+                      <div
+                        key={loc.code}
+                        className="rounded-xl border border-cyan-500/15 bg-zinc-900/70 backdrop-blur-sm p-3 flex items-center gap-2.5 hover:border-cyan-500/40 hover:bg-zinc-900 transition-all"
+                        data-testid={`vpn-location-${loc.code}`}
+                      >
+                        <span className="text-xl sm:text-2xl">{loc.flag}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs sm:text-sm font-semibold text-white truncate">{loc.city}</div>
+                          <div className="text-[10px] text-zinc-500 font-mono">{loc.code} • {loc.ping}</div>
+                        </div>
+                        <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.7)]" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </section>
 
