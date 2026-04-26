@@ -34,6 +34,36 @@ async function fetchWithTimeout(url: string, timeout = 5000, options?: RequestIn
   }
 }
 
+// Cached Tor exit-node list (refreshed every 30 minutes)
+const TOR_TTL_MS = 30 * 60 * 1000;
+let torExitCache: { set: Set<string>; expiresAt: number } | null = null;
+let torFetchInflight: Promise<Set<string> | null> | null = null;
+
+async function getTorExitNodes(): Promise<Set<string> | null> {
+  const now = Date.now();
+  if (torExitCache && torExitCache.expiresAt > now) return torExitCache.set;
+  if (torFetchInflight) return torFetchInflight;
+  torFetchInflight = (async () => {
+    try {
+      const response = await fetchWithTimeout('https://check.torproject.org/torbulkexitlist', 5000);
+      if (!response.ok) return null;
+      const text = await response.text();
+      const set = new Set<string>();
+      for (const line of text.split('\n')) {
+        const ip = line.trim();
+        if (ip && !ip.startsWith('#')) set.add(ip);
+      }
+      torExitCache = { set, expiresAt: Date.now() + TOR_TTL_MS };
+      return set;
+    } catch {
+      return null;
+    } finally {
+      torFetchInflight = null;
+    }
+  })();
+  return torFetchInflight;
+}
+
 export function validateInput(type: string, value: string): { valid: boolean; error?: string } {
   const cleanValue = value.trim();
   
@@ -451,6 +481,57 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
+  // API 7: Tor exit-node check (cached 30 min, free, no key)
+  try {
+    const torSet = await getTorExitNodes();
+    if (torSet) {
+      sources.push("torproject.org");
+      if (torSet.has(value.trim())) {
+        riskScore += 45;
+        findings.push("🔴 Активний TOR exit node (torproject.org)");
+        ipData.isTor = true;
+        ipData.torExitNode = true;
+      }
+    }
+  } catch {}
+
+  // API 8: ipapi.co (free, redundant geo + ASN signal)
+  try {
+    const response = await fetchWithTimeout(`https://ipapi.co/${value}/json/`, 3500);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && !data.error) {
+        sources.push("ipapi.co");
+        if (data.org && !ipData.asn) ipData.asn = data.org;
+        if (data.asn && !ipData.asn) ipData.asn = data.asn;
+        if (data.country_capital && !ipData.country) ipData.country = data.country_name;
+        if (data.utc_offset) ipData.utcOffset = data.utc_offset;
+        if (data.languages) ipData.languages = data.languages;
+        if (data.currency) ipData.currency = data.currency;
+      }
+    }
+  } catch {}
+
+  // API 9: URLhaus (abuse.ch) - check if IP is hosting malicious URLs
+  try {
+    const response = await fetchWithTimeout('https://urlhaus-api.abuse.ch/v1/host/', 3500, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `host=${encodeURIComponent(value)}`,
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.query_status === 'ok' && Array.isArray(data.urls) && data.urls.length > 0) {
+        sources.push("urlhaus.abuse.ch");
+        riskScore += 40;
+        const onlineCount = data.urls.filter((u: any) => u.url_status === 'online').length;
+        ipData.urlhausCount = data.urls.length;
+        ipData.urlhausOnline = onlineCount;
+        findings.push(`🔴 URLhaus: ${data.urls.length} зловмисних URL з цього IP (${onlineCount} активних)`);
+      }
+    }
+  } catch {}
+
   if (sources.length <= 1) {
     findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
   } else if (findings.length === 0) {
@@ -1299,6 +1380,38 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     }
   }
   
+  // API: Eva (pingutil) email validation - free, no key
+  try {
+    const response = await fetchWithTimeout(`https://api.eva.pingutil.com/email?email=${encodeURIComponent(value)}`, 4000);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.status === 'success' && data.data) {
+        sources.push("eva.pingutil.com");
+        const d = data.data;
+        emailData.evaValid = d.valid_syntax;
+        emailData.evaDisposable = d.disposable;
+        emailData.evaSpam = d.spam;
+        emailData.evaMxValid = d.mx_records;
+        if (d.disposable === true) {
+          riskScore += 30;
+          findings.push("🔴 Eva: одноразовий email-провайдер");
+        }
+        if (d.spam === true) {
+          riskScore += 25;
+          findings.push("⚠️ Eva: позначено як spam-trap");
+        }
+        if (d.mx_records === false) {
+          riskScore += 20;
+          findings.push("⚠️ Eva: відсутні MX-записи (домен не приймає пошту)");
+        }
+        if (d.valid_syntax === false) {
+          riskScore += 15;
+          findings.push("⚠️ Eva: невалідний синтаксис");
+        }
+      }
+    }
+  } catch {}
+
   if (sources.length <= 1) {
     findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
   }
@@ -1763,6 +1876,70 @@ async function checkDomain(value: string, timestamp: Date): Promise<CheckResult>
         domainData.threatfoxMalware = threat.malware_printable;
         domainData.threatfoxType = threat.threat_type;
       }
+    }
+  } catch {}
+
+  // API: URLhaus (abuse.ch) - check domain for malicious URLs
+  try {
+    const response = await fetchWithTimeout('https://urlhaus-api.abuse.ch/v1/host/', 3500, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `host=${encodeURIComponent(domain)}`,
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.query_status === 'ok' && Array.isArray(data.urls) && data.urls.length > 0) {
+        sources.push("urlhaus.abuse.ch");
+        riskScore += 40;
+        const onlineCount = data.urls.filter((u: any) => u.url_status === 'online').length;
+        domainData.urlhausCount = data.urls.length;
+        domainData.urlhausOnline = onlineCount;
+        domainData.urlhausTags = Array.from(new Set(data.urls.flatMap((u: any) => u.tags || []))).slice(0, 5);
+        findings.push(`🔴 URLhaus: ${data.urls.length} зловмисних URL на домені (${onlineCount} активних)`);
+      }
+    }
+  } catch {}
+
+  // API: SPF / DMARC / MTA-STS email-security posture (free DNS lookup)
+  try {
+    const [spfRes, dmarcRes] = await Promise.allSettled([
+      fetchWithTimeout(`https://dns.google/resolve?name=${domain}&type=TXT`, 3000),
+      fetchWithTimeout(`https://dns.google/resolve?name=_dmarc.${domain}&type=TXT`, 3000),
+    ]);
+    let spfFound = false;
+    let dmarcFound = false;
+    let dmarcPolicy: string | null = null;
+    if (spfRes.status === 'fulfilled' && spfRes.value.ok) {
+      const data = await spfRes.value.json();
+      const txts: string[] = (data.Answer || []).map((a: any) => (a.data || '').replace(/^"|"$/g, ''));
+      if (txts.some(t => t.toLowerCase().startsWith('v=spf1'))) spfFound = true;
+    }
+    if (dmarcRes.status === 'fulfilled' && dmarcRes.value.ok) {
+      const data = await dmarcRes.value.json();
+      const txts: string[] = (data.Answer || []).map((a: any) => (a.data || '').replace(/^"|"$/g, ''));
+      const dmarcRecord = txts.find(t => t.toLowerCase().startsWith('v=dmarc1'));
+      if (dmarcRecord) {
+        dmarcFound = true;
+        const policyMatch = dmarcRecord.match(/p=(\w+)/i);
+        dmarcPolicy = policyMatch ? policyMatch[1].toLowerCase() : null;
+      }
+    }
+    sources.push("dns.google (TXT)");
+    domainData.spfPresent = spfFound;
+    domainData.dmarcPresent = dmarcFound;
+    domainData.dmarcPolicy = dmarcPolicy;
+    if (!spfFound) {
+      riskScore += 8;
+      findings.push("⚠️ SPF запис відсутній — ризик email-спуфінгу");
+    }
+    if (!dmarcFound) {
+      riskScore += 10;
+      findings.push("⚠️ DMARC запис відсутній — домен незахищений від фішингу");
+    } else if (dmarcPolicy === 'none') {
+      riskScore += 5;
+      findings.push("ℹ️ DMARC policy=none — лише моніторинг, без блокування");
+    } else if (dmarcPolicy === 'reject' || dmarcPolicy === 'quarantine') {
+      findings.push(`✅ Сильний DMARC: policy=${dmarcPolicy}`);
     }
   } catch {}
 
