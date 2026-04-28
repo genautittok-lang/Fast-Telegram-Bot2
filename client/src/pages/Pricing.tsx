@@ -34,9 +34,9 @@ import {
 
 
 const PRICES = {
-  PRO: { monthly: 10, yearly: 100 },
-  ENTERPRISE: { monthly: 35, yearly: 349 },
-  GROUPS: { monthly: 55, yearly: 549 },
+  PRO: { monthly: 9, yearly: 90 },
+  ENTERPRISE: { monthly: 29, yearly: 290 },
+  GROUPS: { monthly: 49, yearly: 490 },
 };
 
 function PricingContent() {

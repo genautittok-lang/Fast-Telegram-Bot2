@@ -1157,9 +1157,9 @@ export async function registerRoutes(
       return res.status(400).json({ error: "Type and value are required" });
     }
 
-    const allowedTypes = ["ip", "email", "domain", "wallet"];
+    const allowedTypes = ["ip", "email", "domain", "wallet", "phone", "username"];
     if (!allowedTypes.includes(type)) {
-      return res.status(400).json({ error: "Quick check supports: IP, Email, Domain, Wallet" });
+      return res.status(400).json({ error: "Quick check supports: IP, Email, Domain, Wallet, Phone, Username" });
     }
 
     const validation = validateInput(type, value);
