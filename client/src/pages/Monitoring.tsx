@@ -530,7 +530,7 @@ export default function Monitoring() {
               <Button 
                 onClick={handleCreate} 
                 disabled={createMutation.isPending}
-                className={`w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 border-0 ${!createMutation.isPending && 'animate-subtle-pulse'}`}
+                className="w-full sm:w-auto bg-cyan-500 text-black hover:bg-cyan-400 border-0 font-medium"
                 data-testid="button-create-monitor"
               >
                 {createMutation.isPending ? (

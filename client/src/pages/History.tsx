@@ -18,7 +18,6 @@ import {
   FileJson,
   FileSpreadsheet,
   Search,
-  TrendingUp,
   Calendar,
   AlertCircle,
   Copy,
@@ -486,10 +485,6 @@ export default function History() {
           >
             <div className="flex items-center justify-between mb-1 sm:mb-2">
               <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-              <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs text-green-400">
-                <TrendingUp className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                <span>+12%</span>
-              </div>
             </div>
             <p className="text-lg sm:text-2xl font-bold font-display">{stats.total}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground">{t('history.totalChecks')}</p>

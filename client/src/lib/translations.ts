@@ -706,6 +706,15 @@ export interface TranslationSchema {
     typePhone: string;
     typeDomain: string;
     typeUrl: string;
+    typeBot: string;
+    typeCve: string;
+    typeHash: string;
+    typeUsername: string;
+    typeCard: string;
+    typePassword: string;
+    typeDns: string;
+    typeSsl: string;
+    typeMac: string;
   };
   history: {
     title: string;
@@ -1586,6 +1595,15 @@ export const translations: Record<Language, TranslationSchema> = {
       typePhone: "Phone",
       typeDomain: "Domain",
       typeUrl: "URL",
+      typeBot: "Telegram Bot",
+      typeCve: "CVE",
+      typeHash: "File Hash",
+      typeUsername: "Username",
+      typeCard: "Card BIN",
+      typePassword: "Password",
+      typeDns: "DNS Record",
+      typeSsl: "SSL Cert",
+      typeMac: "MAC Address",
     },
     history: {
       title: "History",
@@ -2464,6 +2482,15 @@ export const translations: Record<Language, TranslationSchema> = {
       typePhone: "Телефон",
       typeDomain: "Домен",
       typeUrl: "URL",
+      typeBot: "Telegram-бот",
+      typeCve: "CVE",
+      typeHash: "Хеш файлу",
+      typeUsername: "Юзернейм",
+      typeCard: "BIN картки",
+      typePassword: "Пароль",
+      typeDns: "DNS-запис",
+      typeSsl: "SSL-сертифікат",
+      typeMac: "MAC-адреса",
     },
     history: {
       title: "Історія",
@@ -3342,6 +3369,15 @@ export const translations: Record<Language, TranslationSchema> = {
       typePhone: "Телефон",
       typeDomain: "Домен",
       typeUrl: "URL",
+      typeBot: "Telegram-бот",
+      typeCve: "CVE",
+      typeHash: "Хеш файла",
+      typeUsername: "Юзернейм",
+      typeCard: "BIN карты",
+      typePassword: "Пароль",
+      typeDns: "DNS-запись",
+      typeSsl: "SSL-сертификат",
+      typeMac: "MAC-адрес",
     },
     history: {
       title: "История",
@@ -4220,6 +4256,15 @@ export const translations: Record<Language, TranslationSchema> = {
       typePhone: "Teléfono",
       typeDomain: "Dominio",
       typeUrl: "URL",
+      typeBot: "Bot de Telegram",
+      typeCve: "CVE",
+      typeHash: "Hash de archivo",
+      typeUsername: "Nombre de usuario",
+      typeCard: "BIN de tarjeta",
+      typePassword: "Contraseña",
+      typeDns: "Registro DNS",
+      typeSsl: "Certificado SSL",
+      typeMac: "Dirección MAC",
     },
     history: {
       title: "Historial",
@@ -5098,6 +5143,15 @@ export const translations: Record<Language, TranslationSchema> = {
       typePhone: "Telefon",
       typeDomain: "Domain",
       typeUrl: "URL",
+      typeBot: "Telegram-Bot",
+      typeCve: "CVE",
+      typeHash: "Datei-Hash",
+      typeUsername: "Benutzername",
+      typeCard: "Karten-BIN",
+      typePassword: "Passwort",
+      typeDns: "DNS-Eintrag",
+      typeSsl: "SSL-Zertifikat",
+      typeMac: "MAC-Adresse",
     },
     history: {
       title: "Verlauf",
