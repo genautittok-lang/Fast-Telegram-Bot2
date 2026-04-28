@@ -252,18 +252,6 @@ function PricingContent() {
 
   return (
     <div className="min-h-full">
-      {/* Promo Banner */}
-      <div className="bg-gradient-to-r from-cyan-900/40 via-cyan-600/20 to-cyan-900/40 border-b border-cyan-500/20 text-center py-2.5 px-4">
-        <p className="text-sm font-medium text-cyan-100 flex items-center justify-center gap-2 flex-wrap">
-          <span className="animate-pulse">🔥</span>
-          <span>
-            {lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código promo" : lang === "de" ? "Promo-Code" : "Promo code"}{" "}
-            <strong className="text-cyan-400 font-mono px-1.5 py-0.5 bg-cyan-500/10 rounded">DARKNEU</strong>{" "}
-            — {lang === "uk" ? "знижка 50% на перші 3 місяці" : lang === "ru" ? "скидка 50% на первые 3 месяца" : lang === "es" ? "50% de descuento los primeros 3 meses" : lang === "de" ? "50% Rabatt für die ersten 3 Monate" : "50% off first 3 months"}
-          </span>
-        </p>
-      </div>
-
       <div className="relative container mx-auto px-4 py-10 sm:py-16 max-w-6xl">
         {!isAuthenticated && (
           <Button
@@ -298,37 +286,38 @@ function PricingContent() {
           </p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="mb-5 sm:mb-6"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-2.5 sm:gap-6 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-zinc-900/80 to-zinc-900/60 border border-cyan-500/15 backdrop-blur-sm" data-testid="pricing-value-strip">
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs sm:text-sm">
-              <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span className="text-zinc-300">
-                {lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código promo" : lang === "de" ? "Promo-Code" : "Promo code"}
-              </span>
-              <span className="font-mono font-bold tracking-tight text-cyan-400" data-testid="text-promo-code">DARKNEU</span>
-              <span className="text-zinc-500 hidden sm:inline">·</span>
-              <span className="text-zinc-300 font-medium w-full sm:w-auto">
-                {lang === "uk" ? "−50% на перші 3 місяці" : lang === "ru" ? "−50% на первые 3 месяца" : lang === "es" ? "−50% los primeros 3 meses" : lang === "de" ? "−50% für die ersten 3 Monate" : "−50% off first 3 months"}
-              </span>
-            </div>
-            <div className="hidden sm:block w-px h-4 bg-white/10" />
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-x-4 text-[11px] sm:text-xs text-zinc-500">
-              <span className="flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-cyan-500/70 shrink-0" />
-                <span>{lang === "uk" ? "Без прихованих платежів" : lang === "ru" ? "Без скрытых платежей" : lang === "es" ? "Sin cargos ocultos" : lang === "de" ? "Keine versteckten Kosten" : "No hidden fees"}</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-cyan-500/70 shrink-0" />
-                <span>{lang === "uk" ? "Скасування у будь-який момент" : lang === "ru" ? "Отмена в любой момент" : lang === "es" ? "Cancela cuando quieras" : lang === "de" ? "Jederzeit kündbar" : "Cancel anytime"}</span>
-              </span>
+        {/* Single report — one-time purchase block */}
+        <div className="mb-8 sm:mb-10">
+          <div className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#0E0E12] p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">Разовая покупка</div>
+                <div className="mt-1 text-[18px] sm:text-[20px] font-semibold text-white">
+                  Один полный отчёт — <span className="text-cyan-300">$3</span>
+                </div>
+                <p className="mt-1 text-[13.5px] text-zinc-400">
+                  {lang === "uk"
+                    ? "Усі знахідки за однією ціллю, перелік джерел, PDF. Без підписки."
+                    : lang === "ru"
+                    ? "Все находки по одной цели, перечень источников, PDF. Без подписки."
+                    : lang === "es"
+                    ? "Todos los hallazgos para un objetivo, fuentes, PDF. Sin suscripción."
+                    : lang === "de"
+                    ? "Alle Funde für ein Ziel, Quellen, PDF. Ohne Abo."
+                    : "All findings for one target, sources, PDF. No subscription."}
+                </p>
+              </div>
+              <Button
+                onClick={() => setLocation("/")}
+                className="bg-white text-black hover:bg-zinc-200"
+                data-testid="button-buy-single-report"
+              >
+                {lang === "uk" ? "Перевірити" : lang === "ru" ? "Сделать проверку" : lang === "es" ? "Comprobar ahora" : lang === "de" ? "Jetzt prüfen" : "Run a check"}
+                <ChevronRight className="ml-1.5 h-4 w-4" />
+              </Button>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         <div className="flex items-center justify-center gap-4 mb-6 sm:mb-8">
           <span className={`text-sm ${!isYearly ? "text-foreground font-medium" : "text-muted-foreground"}`}>

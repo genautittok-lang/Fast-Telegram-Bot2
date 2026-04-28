@@ -2025,9 +2025,58 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
 
     userStates.delete(tgId);
 
-    await ctx.reply(result, {
+    // ─────────── Conversion hooks ───────────
+    const hookTier = (user?.tier || "FREE").toUpperCase();
+    const isFree = hookTier === "FREE" || hookTier === "BASIC";
+    const left = Math.max(0, (user?.requestsLeft ?? 5) - 1);
+    const isHighRisk = checkResult.riskScore >= 50;
+
+    let hookLine = "";
+    if (isFree) {
+      if (left === 0) {
+        hookLine = lang === "uk"
+          ? "\n\n⚠️ *Безкоштовні перевірки закінчилися.* PRO — $9/міс, безлімітні перевірки + моніторинг 24/7."
+          : lang === "ru"
+          ? "\n\n⚠️ *Бесплатные проверки закончились.* PRO — $9/мес, безлимит + мониторинг 24/7."
+          : lang === "es"
+          ? "\n\n⚠️ *Comprobaciones gratuitas agotadas.* PRO — $9/mes, ilimitado + monitoreo 24/7."
+          : lang === "de"
+          ? "\n\n⚠️ *Kostenlose Prüfungen aufgebraucht.* PRO — $9/Monat, unbegrenzt + 24/7-Überwachung."
+          : "\n\n⚠️ *Free checks used up.* PRO — $9/mo, unlimited + 24/7 monitoring.";
+      } else if (left <= 2) {
+        hookLine = lang === "uk"
+          ? `\n\n⏳ Залишилось *${left}* безкоштовних перевірок. PRO — $9/міс, без обмежень.`
+          : lang === "ru"
+          ? `\n\n⏳ Осталось *${left}* бесплатных проверок. PRO — $9/мес, без ограничений.`
+          : lang === "es"
+          ? `\n\n⏳ Quedan *${left}* comprobaciones gratis. PRO — $9/mes, sin límite.`
+          : lang === "de"
+          ? `\n\n⏳ Noch *${left}* kostenlose Prüfungen. PRO — $9/Monat, unbegrenzt.`
+          : `\n\n⏳ *${left}* free checks left. PRO — $9/mo, unlimited.`;
+      } else if (isHighRisk) {
+        hookLine = lang === "uk"
+          ? "\n\n🔓 Хочеш бачити *усі* знахідки та джерела? Розблокуй повний звіт — $3."
+          : lang === "ru"
+          ? "\n\n🔓 Хочешь видеть *все* находки и источники? Разблокируй полный отчёт — $3."
+          : lang === "es"
+          ? "\n\n🔓 ¿Quieres ver *todos* los hallazgos y fuentes? Desbloquea el informe completo — $3."
+          : lang === "de"
+          ? "\n\n🔓 Willst du *alle* Funde und Quellen sehen? Vollständiger Bericht — $3."
+          : "\n\n🔓 Want to see *all* findings and sources? Unlock the full report — $3.";
+      }
+    }
+
+    const proRowLabel = lang === "uk" ? "💎 PRO — $9/міс" : lang === "ru" ? "💎 PRO — $9/мес" : lang === "es" ? "💎 PRO — $9/mes" : lang === "de" ? "💎 PRO — $9/Mon." : "💎 PRO — $9/mo";
+    const singleRowLabel = lang === "uk" ? "🔓 Повний звіт — $3" : lang === "ru" ? "🔓 Полный отчёт — $3" : lang === "es" ? "🔓 Informe — $3" : lang === "de" ? "🔓 Vollbericht — $3" : "🔓 Full report — $3";
+
+    const upgradeRow = isFree
+      ? [[cb(singleRowLabel, `buy_single_${state.module}_${inputValue}`, "primary"), cb(proRowLabel, "show_plans_pro", "success")]]
+      : [];
+
+    await ctx.reply(result + hookLine, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([
+        ...upgradeRow,
         [
           cb(t(lang, "buttons.pdf"), `gen_pdf_${state.module}_${inputValue}`, "primary", E.doc),
           cb(t(lang, "buttons.newCheck"), `mod_${state.module === "domain" ? "business" : state.module}`, "primary", E.search)
@@ -2040,6 +2089,59 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
           cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)
         ]
       ])
+    });
+  });
+
+  bot.action(/^buy_single_/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    const parts = ctx.match.input.split('_');
+    const module = parts[2];
+    const target = parts.slice(3).join('_');
+    const webBase = process.env.WEB_BASE_URL || `https://${process.env.REPLIT_DEV_DOMAIN || ""}`;
+    const url = `${webBase}/pricing?single=1&type=${encodeURIComponent(module)}&t=${encodeURIComponent(target)}`;
+    await ctx.answerCbQuery();
+    const title = lang === "uk" ? "🔓 Повний звіт — $3" : lang === "ru" ? "🔓 Полный отчёт — $3" : lang === "es" ? "🔓 Informe completo — $3" : lang === "de" ? "🔓 Vollständiger Bericht — $3" : "🔓 Full report — $3";
+    const desc = lang === "uk"
+      ? "Усі знахідки, перелік джерел, PDF за однією ціллю. Без підписки."
+      : lang === "ru"
+      ? "Все находки, перечень источников, PDF по одной цели. Без подписки."
+      : lang === "es"
+      ? "Todos los hallazgos, fuentes y PDF para un objetivo. Sin suscripción."
+      : lang === "de"
+      ? "Alle Funde, Quellen und PDF für ein Ziel. Ohne Abo."
+      : "All findings, sources and PDF for one target. No subscription.";
+    await ctx.reply(`*${title}*\n\n${desc}`, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.url(lang === "uk" ? "Оплатити $3" : lang === "ru" ? "Оплатить $3" : lang === "es" ? "Pagar $3" : lang === "de" ? "$3 bezahlen" : "Pay $3", url)],
+      ]),
+    });
+  });
+
+  bot.action("show_plans_pro", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    const webBase = process.env.WEB_BASE_URL || `https://${process.env.REPLIT_DEV_DOMAIN || ""}`;
+    const url = `${webBase}/pricing?plan=PRO`;
+    await ctx.answerCbQuery();
+    const title = lang === "uk" ? "💎 PRO — $9/міс" : lang === "ru" ? "💎 PRO — $9/мес" : lang === "es" ? "💎 PRO — $9/mes" : lang === "de" ? "💎 PRO — $9/Monat" : "💎 PRO — $9/mo";
+    const benefits = lang === "uk"
+      ? "• 200 перевірок на місяць\n• Моніторинг утечок 24/7\n• Історія + експорт\n• API-доступ\n• Вбудований VPN"
+      : lang === "ru"
+      ? "• 200 проверок в месяц\n• Мониторинг утечек 24/7\n• История + экспорт\n• API-доступ\n• Встроенный VPN"
+      : lang === "es"
+      ? "• 200 comprobaciones/mes\n• Monitoreo 24/7\n• Historial + exportación\n• Acceso API\n• VPN integrada"
+      : lang === "de"
+      ? "• 200 Prüfungen/Monat\n• 24/7-Überwachung\n• Verlauf + Export\n• API-Zugang\n• Integriertes VPN"
+      : "• 200 checks per month\n• 24/7 leak monitoring\n• History + export\n• API access\n• Built-in VPN";
+    await ctx.reply(`*${title}*\n\n${benefits}`, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [Markup.button.url(lang === "uk" ? "Оформити PRO" : lang === "ru" ? "Оформить PRO" : lang === "es" ? "Activar PRO" : lang === "de" ? "PRO aktivieren" : "Activate PRO", url)],
+      ]),
     });
   });
 

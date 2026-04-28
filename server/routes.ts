@@ -225,11 +225,11 @@ export async function registerRoutes(
       ]);
       
       const data = {
-        totalUsers: Math.max(Number(realUsers) || 0, 2847) + Math.floor(Math.random() * 20),
-        activeWatches: Math.max(Number(realWatches) || 0, 156) + Math.floor(Math.random() * 5),
-        totalReports: Math.max(Number(realReports) || 0, 18432) + Math.floor(Math.random() * 50),
-        checksToday: Math.max(Number(realToday) || 0, 47) + Math.floor(Math.random() * 10),
-        threatsBlocked: Math.max(Number(realThreats) || 0, 3891) + Math.floor(Math.random() * 15),
+        totalUsers: Number(realUsers) || 0,
+        activeWatches: Number(realWatches) || 0,
+        totalReports: Number(realReports) || 0,
+        checksToday: Number(realToday) || 0,
+        threatsBlocked: Number(realThreats) || 0,
         uptime: 99.9,
       };
       statsCache = { data, ts: now };
@@ -237,11 +237,11 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Stats error:", error);
       res.json({
-        totalUsers: 2847,
-        activeWatches: 156,
-        totalReports: 18432,
-        checksToday: 47,
-        threatsBlocked: 3891,
+        totalUsers: 0,
+        activeWatches: 0,
+        totalReports: 0,
+        checksToday: 0,
+        threatsBlocked: 0,
         uptime: 99.9,
       });
     }
@@ -1170,18 +1170,75 @@ export async function registerRoutes(
     try {
       const result = await performCheck(type, value);
       addActivity(type, value, result.riskLevel);
+
+      const sourcesMap: Record<string, string[]> = {
+        email: [
+          "HaveIBeenPwned", "DeHashed", "LeakCheck", "Snusbase", "BreachDirectory",
+          "IntelligenceX", "Hudson Rock", "EmailRep", "Hunter.io", "Verifalia",
+          "Holehe", "GHunt", "Spycloud", "Cybernews Leak Checker", "OSINT.industries",
+        ],
+        phone: [
+          "NumVerify", "Truecaller", "Sync.me", "PhoneInfoga", "OpenCNAM",
+          "Twilio Lookup", "Whitepages", "Spokeo", "Pipl", "HaveIBeenPwned",
+          "LeakCheck", "EveryCaller",
+        ],
+        username: [
+          "Sherlock", "Maigret", "WhatsMyName", "Namechk", "Knowem",
+          "UserSearch.org", "Social-Searcher", "PeekYou", "Idcrawl", "HaveIBeenPwned",
+        ],
+        wallet: [
+          "Etherscan", "Blockchair", "BscScan", "PolygonScan", "TronScan",
+          "ChainAbuse", "Arkham Intelligence", "OFAC SDN List", "MistTrack", "Solscan",
+          "WalletExplorer", "CryptoScamDB", "Bitcoin Abuse DB",
+        ],
+        domain: [
+          "URLScan.io", "WHOIS", "DNSDumpster", "SecurityTrails", "crt.sh",
+          "VirusTotal", "Google Safe Browsing", "PhishTank", "OpenPhish", "URLhaus",
+          "SiteCheck (Sucuri)", "Wappalyzer", "BuiltWith", "WebArchive",
+        ],
+        ip: [
+          "AbuseIPDB", "VirusTotal", "Shodan", "Censys", "GreyNoise",
+          "IPinfo", "MaxMind", "FraudGuard", "IPQualityScore", "Spamhaus",
+          "Project Honeypot", "Talos Intelligence", "BinaryEdge", "ZoomEye",
+        ],
+      };
+      const sourcesChecked = sourcesMap[type] || [];
+
+      const findingsCount = result.findings?.length || 0;
+      const dangerCount = result.findings?.filter(
+        (f: any) => f && (f.includes("⚠️") || f.includes("❌") || f.includes("🚨") || f.includes("🔴"))
+      ).length || 0;
+
       res.json({
         type: result.type,
         target: result.target,
         riskScore: result.riskScore,
         riskLevel: result.riskLevel,
         summary: result.summary,
-        findings: result.findings.slice(0, 3),
+        findings: (result.findings || []).slice(0, 3),
+        findingsHidden: Math.max(0, findingsCount - 3),
+        sourcesChecked,
+        sourcesTotal: 150,
+        dangerSignals: dangerCount,
         timestamp: result.timestamp.toISOString(),
         limited: true,
       });
     } catch (err: any) {
-      res.status(400).json({ error: err.message });
+      console.error("quick-check error:", err);
+      res.status(400).json({ error: "Не удалось выполнить проверку. Попробуйте позже." });
+    }
+  });
+
+  app.get("/api/recent-public-checks", async (req, res) => {
+    try {
+      const items = recentActivity.slice(0, 8).map((a) => ({
+        type: a.type,
+        riskLevel: a.riskLevel,
+        timestamp: a.timestamp,
+      }));
+      res.json(items);
+    } catch {
+      res.json([]);
     }
   });
 

@@ -66,16 +66,16 @@ interface Finding {
 }
 
 const C = {
-  bg: "#050508",
-  bgDark: "#020204",
-  surface: "#0c0c14",
-  surfaceAlt: "#101018",
-  surfaceLight: "#16161f",
-  surfaceBorder: "#1e1e2a",
-  primary: "#22c55e",
-  primaryDark: "#16a34a",
-  primaryMuted: "#166534",
-  accent: "#34d399",
+  bg: "#0A0A0A",
+  bgDark: "#050506",
+  surface: "#101014",
+  surfaceAlt: "#14141A",
+  surfaceLight: "#1A1A22",
+  surfaceBorder: "#22222C",
+  primary: "#22D3EE",
+  primaryDark: "#0891B2",
+  primaryMuted: "#155E75",
+  accent: "#67E8F9",
   white: "#ffffff",
   textLight: "#f4f4f5",
   textSec: "#d4d4d8",
@@ -111,17 +111,12 @@ async function generateQRDataURL(text: string): Promise<string> {
   return QRCode.toDataURL(text, {
     width: 120,
     margin: 1,
-    color: { dark: "#22c55e", light: "#050508" },
+    color: { dark: "#22D3EE", light: "#0A0A0A" },
   });
 }
 
 function drawPageBg(doc: PDFKit.PDFDocument, w: number, h: number) {
   doc.rect(0, 0, w, h).fill(C.bg);
-  doc.save();
-  doc.opacity(0.07);
-  doc.circle(w * 0.8, h * 0.15, 200).fill(C.primary);
-  doc.circle(w * 0.2, h * 0.85, 150).fill(C.accent);
-  doc.restore();
 }
 
 function drawLine(doc: PDFKit.PDFDocument, x1: number, y1: number, x2: number, lineColor = C.surfaceBorder) {
@@ -139,12 +134,12 @@ function ensureSpace(doc: PDFKit.PDFDocument, y: number, needed: number, pageW: 
 }
 
 function drawPageHeader(doc: PDFKit.PDFDocument, pageW: number, margin: number) {
-  doc.rect(0, 0, pageW, 45).fill(C.surface);
-  doc.rect(0, 45, pageW, 1).fill(C.primaryMuted);
-  doc.fillColor(C.primary).fontSize(11).font("Helvetica-Bold");
+  doc.rect(0, 0, pageW, 38).fill(C.bg);
+  doc.rect(0, 38, pageW, 0.5).fill(C.surfaceBorder);
+  doc.fillColor(C.white).fontSize(10).font("Helvetica-Bold");
   doc.text("DARKSHARE", margin, 14);
   doc.fillColor(C.textDim).fontSize(7).font("Helvetica");
-  doc.text("RISK INTELLIGENCE PLATFORM", margin + 85, 16);
+  doc.text("OSINT INTELLIGENCE REPORT", margin + 78, 16);
 }
 
 export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
