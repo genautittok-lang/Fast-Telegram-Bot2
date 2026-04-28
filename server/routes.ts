@@ -1209,6 +1209,13 @@ export async function registerRoutes(
         (f: any) => f && (f.includes("⚠️") || f.includes("❌") || f.includes("🚨") || f.includes("🔴"))
       ).length || 0;
 
+      // Strip evidence for FREE tier — keep only name/category/status
+      const sourcesScannedPublic = (result.sourcesScanned || []).map((s) => ({
+        name: s.name,
+        category: s.category,
+        status: s.status,
+      }));
+
       res.json({
         type: result.type,
         target: result.target,
@@ -1218,7 +1225,9 @@ export async function registerRoutes(
         findings: (result.findings || []).slice(0, 3),
         findingsHidden: Math.max(0, findingsCount - 3),
         sourcesChecked,
-        sourcesTotal: 150,
+        sourcesTotal: result.sourcesScanned?.length || 150,
+        sourcesScanned: sourcesScannedPublic,
+        coverage: result.coverage || null,
         dangerSignals: dangerCount,
         timestamp: result.timestamp.toISOString(),
         limited: true,

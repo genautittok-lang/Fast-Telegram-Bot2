@@ -21,6 +21,7 @@ import {
 import { Footer } from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { OSINT_SOURCES, CATEGORY_LABELS, type OsintCategory } from "@/data/osintSources";
+import { SourcesScanGrid, type ScanItem } from "@/components/SourcesScanGrid";
 
 type CheckType = "email" | "phone" | "username" | "wallet" | "domain" | "ip";
 
@@ -34,6 +35,18 @@ interface QuickCheckResponse {
   findingsHidden?: number;
   sourcesChecked?: string[];
   sourcesTotal?: number;
+  sourcesScanned?: ScanItem[];
+  coverage?: {
+    hit: number;
+    clean: number;
+    scanned: number;
+    paid_only: number;
+    rate_limit: number;
+    no_data: number;
+    not_applicable: number;
+    applicable: number;
+    completed: number;
+  } | null;
   dangerSignals?: number;
   timestamp: string;
   limited: boolean;
@@ -275,6 +288,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
 function ResultCard({ data }: { data: QuickCheckResponse }) {
   const meta = riskMeta(data.riskLevel);
   const hidden = data.findingsHidden ?? 4;
+  const scanned = data.sourcesScanned || [];
   const sources = data.sourcesChecked || [];
 
   return (
@@ -350,7 +364,14 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
           </div>
         </div>
 
-        {sources.length > 0 && (
+        {scanned.length > 0 ? (
+          <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
+            <div className="mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+              Проверено в OSINT-источниках
+            </div>
+            <SourcesScanGrid items={scanned} />
+          </div>
+        ) : sources.length > 0 ? (
           <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
             <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-zinc-500">
               <span>Проверено в источниках</span>
@@ -369,7 +390,7 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
               )}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

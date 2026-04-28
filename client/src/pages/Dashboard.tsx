@@ -252,80 +252,62 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
 
 function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: any; streakDays: number; checksLeft: number; maxChecks: number; tier: string }) {
   const isUnlimited = maxChecks >= 9999;
-  const pct = isUnlimited ? 100 : Math.round((checksLeft / maxChecks) * 100);
-  const greetName = user?.username || "User";
+  const pct = isUnlimited ? 100 : Math.max(0, Math.min(100, Math.round((checksLeft / maxChecks) * 100)));
+  const greetName = user?.username || user?.email?.split("@")[0] || "agent";
+  const lowOnChecks = !isUnlimited && pct <= 20;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="relative rounded-[1.5rem] overflow-hidden glass-strong"
+    <div
+      className="rounded-2xl border border-white/10 bg-[#0E0E12] p-5 lg:p-6"
       data-testid="widget-status-bar"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-cyan-500/10 to-cyan-500/15" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-      <motion.div
-        className="absolute top-0 right-0 w-32 h-32 rounded-full bg-primary/10 blur-[60px]"
-        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-cyan-500/10 blur-[50px]"
-        animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <div className="relative p-5 lg:p-6">
-        <div className="flex items-center gap-4 mb-4">
-          <motion.div
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)]"
-            animate={{ boxShadow: ["0 4px 20px rgba(34,197,94,0.25)", "0 4px 30px rgba(34,197,94,0.45)", "0 4px 20px rgba(34,197,94,0.25)"] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <span className="text-black font-bold text-lg">{greetName.charAt(0).toUpperCase()}</span>
-          </motion.div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white truncate" data-testid="text-greeting">
-              Hi, {greetName}! 👋
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-500/20 bg-cyan-500/[0.06]">
+            <Shield className="h-4 w-4 text-cyan-300" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">DarkShare</div>
+            <h2 className="truncate text-[18px] font-medium text-white" data-testid="text-greeting">
+              {greetName}
             </h2>
-            <div className="flex items-center gap-2 mt-1">
-              <TierBadge tier={tier} />
-              {streakDays > 0 && (
-                <motion.div
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/20"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Flame className="w-3 h-3 text-orange-400" />
-                  <span className="text-[10px] font-bold text-orange-400">{streakDays}</span>
-                </motion.div>
-              )}
-            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
-          <div className={`app-icon-circle ${pct <= 20 ? 'bg-red-500/15' : 'bg-cyan-500/15'}`} style={{ width: '2rem', height: '2rem' }}>
-            <Zap className={`w-4 h-4 ${pct <= 20 ? 'text-red-400' : 'text-cyan-400'}`} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-muted-foreground">Checks remaining</span>
-              <span className={`text-xs font-bold font-mono ${pct <= 20 ? 'text-red-400' : 'text-cyan-400'}`}>
-                {isUnlimited ? '∞' : `${checksLeft}/${maxChecks}`}
-              </span>
-            </div>
-            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-              <motion.div
-                className={`h-full rounded-full ${pct <= 20 ? 'bg-gradient-to-r from-red-500 to-red-400' : pct <= 50 ? 'bg-gradient-to-r from-orange-500 to-yellow-400' : 'bg-gradient-to-r from-cyan-500 to-cyan-400'}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-              />
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <TierBadge tier={tier} />
+          {streakDays > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] text-zinc-300">
+              <Flame className="h-3 w-3 text-amber-300" />
+              <span className="font-medium">{streakDays}d</span>
+            </span>
+          )}
         </div>
       </div>
-    </motion.div>
+
+      <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="text-[11px] uppercase tracking-wider text-zinc-500">Checks remaining</div>
+          <div className="mt-1 text-[28px] font-semibold leading-none text-white tabular-nums" data-testid="text-checks-remaining">
+            {isUnlimited ? "∞" : checksLeft}
+            {!isUnlimited && <span className="ml-1 text-[14px] font-normal text-zinc-500">/ {maxChecks}</span>}
+          </div>
+        </div>
+        {lowOnChecks && (
+          <Link href="/pricing?plan=PRO">
+            <span className="inline-flex h-9 cursor-pointer items-center rounded-lg bg-white px-3.5 text-[13px] font-medium text-black hover:bg-zinc-200" data-testid="link-upgrade-pro">
+              Upgrade to PRO
+            </span>
+          </Link>
+        )}
+      </div>
+
+      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/5">
+        <div
+          className={`h-full transition-all duration-700 ${lowOnChecks ? "bg-rose-400" : "bg-cyan-400"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   );
 }
 

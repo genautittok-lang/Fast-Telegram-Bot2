@@ -1,5 +1,6 @@
 import { generateAIAnalysis } from "./aiAnalyzer";
 import exifr from "exifr";
+import { buildScanCoverage, summarizeCoverage, type ScanResult } from "./sourceCoverage";
 
 export interface AIInsights {
   summary: string;
@@ -19,6 +20,8 @@ export interface CheckResult {
   sources: string[];
   timestamp: Date;
   aiInsights?: AIInsights;
+  sourcesScanned?: ScanResult[];
+  coverage?: ReturnType<typeof summarizeCoverage>;
 }
 
 async function fetchWithTimeout(url: string, timeout = 5000, options?: RequestInit): Promise<Response> {
@@ -228,6 +231,23 @@ export async function performCheck(type: string, value: string): Promise<CheckRe
       throw new Error(`Unknown check type: ${type}`);
   }
   
+  // Build 150-source coverage map
+  try {
+    const hasHits = (result.findings || []).some((f) =>
+      /⚠️|❌|🚨|🔴|🟠/.test(f) || /leak|breach|compromis|black|malicious|вразлив|уте/i.test(f)
+    );
+    result.sourcesScanned = buildScanCoverage(
+      result.type,
+      result.target,
+      result.sources || [],
+      result.findings || [],
+      hasHits
+    );
+    result.coverage = summarizeCoverage(result.sourcesScanned);
+  } catch (error) {
+    console.error("Source coverage build failed:", error);
+  }
+
   // Add AI analysis
   try {
     const aiInsights = await generateAIAnalysis({
