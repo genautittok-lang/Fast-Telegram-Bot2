@@ -1245,13 +1245,13 @@ ${pe("user")} <b>${escHtml(t(lang, "common.profile"))}</b>
 • ${pe(tierSlot)} ${escHtml(t(lang, "common.tier"))}: <b>${escHtml(user.tier || "FREE")}</b>
 • ${pe("pin")} ${escHtml(joinDate)}
 
-${pe("rocket_up")} <b>${escHtml(t(lang, "common.activity"))}</b>
+${pe("chart")} <b>${escHtml(t(lang, "common.activity"))}</b>
 • ${pe("search")} ${escHtml(t(lang, "common.checks"))}: <b>${reports.length}</b>
 • ${pe("eye")} ${escHtml(t(lang, "buttons.monitoring"))}: <b>${watches.length}</b>
 • ${pe("people")} ${escHtml(t(lang, "buttons.referrals"))}: <b>${referralStats.count}</b>
-• ${pe("bell")} ${escHtml(lastActive)}
+• ${pe("zap")} ${escHtml(lastActive)}
 
-${pe("sparkle")} <b>${escHtml(t(lang, "common.progress"))}</b>
+${pe("rocket_up")} <b>${escHtml(t(lang, "common.progress"))}</b>
 • ${pe("chart")} ${escHtml(requestsBar)} <b>${user.requestsLeft || 0}/${statsUserLimit}</b>
 • ${pe("fire")} ${escHtml(streakBar)} <b>${user.streakDays || 0}/30</b> ${escHtml(t(lang, "common.days"))}
 
@@ -2116,11 +2116,11 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
     };
 
     const moduleEmojis: Record<string, string> = {
-      ip: pe("globe"), wallet: pe("money"), phone: pe("mobile"),
-      email: pe("envelope"), domain: pe("briefcase"), url: pe("link"),
-      cve: pe("bug"), hash: pe("key"), username: pe("user"),
-      card: pe("card"), iot: pe("zap"), cloud: pe("globe"),
-      password: pe("key"), dns: pe("globe"), ssl: pe("lock"), mac: pe("zap")
+      ip: pe("globe"), wallet: pe("diamond"), phone: pe("mobile"),
+      email: pe("envelope"), domain: pe("globe"), url: pe("link"),
+      cve: pe("bug"), hash: pe("search"), username: pe("user"),
+      card: pe("card"), iot: pe("cog"), cloud: pe("globe"),
+      password: pe("key"), dns: pe("link"), ssl: pe("lock"), mac: pe("cog")
     };
 
     const moduleNames: Record<string, string> = {
@@ -2228,7 +2228,7 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
         const ispLabel = t(lang, "checkResult.isp");
         const lines: string[] = [];
         if (countryInfo || cityInfo) lines.push(`${pe("globe")} ${escHtml(locationLabel)}: <b>${escHtml(cityInfo)}${cityInfo && countryInfo ? ", " : ""}${escHtml(countryInfo)}</b>`);
-        if (ispInfo) lines.push(`${pe("home")} ${escHtml(ispLabel)}: <b>${escHtml(ispInfo)}</b>`);
+        if (ispInfo) lines.push(`${pe("briefcase")} ${escHtml(ispLabel)}: <b>${escHtml(ispInfo)}</b>`);
         if (d.isTor) lines.push(`${pe("forbidden")} <b>${escHtml(lang === "uk" ? "TOR Exit Node — анонімний трафік" : lang === "ru" ? "TOR Exit Node — анонимный трафик" : lang === "es" ? "Nodo de salida TOR — tráfico anónimo" : lang === "de" ? "TOR Exit Node — anonymer Traffic" : "TOR Exit Node — anonymous traffic")}</b>`);
         if (d.urlhausCount && d.urlhausCount > 0) lines.push(`${pe("warning")} URLhaus: <b>${d.urlhausCount} ${escHtml(lang === "uk" ? "загроз" : lang === "ru" ? "угроз" : lang === "es" ? "amenazas" : lang === "de" ? "Bedrohungen" : "threats")}</b>${d.urlhausOnline ? ` (${d.urlhausOnline} online)` : ""}`);
         if (d.isProxy || d.isVpn) lines.push(`${pe("shield")} ${d.isProxy ? "Proxy" : "VPN"} ${escHtml(lang === "uk" ? "виявлено" : lang === "ru" ? "обнаружен" : "detected")}`);
@@ -2652,7 +2652,7 @@ ${pe("chart")} <b>${escHtml(lang === "uk" ? "Твоя статистика" : la
 
 ${pe("link")} <b>${escHtml(lang === "uk" ? "Реферальне посилання" : lang === "ru" ? "Реферальная ссылка" : "Referral link")}:</b>
 <code>${escHtml(refLink)}</code>
-${pe("rocket_up")} ${escHtml(lang === "uk" ? "Поділися з друзями" : lang === "ru" ? "Поделись с друзьями" : "Share with friends")}
+${pe("plane")} ${escHtml(lang === "uk" ? "Поділися з друзями" : lang === "ru" ? "Поделись с друзьями" : "Share with friends")}
 
 ${pe("trophy")} <b>${escHtml(lang === "uk" ? "Топ реферали" : lang === "ru" ? "Топ рефералы" : "Top referrals")}</b>
 ${leaderboardText}
@@ -2745,8 +2745,11 @@ ${faqText}`;
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
     const user = await storage.getUserByTgId(tgId);
-    
-    const text = `💳 *${lang === "uk" ? "Оплата підписки" : lang === "ru" ? "Оплата подписки" : "Subscription Payment"}*\n\n${lang === "uk" ? "Оберіть тариф:" : lang === "ru" ? "Выберите тариф:" : "Select plan:"}`;
+
+    const titleText = lang === "uk" ? "Оплата підписки" : lang === "ru" ? "Оплата подписки" : lang === "es" ? "Pago de suscripción" : lang === "de" ? "Abozahlung" : "Subscription Payment";
+    const pickText = lang === "uk" ? "Оберіть тариф:" : lang === "ru" ? "Выберите тариф:" : lang === "es" ? "Selecciona el plan:" : lang === "de" ? "Tarif wählen:" : "Select plan:";
+
+    const text = `${pe("card")} <b>${escHtml(titleText)}</b>\n\n${pe("crown")} ${escHtml(pickText)}`;
     
     const keyboard = Markup.inlineKeyboard([
       [cb("PRO — $10/mo (410 UAH)", "bot_pay_tier_PRO", "success", E.money)],
@@ -2756,9 +2759,9 @@ ${faqText}`;
     ]);
     
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
@@ -2769,23 +2772,30 @@ ${faqText}`;
     
     const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
     const usdPrices: Record<string, number> = { PRO: 10, ENTERPRISE: 35, GROUPS: 55 };
-    
     const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
-    
-    const text = `💳 *${tier}*\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH (~$${usdPrices[tier]} USD)\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : "Select payment method:"}\n\n${lang === "uk" ? "💡 Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "💡 Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : "💡 Amount in UAH. Your bank converts automatically from your currency."}`;
+
+    const amountLabel = lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : lang === "es" ? "Monto" : lang === "de" ? "Betrag" : "Amount";
+    const pickMethodText = lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : lang === "es" ? "Selecciona el método de pago:" : lang === "de" ? "Zahlungsmethode wählen:" : "Select payment method:";
+    const tipText = lang === "uk" ? "Сума в гривнях (UAH). Ваш банк автоматично конвертує з вашої валюти." : lang === "ru" ? "Сумма в гривнах (UAH). Ваш банк автоматически конвертирует из вашей валюты." : lang === "es" ? "Monto en UAH. Tu banco convierte automáticamente desde tu moneda." : lang === "de" ? "Betrag in UAH. Deine Bank rechnet automatisch um." : "Amount in UAH. Your bank converts automatically from your currency.";
+
+    const text =
+      `${pe("card")} <b>${escHtml(tier)}</b>\n\n` +
+      `${pe("money")} ${escHtml(amountLabel)}: <b>${uahPrices[tier]} UAH</b> (~$${usdPrices[tier]} USD)\n\n` +
+      `${pe("rocket")} ${escHtml(pickMethodText)}\n\n` +
+      `${pe("bulb")} <i>${escHtml(tipText)}</i>`;
     
     const keyboard = Markup.inlineKeyboard([
       [cb(`⭐ Telegram Stars (${starPrices[tier]} ⭐)`, `bot_pay_method_${tier}_stars`, "primary", E.star)],
       [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
       [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
-      [cb((lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
+      [cb((lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código promo" : lang === "de" ? "Promo-Code" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
       [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
     ]);
     
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
@@ -2974,7 +2984,6 @@ ${faqText}`;
     const lang = await getLang(tgId);
     
     const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
-    const methodName = "💳 Google Pay / Apple Pay";
     
     try {
       const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/payments/monopay/bot-create`, {
@@ -2992,7 +3001,13 @@ ${faqText}`;
       
       const data = await response.json();
       if (response.ok && data.pageUrl) {
-        const text = `${methodName}\n\n${lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : "Amount"}: ${uahPrices[tier]} UAH\n\n${lang === "uk" ? "Натисніть кнопку нижче для оплати:" : lang === "ru" ? "Нажмите кнопку ниже для оплаты:" : "Click the button below to pay:"}`;
+        const methodName = lang === "uk" ? "Google Pay / Apple Pay" : lang === "ru" ? "Google Pay / Apple Pay" : "Google Pay / Apple Pay";
+        const amountLabel = lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : lang === "es" ? "Monto" : lang === "de" ? "Betrag" : "Amount";
+        const clickText = lang === "uk" ? "Натисніть кнопку нижче для оплати:" : lang === "ru" ? "Нажмите кнопку ниже для оплаты:" : lang === "es" ? "Pulsa el botón para pagar:" : lang === "de" ? "Tippe auf den Button zum Bezahlen:" : "Click the button below to pay:";
+        const text =
+          `${pe("card")} <b>${escHtml(methodName)}</b>\n\n` +
+          `${pe("money")} ${escHtml(amountLabel)}: <b>${uahPrices[tier]} UAH</b>\n\n` +
+          `${pe("rocket")} ${escHtml(clickText)}`;
         
         const keyboard = Markup.inlineKeyboard([
           [urlS(`💳 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} ${uahPrices[tier]} UAH`, data.pageUrl, "success", E.money)],
@@ -3001,9 +3016,9 @@ ${faqText}`;
         ]);
         
         try {
-          await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+          await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
         } catch {
-          await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+          await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
         }
       } else {
         const errorText = lang === "uk" ? "❌ Помилка створення платежу. Спробуйте інший спосіб оплати." : lang === "ru" ? "❌ Ошибка создания платежа. Попробуйте другой способ оплаты." : "❌ Payment creation failed. Try another payment method.";
@@ -3037,14 +3052,14 @@ ${faqText}`;
                             "\u2705 Payment confirmed! Your plan has been upgraded. Receipt sent above.";
         await ctx.answerCbQuery(successText, { show_alert: true });
         
-        const doneText = lang === "uk" ? "\u2705 *\u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E!*\n\n\u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u043D\u043E." :
-                         lang === "ru" ? "\u2705 *\u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!*\n\n\u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D \u0430\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438." :
-                         "\u2705 *Payment confirmed!*\n\nYour plan has been upgraded automatically.";
+        const doneTitle = lang === "uk" ? "Оплату підтверджено!" : lang === "ru" ? "Оплата подтверждена!" : lang === "es" ? "¡Pago confirmado!" : lang === "de" ? "Zahlung bestätigt!" : "Payment confirmed!";
+        const doneSub = lang === "uk" ? "Ваш тариф оновлено автоматично." : lang === "ru" ? "Ваш тариф обновлён автоматически." : lang === "es" ? "Tu plan se ha actualizado automáticamente." : lang === "de" ? "Dein Tarif wurde automatisch aktualisiert." : "Your plan has been upgraded automatically.";
+        const doneText = `${pe("check")} <b>${escHtml(doneTitle)}</b>\n\n${pe("rocket_up")} ${escHtml(doneSub)}`;
         const keyboard = Markup.inlineKeyboard([
           [cb("\u{1F3E0} " + (lang === "uk" ? "\u041C\u0435\u043D\u044E" : lang === "ru" ? "\u041C\u0435\u043D\u044E" : "Menu"), "dashboard", "primary", E.home)]
         ]);
         try {
-          await ctx.editMessageText(doneText, { parse_mode: "Markdown", ...keyboard });
+          await ctx.editMessageText(doneText, { parse_mode: "HTML", ...keyboard });
         } catch { }
       } else if (data.status === "expired" || data.status === "failure") {
         const failText = lang === "uk" ? "\u274C \u041F\u043B\u0430\u0442\u0456\u0436 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E \u0430\u0431\u043E \u0447\u0430\u0441 \u043C\u0438\u043D\u0443\u0432. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437." :
@@ -3138,13 +3153,18 @@ ${faqText}`;
       const invoice = invoiceData.result;
       const payUrl = invoice.bot_invoice_url || invoice.mini_app_invoice_url || invoice.web_app_invoice_url;
 
-      const texts: Record<string, string> = {
-        uk: `💎 *Crypto Pay — ${tier}*\n\n💰 Сума: *$${amount} USD*\n⏱ Час на оплату: 10 хв\n\n✅ Після оплати тариф активується автоматично!\n\nНатисніть кнопку нижче для оплати:`,
-        ru: `💎 *Crypto Pay — ${tier}*\n\n💰 Сумма: *$${amount} USD*\n⏱ Время на оплату: 10 мин\n\n✅ После оплаты тариф активируется автоматически!\n\nНажмите кнопку ниже для оплаты:`,
-        en: `💎 *Crypto Pay — ${tier}*\n\n💰 Amount: *$${amount} USD*\n⏱ Time to pay: 10 min\n\n✅ Your plan will be activated automatically after payment!\n\nClick the button below to pay:`,
-        es: `💎 *Crypto Pay — ${tier}*\n\n💰 Monto: *$${amount} USD*\n⏱ Tiempo: 10 min\n\n✅ ¡Tu plan se activará automáticamente después del pago!\n\nHaz clic en el botón de abajo para pagar:`,
-        de: `💎 *Crypto Pay — ${tier}*\n\n💰 Betrag: *$${amount} USD*\n⏱ Zahlungsfrist: 10 Min\n\n✅ Ihr Tarif wird nach der Zahlung automatisch aktiviert!\n\nKlicken Sie auf den Button unten:`,
-      };
+      const amountLabel = lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : lang === "es" ? "Monto" : lang === "de" ? "Betrag" : "Amount";
+      const timeLabel = lang === "uk" ? "Час на оплату" : lang === "ru" ? "Время на оплату" : lang === "es" ? "Tiempo" : lang === "de" ? "Zahlungsfrist" : "Time to pay";
+      const minStr = lang === "uk" ? "хв" : lang === "ru" ? "мин" : lang === "de" ? "Min" : "min";
+      const autoActivateText = lang === "uk" ? "Після оплати тариф активується автоматично!" : lang === "ru" ? "После оплаты тариф активируется автоматически!" : lang === "es" ? "¡Tu plan se activará automáticamente después del pago!" : lang === "de" ? "Dein Tarif wird nach der Zahlung automatisch aktiviert!" : "Your plan will be activated automatically after payment!";
+      const clickPayText = lang === "uk" ? "Натисніть кнопку нижче для оплати:" : lang === "ru" ? "Нажмите кнопку ниже для оплаты:" : lang === "es" ? "Haz clic en el botón de abajo para pagar:" : lang === "de" ? "Klicken Sie auf den Button unten:" : "Click the button below to pay:";
+
+      const cryptoText =
+        `${pe("diamond")} <b>Crypto Pay — ${escHtml(tier)}</b>\n\n` +
+        `${pe("money")} ${escHtml(amountLabel)}: <b>$${amount} USD</b>\n` +
+        `${pe("zap")} ${escHtml(timeLabel)}: 10 ${escHtml(minStr)}\n\n` +
+        `${pe("check")} ${escHtml(autoActivateText)}\n\n` +
+        `${pe("rocket")} ${escHtml(clickPayText)}`;
 
       const keyboard = Markup.inlineKeyboard([
         [Markup.button.url(`💎 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} $${amount}`, payUrl)],
@@ -3152,9 +3172,9 @@ ${faqText}`;
       ]);
 
       try {
-        await ctx.editMessageText(texts[lang] || texts["en"], { parse_mode: "Markdown", ...keyboard });
+        await ctx.editMessageText(cryptoText, { parse_mode: "HTML", ...keyboard });
       } catch {
-        await ctx.reply(texts[lang] || texts["en"], { parse_mode: "Markdown", ...keyboard });
+        await ctx.reply(cryptoText, { parse_mode: "HTML", ...keyboard });
       }
     } catch (err) {
       console.error("Bot Crypto Pay error:", err);
@@ -3433,7 +3453,7 @@ ${faqText}`;
   // ==================== VPN ====================
   function vpnT(lang: Language, key: string): string {
     const dict: Record<string, Record<string, string>> = {
-      title: { uk: "🛡 *DARKSHARE VPN*", ru: "🛡 *DARKSHARE VPN*", en: "🛡 *DARKSHARE VPN*", es: "🛡 *DARKSHARE VPN*", de: "🛡 *DARKSHARE VPN*" },
+      title: { uk: "DARKSHARE VPN", ru: "DARKSHARE VPN", en: "DARKSHARE VPN", es: "DARKSHARE VPN", de: "DARKSHARE VPN" },
       tagline: {
         uk: "WireGuard · 0 логів · ~5 локацій",
         ru: "WireGuard · 0 логов · ~5 локаций",
@@ -3442,11 +3462,11 @@ ${faqText}`;
         de: "WireGuard · keine Logs · ~5 Standorte",
       },
       proRequired: {
-        uk: "🔒 *VPN доступний на тарифах PRO / ENTERPRISE / GROUPS*\n\nОтримай WireGuard-конфіг для до 3-х пристроїв за $35/міс.\nПромокод *DARKNEU* — мінус 50%.",
-        ru: "🔒 *VPN доступен на тарифах PRO / ENTERPRISE / GROUPS*\n\nПолучи WireGuard-конфиг для 3-х устройств за $35/мес.\nПромокод *DARKNEU* — минус 50%.",
-        en: "🔒 *VPN is available on PRO / ENTERPRISE / GROUPS*\n\nGet a WireGuard config for up to 3 devices for $35/mo.\nUse promo *DARKNEU* — 50% off.",
-        es: "🔒 *VPN disponible en PRO / ENTERPRISE / GROUPS*\n\nObtén configuración WireGuard para hasta 3 dispositivos por $35/mes.\nPromo *DARKNEU* — 50% off.",
-        de: "🔒 *VPN ist in PRO / ENTERPRISE / GROUPS verfügbar*\n\nWireGuard-Konfiguration für bis zu 3 Geräte für $35/Monat.\nPromo *DARKNEU* — 50% Rabatt.",
+        uk: "VPN доступний на тарифах PRO / ENTERPRISE / GROUPS\n\nОтримай WireGuard-конфіг для до 3-х пристроїв за $35/міс.\nПромокод DARKNEU — мінус 50%.",
+        ru: "VPN доступен на тарифах PRO / ENTERPRISE / GROUPS\n\nПолучи WireGuard-конфиг для 3-х устройств за $35/мес.\nПромокод DARKNEU — минус 50%.",
+        en: "VPN is available on PRO / ENTERPRISE / GROUPS\n\nGet a WireGuard config for up to 3 devices for $35/mo.\nUse promo DARKNEU — 50% off.",
+        es: "VPN disponible en PRO / ENTERPRISE / GROUPS\n\nObtén configuración WireGuard para hasta 3 dispositivos por $35/mes.\nPromo DARKNEU — 50% off.",
+        de: "VPN ist in PRO / ENTERPRISE / GROUPS verfügbar\n\nWireGuard-Konfiguration für bis zu 3 Geräte für $35/Monat.\nPromo DARKNEU — 50% Rabatt.",
       },
       pickServer: { uk: "Обери локацію:", ru: "Выбери локацию:", en: "Pick a location:", es: "Elige ubicación:", de: "Standort wählen:" },
       yourPeers: { uk: "Твої активні підключення:", ru: "Твои активные подключения:", en: "Your active connections:", es: "Tus conexiones activas:", de: "Deine aktiven Verbindungen:" },
@@ -3471,20 +3491,20 @@ ${faqText}`;
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     if (!user) {
-      const text = `${vpnT(lang, "title")}\n\n${vpnT(lang, "tagline")}\n\n${vpnT(lang, "proRequired")}`;
+      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${escHtml(vpnT(lang, "tagline"))}\n\n${pe("warning")} ${escHtml(vpnT(lang, "proRequired"))}`;
       const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]]);
-      return ctx.reply(text, { parse_mode: "Markdown", ...kb });
+      return ctx.reply(text, { parse_mode: "HTML", ...kb });
     }
     const tier = (user.tier || "FREE").toUpperCase();
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
     if (!isProTier(tier)) {
-      const text = `${vpnT(lang, "title")}\n\n${vpnT(lang, "tagline")}\n\n${vpnT(lang, "proRequired")}`;
+      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${escHtml(vpnT(lang, "tagline"))}\n\n${pe("warning")} ${escHtml(vpnT(lang, "proRequired"))}`;
       const kb = Markup.inlineKeyboard([
         [urlS(vpnT(lang, "buyPro"), `${webUrl}/pricing?plan=PRO&code=DARKNEU&src=bot_vpn`, "success", E.diamond)],
         [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
       ]);
-      try { await ctx.editMessageText(text, { parse_mode: "Markdown", ...kb }); } catch { await ctx.reply(text, { parse_mode: "Markdown", ...kb }); }
+      try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
       return;
     }
 
@@ -3493,20 +3513,20 @@ ${faqText}`;
       storage.listUserVpnPeers(user.id),
     ]);
 
-    let text = `${vpnT(lang, "title")}\n${vpnT(lang, "tagline")}\n\n`;
+    let text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n${escHtml(vpnT(lang, "tagline"))}\n\n`;
     if (peers.length > 0) {
-      text += `*${vpnT(lang, "yourPeers")}*\n`;
+      text += `${pe("eye")} <b>${escHtml(vpnT(lang, "yourPeers"))}</b>\n`;
       peers.forEach((p, i) => {
-        text += `${i + 1}. ${p.serverFlag} ${escMd(p.serverRegion)} \\(${escMd(p.allowedIp)}\\)\n`;
+        text += `${i + 1}. ${p.serverFlag} ${escHtml(p.serverRegion)} (<code>${escHtml(p.allowedIp)}</code>)\n`;
       });
       text += "\n";
     } else {
-      text += `_${vpnT(lang, "noPeers")}_\n\n`;
+      text += `<i>${escHtml(vpnT(lang, "noPeers"))}</i>\n\n`;
     }
     if (servers.length === 0) {
-      text += `_${vpnT(lang, "noServers")}_`;
+      text += `<i>${escHtml(vpnT(lang, "noServers"))}</i>`;
     } else {
-      text += `*${vpnT(lang, "pickServer")}*`;
+      text += `${pe("globe")} <b>${escHtml(vpnT(lang, "pickServer"))}</b>`;
     }
 
     const rows: any[][] = [];
@@ -3529,7 +3549,7 @@ ${faqText}`;
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
-    try { await ctx.editMessageText(text, { parse_mode: "Markdown", ...kb }); } catch { await ctx.reply(text, { parse_mode: "Markdown", ...kb }); }
+    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
   }
 
   bot.command("vpn", async (ctx) => {
@@ -3616,15 +3636,15 @@ ${faqText}`;
     if (peers.length === 0) {
       return showVpnMenu(ctx, tgId, true);
     }
-    let text = `${vpnT(lang, "title")}\n\n*${vpnT(lang, "yourPeers")}*\n\n`;
+    let text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${pe("eye")} <b>${escHtml(vpnT(lang, "yourPeers"))}</b>\n\n`;
     const rows: any[][] = [];
     peers.forEach((p, i) => {
-      text += `${i + 1}\\. ${p.serverFlag} ${escMd(p.serverRegion)}\n   \`${escMd(p.allowedIp)}\`\n\n`;
-      rows.push([cb(`${vpnT(lang, "revoke")} #${i + 1} · ${p.serverFlag}`, `vpn_revoke_${p.id}`, "danger", "")]);
+      text += `${i + 1}. ${p.serverFlag} ${escHtml(p.serverRegion)}\n   <code>${escHtml(p.allowedIp)}</code>\n\n`;
+      rows.push([cb(`${vpnT(lang, "revoke")} #${i + 1} · ${p.serverFlag}`, `vpn_revoke_${p.id}`, "danger", E.trash)]);
     });
-    rows.push([cb(vpnT(lang, "back"), "vpn_menu", "primary", "")]);
+    rows.push([cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)]);
     const kb = Markup.inlineKeyboard(rows);
-    try { await ctx.editMessageText(text, { parse_mode: "Markdown", ...kb }); } catch { await ctx.reply(text, { parse_mode: "Markdown", ...kb }); }
+    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
   });
 
   bot.action(/^vpn_revoke_(\d+)$/, async (ctx) => {
@@ -3743,9 +3763,9 @@ ${faqText}`;
       .slice(0, 3);
     
     const moduleEmojiSlots: Record<string, string> = {
-      ip: pe("globe"), wallet: pe("money"), phone: pe("mobile"), email: pe("envelope"), domain: pe("briefcase"),
-      url: pe("link"), cve: pe("bug"), hash: pe("key"), username: pe("user"), card: pe("card"),
-      iot: pe("zap"), cloud: pe("globe")
+      ip: pe("globe"), wallet: pe("diamond"), phone: pe("mobile"), email: pe("envelope"), domain: pe("globe"),
+      url: pe("link"), cve: pe("bug"), hash: pe("search"), username: pe("user"), card: pe("card"),
+      iot: pe("cog"), cloud: pe("globe")
     };
     
     const topTypesText = topCheckTypes.length > 0
@@ -3784,14 +3804,14 @@ ${pe("scroll")} <b>${escHtml(lang === "uk" ? "Профіль" : lang === "ru" ? 
 ├ ${pe("user")} @${escHtml(username)}
 ├ ${pe(tierSlot)} ${escHtml(lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan")}: <b>${escHtml(tierName)}</b>
 ├ ${pe("pin")} ${escHtml(createdAt)}
-└ ${pe("gift")} Ref: <code>${escHtml(refCode)}</code>
+└ ${pe("link")} Ref: <code>${escHtml(refCode)}</code>
 
 ${pe("chart")} <b>${escHtml(lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics")}</b>
 ├ ${pe("search")} ${escHtml(lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks")}: <b>${totalChecks}</b>
 ├ ${pe("eye")} ${escHtml(lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors")}: <b>${activeMonitors}</b>
 ├ ${pe("people")} ${escHtml(lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals")}: <b>${referralCount}</b>
 ├ ${pe("fire")} ${escHtml(lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak")}: <b>${streakDays}</b> ${escHtml(lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days")}
-└ ${pe("card")} ${escHtml(lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left")}: <b>${user.requestsLeft ?? 3}</b>
+└ ${pe("zap")} ${escHtml(lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left")}: <b>${user.requestsLeft ?? 3}</b>
 
 ${pe("trophy")} <b>${escHtml(lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks")}</b>
 ${topTypesText}
@@ -3800,7 +3820,7 @@ ${pe("trophy")} <b>${escHtml(lang === "uk" ? "Досягнення" : lang === "
 ${riskHunterDone} ${pe("trophy")} Risk Hunter — <b>${riskHunterProgress}/10</b>
 ${scamSlayerDone} ${pe("shield")} Scam Slayer — <b>${scamSlayerProgress}/50</b>
 ${streakMasterDone} ${pe("fire")} Streak Master — <b>${streakMasterProgress}/7</b>
-${referralKingDone} ${pe("people")} Referral King — <b>${referralKingProgress}/5</b>
+${referralKingDone} ${pe("crown")} Referral King — <b>${referralKingProgress}/5</b>
 
 ${pe("diamond")} <b>${escHtml(lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits")}</b>
 └ ${escHtml(tierBenefits)}
@@ -3858,18 +3878,18 @@ ${pe("globe")} <b>${escHtml(lang === "uk" ? "Мова" : lang === "ru" ? "Язы
       checkTypeCounts[type] = (checkTypeCounts[type] || 0) + 1;
     }
     
-    const moduleEmojis: Record<string, string> = {
-      ip: "🌐", wallet: "💰", phone: "📱", email: "📧", domain: "🏢",
-      url: "🔗", cve: "🔓", hash: "🔢", username: "👤", card: "💳",
-      iot: "📡", cloud: "☁️"
+    const detailModuleEmojis: Record<string, string> = {
+      ip: pe("globe"), wallet: pe("diamond"), phone: pe("mobile"), email: pe("envelope"), domain: pe("globe"),
+      url: pe("link"), cve: pe("bug"), hash: pe("search"), username: pe("user"), card: pe("card"),
+      iot: pe("cog"), cloud: pe("globe")
     };
     
     const allTypesText = Object.entries(checkTypeCounts)
       .sort((a, b) => b[1] - a[1])
-      .map(([type, count]) => `├ ${moduleEmojis[type] || "📊"} ${type}: ${count}`)
+      .map(([type, count]) => `├ ${detailModuleEmojis[type] || pe("chart")} ${escHtml(type)}: <b>${count}</b>`)
       .join("\n") || "├ —";
     
-    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const detailTierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
     const detailTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, detailUserLimit);
@@ -3878,38 +3898,31 @@ ${pe("globe")} <b>${escHtml(lang === "uk" ? "Мова" : lang === "ru" ? "Язы
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const escapedUsername = user.username ? escMd(user.username) : "—";
+    const escapedUsername = user.username ? escHtml(user.username) : "—";
     
-    const text = `📊 ${lang === "uk" ? "ДЕТАЛЬНА СТАТИСТИКА" : lang === "ru" ? "ПОДРОБНАЯ СТАТИСТИКА" : "DETAILED STATISTICS"}
-━━━━━━━━━━━━━━━━━━━━
+    const text = `${pe("chart")} <b>${escHtml(lang === "uk" ? "ДЕТАЛЬНА СТАТИСТИКА" : lang === "ru" ? "ПОДРОБНАЯ СТАТИСТИКА" : "DETAILED STATISTICS")}</b>
 
-👤 ${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}:
-├ ID: ${user.tgId}
-├ Username: @${escapedUsername}
-├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier"}: ${user.tier || "FREE"}
-├ 📅 ${lang === "uk" ? "Реєстрація" : lang === "ru" ? "Регистрация" : "Registered"}: ${joinDate}
-└ 🕐 ${lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last active"}: ${lastActive}
+${pe("user")} <b>${escHtml(lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile")}</b>
+├ ${pe("pin")} ID: <code>${escHtml(user.tgId)}</code>
+├ ${pe("user")} @${escapedUsername}
+├ ${pe(detailTierSlot)} ${escHtml(lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Tier")}: <b>${escHtml(user.tier || "FREE")}</b>
+├ ${pe("pin")} ${escHtml(lang === "uk" ? "Реєстрація" : lang === "ru" ? "Регистрация" : "Registered")}: <b>${escHtml(joinDate)}</b>
+└ ${pe("zap")} ${escHtml(lang === "uk" ? "Остання активність" : lang === "ru" ? "Последняя активность" : "Last active")}: <b>${escHtml(lastActive)}</b>
 
-━━━━━━━━━━━━━━━━━━━━
+${pe("chart")} <b>${escHtml(lang === "uk" ? "Активність" : lang === "ru" ? "Активность" : "Activity")}</b>
+├ ${pe("search")} ${escHtml(lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks")}: <b>${reports.length}</b>
+├ ${pe("eye")} ${escHtml(lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors")}: <b>${watches.length}</b>
+├ ${pe("people")} ${escHtml(lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals")}: <b>${referralStats.count}</b>
+└ ${pe("fire")} ${escHtml(lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak")}: <b>${user.streakDays || 0}</b> ${escHtml(lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days")}
 
-📈 ${lang === "uk" ? "Активність" : lang === "ru" ? "Активность" : "Activity"}:
-├ 🔍 ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: ${reports.length}
-├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: ${watches.length}
-├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: ${referralStats.count}
-└ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: ${user.streakDays || 0} ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-
-━━━━━━━━━━━━━━━━━━━━
-
-🎯 ${lang === "uk" ? "Перевірки по типах" : lang === "ru" ? "Проверки по типам" : "Checks by type"}:
+${pe("trophy")} <b>${escHtml(lang === "uk" ? "Перевірки по типах" : lang === "ru" ? "Проверки по типам" : "Checks by type")}</b>
 ${allTypesText}
 
-━━━━━━━━━━━━━━━━━━━━
-
-📊 ${lang === "uk" ? "Прогрес" : lang === "ru" ? "Прогресс" : "Progress"}:
-├ 💳 ${lang === "uk" ? "Запити" : lang === "ru" ? "Запросы" : "Requests"}: ${user.requestsLeft || 0}/${detailUserLimit}
-│   ${requestsBar}
-└ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: ${user.streakDays || 0}/30 ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-    ${streakBar}`;
+${pe("rocket_up")} <b>${escHtml(lang === "uk" ? "Прогрес" : lang === "ru" ? "Прогресс" : "Progress")}</b>
+├ ${pe("zap")} ${escHtml(lang === "uk" ? "Запити" : lang === "ru" ? "Запросы" : "Requests")}: <b>${user.requestsLeft || 0}/${detailUserLimit}</b>
+│   <code>${escHtml(requestsBar)}</code>
+└ ${pe("fire")} ${escHtml(lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak")}: <b>${user.streakDays || 0}/30</b> ${escHtml(lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days")}
+    <code>${escHtml(streakBar)}</code>`;
 
     const keyboard = Markup.inlineKeyboard([
       [cb((lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile", "danger", E.back)],
@@ -3917,11 +3930,11 @@ ${allTypesText}
     ]);
     
     try {
-      await ctx.editMessageText(text, { ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch (err: any) {
       if (!err.message?.includes("message is not modified")) {
         try {
-          await ctx.reply(text, { ...keyboard });
+          await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
         } catch {}
       }
     }
@@ -3938,7 +3951,7 @@ ${allTypesText}
     }
     
     const refCode = user.refCode || "—";
-    const botUsername = "DarkShare1Bot";
+    const botUsername = (await bot.telegram.getMe()).username || "DarkShare1Bot";
     const refLink = `t.me/${botUsername}?start=ref_${refCode}`;
     
     let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
@@ -3946,55 +3959,64 @@ ${allTypesText}
       referralStats = await storage.getReferralStats(user.id);
     } catch (e) {}
 
-    const text = `🎁 *${lang === "uk" ? "РЕФЕРАЛЬНА ПРОГРАМА" : lang === "ru" ? "РЕФЕРАЛЬНАЯ ПРОГРАММА" : "REFERRAL PROGRAM"}*
-━━━━━━━━━━━━━━━━━━━━
+    const text = `${pe("gift")} <b>${escHtml(lang === "uk" ? "РЕФЕРАЛЬНА ПРОГРАМА" : lang === "ru" ? "РЕФЕРАЛЬНАЯ ПРОГРАММА" : "REFERRAL PROGRAM")}</b>
 
-📣 *${lang === "uk" ? "Твоє посилання" : lang === "ru" ? "Твоя ссылка" : "Your link"}:*
-\`${refLink}\`
+${pe("link")} <b>${escHtml(lang === "uk" ? "Твоє посилання" : lang === "ru" ? "Твоя ссылка" : "Your link")}:</b>
+<code>${escHtml(refLink)}</code>
 
-🎫 *${lang === "uk" ? "Твій код" : lang === "ru" ? "Твой код" : "Your code"}:*
-\`${refCode}\`
+${pe("key")} <b>${escHtml(lang === "uk" ? "Твій код" : lang === "ru" ? "Твой код" : "Your code")}:</b>
+<code>${escHtml(refCode)}</code>
 
-━━━━━━━━━━━━━━━━━━━━
+${pe("chart")} <b>${escHtml(lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics")}:</b>
+├ ${pe("people")} ${escHtml(lang === "uk" ? "Запрошено" : lang === "ru" ? "Приглашено" : "Invited")}: <b>${referralStats.count}</b>
+└ ${pe("trophy")} ${escHtml(lang === "uk" ? "До знижки -20%" : lang === "ru" ? "До скидки -20%" : "To -20% discount")}: <b>${Math.max(0, 5 - referralStats.count)}</b> ${escHtml(lang === "uk" ? "рефералів" : lang === "ru" ? "рефералов" : "referrals")}
 
-📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}:*
-├ 👥 ${lang === "uk" ? "Запрошено" : lang === "ru" ? "Приглашено" : "Invited"}: *${referralStats.count}*
-└ 🎯 ${lang === "uk" ? "До знижки -20%" : lang === "ru" ? "До скидки -20%" : "To -20% discount"}: ${Math.max(0, 5 - referralStats.count)} ${lang === "uk" ? "рефералів" : lang === "ru" ? "рефералов" : "referrals"}
+${pe("gift")} <b>${escHtml(lang === "uk" ? "Бонуси" : lang === "ru" ? "Бонусы" : "Bonuses")}:</b>
+├ ${pe("zap")} ${escHtml(lang === "uk" ? "Ти отримуєш" : lang === "ru" ? "Ты получаешь" : "You get")}: <b>+2</b> ${escHtml(lang === "uk" ? "запити" : lang === "ru" ? "запроса" : "requests")}
+└ ${pe("rocket_up")} ${escHtml(lang === "uk" ? "Друг отримує" : lang === "ru" ? "Друг получает" : "Friend gets")}: <b>+5</b> ${escHtml(lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests")}
 
-━━━━━━━━━━━━━━━━━━━━
-
-🎁 *${lang === "uk" ? "Бонуси" : lang === "ru" ? "Бонусы" : "Bonuses"}:*
-├ ${lang === "uk" ? "Ти отримуєш" : lang === "ru" ? "Ты получаешь" : "You get"}: +2 ${lang === "uk" ? "запити" : lang === "ru" ? "запроса" : "requests"}
-└ ${lang === "uk" ? "Друг отримує" : lang === "ru" ? "Друг получает" : "Friend gets"}: +5 ${lang === "uk" ? "запитів" : lang === "ru" ? "запросов" : "requests"}
-
-━━━━━━━━━━━━━━━━━━━━
-
-💡 ${lang === "uk" ? "Поділись посиланням з друзями!" : lang === "ru" ? "Поделись ссылкой с друзьями!" : "Share the link with friends!"}`;
+${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням з друзями!" : lang === "ru" ? "Поделись ссылкой с друзьями!" : "Share the link with friends!")}`;
 
     const keyboard = Markup.inlineKeyboard([
-      [urlS((lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : "Share"), `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🌑 DARKSHARE - OSINT Security Bot")}`, "success", E.link)],
+      [urlS((lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : "Share"), `https://t.me/share/url?url=${encodeURIComponent("https://" + refLink)}&text=${encodeURIComponent("🌑 DARKSHARE - OSINT Security Bot")}`, "success", E.link)],
       [cb((lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"), "profile", "danger", E.back)],
       [cb((lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]
     ]);
     
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
   bot.action("achievements", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    
-    const text = `${t(lang, "achievements.title")}\n\n${t(lang, "achievements.riskHunter", { count: "0" })}\n${t(lang, "achievements.scamSlayer", { count: "0" })}\n${t(lang, "achievements.streakMaster", { count: "0" })}\n${t(lang, "achievements.referralKing", { count: "0" })}\n\n${t(lang, "achievements.unlock")}`;
+
+    const titleText = lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : lang === "es" ? "Logros" : lang === "de" ? "Erfolge" : "Achievements";
+    const riskHunterName = lang === "uk" ? "Мисливець за ризиками" : lang === "ru" ? "Охотник за рисками" : lang === "es" ? "Cazador de Riesgos" : lang === "de" ? "Risiko-Jäger" : "Risk Hunter";
+    const scamSlayerName = lang === "uk" ? "Знищувач скаму" : lang === "ru" ? "Истребитель скама" : lang === "es" ? "Cazador de Estafas" : lang === "de" ? "Scam-Schlächter" : "Scam Slayer";
+    const streakMasterName = lang === "uk" ? "Майстер серій" : lang === "ru" ? "Мастер серий" : lang === "es" ? "Maestro de Rachas" : lang === "de" ? "Serien-Meister" : "Streak Master";
+    const referralKingName = lang === "uk" ? "Король рефералів" : lang === "ru" ? "Король рефералов" : lang === "es" ? "Rey de Referidos" : lang === "de" ? "Empfehlungs-König" : "Referral King";
+    const checksLabel = lang === "uk" ? "перевірок" : lang === "ru" ? "проверок" : lang === "es" ? "comprob." : lang === "de" ? "Prüfungen" : "checks";
+    const daysRowLabel = lang === "uk" ? "днів поспіль" : lang === "ru" ? "дней подряд" : lang === "es" ? "días seguidos" : lang === "de" ? "Tage in Folge" : "days streak";
+    const refsLabel = lang === "uk" ? "рефералів" : lang === "ru" ? "рефералов" : lang === "es" ? "referidos" : lang === "de" ? "Empfehlungen" : "referrals";
+    const unlockText = lang === "uk" ? "Розблокуй бейджі та отримуй бонусні запити!" : lang === "ru" ? "Разблокируй бейджи и получай бонусные запросы!" : lang === "es" ? "¡Desbloquea insignias y consigue solicitudes bonus!" : lang === "de" ? "Schalte Abzeichen frei und hol dir Bonus-Anfragen!" : "Unlock badges and get bonus requests!";
+
+    const text =
+      `${pe("game")} <b>${escHtml(titleText)}</b>\n\n` +
+      `${pe("trophy")} <b>${escHtml(riskHunterName)}</b> — 10 ${escHtml(checksLabel)} (0/10)\n` +
+      `${pe("shield")} <b>${escHtml(scamSlayerName)}</b> — 50 ${escHtml(checksLabel)} (0/50)\n` +
+      `${pe("fire")} <b>${escHtml(streakMasterName)}</b> — 7 ${escHtml(daysRowLabel)} (0/7)\n` +
+      `${pe("crown")} <b>${escHtml(referralKingName)}</b> — 5 ${escHtml(refsLabel)} (0/5)\n\n` +
+      `${pe("gift")} <i>${escHtml(unlockText)}</i>`;
 
     const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
@@ -4024,22 +4046,16 @@ ${allTypesText}
         return dt.toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US", { dateStyle: "short", timeStyle: "short" });
       } catch { return ""; }
     };
-    const riskEmoji = (lvl: string) => lvl === "critical" ? "🔴" : lvl === "high" ? "🟠" : lvl === "medium" ? "🟡" : "🟢";
+    const riskPe = (lvl: string) => lvl === "critical" ? pe("ghost") : lvl === "high" ? pe("high_risk") : lvl === "medium" ? pe("med_risk") : pe("low_risk");
 
-    const heading = `${t(lang, "history.title")}\n${t(lang, "history.description")}`;
-    const stats = lang === "uk"
-      ? `\n\n📋 Звітів: *${reports.length}* · 👁 Моніторинг: *${watches.length}*`
-      : lang === "ru"
-        ? `\n\n📋 Отчётов: *${reports.length}* · 👁 Мониторинг: *${watches.length}*`
-        : lang === "es"
-          ? `\n\n📋 Informes: *${reports.length}* · 👁 Monitoreo: *${watches.length}*`
-          : lang === "de"
-            ? `\n\n📋 Berichte: *${reports.length}* · 👁 Monitoring: *${watches.length}*`
-            : `\n\n📋 Reports: *${reports.length}* · 👁 Monitoring: *${watches.length}*`;
+    const heading = `${pe("scroll")} <b>${escHtml(t(lang, "history.title"))}</b>\n${escHtml(t(lang, "history.description"))}`;
+    const reportsLabel = lang === "uk" ? "Звітів" : lang === "ru" ? "Отчётов" : lang === "es" ? "Informes" : lang === "de" ? "Berichte" : "Reports";
+    const monitoringLabel = lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : lang === "es" ? "Monitoreo" : lang === "de" ? "Monitoring" : "Monitoring";
+    const stats = `\n\n${pe("scroll")} ${escHtml(reportsLabel)}: <b>${reports.length}</b> · ${pe("eye")} ${escHtml(monitoringLabel)}: <b>${watches.length}</b>`;
 
     let body: string;
     if (recent.length === 0) {
-      body = `\n\n${t(lang, "history.empty")}\n\n${t(lang, "history.addMonitor")}`;
+      body = `\n\n${escHtml(t(lang, "history.empty"))}\n\n${escHtml(t(lang, "history.addMonitor"))}`;
     } else {
       const recentLabel = lang === "uk" ? "Останні перевірки:" : lang === "ru" ? "Последние проверки:" : lang === "es" ? "Comprobaciones recientes:" : lang === "de" ? "Letzte Checks:" : "Recent checks:";
       const lines = recent.map((r: any, i: number) => {
@@ -4047,12 +4063,12 @@ ${allTypesText}
         const lvl = String(data.riskLevel || r.riskLevel || "low");
         const score = Number(data.riskScore ?? r.riskScore ?? 0);
         const rawTarget = String(data.target ?? r.target ?? r.verificationId ?? "—");
-        const safeTarget = rawTarget.replace(/[*_`\[\]]/g, "").slice(0, 36);
+        const safeTarget = rawTarget.replace(/[<>&"'`\[\]]/g, "").slice(0, 36);
         const date = fmtDate(r.generatedAt);
         const objType = (r.objectType || data.objectType || "").toString().toUpperCase();
-        return `${i + 1}. ${riskEmoji(lvl)} \`${safeTarget}\` · ${objType} · ${score}/100 · ${date}`;
+        return `${i + 1}. ${riskPe(lvl)} <code>${escHtml(safeTarget)}</code> · ${escHtml(objType)} · <b>${score}/100</b> · ${escHtml(date)}`;
       }).join("\n");
-      body = `\n\n*${recentLabel}*\n${lines}`;
+      body = `\n\n${pe("search")} <b>${escHtml(recentLabel)}</b>\n${lines}`;
     }
 
     const text = `${heading}${stats}${body}`;
@@ -4069,16 +4085,16 @@ ${allTypesText}
     const tgId = ctx.from!.id.toString();
     const { text, keyboard } = await buildHistoryView(tgId);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
   bot.command("history", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const { text, keyboard } = await buildHistoryView(tgId);
-    await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+    await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
   });
 
   bot.command("admin", async (ctx) => {
@@ -5915,53 +5931,7 @@ ${allTypesText}
     }
   });
 
-  // STATS COMMAND - персональна статистика
-  bot.command("stats", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const user = await storage.getUserByTgId(tgId);
-    const lang = getUserLang(user?.lang);
-    
-    if (!user) return;
-    
-    const reports = await storage.getReports(user.id);
-    const watches = await storage.getWatches(user.id);
-    const referralStats = await storage.getReferralStats(user.id);
-    
-    const typeCounts: Record<string, number> = {};
-    reports.forEach(r => {
-      typeCounts[r.objectType] = (typeCounts[r.objectType] || 0) + 1;
-    });
-    
-    const topTypes = Object.entries(typeCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
-    
-    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    
-    let text = `📊 *ВАША СТАТИСТИКА*\n\n`;
-    text += `${tierEmoji} *Тариф:* ${user.tier}\n`;
-    const myStatsTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
-    const myStatsUserLimit = myStatsTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
-    text += `🎯 *Запитів залишилось:* ${user.requestsLeft}/${myStatsUserLimit}\n`;
-    text += `🔥 *Серія днів:* ${user.streakDays}\n`;
-    text += `📈 *Всього перевірок:* ${reports.length}\n`;
-    text += `👁 *Активних моніторів:* ${watches.length}\n`;
-    text += `👥 *Рефералів:* ${referralStats.count}\n\n`;
-    
-    if (topTypes.length > 0) {
-      text += `*Топ перевірки:*\n`;
-      topTypes.forEach(([type, count], i) => {
-        text += `${i + 1}. ${type.toUpperCase()}: ${count}\n`;
-      });
-    }
-    
-    await ctx.reply(text, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [cb("Меню", "dashboard", "primary", E.home)]
-      ])
-    });
-  });
+  // STATS COMMAND - duplicate removed; the canonical HTML+pe() /stats handler lives earlier in this file (around line 1213).
 
   // SHARE REFERRAL COMMAND
   bot.command("ref", async (ctx) => {
@@ -5996,13 +5966,15 @@ ${allTypesText}
   const buildApiInfo = (lang: Language, opts?: { canGenerate?: boolean }) => {
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
-    const T: Record<string, { title: string; intro: string; auth: string; endpoints: string; example: string; tiers: string; webBtn: string; docsBtn: string; keyBtn: string; genBtn: string }> = {
+    const T: Record<string, { title: string; intro: string; authHead: string; authLine1: string; authLine2: string; endpoints: string; example: string; tiers: string; webBtn: string; docsBtn: string; keyBtn: string; genBtn: string }> = {
       uk: {
-        title: "🔌 *DARKSHARE API*",
+        title: "DARKSHARE API",
         intro: "Програмний доступ до OSINT-перевірок, моніторингу та звітів.",
-        auth: "*Автентифікація*\nЗаголовок: `Authorization: Bearer <ваш_API_ключ>`\nКлюч створюється у веб-кабінеті.",
-        endpoints: "*Основні ендпоінти*",
-        example: "*Приклад*",
+        authHead: "Автентифікація",
+        authLine1: "Заголовок:",
+        authLine2: "Ключ створюється у веб-кабінеті.",
+        endpoints: "Основні ендпоінти",
+        example: "Приклад",
         tiers: "Доступ: PRO ($9/міс) · ENTERPRISE ($30/міс) · GROUPS ($45/міс).",
         webBtn: "🌐 Відкрити сайт",
         docsBtn: "📄 Повна документація",
@@ -6010,11 +5982,13 @@ ${allTypesText}
         genBtn: "⚡ Згенерувати мій ключ",
       },
       ru: {
-        title: "🔌 *DARKSHARE API*",
+        title: "DARKSHARE API",
         intro: "Программный доступ к OSINT-проверкам, мониторингу и отчётам.",
-        auth: "*Аутентификация*\nЗаголовок: `Authorization: Bearer <ваш_API_ключ>`\nКлюч создаётся в веб-кабинете.",
-        endpoints: "*Основные эндпоинты*",
-        example: "*Пример*",
+        authHead: "Аутентификация",
+        authLine1: "Заголовок:",
+        authLine2: "Ключ создаётся в веб-кабинете.",
+        endpoints: "Основные эндпоинты",
+        example: "Пример",
         tiers: "Доступ: PRO ($9/мес) · ENTERPRISE ($30/мес) · GROUPS ($45/мес).",
         webBtn: "🌐 Открыть сайт",
         docsBtn: "📄 Полная документация",
@@ -6022,11 +5996,13 @@ ${allTypesText}
         genBtn: "⚡ Сгенерировать мой ключ",
       },
       es: {
-        title: "🔌 *DARKSHARE API*",
+        title: "DARKSHARE API",
         intro: "Acceso programático a comprobaciones OSINT, monitoreo e informes.",
-        auth: "*Autenticación*\nCabecera: `Authorization: Bearer <tu_clave_API>`\nLa clave se crea en el panel web.",
-        endpoints: "*Endpoints principales*",
-        example: "*Ejemplo*",
+        authHead: "Autenticación",
+        authLine1: "Cabecera:",
+        authLine2: "La clave se crea en el panel web.",
+        endpoints: "Endpoints principales",
+        example: "Ejemplo",
         tiers: "Acceso: PRO ($9/mes) · ENTERPRISE ($30/mes) · GROUPS ($45/mes).",
         webBtn: "🌐 Abrir sitio",
         docsBtn: "📄 Documentación completa",
@@ -6034,11 +6010,13 @@ ${allTypesText}
         genBtn: "⚡ Generar mi clave",
       },
       de: {
-        title: "🔌 *DARKSHARE API*",
+        title: "DARKSHARE API",
         intro: "Programmatischer Zugriff auf OSINT-Checks, Monitoring und Berichte.",
-        auth: "*Authentifizierung*\nHeader: `Authorization: Bearer <dein_API_Schlüssel>`\nSchlüssel wird im Web-Konto erstellt.",
-        endpoints: "*Hauptendpunkte*",
-        example: "*Beispiel*",
+        authHead: "Authentifizierung",
+        authLine1: "Header:",
+        authLine2: "Schlüssel wird im Web-Konto erstellt.",
+        endpoints: "Hauptendpunkte",
+        example: "Beispiel",
         tiers: "Zugang: PRO ($9/Mo) · ENTERPRISE ($30/Mo) · GROUPS ($45/Mo).",
         webBtn: "🌐 Website öffnen",
         docsBtn: "📄 Vollständige Doku",
@@ -6046,11 +6024,13 @@ ${allTypesText}
         genBtn: "⚡ Meinen Schlüssel erstellen",
       },
       en: {
-        title: "🔌 *DARKSHARE API*",
+        title: "DARKSHARE API",
         intro: "Programmatic access to OSINT checks, monitoring and reports.",
-        auth: "*Authentication*\nHeader: `Authorization: Bearer <your_API_key>`\nKey is generated in your web account.",
-        endpoints: "*Core endpoints*",
-        example: "*Example*",
+        authHead: "Authentication",
+        authLine1: "Header:",
+        authLine2: "Key is generated in your web account.",
+        endpoints: "Core endpoints",
+        example: "Example",
         tiers: "Access: PRO ($9/mo) · ENTERPRISE ($30/mo) · GROUPS ($45/mo).",
         webBtn: "🌐 Open website",
         docsBtn: "📄 Full docs",
@@ -6061,26 +6041,33 @@ ${allTypesText}
 
     const L = T[lang] || T.en;
     const endpointsBlock =
-      "`POST /api/check`\n   { type, target } → riskScore, findings\n" +
-      "`GET  /api/reports`\n   list of your reports\n" +
-      "`GET  /api/reports/:id`\n   full report\n" +
-      "`GET  /api/reports/:id/pdf`\n   PDF export\n" +
-      "`POST /api/bulk-check`\n   batch up to 100 targets\n" +
-      "`GET  /api/watches` · `POST /api/watches` · `DELETE /api/watches/:id`\n" +
-      "`GET  /api/quick-check?type=ip&target=8.8.8.8` (free, 3/day per IP)";
+      "<code>POST /api/check</code>\n" +
+      "   { type, target } → riskScore, findings\n" +
+      "<code>GET  /api/reports</code>\n" +
+      "   list of your reports\n" +
+      "<code>GET  /api/reports/:id</code>\n" +
+      "   full report\n" +
+      "<code>GET  /api/reports/:id/pdf</code>\n" +
+      "   PDF export\n" +
+      "<code>POST /api/bulk-check</code>\n" +
+      "   batch up to 100 targets\n" +
+      "<code>GET  /api/watches</code> · <code>POST /api/watches</code> · <code>DELETE /api/watches/:id</code>\n" +
+      "<code>GET  /api/quick-check?type=ip&amp;target=8.8.8.8</code> (free, 3/day per IP)";
     const exampleBlock =
-      "```\ncurl -X POST " + webUrl + "/api/check \\\n" +
+      "<pre>curl -X POST " + escHtml(webUrl) + "/api/check \\\n" +
       "  -H \"Authorization: Bearer $DS_KEY\" \\\n" +
       "  -H \"Content-Type: application/json\" \\\n" +
-      "  -d '{\"type\":\"ip\",\"target\":\"8.8.8.8\"}'\n```";
+      "  -d '{\"type\":\"ip\",\"target\":\"8.8.8.8\"}'</pre>";
 
     const text =
-      `${L.title}\n` +
-      `${L.intro}\n\n` +
-      `${L.auth}\n\n` +
-      `${L.endpoints}\n${endpointsBlock}\n\n` +
-      `${L.example}\n${exampleBlock}\n\n` +
-      `${L.tiers}`;
+      `${pe("link")} <b>${escHtml(L.title)}</b>\n` +
+      `${escHtml(L.intro)}\n\n` +
+      `${pe("key")} <b>${escHtml(L.authHead)}</b>\n` +
+      `${escHtml(L.authLine1)} <code>Authorization: Bearer &lt;API_KEY&gt;</code>\n` +
+      `${escHtml(L.authLine2)}\n\n` +
+      `${pe("cog")} <b>${escHtml(L.endpoints)}</b>\n${endpointsBlock}\n\n` +
+      `${pe("bulb")} <b>${escHtml(L.example)}</b>\n${exampleBlock}\n\n` +
+      `${pe("crown")} ${escHtml(L.tiers)}`;
 
     const buttons: any[][] = [];
     const lockHint: Record<string, string> = {
@@ -6105,7 +6092,7 @@ ${allTypesText}
     const lang = await getLang(tgId);
     const user = await storage.getUserByTgId(tgId);
     const { text, buttons } = buildApiInfo(lang, { canGenerate: isApiTier(user?.tier) });
-    await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+    await ctx.reply(text, { parse_mode: "HTML", ...Markup.inlineKeyboard(buttons) });
   });
 
   bot.action("open_api", async (ctx) => {
@@ -6115,9 +6102,9 @@ ${allTypesText}
     const user = await storage.getUserByTgId(tgId);
     const { text, buttons } = buildApiInfo(lang, { canGenerate: isApiTier(user?.tier) });
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...Markup.inlineKeyboard(buttons) });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+      await ctx.reply(text, { parse_mode: "HTML", ...Markup.inlineKeyboard(buttons) });
     }
   });
 
@@ -6186,63 +6173,40 @@ ${allTypesText}
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
-    
-    const text = lang === "uk" ?
-      `📚 *ДОВІДКА DARKSHARE*\n\n` +
-      `*Команди:*\n` +
-      `├ /start — Головне меню\n` +
-      `├ /menu — Панель управління\n` +
-      `├ /check <тип> <значення> — Швидка перевірка\n` +
-      `├ /stats — Ваша статистика\n` +
-      `├ /ref — Реферальна програма\n` +
-      `└ /help — Ця довідка\n\n` +
-      `📱 *Inline режим (будь-який чат):*\n` +
-      `├ \`@DarkShare1Bot ip 8.8.8.8\`\n` +
-      `├ \`@DarkShare1Bot email test@mail.com\`\n` +
-      `├ \`@DarkShare1Bot domain google.com\`\n` +
-      `└ \`@DarkShare1Bot wallet 0x...\`\n\n` +
-      `*Типи перевірок:*\n` +
-      `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
-      `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
-      `👤 Username  💳 Card BIN\n\n` +
-      `🌐 Веб-панель: ${webUrl}` :
-    lang === "ru" ?
-      `📚 *СПРАВКА DARKSHARE*\n\n` +
-      `*Команды:*\n` +
-      `├ /start — Главное меню\n` +
-      `├ /menu — Панель управления\n` +
-      `├ /check <тип> <значение> — Быстрая проверка\n` +
-      `├ /stats — Ваша статистика\n` +
-      `├ /ref — Реферальная программа\n` +
-      `└ /help — Эта справка\n\n` +
-      `📱 *Inline режим (любой чат):*\n` +
-      `├ \`@DarkShare1Bot ip 8.8.8.8\`\n` +
-      `├ \`@DarkShare1Bot email test@mail.com\`\n` +
-      `├ \`@DarkShare1Bot domain google.com\`\n` +
-      `└ \`@DarkShare1Bot wallet 0x...\`\n\n` +
-      `*Типы проверок:*\n` +
-      `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
-      `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
-      `👤 Username  💳 Card BIN\n\n` +
-      `🌐 Веб-панель: ${webUrl}` :
-      `📚 *DARKSHARE HELP*\n\n` +
-      `*Commands:*\n` +
-      `├ /start — Main menu\n` +
-      `├ /menu — Dashboard\n` +
-      `├ /check <type> <value> — Quick check\n` +
-      `├ /stats — Your statistics\n` +
-      `├ /ref — Referral program\n` +
-      `└ /help — This help\n\n` +
-      `📱 *Inline mode (any chat):*\n` +
-      `├ \`@DarkShare1Bot ip 8.8.8.8\`\n` +
-      `├ \`@DarkShare1Bot email test@mail.com\`\n` +
-      `├ \`@DarkShare1Bot domain google.com\`\n` +
-      `└ \`@DarkShare1Bot wallet 0x...\`\n\n` +
-      `*Check types:*\n` +
-      `🌐 IP  💰 Wallet  📧 Email  📱 Phone\n` +
-      `🔗 Domain  🔍 URL  🐛 CVE  #️⃣ Hash\n` +
-      `👤 Username  💳 Card BIN\n\n` +
-      `🌐 Web panel: ${webUrl}`;
+    const helpBotUsername = (await bot.telegram.getMe()).username || "DarkShare1Bot";
+
+    const helpTitle = lang === "uk" ? "ДОВІДКА DARKSHARE" : lang === "ru" ? "СПРАВКА DARKSHARE" : "DARKSHARE HELP";
+    const cmdsTitle = lang === "uk" ? "Команди" : lang === "ru" ? "Команды" : "Commands";
+    const cmdMenuDesc = lang === "uk" ? "Головне меню" : lang === "ru" ? "Главное меню" : "Main menu";
+    const cmdDashDesc = lang === "uk" ? "Панель управління" : lang === "ru" ? "Панель управления" : "Dashboard";
+    const cmdCheckDesc = lang === "uk" ? "Швидка перевірка" : lang === "ru" ? "Быстрая проверка" : "Quick check";
+    const cmdCheckArgs = lang === "uk" ? "&lt;тип&gt; &lt;значення&gt;" : lang === "ru" ? "&lt;тип&gt; &lt;значение&gt;" : "&lt;type&gt; &lt;value&gt;";
+    const cmdStatsDesc = lang === "uk" ? "Ваша статистика" : lang === "ru" ? "Ваша статистика" : "Your statistics";
+    const cmdRefDesc = lang === "uk" ? "Реферальна програма" : lang === "ru" ? "Реферальная программа" : "Referral program";
+    const cmdHelpDesc = lang === "uk" ? "Ця довідка" : lang === "ru" ? "Эта справка" : "This help";
+    const inlineTitle = lang === "uk" ? "Inline режим (будь-який чат)" : lang === "ru" ? "Inline режим (любой чат)" : "Inline mode (any chat)";
+    const typesTitle = lang === "uk" ? "Типи перевірок" : lang === "ru" ? "Типы проверок" : "Check types";
+    const webLabel = lang === "uk" ? "Веб-панель" : lang === "ru" ? "Веб-панель" : "Web panel";
+
+    const text =
+      `${pe("scroll")} <b>${escHtml(helpTitle)}</b>\n\n` +
+      `<b>${escHtml(cmdsTitle)}:</b>\n` +
+      `├ <code>/start</code> — ${escHtml(cmdMenuDesc)}\n` +
+      `├ <code>/menu</code> — ${escHtml(cmdDashDesc)}\n` +
+      `├ <code>/check ${cmdCheckArgs}</code> — ${escHtml(cmdCheckDesc)}\n` +
+      `├ <code>/stats</code> — ${escHtml(cmdStatsDesc)}\n` +
+      `├ <code>/ref</code> — ${escHtml(cmdRefDesc)}\n` +
+      `└ <code>/help</code> — ${escHtml(cmdHelpDesc)}\n\n` +
+      `${pe("mobile")} <b>${escHtml(inlineTitle)}:</b>\n` +
+      `├ <code>@${escHtml(helpBotUsername)} ip 8.8.8.8</code>\n` +
+      `├ <code>@${escHtml(helpBotUsername)} email test@mail.com</code>\n` +
+      `├ <code>@${escHtml(helpBotUsername)} domain google.com</code>\n` +
+      `└ <code>@${escHtml(helpBotUsername)} wallet 0x...</code>\n\n` +
+      `<b>${escHtml(typesTitle)}:</b>\n` +
+      `${pe("globe")} IP  ${pe("diamond")} Wallet  ${pe("envelope")} Email  ${pe("mobile")} Phone\n` +
+      `${pe("link")} Domain  ${pe("search")} URL  ${pe("bug")} CVE  ${pe("search")} Hash\n` +
+      `${pe("user")} Username  ${pe("card")} Card BIN\n\n` +
+      `${pe("globe")} ${escHtml(webLabel)}: ${escHtml(webUrl)}`;
     
     const helpButtons: any[][] = [
       [cb((lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Guide"), "open_guide", "primary", E.doc)],
@@ -6255,7 +6219,7 @@ ${allTypesText}
     helpButtons.push([cb((lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]);
 
     await ctx.reply(text, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
       ...Markup.inlineKeyboard(helpButtons)
     });
   });
