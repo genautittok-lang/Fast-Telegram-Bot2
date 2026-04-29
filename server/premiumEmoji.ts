@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import embeddedEmojis from "./data/premium-emojis.json";
 
 export interface EmojiSlot {
   id: string;
@@ -8,6 +9,7 @@ export interface EmojiSlot {
 }
 
 const STORE_PATH = path.resolve(process.cwd(), "server", "data", "premium-emojis.json");
+const EMBEDDED: Record<string, Partial<EmojiSlot>> = embeddedEmojis as any;
 
 const DEFAULT_SLOTS: Record<string, EmojiSlot> = {
   shield:    { id: "", fallback: "🛡",  description: "Захист, головна іконка бренду" },
@@ -56,29 +58,41 @@ let cache: Record<string, EmojiSlot> | null = null;
 
 function load(): Record<string, EmojiSlot> {
   if (cache) return cache;
+  // Disk overrides (e.g. admin re-binds at runtime) take priority over the bundled JSON.
   let saved: Record<string, Partial<EmojiSlot>> = {};
   try {
     if (fs.existsSync(STORE_PATH)) {
       saved = JSON.parse(fs.readFileSync(STORE_PATH, "utf8"));
     }
   } catch (e) {
-    console.warn("[premium-emoji] load failed, using defaults:", (e as Error).message);
+    console.warn("[premium-emoji] disk load failed, using embedded baseline:", (e as Error).message);
   }
   const merged: Record<string, EmojiSlot> = {};
+  // Start with code defaults (fallbacks/descriptions only).
   for (const [slot, def] of Object.entries(DEFAULT_SLOTS)) {
-    merged[slot] = { ...def, ...(saved[slot] || {}) };
+    merged[slot] = { ...def };
   }
-  // Allow custom slots not in defaults too
+  // Layer the EMBEDDED JSON (bundled into dist via esbuild import).
+  for (const [slot, def] of Object.entries(EMBEDDED)) {
+    if (!merged[slot]) {
+      merged[slot] = { id: "", fallback: "⭐", description: "" };
+    }
+    if (def.id) merged[slot].id = def.id;
+    if (def.fallback) merged[slot].fallback = def.fallback;
+    if (def.description) merged[slot].description = def.description;
+  }
+  // Layer disk overrides last (highest priority).
   for (const [slot, def] of Object.entries(saved)) {
     if (!merged[slot]) {
-      merged[slot] = {
-        id: def.id || "",
-        fallback: def.fallback || "⭐",
-        description: def.description || "",
-      };
+      merged[slot] = { id: "", fallback: "⭐", description: "" };
     }
+    if (def.id !== undefined) merged[slot].id = def.id;
+    if (def.fallback) merged[slot].fallback = def.fallback;
+    if (def.description) merged[slot].description = def.description;
   }
   cache = merged;
+  const bound = Object.values(merged).filter(s => s.id).length;
+  console.log(`[premium-emoji] loaded ${Object.keys(merged).length} slots (${bound} bound to custom IDs)`);
   return cache;
 }
 
