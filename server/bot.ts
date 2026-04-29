@@ -974,14 +974,9 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
 
   bot.command("emojiid", async (ctx) => {
     const tgId = ctx.from!.id.toString();
-    if (!isAdmin(tgId)) {
-      return ctx.reply(
-        `🚫 Команда лише для адмінів.\nВаш Telegram ID: \`${tgId}\`\n` +
-          `Поточні адміни: \`${ADMIN_IDS.join(", ")}\`\n\n` +
-          `Якщо ви адмін — додайте свій ID у змінну середовища ADMIN_IDS.`,
-        { parse_mode: "Markdown" },
-      );
-    }
+    // TEMPORARY: PUBLIC EMOJIID — second account sharing window. Revert by
+    // re-enabling the isAdmin gate below.
+    // if (!isAdmin(tgId)) { ... }
 
     const args = ctx.message.text.split(/\s+/).slice(1);
     const sub = (args[0] || "").toLowerCase();
@@ -1053,10 +1048,11 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
     await ctx.reply(formatCaptureReply(captured), { parse_mode: "Markdown" });
   });
 
-  // Sticker handler — when admin sends a sticker, return its custom_emoji_id (if any)
+  // Sticker handler — when sender is in capture mode, return its custom_emoji_id (if any)
   bot.on("sticker", async (ctx) => {
     const tgId = ctx.from!.id.toString();
-    if (!isAdmin(tgId)) return;
+    // TEMPORARY: PUBLIC EMOJIID — open to anyone in capture mode. Revert by
+    // re-adding `if (!isAdmin(tgId)) return;` here.
     if (!emojiCaptureMode.has(tgId)) return;
 
     const s = (ctx.message as any).sticker;
@@ -1336,9 +1332,10 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     const text = ctx.message.text;
     const tgId = ctx.from!.id.toString();
 
-    // Premium emoji capture mode — intercept any text from admin that contains
-    // custom_emoji entities and respond with their IDs.
-    if (isAdmin(tgId) && emojiCaptureMode.has(tgId) && !text.startsWith("/")) {
+    // Premium emoji capture mode — intercept any text from a user in capture
+    // mode and respond with their custom_emoji IDs.
+    // TEMPORARY: PUBLIC EMOJIID — open to anyone. Revert by re-adding isAdmin(tgId) gate.
+    if (emojiCaptureMode.has(tgId) && !text.startsWith("/")) {
       const entities = (ctx.message as any).entities || [];
       const captured = extractCustomEmojis(text, entities);
       if (captured.length) {
