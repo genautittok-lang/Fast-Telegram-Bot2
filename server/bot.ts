@@ -680,50 +680,49 @@ ${t(lang, "startWelcome.selectLang")}`;
     const progressBar = generateProgressBar(requestsLeft, requestsLimit);
     const lastActivity = formatLastActivity(user?.lastLogin, lang);
 
-    const tierEmoji = user?.tier === "ENTERPRISE" ? "👑" : user?.tier === "PRO" ? "⭐" : "🆓";
     const tierName = user?.tier || "FREE";
+    const tierSlot = user?.tier === "ENTERPRISE" ? "crown" : user?.tier === "PRO" ? "diamond" : "star";
 
     const dashTier = (user?.tier || "FREE").toUpperCase();
     const dashUnlimited = dashTier === "ENTERPRISE" || dashTier === "GROUPS";
     const requestsWarning = dashUnlimited ? ''
       : requestsLeft <= 3 
-      ? "\n⚠️ " + t(lang, "common.lowRequests")
+      ? `\n${pe("warning")} ` + escHtml(t(lang, "common.lowRequests"))
       : requestsLeft <= 0
-      ? "\n❌ " + (lang === "uk" ? "Ліміт вичерпано" : lang === "ru" ? "Лимит исчерпан" : "Limit exceeded")
+      ? `\n${pe("cross")} ` + escHtml(lang === "uk" ? "Ліміт вичерпано" : lang === "ru" ? "Лимит исчерпан" : "Limit exceeded")
       : '';
 
     const systemStatus = dashUnlimited ? "✅ UNLIMITED" : requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 3 ? "⚡ LOW" : "✅ READY";
     
-    const escapeMd = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
-    const greetName = escapeMd(user?.username || (lang === "uk" ? "Користувач" : lang === "ru" ? "Пользователь" : "User"));
+    const greetName = escHtml(user?.username || (lang === "uk" ? "Користувач" : lang === "ru" ? "Пользователь" : "User"));
     const tierLabel = tierName === "FREE" ? (lang === "uk" ? "Безкоштовний" : lang === "ru" ? "Бесплатный" : "Free") :
                       tierName === "PRO" ? "PRO" : tierName === "ENTERPRISE" ? "Enterprise" : tierName;
-    const statusIcon = dashUnlimited ? "🟢" : requestsLeft <= 0 ? "🔴" : requestsLeft <= 3 ? "🟡" : "🟢";
+    const statusSlot = dashUnlimited ? "low_risk" : requestsLeft <= 0 ? "high_risk" : requestsLeft <= 3 ? "med_risk" : "low_risk";
 
-    const dashboardText = `🛡 *DARKSHARE* — Risk Intelligence
+    const dashboardText = `${pe("shield")} <b>DARKSHARE</b> — Risk Intelligence
 
-${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${greetName}*! 👋
+${escHtml(lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi")}, <b>${greetName}</b>! ${pe("wave")}
 
-📊 *${lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status"}*
-├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan"}: *${tierLabel}*
-├ ${statusIcon} ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${requestsLeft}* / ${requestsLimit}
-├ ${progressBar}
-├ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${user?.streakDays || 0}* ${lang === "uk" ? "днів" : lang === "ru" ? "дней" : "days"}
-└ 🕐 ${lastActivity}${requestsWarning}${(() => {
+${pe("chart")} <b>${escHtml(lang === "uk" ? "Статус" : lang === "ru" ? "Статус" : "Status")}</b>
+├ ${pe(tierSlot)} ${escHtml(lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan")}: <b>${escHtml(tierLabel)}</b>
+├ ${pe(statusSlot)} ${escHtml(lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks")}: <b>${requestsLeft}</b> / ${requestsLimit}
+├ <code>${progressBar}</code>
+├ ${pe("fire")} ${escHtml(lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak")}: <b>${user?.streakDays || 0}</b> ${escHtml(lang === "uk" ? "днів" : lang === "ru" ? "дней" : "days")}
+└ ${pe("clock") || "🕐"} ${escHtml(lastActivity)}${requestsWarning}${(() => {
   if (user?.subscriptionExpiresAt && tierName !== "FREE") {
     const expDate = new Date(user.subscriptionExpiresAt);
     const daysLeft = Math.max(0, Math.ceil((expDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
     const expStr = expDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "short" });
-    const icon = daysLeft <= 0 ? "🔴" : daysLeft <= 7 ? "🟠" : "📅";
+    const slot = daysLeft <= 0 ? "high_risk" : daysLeft <= 7 ? "warning" : "pin";
     const label = daysLeft <= 0 
       ? (lang === "uk" ? "Підписка закінчилась!" : lang === "ru" ? "Подписка истекла!" : "Subscription expired!")
       : `${daysLeft} ${lang === "uk" ? "дн. до" : lang === "ru" ? "дн. до" : "days until"} ${expStr}`;
-    return `\n${icon} ${label}`;
+    return `\n${pe(slot)} ${escHtml(label)}`;
   }
   return "";
 })()}
 
-💡 ${lang === "uk" ? "Натисни «Перевірка» для початку аналізу" : lang === "ru" ? "Нажми «Проверка» для начала анализа" : "Press «Check» to start analysis"}`;
+${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» для початку аналізу" : lang === "ru" ? "Нажми «Проверка» для начала анализа" : "Press «Check» to start analysis")}`;
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
@@ -764,12 +763,12 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
 
     try {
       if (isEdit) {
-        await ctx.editMessageText(safeText, { parse_mode: "Markdown", ...keyboard });
+        await ctx.editMessageText(safeText, { parse_mode: "HTML", ...keyboard });
       } else {
-        await ctx.reply(safeText, { parse_mode: "Markdown", ...keyboard });
+        await ctx.reply(safeText, { parse_mode: "HTML", ...keyboard });
       }
     } catch {
-      await ctx.reply(safeText, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(safeText, { parse_mode: "HTML", ...keyboard });
     }
   }
 
@@ -909,20 +908,34 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
     const lang = await getLang(tgId);
     await showDashboard(ctx, tgId, true);
 
-    const welcomeName = ctx.from!.first_name || ctx.from!.username || (lang === "uk" ? "друже" : lang === "ru" ? "друг" : lang === "es" ? "amigo" : lang === "de" ? "Freund" : "friend");
-    const welcomeText = lang === "uk"
-      ? `🎉 *Вітаємо в DARKSHARE!*\n\n👋 Привіт, *${welcomeName}*!\n\n🎁 Твій промокод: \`DARKNEU\` — *-50%* на будь-який тариф!\n🚀 У тебе *5 безкоштовних перевірок*!`
-      : lang === "ru"
-      ? `🎉 *Добро пожаловать в DARKSHARE!*\n\n👋 Привет, *${welcomeName}*!\n\n🎁 Твой промокод: \`DARKNEU\` — *-50%* на любой тариф!\n🚀 У тебя *5 бесплатных проверок*!`
-      : lang === "es"
-      ? `🎉 *¡Bienvenido a DARKSHARE!*\n\n👋 Hola, *${welcomeName}*!\n\n🎁 Tu código promocional: \`DARKNEU\` — *-50%* en cualquier plan!\n🚀 ¡Tienes *5 verificaciones gratuitas*!`
-      : lang === "de"
-      ? `🎉 *Willkommen bei DARKSHARE!*\n\n👋 Hallo, *${welcomeName}*!\n\n🎁 Dein Promo-Code: \`DARKNEU\` — *-50%* auf jeden Tarif!\n🚀 Du hast *5 kostenlose Prüfungen*!`
-      : `🎉 *Welcome to DARKSHARE!*\n\n👋 Hi, *${welcomeName}*!\n\n🎁 Your promo code: \`DARKNEU\` — *-50%* on any plan!\n🚀 You have *5 free checks*!`;
+    const welcomeName = escHtml(ctx.from!.first_name || ctx.from!.username || (lang === "uk" ? "друже" : lang === "ru" ? "друг" : lang === "es" ? "amigo" : lang === "de" ? "Freund" : "friend"));
+    const titleStr = lang === "uk" ? "Вітаємо в DARKSHARE!"
+      : lang === "ru" ? "Добро пожаловать в DARKSHARE!"
+      : lang === "es" ? "¡Bienvenido a DARKSHARE!"
+      : lang === "de" ? "Willkommen bei DARKSHARE!"
+      : "Welcome to DARKSHARE!";
+    const helloStr = lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : lang === "es" ? "Hola" : lang === "de" ? "Hallo" : "Hi";
+    const promoStr = lang === "uk" ? "Твій промокод"
+      : lang === "ru" ? "Твой промокод"
+      : lang === "es" ? "Tu código promocional"
+      : lang === "de" ? "Dein Promo-Code"
+      : "Your promo code";
+    const offStr = lang === "uk" ? "на будь-який тариф"
+      : lang === "ru" ? "на любой тариф"
+      : lang === "es" ? "en cualquier plan"
+      : lang === "de" ? "auf jeden Tarif"
+      : "on any plan";
+    const freeStr = lang === "uk" ? "У тебе <b>5 безкоштовних перевірок</b>!"
+      : lang === "ru" ? "У тебя <b>5 бесплатных проверок</b>!"
+      : lang === "es" ? "¡Tienes <b>5 verificaciones gratuitas</b>!"
+      : lang === "de" ? "Du hast <b>5 kostenlose Prüfungen</b>!"
+      : "You have <b>5 free checks</b>!";
+
+    const welcomeText = `${pe("party")} <b>${escHtml(titleStr)}</b>\n\n${pe("wave")} ${escHtml(helloStr)}, <b>${welcomeName}</b>!\n\n${pe("gift")} ${escHtml(promoStr)}: <code>DARKNEU</code> — <b>-50%</b> ${escHtml(offStr)}!\n${pe("rocket")} ${freeStr}`;
 
     try {
       await bot.telegram.sendMessage(tgId, welcomeText, {
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
         ...Markup.inlineKeyboard([
           [cb(lang === "uk" ? "💎 Активувати промокод" : lang === "ru" ? "💎 Активировать промокод" : lang === "es" ? "💎 Activar código" : lang === "de" ? "💎 Code aktivieren" : "💎 Activate promo", "pricing", "success", E.gift)],
         ])
@@ -974,9 +987,14 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
 
   bot.command("emojiid", async (ctx) => {
     const tgId = ctx.from!.id.toString();
-    // TEMPORARY: PUBLIC EMOJIID — second account sharing window. Revert by
-    // re-enabling the isAdmin gate below.
-    // if (!isAdmin(tgId)) { ... }
+    if (!isAdmin(tgId)) {
+      return ctx.reply(
+        `🚫 Команда лише для адмінів.\nВаш Telegram ID: \`${tgId}\`\n` +
+          `Поточні адміни: \`${ADMIN_IDS.join(", ")}\`\n\n` +
+          `Якщо ви адмін — додайте свій ID у змінну середовища ADMIN_IDS.`,
+        { parse_mode: "Markdown" },
+      );
+    }
 
     const args = ctx.message.text.split(/\s+/).slice(1);
     const sub = (args[0] || "").toLowerCase();
@@ -1048,11 +1066,10 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
     await ctx.reply(formatCaptureReply(captured), { parse_mode: "Markdown" });
   });
 
-  // Sticker handler — when sender is in capture mode, return its custom_emoji_id (if any)
+  // Sticker handler — when admin sends a sticker, return its custom_emoji_id (if any)
   bot.on("sticker", async (ctx) => {
     const tgId = ctx.from!.id.toString();
-    // TEMPORARY: PUBLIC EMOJIID — open to anyone in capture mode. Revert by
-    // re-adding `if (!isAdmin(tgId)) return;` here.
+    if (!isAdmin(tgId)) return;
     if (!emojiCaptureMode.has(tgId)) return;
 
     const s = (ctx.message as any).sticker;
@@ -1332,10 +1349,9 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     const text = ctx.message.text;
     const tgId = ctx.from!.id.toString();
 
-    // Premium emoji capture mode — intercept any text from a user in capture
+    // Premium emoji capture mode — intercept any text from admin in capture
     // mode and respond with their custom_emoji IDs.
-    // TEMPORARY: PUBLIC EMOJIID — open to anyone. Revert by re-adding isAdmin(tgId) gate.
-    if (emojiCaptureMode.has(tgId) && !text.startsWith("/")) {
+    if (isAdmin(tgId) && emojiCaptureMode.has(tgId) && !text.startsWith("/")) {
       const entities = (ctx.message as any).entities || [];
       const captured = extractCustomEmojis(text, entities);
       if (captured.length) {
@@ -2640,15 +2656,32 @@ ${faqText}`;
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
 
-    const text = `${t(lang, "upgrade.title")}\n\n${t(lang, "upgrade.free")}\n${t(lang, "upgrade.freeDetails")}\n\n${t(lang, "upgrade.pro")}\n${t(lang, "upgrade.proDetails")}\n\n${t(lang, "upgrade.enterprise")}\n${t(lang, "upgrade.enterpriseDetails")}`;
+    const text =
+      `${pe("rocket")} <b>${escHtml(t(lang, "upgrade.title"))}</b>\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `${pe("star")} <b>${escHtml(t(lang, "upgrade.free"))}</b>\n${escHtml(t(lang, "upgrade.freeDetails"))}\n\n` +
+      `${pe("diamond")} <b>${escHtml(t(lang, "upgrade.pro"))}</b>\n${escHtml(t(lang, "upgrade.proDetails"))}\n\n` +
+      `${pe("crown")} <b>${escHtml(t(lang, "upgrade.enterprise"))}</b>\n${escHtml(t(lang, "upgrade.enterpriseDetails"))}`;
 
-    await ctx.editMessageText(text, 
-      Markup.inlineKeyboard([
-        [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
-        [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
-        [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
-      ])
-    );
+    try {
+      await ctx.editMessageText(text, {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
+          [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
+          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+        ]),
+      });
+    } catch {
+      await ctx.reply(text, {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
+          [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
+          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+        ]),
+      });
+    }
   });
 
   bot.action("bot_payment", async (ctx) => {
@@ -2787,17 +2820,33 @@ ${faqText}`;
       const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "∞" : "50";
       const starsAmount = payment.total_amount;
 
-      const receiptTexts: Record<string, string> = {
-        uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату зірками підтверджено!\n\n📦 Тариф: *${tier}*\n⭐ Сума: ${starsAmount} Stars\n🔢 Запитів: ${requestsDisplay}/день\n📅 Діє до: ${expiryStr}\n🆔 Платіж: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
-        ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата звёздами подтверждена!\n\n📦 Тариф: *${tier}*\n⭐ Сумма: ${starsAmount} Stars\n🔢 Запросов: ${requestsDisplay}/день\n📅 Действует до: ${expiryStr}\n🆔 Платёж: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
-        en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Stars payment confirmed!\n\n📦 Plan: *${tier}*\n⭐ Amount: ${starsAmount} Stars\n🔢 Requests: ${requestsDisplay}/day\n📅 Valid until: ${expiryStr}\n🆔 Payment: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
-        es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago con estrellas confirmado!\n\n📦 Plan: *${tier}*\n⭐ Monto: ${starsAmount} Stars\n🔢 Solicitudes: ${requestsDisplay}/día\n📅 Válido hasta: ${expiryStr}\n🆔 Pago: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
-        de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Stars-Zahlung bestätigt!\n\n📦 Tarif: *${tier}*\n⭐ Betrag: ${starsAmount} Stars\n🔢 Anfragen: ${requestsDisplay}/Tag\n📅 Gültig bis: ${expiryStr}\n🆔 Zahlung: #${paymentId}\n💫 TG ID: ${telegramPaymentId}\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
-      };
+      const L = (uk: string, ru: string, en: string, es?: string, de?: string) =>
+        lang === "uk" ? uk : lang === "ru" ? ru : lang === "es" ? (es || en) : lang === "de" ? (de || en) : en;
+      const receiptTitle = L("КВИТАНЦІЯ DARKSHARE", "КВИТАНЦИЯ DARKSHARE", "DARKSHARE RECEIPT", "RECIBO DARKSHARE", "DARKSHARE QUITTUNG");
+      const confirmedLabel = L("Оплату зірками підтверджено!", "Оплата звёздами подтверждена!", "Stars payment confirmed!", "¡Pago con estrellas confirmado!", "Stars-Zahlung bestätigt!");
+      const planLabel    = L("Тариф", "Тариф", "Plan", "Plan", "Tarif");
+      const sumLabel     = L("Сума", "Сумма", "Amount", "Monto", "Betrag");
+      const reqLabel     = L("Запитів", "Запросов", "Requests", "Solicitudes", "Anfragen");
+      const perLabel     = L("день", "день", "day", "día", "Tag");
+      const tillLabel    = L("Діє до", "Действует до", "Valid until", "Válido hasta", "Gültig bis");
+      const payLabel     = L("Платіж", "Платёж", "Payment", "Pago", "Zahlung");
+      const thanksLabel  = L("Дякуємо за довіру!", "Спасибо за доверие!", "Thank you for your trust!", "¡Gracias por su confianza!", "Vielen Dank für Ihr Vertrauen!");
 
-      const receiptText = receiptTexts[lang] || receiptTexts["en"];
+      const receiptText =
+        `${pe("scroll")} <b>${escHtml(receiptTitle)}</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `${pe("check")} ${escHtml(confirmedLabel)}\n\n` +
+        `${pe("gift")} ${escHtml(planLabel)}: <b>${escHtml(tier)}</b>\n` +
+        `${pe("star")} ${escHtml(sumLabel)}: <b>${starsAmount}</b> Stars\n` +
+        `${pe("chart")} ${escHtml(reqLabel)}: <b>${requestsDisplay}</b>/${escHtml(perLabel)}\n` +
+        `${pe("pin")} ${escHtml(tillLabel)}: <b>${escHtml(expiryStr)}</b>\n` +
+        `${pe("key")} ${escHtml(payLabel)}: <code>#${paymentId}</code>\n` +
+        `${pe("sparkle")} TG ID: <code>${escHtml(telegramPaymentId)}</code>\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n` +
+        `${pe("heart")} ${escHtml(thanksLabel)}`;
+
       await ctx.reply(receiptText, {
-        parse_mode: "Markdown",
+        parse_mode: "HTML",
         ...Markup.inlineKeyboard([[cb("🏠 " + (lang === "uk" ? "Меню" : lang === "ru" ? "Меню" : "Menu"), "dashboard", "primary", E.home)]])
       });
 

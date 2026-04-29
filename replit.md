@@ -83,4 +83,12 @@ Preferred communication style: Simple, everyday language.
 - **VirusTotal API, MalwareBazaar, ThreatFox abuse.ch, CIRCL hashlookup**: For file hash analysis.
 - **GitHub API**: For username reconnaissance.
 - **xposedornot.com**: For dark web breach monitoring.
+
+## Telegram Premium Custom Emojis
+
+The bot integrates Telegram Premium custom emojis for higher visual fidelity on the most-viewed screens.
+- **Module**: `server/premiumEmoji.ts` — `pe(slot, mode='html')` helper renders `<tg-emoji emoji-id="…">fallback</tg-emoji>`; falls back to plain unicode when the slot has no `id` or when sent in plain mode. Persistent registry at `server/data/premium-emojis.json` (40+ named slots: shield, fire, star, warning, check, cross, rocket, diamond, crown, search, chart, money, card, link, scroll, etc.).
+- **Admin commands** (gated by `isAdmin`, default `ADMIN_IDS=7820995179`): `/emojiid [on|off]` toggles capture mode and returns custom_emoji_ids for premium emojis or stickers; `/setemoji <slot> <id> [fallback]`, `/clearemoji <slot>`, `/listemojis`.
+- **HTML-mode screens** that render premium emojis: `showDashboard` (the /menu hub), `enter_panel_first` welcome, `upgrade` tier picker, `successful_payment` Stars receipt. All dynamic content escaped via `escHtml()` from the same module. Other bot screens still use Markdown parse_mode for backward compatibility.
+- **Limitation**: Telegram only renders `<tg-emoji>` tags inside HTML parse_mode messages, so converting more screens requires switching their parse_mode + escaping.
 - **Telegraph API**: For generating instruction pages.
