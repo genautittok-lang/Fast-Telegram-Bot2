@@ -1150,8 +1150,15 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       return `${visual}  <b>${escHtml(slot)}</b>  <i>${escHtml(v.description || "")}</i>`;
     };
 
+    const isPremium = (ctx.from as any)?.is_premium === true;
     const lines: string[] = [];
     lines.push(`<b>🎨 Premium emojis (${bound.length}/${entries.length} bound)</b>`);
+    lines.push("");
+    lines.push(
+      isPremium
+        ? "✅ <i>Ваш Telegram має Premium — преміум-емодзі будуть відображатись як кольорові/анімовані.</i>"
+        : "⚠️ <i>У вашого Telegram-акаунта НЕМАЄ Premium-підписки — нижче ви побачите лише звичайний фолбек-юнікод. Це обмеження Telegram, не баг бота. Преміум-емодзі бачать ТІЛЬКИ користувачі з активним Telegram Premium.</i>"
+    );
     lines.push("");
     if (bound.length) {
       lines.push("<b>Bound:</b>");
@@ -1164,6 +1171,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
     }
     lines.push("");
     lines.push("Use <code>/emojiid</code> to capture IDs, then <code>/setemoji &lt;slot&gt; &lt;id&gt;</code>.");
+    lines.push("Use <code>/testemojis</code> for a compact visual self-test.");
 
     // Telegram message limit ~4096 chars — chunk if needed
     const text = lines.join("\n");
@@ -1175,6 +1183,31 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
         await ctx.reply(text.slice(i, i + CHUNK), { parse_mode: "HTML" });
       }
     }
+  });
+
+  bot.command("testemojis", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    const map = getMappings();
+    const bound = Object.entries(map).filter(([, v]) => v.id);
+    const isPremium = (ctx.from as any)?.is_premium === true;
+
+    const header = isPremium
+      ? "✅ <b>Ваш Telegram = Premium</b>\nЯкщо нижче бачите анімовані/кольорові — все ОК.\nЯкщо бачите звичайні емодзі — ID невалідні."
+      : "⚠️ <b>Ваш Telegram БЕЗ Premium</b>\nВи фізично не побачите преміум-емодзі — лише фолбек.\nДля перевірки роботи ID — потрібен акаунт із Telegram Premium.";
+
+    const visualRow = bound
+      .map(([, v]) => `<tg-emoji emoji-id="${v.id}">${escHtml(v.fallback)}</tg-emoji>`)
+      .join(" ");
+
+    const fallbackRow = bound.map(([, v]) => v.fallback).join(" ");
+
+    const text =
+      `${header}\n\n` +
+      `<b>Premium-рендер (${bound.length} слотів):</b>\n${visualRow}\n\n` +
+      `<b>Фолбек-юнікод (як бачить non-Premium):</b>\n${escHtml(fallbackRow)}`;
+
+    await ctx.reply(text, { parse_mode: "HTML" });
   });
 
   bot.command("stats", async (ctx) => {
