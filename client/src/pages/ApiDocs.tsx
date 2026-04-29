@@ -54,6 +54,123 @@ interface ApiKeyResponse {
 const endpoints = [
   {
     method: "POST",
+    path: "/api/v1/check",
+    title: "v1 · Check (API key)",
+    description: "Stateless OSINT check authenticated by API key. Counts against your monthly quota. PRO and ENTERPRISE only.",
+    requestBody: {
+      type: "string (ip | wallet | email | phone | domain | url | bot | cve | hash | username | card)",
+      value: "string",
+    },
+    requestExample: JSON.stringify({ type: "ip", value: "8.8.8.8" }, null, 2),
+    responseExample: JSON.stringify({
+      type: "ip",
+      target: "8.8.8.8",
+      risk_score: 15,
+      risk_level: "low",
+      summary: "Google Public DNS — no threats detected",
+      findings: ["Geolocation: US", "ISP: Google LLC", "Not on any blacklist"],
+      sources_scanned: ["ip-api", "abuseipdb", "otx", "..."],
+      sources_total: 159,
+      timestamp: "2026-04-29T12:00:00Z",
+    }, null, 2),
+    icon: Zap,
+    color: "text-cyan-300",
+    bg: "from-cyan-500/20 via-cyan-500/5 to-transparent",
+    border: "border-cyan-500/30",
+  },
+  {
+    method: "POST",
+    path: "/api/v1/check/bulk",
+    title: "v1 · Bulk Check (Enterprise)",
+    description: "Run up to 100 OSINT checks in a single call with controlled concurrency. ENTERPRISE plan only.",
+    requestBody: {
+      checks: "Array<{ type: string, value: string }> (max 100)",
+    },
+    requestExample: JSON.stringify({
+      checks: [
+        { type: "ip", value: "8.8.8.8" },
+        { type: "domain", value: "example.com" },
+        { type: "email", value: "test@example.com" },
+      ],
+    }, null, 2),
+    responseExample: JSON.stringify({
+      count: 3,
+      results: [
+        { type: "ip", target: "8.8.8.8", risk_score: 15, risk_level: "low" },
+        { type: "domain", target: "example.com", risk_score: 22, risk_level: "low" },
+        { type: "email", target: "test@example.com", risk_score: 38, risk_level: "medium" },
+      ],
+    }, null, 2),
+    icon: Layers,
+    color: "text-purple-400",
+    bg: "from-purple-500/20 via-purple-500/5 to-transparent",
+    border: "border-purple-500/30",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/watchlist",
+    title: "v1 · Watchlist",
+    description: "List watched targets with optional webhook delivery on threshold-cross. Use POST to add (with webhook_url + threshold), DELETE /:id to remove.",
+    requestBody: null,
+    requestExample: null,
+    responseExample: JSON.stringify({
+      count: 1,
+      items: [{
+        id: 7,
+        type: "domain",
+        target: "example.com",
+        threshold: 70,
+        webhook_url: "https://your-server.com/hooks/darkshare",
+        status: "low",
+        last_check: "2026-04-29T18:00:00Z",
+        last_score: 22,
+        alerts_on: true,
+      }],
+    }, null, 2),
+    icon: Radio,
+    color: "text-amber-400",
+    bg: "from-amber-500/20 via-amber-500/5 to-transparent",
+    border: "border-amber-500/30",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/feed",
+    title: "v1 · Live IOC Feed (SSE)",
+    description: "Server-Sent Events stream of fresh malware URLs and IOCs from URLhaus + ThreatFox, updated every 60s. Replays last 20 cached items on connect, ping every 25s.",
+    requestBody: null,
+    requestExample: null,
+    responseExample: `event: data
+data: {"id":"urlhaus:3120912","type":"malware_url","source":"urlhaus.abuse.ch","indicator":"http://bad.example/payload.exe","threat":"malware_download","tags":["emotet"],"timestamp":"2026-04-29T17:55:00Z"}
+
+event: data
+data: {"id":"threatfox:8821334","type":"malicious_ip","source":"threatfox.abuse.ch","indicator":"185.X.X.X","threat":"Cobalt Strike","tags":["c2"],"timestamp":"2026-04-29T17:56:12Z"}`,
+    icon: Radio,
+    color: "text-emerald-400",
+    bg: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+    border: "border-emerald-500/30",
+  },
+  {
+    method: "GET",
+    path: "/api/v1/usage",
+    title: "v1 · Quota / Usage",
+    description: "Inspect current monthly usage and rate-limit caps for your API key. Headers `X-RateLimit-Limit-Month` and `X-RateLimit-Remaining-Month` are returned on every v1 response.",
+    requestBody: null,
+    requestExample: null,
+    responseExample: JSON.stringify({
+      tier: "PRO",
+      used_30d: 1284,
+      limit_month: 5000,
+      remaining: 3716,
+      burst_per_sec: 5,
+      reset_at: "2026-05-29T18:00:00Z",
+    }, null, 2),
+    icon: Eye,
+    color: "text-zinc-300",
+    bg: "from-zinc-500/20 via-zinc-500/5 to-transparent",
+    border: "border-zinc-500/30",
+  },
+  {
+    method: "POST",
     path: "/api/check",
     title: "Perform a Check",
     description: "Run an OSINT check on a target (IP, email, domain, wallet, phone, URL, bot, CVE, hash, username, or card).",
@@ -633,32 +750,94 @@ export default function ApiDocs() {
             <Card className="p-5 border border-white/10">
               <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
-                <h2 className="font-semibold text-sm">Rate Limits & Authentication</h2>
+                <h2 className="font-semibold text-sm">Authentication, Quotas & Webhooks</h2>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-black/30 rounded-lg p-4 border border-white/5">
-                  <Globe className="w-5 h-5 text-primary mb-2" />
-                  <p className="text-xs font-mono text-muted-foreground mb-1">BASE URL</p>
+                  <Globe className="w-5 h-5 text-cyan-300 mb-2" />
+                  <p className="text-xs font-mono text-zinc-500 mb-1">BASE URL</p>
                   <p className="font-mono text-sm text-white">https://darkshare.store</p>
                 </div>
                 <div className="bg-black/30 rounded-lg p-4 border border-white/5">
-                  <Lock className="w-5 h-5 text-primary mb-2" />
-                  <p className="text-xs font-mono text-muted-foreground mb-1">AUTH METHOD</p>
-                  <p className="font-mono text-sm text-white">Bearer Token (Header)</p>
+                  <Lock className="w-5 h-5 text-cyan-300 mb-2" />
+                  <p className="text-xs font-mono text-zinc-500 mb-1">AUTH HEADER</p>
+                  <p className="font-mono text-xs text-white break-all">Authorization: Bearer dk_…</p>
+                  <p className="font-mono text-xs text-zinc-400 mt-1">or X-API-Key: dk_…</p>
                 </div>
                 <div className="bg-black/30 rounded-lg p-4 border border-white/5">
-                  <Zap className="w-5 h-5 text-primary mb-2" />
-                  <p className="text-xs font-mono text-muted-foreground mb-1">RATE LIMIT</p>
-                  <p className="font-mono text-sm text-white">Unlimited (Enterprise)</p>
+                  <Zap className="w-5 h-5 text-cyan-300 mb-2" />
+                  <p className="text-xs font-mono text-zinc-500 mb-1">RESPONSE HEADERS</p>
+                  <p className="font-mono text-[11px] text-white">X-RateLimit-Limit-Month</p>
+                  <p className="font-mono text-[11px] text-white">X-RateLimit-Remaining-Month</p>
+                  <p className="font-mono text-[11px] text-white">X-RateLimit-Burst-Per-Sec</p>
                 </div>
               </div>
-              <div className="mt-4 bg-black/20 rounded-lg p-3 border border-white/5">
-                <p className="text-xs text-muted-foreground">
-                  All API responses are in JSON format. Error responses include a <code className="text-primary">message</code> field.
-                  HTTP status codes: <code className="text-green-400">200</code> success, <code className="text-yellow-400">400</code> bad request,
-                  <code className="text-orange-400"> 401</code> unauthorized, <code className="text-red-400">429</code> rate limited,
-                  <code className="text-red-400"> 500</code> server error.
-                </p>
+
+              <div className="mt-4 overflow-hidden rounded-lg border border-white/10">
+                <table className="w-full text-sm">
+                  <thead className="bg-white/[0.03] text-zinc-400">
+                    <tr>
+                      <th className="text-left font-medium px-4 py-2">Plan</th>
+                      <th className="text-left font-medium px-4 py-2">Monthly quota</th>
+                      <th className="text-left font-medium px-4 py-2">Burst</th>
+                      <th className="text-left font-medium px-4 py-2">Bulk</th>
+                      <th className="text-left font-medium px-4 py-2">Watchlist size</th>
+                      <th className="text-left font-medium px-4 py-2">SSE feed</th>
+                    </tr>
+                  </thead>
+                  <tbody className="font-mono text-zinc-300">
+                    <tr className="border-t border-white/10">
+                      <td className="px-4 py-2 text-zinc-400">FREE</td>
+                      <td className="px-4 py-2">—</td>
+                      <td className="px-4 py-2">—</td>
+                      <td className="px-4 py-2">—</td>
+                      <td className="px-4 py-2">—</td>
+                      <td className="px-4 py-2">—</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="px-4 py-2 text-cyan-300">PRO</td>
+                      <td className="px-4 py-2">5,000 req</td>
+                      <td className="px-4 py-2">5 req/s</td>
+                      <td className="px-4 py-2 text-zinc-500">—</td>
+                      <td className="px-4 py-2">25</td>
+                      <td className="px-4 py-2 text-emerald-400">yes</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="px-4 py-2 text-cyan-300">ENTERPRISE</td>
+                      <td className="px-4 py-2">50,000 req</td>
+                      <td className="px-4 py-2">20 req/s</td>
+                      <td className="px-4 py-2 text-emerald-400">100/req</td>
+                      <td className="px-4 py-2">200</td>
+                      <td className="px-4 py-2 text-emerald-400">yes</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <p className="text-[11px] font-mono text-zinc-500 mb-2">WEBHOOK SIGNATURE</p>
+                  <p className="text-xs text-zinc-300 mb-3">
+                    When a watchlist target crosses its risk threshold we POST to your <code className="text-cyan-300 font-mono">webhook_url</code> with header:
+                  </p>
+                  <pre className="text-[11px] font-mono text-cyan-200 bg-black/40 rounded p-2 overflow-x-auto">X-DarkShare-Signature: hex(HMAC_SHA256(your_api_secret, body))</pre>
+                  <p className="text-[11px] text-zinc-500 mt-2">
+                    Verify by recomputing on your side; reject mismatches. Payload includes <code className="font-mono">event</code>, <code className="font-mono">target</code>, <code className="font-mono">riskScore</code>, <code className="font-mono">findings</code>.
+                  </p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 border border-white/10">
+                  <p className="text-[11px] font-mono text-zinc-500 mb-2">HTTP STATUS CODES</p>
+                  <ul className="text-xs text-zinc-300 space-y-1 font-mono">
+                    <li><span className="text-emerald-400">200</span> success</li>
+                    <li><span className="text-amber-400">400</span> bad request / validation error</li>
+                    <li><span className="text-amber-400">401</span> missing or invalid API key</li>
+                    <li><span className="text-amber-400">403</span> tier-gated endpoint or suspended account</li>
+                    <li><span className="text-rose-400">429</span> burst or monthly quota exceeded (see <code>Retry-After</code>)</li>
+                    <li><span className="text-rose-400">500</span> internal error — safe to retry</li>
+                  </ul>
+                </div>
               </div>
             </Card>
           </motion.div>

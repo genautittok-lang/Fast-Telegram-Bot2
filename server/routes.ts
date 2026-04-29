@@ -7,6 +7,7 @@ import { setupBot, botInstance, ADMIN_IDS } from "./bot";
 import { api } from "@shared/routes";
 import { performCheck, validateInput, extractExifFromBuffer } from "./checkService";
 import { SOURCES_COUNT } from "@shared/osintSources";
+import { registerApiV1, generateApiKey } from "./apiV1";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
@@ -469,6 +470,7 @@ export async function registerRoutes(
 
   // VPN routes (Phase 6 — own WireGuard infrastructure)
   registerVpnRoutes(app, loadUser, requireAuth);
+  registerApiV1(app);
 
   // Auto-seed demo VPN servers on first run so the /vpn flow has stock to show.
   // Endpoints/keys are placeholders — replace via /admin VPN panel when real boxes come online.
@@ -757,9 +759,8 @@ export async function registerRoutes(
       if (tier !== "PRO" && tier !== "ENTERPRISE") {
         return res.status(403).json({ error: "API key available only for PRO/ENTERPRISE users" });
       }
-      const secret = process.env.SESSION_SECRET || process.env.REPL_ID || "darkshare-api-key-secret";
-      const fullKey = "dk_" + createHmac("sha256", secret).update(user.tgId + "_" + user.id).digest("hex").slice(0, 32);
-      const masked = fullKey.slice(0, 5) + "\u2022".repeat(8) + fullKey.slice(-4);
+      const fullKey = generateApiKey(user.id, user.tgId);
+      const masked = fullKey.slice(0, 8) + "\u2022".repeat(8) + fullKey.slice(-4);
       res.json({ key: fullKey, masked });
     } catch (error) {
       console.error("API key error:", error);
@@ -775,10 +776,9 @@ export async function registerRoutes(
       if (tier !== "PRO" && tier !== "ENTERPRISE") {
         return res.status(403).json({ error: "API key available only for PRO/ENTERPRISE users" });
       }
-      const secret = process.env.SESSION_SECRET || process.env.REPL_ID || "darkshare-api-key-secret";
       const salt = req.body.regenerate ? Date.now().toString() : "";
-      const fullKey = "dk_" + createHmac("sha256", secret).update(user.tgId + "_" + user.id + salt).digest("hex").slice(0, 32);
-      const masked = fullKey.slice(0, 5) + "\u2022".repeat(8) + fullKey.slice(-4);
+      const fullKey = generateApiKey(user.id, user.tgId, salt);
+      const masked = fullKey.slice(0, 8) + "\u2022".repeat(8) + fullKey.slice(-4);
       res.json({ key: fullKey, masked });
     } catch (error) {
       console.error("API key generation error:", error);

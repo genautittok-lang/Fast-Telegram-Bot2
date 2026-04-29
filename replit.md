@@ -19,6 +19,7 @@ Preferred communication style: Simple, everyday language.
 ### Backend
 - **Runtime**: Node.js with Express and TypeScript, utilizing Telegraf for Telegram bot interactions.
 - **API Design**: RESTful endpoints with Zod validation for type safety.
+- **Public API v1** (`server/apiV1.ts`): Stateless API-key auth (`dk_<userId>_<hmac32>`, verified with `timingSafeEqual`). Endpoints: `POST /api/v1/check`, `POST /api/v1/check/bulk` (Enterprise-only, max 100, concurrency 5), `GET/POST/DELETE /api/v1/watchlist` with HMAC-SHA256-signed webhooks (`X-DarkShare-Signature`) protected by SSRF guard rejecting private/loopback/link-local addresses, `GET /api/v1/feed` SSE stream (URLhaus + ThreatFox, polled every 60s, capped at 500 concurrent subscribers), `GET /api/v1/usage`. Quotas: PRO 5k req/month, ENT 50k; bursts 5/20 req/s. Watchlist poller runs every 30 min and fires webhooks on threshold-cross.
 - **Check Service**: A centralized `checkService.ts` handles input validation, integration with 17 OSINT data types, risk scoring (0-100), and detailed findings.
 - **PDF Generation**: Uses PDFKit for creating verifiable multi-page reports with AI analysis and certification.
 - **Authentication**: Telegram Login Widget with HMAC verification, PostgreSQL-backed sessions, and 2FA (TOTP).
