@@ -291,9 +291,11 @@ function PricingContent() {
           <div className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#0E0E12] p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="min-w-0">
-                <div className="text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">Разовая покупка</div>
+                <div className="text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">
+                  {lang === "uk" ? "Разова покупка" : lang === "ru" ? "Разовая покупка" : lang === "es" ? "Compra única" : lang === "de" ? "Einmaliger Kauf" : "One-time purchase"}
+                </div>
                 <div className="mt-1 text-[18px] sm:text-[20px] font-semibold text-white">
-                  Один полный отчёт — <span className="text-cyan-300">$3</span>
+                  {lang === "uk" ? "Один повний звіт" : lang === "ru" ? "Один полный отчёт" : lang === "es" ? "Un informe completo" : lang === "de" ? "Ein vollständiger Bericht" : "One full report"} — <span className="text-cyan-300">$3</span>
                 </div>
                 <p className="mt-1 text-[13.5px] text-zinc-400">
                   {lang === "uk"

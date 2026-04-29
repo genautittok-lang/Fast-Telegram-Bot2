@@ -127,23 +127,24 @@ function TopBar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-[13px] text-zinc-400 md:flex">
-          <Link href="/sample-report"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-sample">Пример отчёта</span></Link>
-          <Link href="/pricing"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-pricing">Тарифы</span></Link>
-          <a href="#how" className="transition-colors hover:text-white">Как работает</a>
-          <a href="#sources" className="transition-colors hover:text-white">Источники</a>
+        <nav className="hidden items-center gap-6 text-[13px] text-zinc-400 md:flex">
+          <Link href="/pricing"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-pricing">Pricing</span></Link>
+          <Link href="/api-docs"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-api">API</span></Link>
+          <Link href="/guide"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-guide">Guide</span></Link>
+          <Link href="/vpn"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-vpn">VPN</span></Link>
+          <a href="#how" className="transition-colors hover:text-white">How it works</a>
         </nav>
 
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <Link href="/auth">
+          <Link href="/login">
             <span className="hidden cursor-pointer rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-200 transition-colors hover:bg-white/5 sm:inline-block" data-testid="link-login">
-              Войти
+              Sign in
             </span>
           </Link>
           <Link href="/pricing">
             <span className="cursor-pointer rounded-md bg-white px-3 py-1.5 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200" data-testid="link-pro">
-              PRO
+              Get PRO
             </span>
           </Link>
         </div>

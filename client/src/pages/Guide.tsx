@@ -41,7 +41,7 @@ import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PageLayout } from "@/components/PageLayout";
+import { PublicShell } from "@/components/PublicShell";
 import { useTranslation } from "@/lib/i18n";
 
 function Section({ title, icon, children, delay = 0 }: { title: string; icon: React.ReactNode; children: React.ReactNode; delay?: number }) {
@@ -290,8 +290,8 @@ export default function Guide() {
   );
 
   return (
-    <PageLayout title="Guide">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14">
+    <PublicShell>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10 sm:space-y-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
@@ -552,6 +552,6 @@ export default function Guide() {
           </Link>
         </motion.div>
       </div>
-    </PageLayout>
+    </PublicShell>
   );
 }

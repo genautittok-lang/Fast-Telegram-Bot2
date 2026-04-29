@@ -1,40 +1,34 @@
 import { useEffect, useState } from "react";
-import { useParams } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Shield, 
-  Gift, 
-  Zap, 
-  CheckCircle2, 
+import { useParams, Link } from "wouter";
+import {
+  Shield,
+  Gift,
+  CheckCircle2,
   ArrowRight,
+  Search,
+  Lock,
   Sparkles,
   Globe,
-  Lock,
-  Search,
-  Star
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { SiTelegram } from "react-icons/si";
 
-const features = [
-  { icon: Search, text: "10+ OSINT модулів аналізу", color: "text-cyan-400" },
-  { icon: Lock, text: "AI-powered звіти безпеки", color: "text-cyan-400" },
-  { icon: Globe, text: "Аналіз IP, крипто, email...", color: "text-purple-400" },
-  { icon: Zap, text: "Миттєві результати", color: "text-amber-400" },
+const PERKS = [
+  { Icon: Gift,    title: "+5 free scans",        sub: "Stacked on top of the daily 3" },
+  { Icon: Shield,  title: "Full source coverage", sub: "Same 150+ OSINT sources as PRO" },
+  { Icon: Lock,    title: "PDF reports",          sub: "Sharable, signed, watermark-free" },
+  { Icon: Sparkles,title: "AI threat profile",    sub: "One generated automatically" },
 ];
 
 export default function ReferralLanding() {
   const { code } = useParams<{ code: string }>();
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(8);
   const [autoRedirect, setAutoRedirect] = useState(true);
-  
+
   const botUsername = "DarkShare1Bot";
   const telegramDeepLink = `https://t.me/${botUsername}?start=ref_${code}`;
-  
+
   useEffect(() => {
     if (!autoRedirect) return;
-    
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -45,194 +39,153 @@ export default function ReferralLanding() {
         return prev - 1;
       });
     }, 1000);
-    
     return () => clearInterval(timer);
   }, [autoRedirect, telegramDeepLink]);
-  
-  const handleOpenBot = () => {
-    window.location.href = telegramDeepLink;
-  };
-  
-  const handleCancelRedirect = () => {
-    setAutoRedirect(false);
-    setCountdown(0);
-  };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(34,197,94,0.15)_0%,transparent_70%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.1)_0%,transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(168,85,247,0.1)_0%,transparent_50%)]" />
-      
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-primary/30 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.2, 0.8, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
+    <div className="relative min-h-screen overflow-hidden bg-[#0A0A0A] text-white">
+      {/* background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-x-0 top-0 h-[640px]"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(34,211,238,0.12), transparent 65%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
+          }}
+        />
       </div>
 
-      <motion.div
-        className="relative z-10 max-w-md w-full"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="text-center mb-8">
-          <motion.div
-            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 mb-6 shadow-[0_0_60px_rgba(34,197,94,0.5)]"
-            animate={{ 
-              boxShadow: [
-                "0 0 40px rgba(34,197,94,0.4)",
-                "0 0 80px rgba(34,197,94,0.6)",
-                "0 0 40px rgba(34,197,94,0.4)"
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Shield className="w-10 h-10 text-black" />
-          </motion.div>
-          
-          <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">
-            <span className="bg-gradient-to-r from-white via-white to-primary bg-clip-text text-transparent">
-              DARKSHARE
+      {/* top bar */}
+      <header className="relative border-b border-white/5">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
+          <Link href="/">
+            <span className="inline-flex cursor-pointer items-center gap-2" data-testid="link-logo">
+              <span className="grid h-8 w-8 place-items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10">
+                <Shield className="h-4 w-4 text-cyan-300" />
+              </span>
+              <span className="text-[15px] font-semibold tracking-tight">DarkShare</span>
             </span>
-          </h1>
-          <p className="text-sm text-muted-foreground tracking-[0.3em] mb-6">SECURITY OSINT PLATFORM</p>
-          
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 via-pink-500/10 to-transparent border border-purple-500/30"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Gift className="w-4 h-4 text-purple-400" />
-            <span className="text-sm text-purple-300">Тебе запросив друг!</span>
-            <Sparkles className="w-4 h-4 text-amber-400" />
-          </motion.div>
+          </Link>
+          <div className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400 sm:inline-flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Live · 150+ OSINT sources
+          </div>
         </div>
+      </header>
 
-        <motion.div
-          className="p-6 rounded-2xl bg-gradient-to-br from-white/5 via-white/[0.02] to-transparent border border-white/10 backdrop-blur-xl mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20">
-              <Star className="w-5 h-5 text-amber-400" />
+      <main className="relative mx-auto max-w-5xl px-5 py-16 sm:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_minmax(0,460px)] lg:gap-16">
+          {/* LEFT — message */}
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-1 text-[12px] text-cyan-300">
+              <Gift className="h-3.5 w-3.5" /> A friend invited you
             </div>
-            <div>
-              <h2 className="font-semibold text-lg">Твій бонус</h2>
-              <p className="text-xs text-muted-foreground">За реферальним кодом</p>
-            </div>
-          </div>
-          
-          <div className="p-4 rounded-xl bg-black/40 border border-primary/20 mb-4">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Реферальний код:</span>
-              <Badge className="bg-gradient-to-r from-primary/20 to-cyan-500/20 text-primary border-primary/30 font-mono text-sm px-3">
+
+            <h1 className="mt-6 text-balance text-[40px] font-semibold leading-[1.05] tracking-tight sm:text-[52px]" data-testid="text-hero-title">
+              Your invite unlocks a <span className="text-cyan-300">free PRO trial</span>.
+            </h1>
+
+            <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-zinc-400 sm:text-[16px]">
+              Use this code in the Telegram bot to instantly add bonus scans, full source coverage,
+              and a PDF report — no card, no subscription, no upsell loop.
+            </p>
+
+            <div className="mt-7 inline-flex items-center gap-3 rounded-xl border border-white/10 bg-[#0E0E12] p-3 pl-4">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">Code</div>
+              <div className="font-mono text-[18px] font-semibold tracking-wide text-cyan-300" data-testid="text-ref-code">
                 {code}
-              </Badge>
-            </div>
-          </div>
-          
-          <div className="space-y-3 mb-6">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
               </div>
-              <span className="text-muted-foreground">+5 безкоштовних перевірок</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-muted-foreground">Повний доступ до всіх модулів</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-muted-foreground">AI-аналіз та PDF звіти</span>
-            </div>
-          </div>
-          
-          <Button
-            onClick={handleOpenBot}
-            className="w-full h-14 text-lg bg-gradient-to-r from-[#0088cc] via-[#00a8e8] to-[#0088cc] hover:from-[#0099dd] hover:via-[#00b8f8] hover:to-[#0099dd] text-white border-0 shadow-[0_0_30px_rgba(0,136,204,0.4)] hover:shadow-[0_0_50px_rgba(0,136,204,0.6)] transition-all duration-300"
-            data-testid="button-open-telegram"
-          >
-            <SiTelegram className="w-6 h-6 mr-3" />
-            Відкрити в Telegram
-            <ArrowRight className="w-5 h-5 ml-3" />
-          </Button>
-          
-          <AnimatePresence>
-            {autoRedirect && countdown > 0 && (
-              <motion.div
-                className="mt-4 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <a
+                href={telegramDeepLink}
+                className="inline-flex h-12 items-center gap-2 rounded-xl bg-white px-5 text-[14px] font-medium text-black transition-colors hover:bg-zinc-200"
+                data-testid="button-open-telegram"
               >
-                <p className="text-sm text-muted-foreground mb-2">
-                  Автоматичне перенаправлення через <span className="text-primary font-bold">{countdown}</span> сек...
-                </p>
+                <SiTelegram className="h-4 w-4" /> Claim in Telegram
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <Link href="/">
+                <span className="inline-flex h-12 cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 text-[14px] font-medium text-zinc-200 transition-colors hover:border-white/20" data-testid="link-try-web">
+                  <Search className="h-4 w-4" /> Try the web scanner first
+                </span>
+              </Link>
+            </div>
+
+            {autoRedirect && countdown > 0 && (
+              <div className="mt-5 flex items-center gap-3 text-[12.5px] text-zinc-500">
+                <span>Auto-opens Telegram in <span className="font-mono text-cyan-300">{countdown}s</span></span>
                 <button
-                  onClick={handleCancelRedirect}
-                  className="text-xs text-muted-foreground hover:text-white underline transition-colors"
+                  onClick={() => setAutoRedirect(false)}
+                  className="text-zinc-400 underline-offset-2 transition-colors hover:text-zinc-200 hover:underline"
+                  data-testid="button-cancel-redirect"
                 >
-                  Скасувати
+                  cancel
                 </button>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
-        </motion.div>
+          </div>
 
-        <motion.div
-          className="grid grid-cols-2 gap-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              className="p-3 rounded-xl bg-white/[0.02] border border-white/5 backdrop-blur-sm"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + idx * 0.1 }}
-            >
-              <feature.icon className={`w-5 h-5 ${feature.color} mb-2`} />
-              <p className="text-xs text-muted-foreground">{feature.text}</p>
-            </motion.div>
-          ))}
-        </motion.div>
+          {/* RIGHT — perks card */}
+          <div className="relative">
+            <div
+              className="pointer-events-none absolute -inset-6 rounded-[2rem] opacity-50 blur-2xl"
+              style={{ background: "radial-gradient(ellipse 60% 50% at 50% 30%, rgba(34,211,238,0.16), transparent 60%)" }}
+            />
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+              <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10">
+                    <Sparkles className="h-4 w-4 text-cyan-300" />
+                  </span>
+                  <div>
+                    <div className="text-[14px] font-medium">Friend bonus</div>
+                    <div className="text-[11px] uppercase tracking-wider text-zinc-500">Auto-applied</div>
+                  </div>
+                </div>
+                <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10.5px] text-emerald-300">
+                  ACTIVE
+                </span>
+              </div>
 
-        <motion.p
-          className="text-center text-xs text-muted-foreground/60 mt-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-        >
-          darkshare.store - Professional Security OSINT
-        </motion.p>
-      </motion.div>
+              <ul className="divide-y divide-white/5">
+                {PERKS.map(({ Icon, title, sub }) => (
+                  <li key={title} className="flex items-start gap-3 px-5 py-4">
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-cyan-500/20 bg-cyan-500/[0.06]">
+                      <Icon className="h-4 w-4 text-cyan-300" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[13.5px] font-medium text-white">{title}</div>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400/80" />
+                      </div>
+                      <div className="text-[12px] text-zinc-500">{sub}</div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="border-t border-white/5 bg-white/[0.015] px-5 py-3 text-[10.5px] uppercase tracking-wider text-zinc-500">
+                Bonus is single-use · expires in 24h
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-end gap-1.5 text-[10.5px] text-zinc-600">
+              <Globe className="h-3 w-3" /> Works on web and in Telegram bot
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
