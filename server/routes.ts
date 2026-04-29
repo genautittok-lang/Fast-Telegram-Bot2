@@ -82,7 +82,7 @@ const chatUpload = multer({ storage: multer.diskStorage({
 } });
 
 const TIER_REQUESTS: Record<string, number> = {
-  FREE: 5,
+  FREE: 3,
   PRO: 50,
   ENTERPRISE: 500,
   GROUPS: 500,
@@ -162,7 +162,7 @@ export async function registerRoutes(
             photoUrl: photoUrl || null,
             lang: "uk",
             tier: "FREE",
-            requestsLeft: 5,
+            requestsLeft: 3,
             streakDays: 1,
             refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           });
@@ -550,7 +550,7 @@ export async function registerRoutes(
           photoUrl: photoUrl || null,
           lang: "UA",
           tier: "FREE",
-          requestsLeft: 5,
+          requestsLeft: 3,
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
@@ -984,7 +984,7 @@ export async function registerRoutes(
     const userTier = (user.tier || "FREE").toUpperCase();
     
     const DAILY_LIMITS: Record<string, number> = {
-      FREE: 5,
+      FREE: 3,
       PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
@@ -1022,8 +1022,8 @@ export async function registerRoutes(
           const referrer = await storage.getUserByRefCode(authReq.user!.pendingRefCode);
           if (referrer && referrer.id !== authReq.user!.id) {
             await storage.createReferral({ referrerId: referrer.id, referredId: authReq.user!.id, bonus: 5 });
-            await storage.updateUser(authReq.user!.id, { requestsLeft: (authReq.user!.requestsLeft || 5) + 5, pendingRefCode: null });
-            await storage.updateUser(referrer.id, { requestsLeft: (referrer.requestsLeft || 5) + 2 });
+            await storage.updateUser(authReq.user!.id, { requestsLeft: (authReq.user!.requestsLeft || 3) + 5, pendingRefCode: null });
+            await storage.updateUser(referrer.id, { requestsLeft: (referrer.requestsLeft || 3) + 2 });
           } else {
             await storage.updateUser(authReq.user!.id, { pendingRefCode: null });
           }
@@ -1270,7 +1270,7 @@ export async function registerRoutes(
     const userTier = (user.tier || "FREE").toUpperCase();
     
     const DAILY_LIMITS: Record<string, number> = {
-      FREE: 5,
+      FREE: 3,
       PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
@@ -1997,6 +1997,34 @@ export async function registerRoutes(
           meta = JSON.parse(invoice.payload || "{}");
         } catch (e) {}
 
+        if (meta && meta.type === "audit" && meta.paymentId && meta.userId) {
+          const payment = await storage.getPaymentById(meta.paymentId);
+          if (payment && payment.status === "pending") {
+            await storage.updatePaymentStatus(meta.paymentId, "approved");
+            if (pool) {
+              await pool.query(`UPDATE ds_payments SET tx_hash = $1 WHERE id = $2`, [invoice.hash || invoice.invoice_id?.toString() || "cryptopay", meta.paymentId]);
+            }
+            const credits = Number(meta.credits) || 5;
+            const buyer = await storage.getUserById(meta.userId);
+            const newCredits = (buyer?.requestsLeft || 0) + credits;
+            await storage.updateUser(meta.userId, { requestsLeft: newCredits } as any);
+            if (buyer && botInstance) {
+              try {
+                const lang = buyer.lang || "uk";
+                const m: Record<string, string> = {
+                  uk: `🧾 *Оплату підтверджено!*\n\nДодано *${credits}* перевірок до твого балансу.\nЗагалом доступно: *${newCredits}*`,
+                  ru: `🧾 *Оплата подтверждена!*\n\nДобавлено *${credits}* проверок к балансу.\nВсего доступно: *${newCredits}*`,
+                  en: `🧾 *Payment confirmed!*\n\nAdded *${credits}* checks to your balance.\nTotal available: *${newCredits}*`,
+                  es: `🧾 *Pago confirmado!*\n\nAñadidas *${credits}* comprobaciones.\nDisponibles: *${newCredits}*`,
+                  de: `🧾 *Zahlung bestätigt!*\n\n*${credits}* Checks gutgeschrieben.\nVerfügbar: *${newCredits}*`,
+                };
+                await botInstance.telegram.sendMessage(buyer.tgId, m[lang] || m.en, { parse_mode: "Markdown" });
+              } catch { /* ignore */ }
+            }
+          }
+          return res.json({ ok: true });
+        }
+
         const paymentId = meta.paymentId;
         const userId = meta.userId;
         const tier = meta.tier || "PRO";
@@ -2064,6 +2092,90 @@ export async function registerRoutes(
     ENTERPRISE: { monthly: 1435, yearly: 14309 },
     GROUPS: { monthly: 2255, yearly: 22509 },
   };
+  const SINGLE_AUDIT_USD = 3;
+  const SINGLE_AUDIT_UAH = 123;
+  const SINGLE_AUDIT_CREDITS = 5;
+
+  app.post("/api/payments/single-audit/create", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const { method } = req.body || {};
+    if (!method || !["monobank", "crypto"].includes(method)) {
+      return res.status(400).json({ error: "Invalid payment method" });
+    }
+    try {
+      const payment = await storage.createPayment({
+        userId: authReq.user!.id,
+        tier: "AUDIT",
+        amountUsdt: SINGLE_AUDIT_USD.toFixed(2),
+        txHash: null,
+        period: "single",
+        status: "pending",
+      });
+      const appUrl = process.env.APP_URL || 'https://darkshare.store';
+      const reference = `DS-AUDIT-${payment.id}`;
+
+      if (method === "monobank") {
+        const monoToken = process.env.MONOBANK_TOKEN;
+        if (!monoToken) {
+          return res.status(503).json({ error: "Card payment is not configured. Please use Crypto Pay." });
+        }
+        const monoResponse = await fetch("https://api.monobank.ua/api/merchant/invoice/create", {
+          method: "POST",
+          headers: { "X-Token": monoToken, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: SINGLE_AUDIT_UAH * 100,
+            ccy: 980,
+            merchantPaymInfo: {
+              reference,
+              destination: `DARKSHARE single audit (${SINGLE_AUDIT_CREDITS} checks)`,
+              comment: "DARKSHARE one-time audit",
+            },
+            redirectUrl: `${appUrl}/?audit=success`,
+            webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
+          }),
+        });
+        if (!monoResponse.ok) {
+          const errorText = await monoResponse.text();
+          console.error("Monobank single-audit error:", monoResponse.status, errorText);
+          return res.status(502).json({ error: "Failed to create card invoice" });
+        }
+        const monoData = await monoResponse.json();
+        if (monoData.invoiceId && pool) {
+          await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
+        }
+        return res.json({ pageUrl: monoData.pageUrl, invoiceId: monoData.invoiceId });
+      }
+
+      const cryptoToken = process.env.CRYPTOPAY_TOKEN || process.env.CRYPTO_PAY_TOKEN;
+      if (!cryptoToken) {
+        return res.status(503).json({ error: "Crypto Pay is not configured. Please try card payment." });
+      }
+      const cryptoResponse = await fetch("https://pay.crypt.bot/api/createInvoice", {
+        method: "POST",
+        headers: { "Crypto-Pay-API-Token": cryptoToken, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          asset: "USDT",
+          amount: SINGLE_AUDIT_USD.toFixed(2),
+          description: `DARKSHARE one-time audit (${SINGLE_AUDIT_CREDITS} checks)`,
+          payload: JSON.stringify({ type: "audit", paymentId: payment.id, userId: authReq.user!.id, credits: SINGLE_AUDIT_CREDITS }),
+          paid_btn_name: "openBot",
+          paid_btn_url: `${appUrl}/?audit=success`,
+        }),
+      });
+      const cryptoData = await cryptoResponse.json();
+      if (!cryptoResponse.ok || !cryptoData?.result?.pay_url) {
+        console.error("CryptoPay single-audit error:", cryptoData);
+        return res.status(502).json({ error: "Failed to create crypto invoice" });
+      }
+      if (pool) {
+        await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [String(cryptoData.result.invoice_id), payment.id]);
+      }
+      return res.json({ pageUrl: cryptoData.result.pay_url, invoiceId: cryptoData.result.invoice_id });
+    } catch (err: any) {
+      console.error("single-audit create error:", err);
+      return res.status(500).json({ error: "Failed to create audit payment" });
+    }
+  });
 
   app.post("/api/payments/monopay/create", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
@@ -2095,10 +2207,13 @@ export async function registerRoutes(
         if (coupon && coupon.isActive && (coupon.usedCount ?? 0) < (coupon.maxUses ?? 0) &&
             (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
             (!coupon.tier || coupon.tier === normalizedTier)) {
-          promoDiscountValue = coupon.value || 0;
-          amountUAH = Math.round(amountUAH * (1 - promoDiscountValue / 100));
-          await storage.useCoupon(coupon.id, authReq.user!.id);
-          promoValid = true;
+          const alreadyUsed = await storage.hasUserUsedCoupon(coupon.id, authReq.user!.id);
+          if (!alreadyUsed) {
+            promoDiscountValue = coupon.value || 0;
+            amountUAH = Math.round(amountUAH * (1 - promoDiscountValue / 100));
+            await storage.useCoupon(coupon.id, authReq.user!.id);
+            promoValid = true;
+          }
         }
       } catch (promoError) {
         console.error("MonoPay promo code error:", promoError);
@@ -2297,7 +2412,8 @@ export async function registerRoutes(
 
     try {
       if (status === "success" && reference) {
-        const paymentIdMatch = reference.match(/^DS-(\d+)$/);
+        const paymentIdMatch = reference.match(/^DS-(?:AUDIT-)?(\d+)$/);
+        const isAuditPayment = /^DS-AUDIT-/.test(reference);
         if (paymentIdMatch) {
           const paymentId = parseInt(paymentIdMatch[1]);
           const payment = await storage.getPaymentById(paymentId);
@@ -2324,7 +2440,24 @@ export async function registerRoutes(
             }
             await storage.updatePaymentStatus(paymentId, "approved");
 
-            if (payment.userId) {
+            if (payment.userId && isAuditPayment) {
+              const buyer = await storage.getUserById(payment.userId);
+              const newCredits = (buyer?.requestsLeft || 0) + SINGLE_AUDIT_CREDITS;
+              await storage.updateUser(payment.userId, { requestsLeft: newCredits } as any);
+              if (buyer && botInstance) {
+                try {
+                  const lang = buyer.lang || "uk";
+                  const m: Record<string, string> = {
+                    uk: `🧾 *Оплату підтверджено!*\n\nДодано *${SINGLE_AUDIT_CREDITS}* перевірок до твого балансу.\nЗагалом доступно: *${newCredits}*`,
+                    ru: `🧾 *Оплата подтверждена!*\n\nДобавлено *${SINGLE_AUDIT_CREDITS}* проверок к твоему балансу.\nВсего доступно: *${newCredits}*`,
+                    en: `🧾 *Payment confirmed!*\n\nAdded *${SINGLE_AUDIT_CREDITS}* checks to your balance.\nTotal available: *${newCredits}*`,
+                    es: `🧾 *Pago confirmado!*\n\nAñadidas *${SINGLE_AUDIT_CREDITS}* comprobaciones.\nDisponibles: *${newCredits}*`,
+                    de: `🧾 *Zahlung bestätigt!*\n\n*${SINGLE_AUDIT_CREDITS}* Checks gutgeschrieben.\nVerfügbar: *${newCredits}*`,
+                  };
+                  await botInstance.telegram.sendMessage(buyer.tgId, m[lang] || m.en, { parse_mode: "Markdown" });
+                } catch { /* ignore */ }
+              }
+            } else if (payment.userId) {
               const tier = payment.tier?.toUpperCase() || "PRO";
               const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
               const periodDays = (payment as any).period === "yearly" ? 365 : 30;
@@ -2477,7 +2610,7 @@ export async function registerRoutes(
       );
       for (const user of expiredResult.rows) {
         try {
-          await storage.updateUser(user.id, { tier: "FREE", requestsLeft: 5, autoRenew: false } as any);
+          await storage.updateUser(user.id, { tier: "FREE", requestsLeft: 3, autoRenew: false } as any);
           console.log(`Subscription expired for user ${user.id}, downgraded to FREE`);
 
           if (botInstance && user.tg_id) {

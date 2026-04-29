@@ -58,13 +58,13 @@ function TierBadge({ tier }: { tier: string }) {
     },
     PRO: { 
       icon: Crown, 
-      className: "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-blue-400/50",
-      glow: "shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+      className: "bg-cyan-500/10 border-cyan-400/40 text-cyan-300",
+      glow: ""
     },
     ELITE: { 
       icon: Shield, 
-      className: "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white border-purple-400/50",
-      glow: "shadow-[0_0_20px_rgba(168,85,247,0.4)]"
+      className: "bg-amber-500/10 border-amber-400/40 text-amber-300",
+      glow: ""
     },
   };
   
@@ -96,9 +96,7 @@ export default function Referral() {
       referrals: "1-5",
       bonus: t('referral.starterBonus'),
       icon: Star,
-      gradient: "from-zinc-500/20 via-zinc-500/10 to-transparent",
-      iconColor: "text-zinc-400",
-      borderColor: "border-zinc-500/30",
+      iconColor: "text-zinc-300",
     },
     {
       level: 2,
@@ -106,9 +104,7 @@ export default function Referral() {
       referrals: "6-15",
       bonus: t('referral.activeBonus'),
       icon: TrendingUp,
-      gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
-      iconColor: "text-blue-400",
-      borderColor: "border-blue-500/30",
+      iconColor: "text-cyan-300",
     },
     {
       level: 3,
@@ -116,9 +112,7 @@ export default function Referral() {
       referrals: "16-30",
       bonus: t('referral.ambassadorBonus'),
       icon: Award,
-      gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
-      iconColor: "text-purple-400",
-      borderColor: "border-purple-500/30",
+      iconColor: "text-cyan-300",
     },
     {
       level: 4,
@@ -126,9 +120,7 @@ export default function Referral() {
       referrals: "31+",
       bonus: t('referral.eliteBonus'),
       icon: Crown,
-      gradient: "from-amber-500/20 via-orange-500/10 to-transparent",
-      iconColor: "text-amber-400",
-      borderColor: "border-amber-500/30",
+      iconColor: "text-amber-300",
     },
   ];
 
@@ -226,35 +218,27 @@ export default function Referral() {
     partnershipMutation.mutate(partnerForm);
   };
 
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&bgcolor=0E0E12&color=22D3EE&data=${encodeURIComponent(referralLink)}`;
+  const shareToX = () => {
+    const text = encodeURIComponent(`${t('referral.shareMessage').replace('{code}', referralCode)} ${referralLink}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+  };
+
   return (
     <PageLayout title="Referral" appMode={isStandalone}>
-      <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <main className="flex-1 p-3 lg:p-8 overflow-auto max-w-full pb-28 lg:pb-8">
+      <div className="relative flex-1 flex flex-col min-h-screen max-w-full overflow-hidden bg-[#0A0A0A]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.08), transparent 65%)" }} />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />
+        <main className="relative flex-1 p-4 lg:p-10 overflow-auto max-w-full pb-28 lg:pb-12">
           <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
-            <div className="hidden lg:block relative">
-              <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-              <motion.div 
-                className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-br from-black/60 via-black/40 to-transparent border border-white/10 backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.3)]"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              >
-                <div>
-                  <h1 className="text-3xl font-display font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20">
-                      <Users className="w-7 h-7 text-purple-400" />
-                    </div>
-                    <span className="bg-gradient-to-r from-white via-white to-purple-400/80 bg-clip-text text-transparent">{t('referral.title')}</span>
-                  </h1>
-                  <p className="text-muted-foreground mt-2 ml-14">{t('referral.inviteFriendsDesc')}</p>
-                </div>
-              </motion.div>
-            </div>
-
-            <div className="lg:hidden mb-4">
-              <h1 className="text-xl font-display font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-400" />
-                <span>{t('nav.referral')}</span>
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Referral · +5 checks per friend · top get free PRO
+              </div>
+              <h1 className="text-balance text-[28px] sm:text-[40px] lg:text-[44px] font-semibold leading-[1.05] tracking-tight text-white" data-testid="text-referral-title">
+                {t('referral.title')}<br />
+                <span className="text-cyan-300">{t('referral.inviteFriendsDesc')}</span>
               </h1>
             </div>
 
@@ -264,7 +248,7 @@ export default function Referral() {
               transition={{ duration: 0.5, delay: 0.05 }}
             >
               <div
-                className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent backdrop-blur-xl cursor-pointer"
+                className="rounded-2xl border border-white/10 bg-[#0E0E12] cursor-pointer transition-colors hover:border-amber-400/30"
                 data-testid="button-partner-toggle"
               >
                 <button
@@ -274,19 +258,19 @@ export default function Referral() {
                   data-testid="button-partner-expand"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20">
-                      <Handshake className="w-5 h-5 text-amber-400" />
+                    <div className="p-2 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                      <Handshake className="w-5 h-5 text-amber-300" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-sm lg:text-base" data-testid="text-reversh-title">{t('referral.reversh.title')}</h3>
-                      <p className="text-xs lg:text-sm text-muted-foreground mt-0.5" data-testid="text-reversh-description">{t('referral.reversh.description')}</p>
+                      <h3 className="text-[14.5px] font-semibold tracking-tight text-white" data-testid="text-reversh-title">{t('referral.reversh.title')}</h3>
+                      <p className="text-[12px] text-zinc-400 mt-0.5" data-testid="text-reversh-description">{t('referral.reversh.description')}</p>
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: partnerExpanded ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <ChevronDown className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                    <ChevronDown className="w-5 h-5 text-zinc-500 flex-shrink-0" />
                   </motion.div>
                 </button>
 
@@ -300,7 +284,7 @@ export default function Referral() {
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 lg:px-5 lg:pb-5 pt-0">
-                        <div className="border-t border-amber-500/20 pt-4">
+                        <div className="border-t border-white/10 pt-4">
                           <form onSubmit={handlePartnerSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <Input
@@ -343,7 +327,7 @@ export default function Referral() {
                             <Button
                               type="submit"
                               disabled={partnershipMutation.isPending || !partnerForm.name || !partnerForm.phone || !partnerForm.email || !partnerForm.method || !partnerForm.volume}
-                              className="w-full bg-gradient-to-r from-amber-600 to-orange-500 text-white border-0"
+                              className="w-full bg-white text-black hover:bg-zinc-200 border-0"
                               data-testid="button-partner-submit"
                             >
                               <Send className="w-4 h-4 mr-2" />
@@ -358,217 +342,198 @@ export default function Referral() {
               </div>
             </motion.div>
 
-            <motion.div
-              className="p-4 lg:p-6 rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-transparent backdrop-blur-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Gift className="w-5 h-5 text-purple-400" />
-                <h2 className="font-semibold text-lg">{t('referral.yourRefCode')}</h2>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 relative">
-                  <div className="p-4 rounded-xl bg-black/40 border border-white/10 font-mono text-xl lg:text-2xl text-center text-purple-400 tracking-wider shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-4 lg:gap-6 rounded-2xl border border-white/10 bg-[#0E0E12] p-4 lg:p-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-cyan-300" />
+                  <h2 className="text-[12px] uppercase tracking-wider text-zinc-500">{t('referral.yourRefCode')}</h2>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-mono text-lg lg:text-xl text-cyan-300 tracking-wider text-center sm:text-left" data-testid="text-ref-code-display">
                     {referralCode}
                   </div>
+                  <button
+                    onClick={copyCode}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-4 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200"
+                    data-testid="button-copy-code"
+                  >
+                    {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copiedCode ? t('referral.copied') : t('referral.copyBtn')}
+                  </button>
                 </div>
-                <Button
-                  onClick={copyCode}
-                  className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white border-0 shadow-[0_0_20px_rgba(168,85,247,0.3)]"
-                  data-testid="button-copy-code"
-                >
-                  {copiedCode ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-                  {copiedCode ? t('referral.copied') : t('referral.copyBtn')}
-                </Button>
+
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">{t('referral.referralLink')}</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 font-mono text-[12px] text-zinc-300 truncate">
+                      {referralLink}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={copyLink}
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 text-zinc-400 transition-colors hover:border-white/20 hover:text-white"
+                        data-testid="button-copy-link"
+                        title="Copy"
+                      >
+                        {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={shareToTelegram}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/20 hover:text-white"
+                        data-testid="button-share-telegram"
+                      >
+                        <SiTelegram className="w-3.5 h-3.5 text-cyan-300" /> Telegram
+                      </button>
+                      <button
+                        onClick={shareToX}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/20 hover:text-white"
+                        data-testid="button-share-x"
+                      >
+                        <Share2 className="w-3.5 h-3.5" /> X
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-4 p-3 rounded-xl bg-black/30 border border-white/5">
-                <p className="text-xs text-muted-foreground mb-2">{t('referral.referralLink')}:</p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1 p-2 rounded-lg bg-black/40 border border-white/10 font-mono text-xs text-cyan-400 truncate">
-                    {referralLink}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={copyLink}
-                      className="border-cyan-500/30 hover:bg-cyan-500/10 hover:border-cyan-400/50"
-                      data-testid="button-copy-link"
-                    >
-                      {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={shareToTelegram}
-                      className="bg-[#0088cc] hover:bg-[#0099dd] text-white border-0"
-                      data-testid="button-share-telegram"
-                    >
-                      <SiTelegram className="w-4 h-4 mr-1" />
-                      {lang === "uk" ? "Telegram" : lang === "ru" ? "Telegram" : lang === "es" ? "Telegram" : lang === "de" ? "Telegram" : "Telegram"}
-                    </Button>
-                  </div>
-                </div>
+              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/30 p-4">
+                <img src={qrUrl} alt="Referral QR" width={160} height={160} className="rounded-md" data-testid="img-ref-qr" />
+                <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">scan to invite</p>
               </div>
-            </motion.div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <motion.div
-                className="p-4 lg:p-5 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-green-500/5 to-transparent backdrop-blur-xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <UserPlus className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs text-muted-foreground">{t('referral.totalReferrals')}</span>
-                </div>
-                <p className="text-3xl font-bold text-cyan-400 font-mono">
-                  {statsLoading ? "—" : referralStats?.referralCount || 0}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{t('referral.referralsLabel')}</p>
-              </motion.div>
-
-              <motion.div
-                className="p-4 lg:p-5 rounded-xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent backdrop-blur-xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.25 }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Wallet className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs text-muted-foreground">{t('referral.totalBonus')}</span>
-                </div>
-                <p className="text-3xl font-bold text-amber-400 font-mono">
-                  +{statsLoading ? "—" : referralStats?.totalEarned || 0}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{t('referral.earnedRequests')}</p>
-              </motion.div>
-
-              <motion.div
-                className="p-4 lg:p-5 rounded-xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent backdrop-blur-xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Gift className="w-4 h-4 text-cyan-400" />
-                  <span className="text-xs text-muted-foreground">{t('referral.pendingBonusLabel')}</span>
-                </div>
-                <p className="text-3xl font-bold text-cyan-400 font-mono">
-                  +{statsLoading ? "—" : referralStats?.pendingBonus || 0}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{t('referral.bonus')}</p>
-              </motion.div>
             </div>
 
-            <motion.div
-              className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-transparent backdrop-blur-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.35 }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Award className="w-5 h-5 text-amber-400" />
-                <h2 className="font-semibold text-lg">{t('referral.rewardLevels')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                  <UserPlus className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>{t('referral.totalReferrals')}</span>
+                </div>
+                <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono">
+                  {statsLoading ? "—" : referralStats?.referralCount || 0}
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-1">{t('referral.referralsLabel')}</p>
               </div>
-              
+
+              <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                  <Wallet className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{t('referral.totalBonus')}</span>
+                </div>
+                <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono">
+                  +{statsLoading ? "—" : referralStats?.totalEarned || 0}
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-1">{t('referral.earnedRequests')}</p>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                  <Gift className="w-3.5 h-3.5 text-cyan-300" />
+                  <span>{t('referral.pendingBonusLabel')}</span>
+                </div>
+                <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono">
+                  +{statsLoading ? "—" : referralStats?.pendingBonus || 0}
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-1">{t('referral.bonus')}</p>
+              </div>
+            </div>
+
+            <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-cyan-300" />
+                  <h2 className="text-[12px] uppercase tracking-wider text-zinc-500">{t('referral.rewardLevels')}</h2>
+                </div>
+                <span className="text-[11px] font-mono text-zinc-600">L{getCurrentTierLevel()} / L4</span>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {referralTiers.map((tier, idx) => {
                   const currentLevel = getCurrentTierLevel();
                   const isActive = tier.level === currentLevel;
                   const isCompleted = tier.level < currentLevel;
-                  
+
                   return (
                     <motion.div
                       key={tier.level}
-                      className={`relative p-4 rounded-xl border transition-all duration-300 ${
-                        isActive 
-                          ? `${tier.borderColor} bg-gradient-to-br ${tier.gradient} shadow-lg`
+                      className={`relative p-4 rounded-xl border transition-colors ${
+                        isActive
+                          ? "border-cyan-400/40 bg-black/40"
                           : isCompleted
-                            ? "border-primary/30 bg-gradient-to-br from-primary/10 to-transparent"
-                            : "border-white/10 bg-black/40"
+                            ? "border-emerald-400/30 bg-black/30"
+                            : "border-white/10 bg-black/30 hover:border-white/20"
                       }`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.1, duration: 0.3 }}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05, duration: 0.25 }}
+                      data-testid={`tier-${tier.level}`}
                     >
                       {isActive && (
                         <div className="absolute -top-2 -right-2">
-                          <Badge className="bg-gradient-to-r from-primary to-cyan-400 text-black text-[10px] px-2 py-0.5">
+                          <span className="inline-flex items-center rounded-full border border-cyan-400/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-cyan-300">
                             {t('referral.current')}
-                          </Badge>
+                          </span>
                         </div>
                       )}
                       {isCompleted && (
                         <div className="absolute -top-2 -right-2">
-                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                            <Check className="w-3 h-3 text-black" />
+                          <div className="w-5 h-5 rounded-full border border-emerald-400/40 bg-emerald-500/10 flex items-center justify-center">
+                            <Check className="w-3 h-3 text-emerald-300" />
                           </div>
                         </div>
                       )}
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${
-                        isActive || isCompleted ? `bg-white/10` : "bg-white/5"
-                      }`}>
-                        <tier.icon className={`w-5 h-5 ${isActive || isCompleted ? tier.iconColor : "text-muted-foreground"}`} />
+                      <div className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center mb-3">
+                        <tier.icon className={`w-4.5 h-4.5 ${isActive || isCompleted ? tier.iconColor : "text-zinc-500"}`} />
                       </div>
-                      <h3 className={`font-semibold text-sm mb-1 ${isActive || isCompleted ? "text-white" : "text-muted-foreground"}`}>
+                      <h3 className={`text-[14px] font-semibold tracking-tight mb-1 ${isActive || isCompleted ? "text-white" : "text-zinc-300"}`}>
                         {tier.name}
                       </h3>
-                      <p className={`text-xs mb-2 ${isActive || isCompleted ? tier.iconColor : "text-muted-foreground/60"}`}>
+                      <p className="text-[11px] font-mono text-zinc-500 mb-2">
                         {tier.referrals} {t('referral.referralsLabel')}
                       </p>
-                      <p className={`text-xs ${isActive || isCompleted ? "text-white/80" : "text-muted-foreground/50"}`}>
+                      <p className={`text-[12px] leading-relaxed ${isActive || isCompleted ? "text-zinc-300" : "text-zinc-500"}`}>
                         {tier.bonus}
                       </p>
                     </motion.div>
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-transparent backdrop-blur-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
+            <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-cyan-400" />
-                  <h2 className="font-semibold text-lg">{t('referral.invitedUsers')}</h2>
+                  <Users className="w-4 h-4 text-cyan-300" />
+                  <h2 className="text-[12px] uppercase tracking-wider text-zinc-500">{t('referral.invitedUsers')}</h2>
                 </div>
-                <Badge variant="outline" className="border-cyan-500/30 text-cyan-400">
+                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
                   {uniqueUsers?.length || 0}
-                </Badge>
+                </span>
               </div>
               
               {statsLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-2 border-cyan-400/30 border-t-cyan-300 rounded-full animate-spin" />
                 </div>
               ) : uniqueUsers && uniqueUsers.length > 0 ? (
                 <div className="space-y-2">
                   {uniqueUsers.map((refUser, idx) => (
                     <motion.div
                       key={refUser.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-black/30 border border-white/5 hover:border-white/10 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl bg-black/30 border border-white/10 hover:border-white/20 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05, duration: 0.2 }}
                     >
                       <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8 border border-white/10">
-                          <AvatarFallback className="bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-xs">
+                          <AvatarFallback className="bg-cyan-500/10 text-cyan-300 text-xs font-mono">
                             {refUser.username?.slice(0, 2).toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium">@{refUser.username || "user"}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-sm font-medium text-white">@{refUser.username || "user"}</p>
+                          <p className="text-[11px] font-mono text-zinc-500">
                             {new Date(refUser.joinedAt).toLocaleDateString("uk-UA")}
                           </p>
                         </div>
@@ -576,14 +541,14 @@ export default function Referral() {
                       <div className="flex items-center gap-2">
                         <TierBadge tier={refUser.tier} />
                         {refUser.paid ? (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs">
-                            <Check className="w-3 h-3 mr-1" />
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-mono text-emerald-300">
+                            <Check className="w-3 h-3" />
                             {t('referral.bonus')}
-                          </Badge>
+                          </span>
                         ) : (
-                          <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-xs">
+                          <span className="inline-flex items-center rounded-full border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono text-amber-300">
                             {t('referral.waiting')}
-                          </Badge>
+                          </span>
                         )}
                       </div>
                     </motion.div>
@@ -591,26 +556,21 @@ export default function Referral() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 flex items-center justify-center mb-4">
-                    <UserPlus className="w-8 h-8 text-purple-400/60" />
+                  <div className="w-14 h-14 rounded-xl border border-white/10 bg-white/[0.03] flex items-center justify-center mb-4">
+                    <UserPlus className="w-6 h-6 text-zinc-500" />
                   </div>
-                  <p className="text-muted-foreground mb-2">{t('referral.noReferrals')}</p>
-                  <p className="text-xs text-muted-foreground/60 max-w-xs">
+                  <p className="text-zinc-300 mb-2">{t('referral.noReferrals')}</p>
+                  <p className="text-[12px] text-zinc-500 max-w-xs">
                     {t('referral.inviteFriendsHint')}
                   </p>
                 </div>
               )}
-            </motion.div>
+            </div>
 
-            <motion.div
-              className="p-4 lg:p-6 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent backdrop-blur-xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.45 }}
-            >
+            <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-cyan-500/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                  <Gift className="w-6 h-6 text-primary" />
+                <div className="w-11 h-11 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-center flex-shrink-0">
+                  <Gift className="w-5 h-5 text-cyan-300" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-2">{t('referral.howItWorksTitle')}</h3>
@@ -642,7 +602,7 @@ export default function Referral() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
           </div>
         </main>

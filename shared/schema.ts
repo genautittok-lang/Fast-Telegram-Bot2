@@ -10,7 +10,7 @@ export const users = pgTable("ds_users", {
   lang: text("lang").default("uk"),
   langSet: boolean("lang_set").default(false),
   tier: text("tier").default("FREE"),
-  requestsLeft: integer("requests_left").default(5),
+  requestsLeft: integer("requests_left").default(3),
   streakDays: integer("streak_days").default(0),
   refCode: text("ref_code").unique(),
   discountPct: integer("discount_pct").default(0),

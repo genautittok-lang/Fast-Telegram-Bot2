@@ -56,6 +56,39 @@ function PricingContent() {
   const [timerExpired, setTimerExpired] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"method" | "details">("method");
   const [selectedMethod, setSelectedMethod] = useState<"crypto" | "monobank" | "stars" | null>(null);
+  const [auditOpen, setAuditOpen] = useState(false);
+  const [auditLoading, setAuditLoading] = useState<"crypto" | "monobank" | null>(null);
+
+  const startSingleAudit = async (method: "crypto" | "monobank") => {
+    if (!isAuthenticated) {
+      toast({ title: lang === "uk" ? "Потрібен вхід" : lang === "ru" ? "Нужен вход" : "Sign in required", description: lang === "uk" ? "Увійдіть, щоб придбати разовий аудит." : lang === "ru" ? "Войдите, чтобы оплатить разовый аудит." : "Please sign in to purchase a single audit." });
+      setLocation("/auth");
+      return;
+    }
+    try {
+      setAuditLoading(method);
+      const r = await fetch("/api/payments/single-audit/create", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ method }),
+      });
+      const data = await r.json();
+      if (r.ok && data.pageUrl && /^https?:\/\//i.test(data.pageUrl)) {
+        window.location.href = data.pageUrl;
+        return;
+      }
+      toast({
+        title: lang === "uk" ? "Не вдалося створити оплату" : lang === "ru" ? "Не удалось создать оплату" : "Failed to start payment",
+        description: data.error || (lang === "uk" ? "Спробуйте інший спосіб" : lang === "ru" ? "Попробуйте другой способ" : "Try another method"),
+        variant: "destructive",
+      });
+    } catch (e: any) {
+      toast({ title: "Network error", description: e?.message || "Try again", variant: "destructive" });
+    } finally {
+      setAuditLoading(null);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -310,11 +343,11 @@ function PricingContent() {
                 </p>
               </div>
               <Button
-                onClick={() => setLocation("/")}
+                onClick={() => setAuditOpen(true)}
                 className="bg-white text-black hover:bg-zinc-200"
                 data-testid="button-buy-single-report"
               >
-                {lang === "uk" ? "Перевірити" : lang === "ru" ? "Сделать проверку" : lang === "es" ? "Comprobar ahora" : lang === "de" ? "Jetzt prüfen" : "Run a check"}
+                {lang === "uk" ? "Купити за $3" : lang === "ru" ? "Купить за $3" : lang === "es" ? "Comprar por $3" : lang === "de" ? "Für $3 kaufen" : "Buy for $3"}
                 <ChevronRight className="ml-1.5 h-4 w-4" />
               </Button>
             </div>
@@ -846,9 +879,9 @@ function PricingContent() {
                               ? "bg-gradient-to-br from-violet-500/30 to-purple-500/20 shadow-lg shadow-violet-500/20 border border-violet-500/30"
                               : "bg-violet-500/10 border border-violet-500/10"
                           }`}>
-                            <div className="flex items-center gap-0.5">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 0 0 1 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                              <svg width="12" height="14" viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.2-155.5-127c-56.5-79.2-102.2-202.4-102.2-319.3 0-187.8 122.1-287.5 242.3-287.5 63.9 0 117.2 42 157.5 42 38.3 0 98.2-44.5 171.8-44.5 27.8 0 127.6 2.5 193.2 95.3zM554.1 159.4c31.1-36.9 53.1-88.1 53.1-139.4 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8.6 15.7 1.3 18.2 2.5.6 6.4 1.3 10.2 1.3 45.4 0 103-30.4 139.5-71.3z"/></svg>
+                            <div className="flex items-center gap-1.5">
+                              <svg width="16" height="16" viewBox="0 0 48 48" aria-label="Google Pay"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
+                              <svg width="14" height="17" viewBox="0 0 170 200" fill="white" aria-label="Apple Pay"><path d="M150.4 172.3c-7.8 18.2-16.3 27-30.5 27-8.1 0-13.6-4.7-22.4-4.7-9.1 0-15.2 4.8-22.8 4.8-14.4 0-28.1-18.1-38.7-42.7C26.1 132.4 20 109.3 20 87.3c0-35.2 23-53.8 45.5-53.8 9.8 0 17.9 5.4 24 5.4 5.8 0 14.8-5.7 25.9-5.7 7.3 0 23.6 2.8 33.2 17.7-1.2.8-23.6 14.3-23.6 38.7 0 28.2 24.6 38.1 25.4 38.4zM114.5 0c-17.1 1.3-33.3 18.9-31.5 36.8 15.6 0 33.2-17.2 31.5-36.8z"/></svg>
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
@@ -1154,6 +1187,88 @@ function PricingContent() {
                 )}
 
                 </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {auditOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
+              onClick={() => !auditLoading && setAuditOpen(false)}
+              data-testid="modal-single-audit"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0E0E12] p-6 shadow-2xl"
+              >
+                <div className="text-[12px] uppercase tracking-[0.2em] text-cyan-300/80 mb-1">
+                  {lang === "uk" ? "Разовий аудит" : lang === "ru" ? "Разовый аудит" : lang === "es" ? "Auditoría única" : lang === "de" ? "Einmaliger Audit" : "Single audit"}
+                </div>
+                <div className="text-2xl font-semibold text-white mb-1">$3</div>
+                <p className="text-[13.5px] text-zinc-400 mb-5">
+                  {lang === "uk" ? "Один повний звіт за однією ціллю + 5 додаткових перевірок до твого балансу. Без підписки." : lang === "ru" ? "Один полный отчёт по цели + 5 дополнительных проверок к балансу. Без подписки." : lang === "es" ? "Un informe completo + 5 comprobaciones añadidas. Sin suscripción." : lang === "de" ? "Ein vollständiger Bericht + 5 zusätzliche Checks. Kein Abo." : "One full report for one target + 5 extra checks added to your balance. No subscription."}
+                </p>
+
+                <div className="space-y-2.5">
+                  <button
+                    type="button"
+                    disabled={!!auditLoading}
+                    onClick={() => startSingleAudit("monobank")}
+                    className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-400/30 transition-colors disabled:opacity-50"
+                    data-testid="button-audit-card"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-semibold text-white">Google Pay · Apple Pay</div>
+                        <div className="text-[11px] text-zinc-400">Visa · Mastercard · 123 UAH</div>
+                      </div>
+                    </div>
+                    {auditLoading === "monobank" ? <Loader2 className="w-4 h-4 animate-spin text-violet-300" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!!auditLoading}
+                    onClick={() => startSingleAudit("crypto")}
+                    className="w-full flex items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-blue-400/30 transition-colors disabled:opacity-50"
+                    data-testid="button-audit-crypto"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                        <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+                          <circle cx="24" cy="24" r="20" stroke="#2AABEE" strokeWidth="2" fill="none" opacity="0.3"/>
+                          <path d="M15.5 24.5L21 30L33 18" stroke="#2AABEE" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-semibold text-white">Crypto Pay</div>
+                        <div className="text-[11px] text-zinc-400">USDT · BTC · TON · $3</div>
+                      </div>
+                    </div>
+                    {auditLoading === "crypto" ? <Loader2 className="w-4 h-4 animate-spin text-blue-300" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={!!auditLoading}
+                  onClick={() => setAuditOpen(false)}
+                  className="mt-5 w-full text-[12px] text-zinc-500 hover:text-zinc-300 transition-colors disabled:opacity-50"
+                  data-testid="button-audit-cancel"
+                >
+                  {lang === "uk" ? "Скасувати" : lang === "ru" ? "Отмена" : lang === "es" ? "Cancelar" : lang === "de" ? "Abbrechen" : "Cancel"}
+                </button>
               </motion.div>
             </motion.div>
           )}

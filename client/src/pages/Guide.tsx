@@ -233,7 +233,7 @@ export default function Guide() {
   ];
 
   const faqItems = [
-    { q: L("Скільки перевірок я можу робити безкоштовно?", "Сколько проверок я могу делать бесплатно?", "How many free checks can I do?"), a: L("FREE тариф дає 5 перевірок на день. Вони оновлюються щодня о 00:00 UTC. Також можна отримати додаткові перевірки через реферальну програму (+3 за кожного друга).", "FREE тариф даёт 5 проверок в день. Они обновляются ежедневно в 00:00 UTC. Также можно получить дополнительные проверки через реферальную программу (+3 за каждого друга).", "FREE plan gives 5 checks per day. They reset daily at 00:00 UTC. You can also earn extra checks via referral program (+3 per friend).") },
+    { q: L("Скільки перевірок я можу робити безкоштовно?", "Сколько проверок я могу делать бесплатно?", "How many free checks can I do?"), a: L("FREE тариф дає 3 пробні перевірки (без щоденного скиду). Додаткові перевірки можна отримати через реферальну програму (+5 за кожного друга) або разовий аудит за $3.", "FREE тариф даёт 3 пробные проверки (без ежедневного сброса). Дополнительные проверки можно получить через реферальную программу (+5 за каждого друга) или разовый аудит за $3.", "FREE plan gives 3 trial checks (lifetime, no daily reset). Earn more via the referral program (+5 per friend) or a one-time $3 audit pack.") },
     { q: L("Як працює inline режим бота?", "Как работает inline режим бота?", "How does bot inline mode work?"), a: L("В будь-якому чаті Telegram введіть @DarkShare1Bot, потім тип перевірки та значення. Наприклад: @DarkShare1Bot ip 8.8.8.8. Результат з'явиться як inline повідомлення, яке можна надіслати в чат.", "В любом чате Telegram введите @DarkShare1Bot, затем тип проверки и значение. Например: @DarkShare1Bot ip 8.8.8.8. Результат появится как inline сообщение.", "In any Telegram chat, type @DarkShare1Bot followed by check type and value. Example: @DarkShare1Bot ip 8.8.8.8. Result appears as inline message you can send.") },
     { q: L("Як оплатити підписку?", "Как оплатить подписку?", "How to pay for subscription?"), a: L("Підписку можна оплатити через: криптовалюту (TON, USDT, ETH, BTC), MonoPay (Monobank), або промокод. Оплата доступна як через бота, так і через сайт на сторінці Pricing.", "Подписку можно оплатить через: криптовалюту (TON, USDT, ETH, BTC), MonoPay (Monobank), или промокод. Оплата доступна как через бота, так и через сайт.", "You can pay via: cryptocurrency (TON, USDT, ETH, BTC), MonoPay (Monobank), or promo code. Payment available both via bot and website Pricing page.") },
     { q: L("Мої дані в безпеці?", "Мои данные в безопасности?", "Is my data safe?"), a: L("Так. Ми не зберігаємо raw дані ваших перевірок. Результати зберігаються у зашифрованому вигляді. 2FA доступний для додаткового захисту. Сесії можна переглядати та видаляти на сторінці Account.", "Да. Мы не храним raw данные ваших проверок. Результаты хранятся в зашифрованном виде. 2FA доступен для дополнительной защиты. Сессии можно просматривать и удалять.", "Yes. We don't store raw data of your checks. Results are stored encrypted. 2FA is available for extra protection. Sessions can be viewed and deleted on Account page.") },
@@ -244,7 +244,7 @@ export default function Guide() {
   ];
 
   const plans = [
-    { name: "FREE", price: "$0", features: L(["5 перевірок/день", "Базовий аналіз", "Історія 30 днів", "1 моніторинг", "Чат спільноти"], ["5 проверок/день", "Базовый анализ", "История 30 дней", "1 мониторинг", "Чат сообщества"], ["5 checks/day", "Basic analysis", "30-day history", "1 monitor", "Community chat"]) },
+    { name: "FREE", price: "$0", features: L(["3 пробні перевірки", "Базовий аналіз", "Історія 30 днів", "1 моніторинг", "Чат спільноти"], ["3 пробные проверки", "Базовый анализ", "История 30 дней", "1 мониторинг", "Чат сообщества"], ["3 trial checks", "Basic analysis", "30-day history", "1 monitor", "Community chat"]) },
     { name: "PRO", price: "$10/mo", highlight: true, features: L(["50 перевірок/день", "Повний аналіз", "API доступ", "10 моніторингів", "PDF звіти", "Bulk перевірки", "Пріоритетна підтримка", "Inline режим"], ["50 проверок/день", "Полный анализ", "API доступ", "10 мониторингов", "PDF отчёты", "Bulk проверки", "Приоритетная поддержка", "Inline режим"], ["50 checks/day", "Full analysis", "API access", "10 monitors", "PDF reports", "Bulk checks", "Priority support", "Inline mode"]) },
     { name: "ENTERPRISE", price: "$35/mo", features: L(["Необмежені перевірки", "Усі модулі", "Необмежений API", "50 моніторингів", "Команди (Teams)", "API Documentation", "Security Widget", "Персональний менеджер"], ["Безлимитные проверки", "Все модули", "Безлимитный API", "50 мониторингов", "Команды (Teams)", "API Documentation", "Security Widget", "Персональный менеджер"], ["Unlimited checks", "All modules", "Unlimited API", "50 monitors", "Teams", "API Documentation", "Security Widget", "Personal manager"]) },
     { name: "GROUPS", price: "$55/mo", features: L(["Все з Enterprise", "До 10 учасників", "Командна аналітика", "Спільний доступ до звітів", "Командний чат"], ["Все из Enterprise", "До 10 участников", "Командная аналитика", "Общий доступ к отчётам", "Командный чат"], ["Everything from Enterprise", "Up to 10 members", "Team analytics", "Shared reports", "Team chat"]) },
@@ -289,21 +289,43 @@ export default function Guide() {
     ]
   );
 
+  const hooks = [
+    {
+      href: "/wizard",
+      icon: <ShieldCheck className="w-4 h-4 text-cyan-300" />,
+      title: L("Я зламаний", "Меня взломали", "I'm compromised"),
+      desc: L("Покроковий план: ізолюємо акаунти, міняємо ключі, чистимо сесії.", "Пошаговый план: изолируем аккаунты, меняем ключи, чистим сессии.", "Step-by-step: isolate accounts, rotate keys, kill sessions."),
+      cta: L("Запустити", "Запустить", "Run wizard"),
+    },
+    {
+      href: "/takedown",
+      icon: <FileText className="w-4 h-4 text-cyan-300" />,
+      title: L("Takedown лист", "Takedown письмо", "Takedown letter"),
+      desc: L("Готовий лист з посиланнями на докази, для пошти або юристів.", "Готовое письмо со ссылками на доказательства.", "Ready letter with evidence links — send to platforms or lawyers."),
+      cta: L("Згенерувати", "Сгенерировать", "Generate"),
+    },
+    {
+      href: "/threat-profile",
+      icon: <Target className="w-4 h-4 text-cyan-300" />,
+      title: L("Профіль загрози", "Профиль угрозы", "Threat profile"),
+      desc: L("Аналіз конкретної людини / домену / гаманця у єдиний звіт.", "Анализ конкретного человека / домена / кошелька в один отчёт.", "Person / domain / wallet — bundled into one report."),
+      cta: L("Скласти", "Составить", "Build"),
+    },
+  ];
+
   return (
     <PublicShell>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10 sm:space-y-14">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">
-              <BookOpen className="w-3 h-3 mr-1" />
-              {L("Інструкція", "Инструкция", "Guide")}
-            </Badge>
-            <Badge variant="outline" className="text-muted-foreground border-white/10">v4.4</Badge>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10 sm:space-y-14">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
+            <BookOpen className="w-3 h-3 text-cyan-300" />
+            {L("Інструкція", "Инструкция", "Guide")} · v4.4 · {L("оновлено", "обновлено", "updated")} 2026
           </div>
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight" data-testid="text-guide-title">
-            DARKSHARE — {L("Повна інструкція", "Полная инструкция", "Complete Guide")}
+          <h1 className="text-balance text-[28px] sm:text-[44px] lg:text-[52px] font-semibold leading-[1.05] tracking-tight text-white" data-testid="text-guide-title">
+            DARKSHARE.<br />
+            <span className="text-cyan-300">{L("Все, що варто знати.", "Всё, что стоит знать.", "Everything worth knowing.")}</span>
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground max-w-3xl leading-relaxed" data-testid="text-guide-subtitle">
+          <p className="text-[14.5px] sm:text-[16px] text-zinc-400 max-w-2xl leading-relaxed" data-testid="text-guide-subtitle">
             {L(
               "Професійна OSINT платформа для аналізу безпеки. Перевіряйте IP, email, домени, крипто гаманці, телефони, URL, CVE, хеші файлів, юзернейми та BIN карток. Telegram бот, веб-дашборд, REST API.",
               "Профессиональная OSINT платформа для анализа безопасности. Проверяйте IP, email, домены, крипто кошельки, телефоны, URL, CVE, хеши файлов, юзернеймы и BIN карт.",
@@ -311,6 +333,33 @@ export default function Guide() {
             )}
           </p>
         </motion.div>
+
+        <section aria-label="Hooks" className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-[12px] font-mono uppercase tracking-wider text-zinc-500" data-testid="text-hooks-title">
+              {L("Швидкі сценарії", "Быстрые сценарии", "Quick playbooks")}
+            </h2>
+            <span className="text-[11px] text-zinc-600">{L("Готові до запуску", "Готовы к запуску", "Ready to run")}</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {hooks.map((h) => (
+              <Link
+                key={h.href}
+                href={h.href}
+                className="group block rounded-xl border border-white/10 bg-[#0E0E12] p-4 transition-colors hover:border-cyan-400/30"
+                data-testid={`link-hook-${h.href.replace('/', '')}`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg border border-cyan-500/20 bg-cyan-500/5">{h.icon}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-zinc-600 transition-colors group-hover:text-cyan-300" />
+                </div>
+                <h3 className="text-[14.5px] font-semibold tracking-tight text-white">{h.title}</h3>
+                <p className="text-[12px] text-zinc-400 mt-1 leading-relaxed">{h.desc}</p>
+                <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-mono text-cyan-300">{h.cta} <ArrowRight className="w-3 h-3" /></span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <Section title={L("Початок роботи", "Начало работы", "Getting Started")} icon={<Zap className="w-4 h-4 text-primary" />} delay={0.05}>
           <Card className="p-4 sm:p-5 bg-card/60 border-white/10 space-y-4">

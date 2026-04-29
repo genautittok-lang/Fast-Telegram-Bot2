@@ -527,8 +527,8 @@ export default function ApiDocs() {
                         variant="outline"
                         className={`text-[9px] px-1.5 py-0 font-mono ${
                           ep.method === "POST"
-                            ? "border-blue-500/40 text-blue-400"
-                            : "border-green-500/40 text-green-400"
+                            ? "border-cyan-500/40 text-cyan-300"
+                            : "border-emerald-500/40 text-emerald-300"
                         }`}
                       >
                         {ep.method}
@@ -556,8 +556,8 @@ export default function ApiDocs() {
                     variant="outline"
                     className={`font-mono text-xs ${
                       currentEndpoint.method === "POST"
-                        ? "border-blue-500/50 text-blue-400 bg-blue-500/10"
-                        : "border-green-500/50 text-green-400 bg-green-500/10"
+                        ? "border-cyan-500/50 text-cyan-300 bg-cyan-500/10"
+                        : "border-emerald-500/50 text-emerald-300 bg-emerald-500/10"
                     }`}
                   >
                     {currentEndpoint.method}

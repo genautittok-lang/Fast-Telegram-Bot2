@@ -211,7 +211,7 @@ export async function setupBot(storage: IStorage) {
         { tag: "h3", children: [tl("⭐ Тарифні плани", "⭐ Тарифные планы", "⭐ Subscription Plans", pl)] },
         { tag: "p", children: [{ tag: "b", children: ["🆓 FREE — $0/month"] }] },
         { tag: "ul", children: [
-          { tag: "li", children: ["5 checks per day"] },
+          { tag: "li", children: ["3 free trial checks"] },
           { tag: "li", children: ["Basic analysis"] },
           { tag: "li", children: ["30-day history"] },
           { tag: "li", children: ["1 monitor"] },
@@ -254,7 +254,7 @@ export async function setupBot(storage: IStorage) {
         ]},
 
         { tag: "h3", children: [tl("❓ Часті питання", "❓ Частые вопросы", "❓ FAQ", pl)] },
-        { tag: "p", children: [{ tag: "b", children: ["How many free checks per day?"] }, " — FREE plan: 5 checks/day, resets at 00:00 UTC. Earn more via referrals (+3 per friend)."] },
+        { tag: "p", children: [{ tag: "b", children: ["How many free checks total?"] }, " — FREE plan: 3 trial checks (lifetime). Earn +5 more via referrals."] },
         { tag: "p", children: [{ tag: "b", children: ["How does inline mode work?"] }, " — In any Telegram chat, type @DarkShare1Bot + check type + value. Result appears as sendable inline message."] },
         { tag: "p", children: [{ tag: "b", children: ["How to pay?"] }, " — Crypto (TON, USDT, ETH, BTC), MonoPay, or promo codes. Available in bot and on website /pricing page."] },
         { tag: "p", children: [{ tag: "b", children: ["Is my data safe?"] }, " — Yes. No raw data stored. Results encrypted. 2FA available. Sessions manageable from Account page."] },
@@ -343,11 +343,11 @@ export async function setupBot(storage: IStorage) {
           bonus: 5
         });
         await storage.updateUser(user.id, { 
-          requestsLeft: (user.requestsLeft || 5) + 5,
+          requestsLeft: (user.requestsLeft || 3) + 5,
           pendingRefCode: null
         });
         await storage.updateUser(referrer.id, {
-          requestsLeft: (referrer.requestsLeft || 5) + 2
+          requestsLeft: (referrer.requestsLeft || 3) + 2
         });
         console.log(`Referral credited after first check: ${user.pendingRefCode} -> user ${user.id}`);
       } else {
@@ -369,7 +369,7 @@ export async function setupBot(storage: IStorage) {
           tgId,
           username: ctx.from.username,
           lang: detectedLang,
-          requestsLeft: 5,
+          requestsLeft: 3,
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
@@ -438,10 +438,10 @@ export async function setupBot(storage: IStorage) {
               bonus: 5
             });
             await storage.updateUser(user.id, { 
-              requestsLeft: (user.requestsLeft || 5) + 5
+              requestsLeft: (user.requestsLeft || 3) + 5
             });
             await storage.updateUser(referrer.id, {
-              requestsLeft: (referrer.requestsLeft || 5) + 2
+              requestsLeft: (referrer.requestsLeft || 3) + 2
             });
             user = await storage.getUserByTgId(tgId);
             console.log(`Referral processed: ${refCode} -> ${tgId}`);
@@ -668,15 +668,15 @@ ${t(lang, "startWelcome.selectLang")}`;
     const lang = getUserLang(user?.lang);
     userStates.delete(tgId);
 
-    const requestsLeft = user?.requestsLeft ?? 5;
+    const requestsLeft = user?.requestsLeft ?? 3;
     const tierLimits: Record<string, number> = {
-      "FREE": 5,
+      "FREE": 3,
       "BASIC": 30,
       "PRO": 50,
       "ENTERPRISE": 999999,
       "GROUPS": 999999,
     };
-    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
     const progressBar = generateProgressBar(requestsLeft, requestsLimit);
     const lastActivity = formatLastActivity(user?.lastLogin, lang);
 
@@ -686,18 +686,18 @@ ${t(lang, "startWelcome.selectLang")}`;
     const dashTier = (user?.tier || "FREE").toUpperCase();
     const dashUnlimited = dashTier === "ENTERPRISE" || dashTier === "GROUPS";
     const requestsWarning = dashUnlimited ? ''
-      : requestsLeft <= 3 
+      : requestsLeft <= 1 
       ? `\n${pe("warning")} ` + escHtml(t(lang, "common.lowRequests"))
       : requestsLeft <= 0
       ? `\n${pe("cross")} ` + escHtml(lang === "uk" ? "Ліміт вичерпано" : lang === "ru" ? "Лимит исчерпан" : "Limit exceeded")
       : '';
 
-    const systemStatus = dashUnlimited ? "✅ UNLIMITED" : requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 3 ? "⚡ LOW" : "✅ READY";
+    const systemStatus = dashUnlimited ? "✅ UNLIMITED" : requestsLeft <= 0 ? "⚠️ LIMITED" : requestsLeft <= 1 ? "⚡ LOW" : "✅ READY";
     
     const greetName = escHtml(user?.username || (lang === "uk" ? "Користувач" : lang === "ru" ? "Пользователь" : "User"));
     const tierLabel = tierName === "FREE" ? (lang === "uk" ? "Безкоштовний" : lang === "ru" ? "Бесплатный" : "Free") :
                       tierName === "PRO" ? "PRO" : tierName === "ENTERPRISE" ? "Enterprise" : tierName;
-    const statusSlot = dashUnlimited ? "low_risk" : requestsLeft <= 0 ? "high_risk" : requestsLeft <= 3 ? "med_risk" : "low_risk";
+    const statusSlot = dashUnlimited ? "low_risk" : requestsLeft <= 0 ? "high_risk" : requestsLeft <= 1 ? "med_risk" : "low_risk";
 
     const dashboardText = `${pe("shield")} <b>DARKSHARE</b> — Risk Intelligence
 
@@ -1193,8 +1193,8 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
     } catch (e) {}
 
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    const statsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
-    const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    const statsTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, statsUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
     
@@ -1931,13 +1931,13 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       const userTier = (user.tier || "FREE").toUpperCase();
       
       const DAILY_LIMITS: Record<string, number> = {
-        FREE: 5,
+        FREE: 3,
         PRO: 50,
         ENTERPRISE: Infinity,
         GROUPS: Infinity,
       };
       
-      const dailyLimit = DAILY_LIMITS[userTier] || 5;
+      const dailyLimit = DAILY_LIMITS[userTier] || 3;
       
       if (dailyLimit !== Infinity) {
         const today = new Date();
@@ -2243,7 +2243,7 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
     if (user) {
       const checkTier = (user.tier || "FREE").toUpperCase();
       if (checkTier !== "ENTERPRISE" && checkTier !== "GROUPS") {
-        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 5) - 1) });
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 3) - 1) });
       }
       creditPendingReferral(user).catch(() => {});
       
@@ -2267,7 +2267,7 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
     // ─────────── Conversion hooks ───────────
     const hookTier = (user?.tier || "FREE").toUpperCase();
     const isFree = hookTier === "FREE" || hookTier === "BASIC";
-    const left = Math.max(0, (user?.requestsLeft ?? 5) - 1);
+    const left = Math.max(0, (user?.requestsLeft ?? 3) - 1);
     const isHighRisk = checkResult.riskScore >= 50;
 
     let hookLine = "";
@@ -2656,31 +2656,37 @@ ${faqText}`;
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
 
+    const groupsTitle = lang === "uk" ? "GROUPS — $55/міс" : lang === "ru" ? "GROUPS — $55/мес" : lang === "es" ? "GROUPS — $55/mes" : lang === "de" ? "GROUPS — $55/Mon" : "GROUPS — $55/mo";
+    const groupsDetails = lang === "uk"
+      ? "Все з ENTERPRISE + до 5 робочих місць, спільна історія, ролі, аудит-лог."
+      : lang === "ru"
+      ? "Всё из ENTERPRISE + до 5 рабочих мест, общая история, роли, аудит-лог."
+      : lang === "es"
+      ? "Todo de ENTERPRISE + hasta 5 puestos, historial compartido, roles, registro de auditoría."
+      : lang === "de"
+      ? "Alles aus ENTERPRISE + bis zu 5 Plätze, gemeinsamer Verlauf, Rollen, Audit-Log."
+      : "Everything in ENTERPRISE + up to 5 seats, shared history, roles, audit log.";
+    const buyGroupsLabel = lang === "uk" ? "Купити GROUPS" : lang === "ru" ? "Купить GROUPS" : lang === "es" ? "Comprar GROUPS" : lang === "de" ? "GROUPS kaufen" : "Buy GROUPS";
+
     const text =
       `${pe("rocket")} <b>${escHtml(t(lang, "upgrade.title"))}</b>\n` +
       `━━━━━━━━━━━━━━━━━━━━\n\n` +
       `${pe("star")} <b>${escHtml(t(lang, "upgrade.free"))}</b>\n${escHtml(t(lang, "upgrade.freeDetails"))}\n\n` +
       `${pe("diamond")} <b>${escHtml(t(lang, "upgrade.pro"))}</b>\n${escHtml(t(lang, "upgrade.proDetails"))}\n\n` +
-      `${pe("crown")} <b>${escHtml(t(lang, "upgrade.enterprise"))}</b>\n${escHtml(t(lang, "upgrade.enterpriseDetails"))}`;
+      `${pe("crown")} <b>${escHtml(t(lang, "upgrade.enterprise"))}</b>\n${escHtml(t(lang, "upgrade.enterpriseDetails"))}\n\n` +
+      `${pe("money")} <b>${escHtml(groupsTitle)}</b>\n${escHtml(groupsDetails)}`;
+
+    const kb = Markup.inlineKeyboard([
+      [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
+      [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
+      [cb(buyGroupsLabel, "buy_groups", "success", E.money)],
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+    ]);
 
     try {
-      await ctx.editMessageText(text, {
-        parse_mode: "HTML",
-        ...Markup.inlineKeyboard([
-          [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
-          [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
-          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
-        ]),
-      });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...kb });
     } catch {
-      await ctx.reply(text, {
-        parse_mode: "HTML",
-        ...Markup.inlineKeyboard([
-          [cb(t(lang, "upgrade.buyPro"), "buy_pro", "success", E.star)],
-          [cb(t(lang, "upgrade.buyEnterprise"), "buy_enterprise", "success", E.crown)],
-          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
-        ]),
-      });
+      await ctx.reply(text, { parse_mode: "HTML", ...kb });
     }
   });
 
@@ -3125,8 +3131,8 @@ ${faqText}`;
     }
   });
 
-  bot.action(["buy_pro", "buy_enterprise"], async (ctx) => {
-    const tier = ctx.match.input === "buy_pro" ? "PRO" : "ENTERPRISE";
+  bot.action(["buy_pro", "buy_enterprise", "buy_groups"], async (ctx) => {
+    const tier = ctx.match.input === "buy_pro" ? "PRO" : ctx.match.input === "buy_groups" ? "GROUPS" : "ENTERPRISE";
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
     
@@ -3739,7 +3745,7 @@ ${faqText}`;
 ├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: *${activeMonitors}*
 ├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralCount}*
 ├ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${streakDays}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left"}: *${user.requestsLeft ?? 5}*
+└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left"}: *${user.requestsLeft ?? 3}*
 
 🎯 *${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}*
 ${topTypesText}
@@ -3818,8 +3824,8 @@ ${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
       .join("\n") || "├ —";
     
     const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
-    const detailTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
-    const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    const detailTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, detailUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
     
@@ -4595,8 +4601,8 @@ ${allTypesText}
       return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
-    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
-    const newRequests = tierLimits[newTier] || 5;
+    const tierLimits: Record<string, number> = { FREE: 3, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
+    const newRequests = tierLimits[newTier] || 3;
     await storage.updateUser(userId, { tier: newTier, requestsLeft: newRequests });
     await ctx.answerCbQuery(t(lang, "admin.tierChangedTo", { tier: newTier }));
     
@@ -4666,7 +4672,7 @@ ${allTypesText}
       `├ Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB\n` +
       `└ ${lang === "uk" ? "Адмінів" : lang === "ru" ? "Админов" : "Admins"}: ${ADMIN_IDS.length}\n\n` +
       `📊 *${lang === "uk" ? "Ліміти запитів" : lang === "ru" ? "Лимиты запросов" : "Request Limits"}*\n` +
-      `├ 🆓 FREE: 5/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
+      `├ 🆓 FREE: ${lang === "uk" ? "3 пробних" : lang === "ru" ? "3 пробных" : "3 trial"}\n` +
       `├ ⭐ PRO: 50/${lang === "uk" ? "день" : lang === "ru" ? "день" : "day"}\n` +
       `├ 👑 ENTERPRISE: ${lang === "uk" ? "безлім" : lang === "ru" ? "безлим" : "unlimited"}\n` +
       `└ 👥 GROUPS: ${lang === "uk" ? "безлім" : lang === "ru" ? "безлим" : "unlimited"}\n\n` +
@@ -5819,8 +5825,8 @@ ${allTypesText}
     
     let text = `📊 *ВАША СТАТИСТИКА*\n\n`;
     text += `${tierEmoji} *Тариф:* ${user.tier}\n`;
-    const myStatsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
-    const myStatsUserLimit = myStatsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
+    const myStatsTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const myStatsUserLimit = myStatsTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
     text += `🎯 *Запитів залишилось:* ${user.requestsLeft}/${myStatsUserLimit}\n`;
     text += `🔥 *Серія днів:* ${user.streakDays}\n`;
     text += `📈 *Всього перевірок:* ${reports.length}\n`;
@@ -6164,7 +6170,7 @@ ${allTypesText}
 └ 💳 \`card\` — BIN карток
 
 ⭐ *Тарифи:*
-├ 🆓 FREE — 5 перевірок/день
+├ 🆓 FREE — 3 пробні перевірки
 ├ ⭐ PRO — 50 перевірок/день ($10/міс)
 └ 👑 ENTERPRISE — безлімітно ($35/міс)
 
@@ -6204,7 +6210,7 @@ ${allTypesText}
 └ 💳 \`card\` — BIN карт
 
 ⭐ *Тарифы:*
-├ 🆓 FREE — 5 проверок/день
+├ 🆓 FREE — 3 пробные проверки
 ├ ⭐ PRO — 50 проверок/день ($10/мес)
 └ 👑 ENTERPRISE — безлимитно ($35/мес)` :
 `📖 *DARKSHARE GUIDE*
@@ -6238,7 +6244,7 @@ ${allTypesText}
 └ 💳 \`card\` — card BINs
 
 ⭐ *Plans:*
-├ 🆓 FREE — 5 checks/day
+├ 🆓 FREE — 3 free trial checks
 ├ ⭐ PRO — 50 checks/day ($10/mo)
 └ 👑 ENTERPRISE — unlimited ($35/mo)`;
 

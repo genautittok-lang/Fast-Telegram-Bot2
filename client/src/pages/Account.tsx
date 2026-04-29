@@ -335,13 +335,13 @@ export default function Account() {
 
   const requestsUsed = useMemo(() => {
     const tierLimits: Record<string, number> = {
-      FREE: 5,
+      FREE: 3,
       BASIC: 30,
       PRO: 50,
       ENTERPRISE: 999999,
       GROUPS: 999999,
     };
-    const total = tierLimits[userTier] || 5;
+    const total = tierLimits[userTier] || 3;
     const left = user?.requestsLeft ?? total;
     return {
       used: Math.max(0, total - left),
@@ -487,48 +487,42 @@ export default function Account() {
               </>
             ) : (
               <>
-                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-blue-500/10 via-zinc-900 to-zinc-950 border border-blue-500/20 hover:border-blue-400/40 transition-all group">
-                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                      <BarChart3 className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
-                    </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.totalChecks')}</span>
+                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                    <BarChart3 className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>{t('account.totalChecks')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-bold text-blue-400 font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
+                  <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
-                
-                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-green-500/10 via-zinc-900 to-zinc-950 border border-green-500/20 hover:border-green-400/40 transition-all group">
-                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                      <Activity className="w-4 h-4 lg:w-5 lg:h-5 text-green-400" />
-                    </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.activeMonitors')}</span>
+
+                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{t('account.activeMonitors')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-bold text-green-400 font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
+                  <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
-                
-                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900 to-zinc-950 border border-purple-500/20 hover:border-purple-400/40 transition-all group">
-                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                      <Users className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400" />
-                    </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.referrals')}</span>
+
+                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                    <Users className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>{t('account.referrals')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-bold text-purple-400 font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
+                  <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
-                
-                <div className="p-3 lg:p-5 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900 to-zinc-950 border border-cyan-500/20 hover:border-cyan-400/40 transition-all group">
-                  <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
-                    <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
-                      <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
-                    </div>
-                    <span className="text-xs lg:text-sm text-muted-foreground">{t('account.top')}</span>
+
+                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                    <TrendingUp className="w-3.5 h-3.5 text-cyan-300" />
+                    <span>{t('account.top')}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1 lg:gap-1.5 mt-1">
-                    {stats.mostUsedTypes.map((type, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-[10px] lg:text-xs bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-2 py-0.5">
+                  <div className="flex flex-wrap gap-1.5">
+                    {stats.mostUsedTypes.length === 0 ? (
+                      <span className="text-[12px] text-zinc-500 font-mono">—</span>
+                    ) : stats.mostUsedTypes.map((type, idx) => (
+                      <span key={idx} className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
                         {type}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
                 </div>
