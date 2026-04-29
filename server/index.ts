@@ -354,7 +354,28 @@ async function ensureTablesExist() {
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
-    
+
+    // White-label / payout columns on ds_users (added Apr 2026).
+    // Idempotent: ADD COLUMN IF NOT EXISTS is a no-op once columns exist.
+    // This is what was missing on Railway prod and breaking getUserByTgId.
+    const whiteLabelCols = [
+      ["company_name",      "TEXT"],
+      ["company_logo_url",  "TEXT"],
+      ["brand_color",       "TEXT"],
+      ["slack_webhook_url", "TEXT"],
+      ["teams_webhook_url", "TEXT"],
+      ["payout_address",    "TEXT"],
+      ["payout_currency",   "TEXT"],
+    ] as const;
+    for (const [name, type] of whiteLabelCols) {
+      try {
+        await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS ${name} ${type}`);
+      } catch (e: any) {
+        console.error(`Failed to add ds_users.${name}:`, e?.message || e);
+      }
+    }
+    console.log(`Verified ${whiteLabelCols.length} white-label columns on ds_users`);
+
     console.log("Database tables ready!");
   } catch (error: any) {
     console.error("Error creating tables:", error.message);
