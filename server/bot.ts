@@ -5,6 +5,7 @@ import { performCheck, CheckResult, validateInput, extractExifFromBuffer } from 
 import { t, Language, languageNames } from "./i18n";
 import { generateWireGuardKeyPair, generatePresharedKey, allocatePeerIp, buildPeerConfig, isProTier } from "./vpn";
 import { pe, setEmoji, clearEmoji, getMappings, extractCustomEmojis, escHtml, suggestSlotForEmoji } from "./premiumEmoji";
+import { generateApiKey } from "./apiV1";
 
 interface BotContext extends Context {}
 
@@ -5948,10 +5949,10 @@ ${allTypesText}
   });
 
   // HELP COMMAND - довідка
-  const buildApiInfo = (lang: string) => {
+  const buildApiInfo = (lang: Language, opts?: { canGenerate?: boolean }) => {
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
-    const T: Record<string, { title: string; intro: string; auth: string; endpoints: string; example: string; tiers: string; webBtn: string; docsBtn: string; keyBtn: string }> = {
+    const T: Record<string, { title: string; intro: string; auth: string; endpoints: string; example: string; tiers: string; webBtn: string; docsBtn: string; keyBtn: string; genBtn: string }> = {
       uk: {
         title: "🔌 *DARKSHARE API*",
         intro: "Програмний доступ до OSINT-перевірок, моніторингу та звітів.",
@@ -5962,6 +5963,7 @@ ${allTypesText}
         webBtn: "🌐 Відкрити сайт",
         docsBtn: "📄 Повна документація",
         keyBtn: "🔑 Отримати API-ключ",
+        genBtn: "⚡ Згенерувати мій ключ",
       },
       ru: {
         title: "🔌 *DARKSHARE API*",
@@ -5973,6 +5975,7 @@ ${allTypesText}
         webBtn: "🌐 Открыть сайт",
         docsBtn: "📄 Полная документация",
         keyBtn: "🔑 Получить API-ключ",
+        genBtn: "⚡ Сгенерировать мой ключ",
       },
       es: {
         title: "🔌 *DARKSHARE API*",
@@ -5984,6 +5987,7 @@ ${allTypesText}
         webBtn: "🌐 Abrir sitio",
         docsBtn: "📄 Documentación completa",
         keyBtn: "🔑 Obtener clave API",
+        genBtn: "⚡ Generar mi clave",
       },
       de: {
         title: "🔌 *DARKSHARE API*",
@@ -5995,6 +5999,7 @@ ${allTypesText}
         webBtn: "🌐 Website öffnen",
         docsBtn: "📄 Vollständige Doku",
         keyBtn: "🔑 API-Schlüssel holen",
+        genBtn: "⚡ Meinen Schlüssel erstellen",
       },
       en: {
         title: "🔌 *DARKSHARE API*",
@@ -6006,6 +6011,7 @@ ${allTypesText}
         webBtn: "🌐 Open website",
         docsBtn: "📄 Full docs",
         keyBtn: "🔑 Get API key",
+        genBtn: "⚡ Generate my key",
       },
     };
 
@@ -6032,19 +6038,27 @@ ${allTypesText}
       `${L.example}\n${exampleBlock}\n\n` +
       `${L.tiers}`;
 
-    const buttons: any[][] = [
-      [urlS(L.docsBtn, `${webUrl}/api-docs`, "primary", E.doc)],
-      [urlS(L.keyBtn, `${webUrl}/account`, "success", E.lock), urlS(L.webBtn, webUrl, "primary", E.globe)],
-      [cb(t(lang, "buttons.back") || "← Back", "dashboard", "danger", E.back)],
-    ];
+    const buttons: any[][] = [];
+    if (opts?.canGenerate) {
+      buttons.push([cb(L.genBtn, "gen_api_key", "success", E.bolt)]);
+    }
+    buttons.push([urlS(L.docsBtn, `${webUrl}/api-docs`, "primary", E.doc)]);
+    buttons.push([urlS(L.keyBtn, `${webUrl}/account`, "success", E.lock), urlS(L.webBtn, webUrl, "primary", E.globe)]);
+    buttons.push([cb(t(lang, "buttons.back") || "← Back", "dashboard", "danger", E.back)]);
 
     return { text, buttons };
+  };
+
+  const isApiTier = (tier?: string | null) => {
+    const t = String(tier || "FREE").toUpperCase();
+    return t === "PRO" || t === "ENTERPRISE" || t === "GROUPS";
   };
 
   bot.command("api", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const { text, buttons } = buildApiInfo(lang);
+    const user = await storage.getUserByTgId(tgId);
+    const { text, buttons } = buildApiInfo(lang, { canGenerate: isApiTier(user?.tier) });
     await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
   });
 
@@ -6052,13 +6066,62 @@ ${allTypesText}
     try { await ctx.answerCbQuery(); } catch {}
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const { text, buttons } = buildApiInfo(lang);
+    const user = await storage.getUserByTgId(tgId);
+    const { text, buttons } = buildApiInfo(lang, { canGenerate: isApiTier(user?.tier) });
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
     } catch {
       await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
     }
   });
+
+  const sendApiKey = async (ctx: any) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    if (!user) {
+      try { await ctx.answerCbQuery(); } catch {}
+      return;
+    }
+    if (!isApiTier(user.tier)) {
+      const upgradeMsg: Record<string, string> = {
+        uk: "🔒 API доступ — лише для тарифів *PRO / ENTERPRISE / GROUPS*. Оформи підписку, щоб отримати ключ.",
+        ru: "🔒 API-доступ — только для тарифов *PRO / ENTERPRISE / GROUPS*. Оформи подписку, чтобы получить ключ.",
+        es: "🔒 Acceso API — solo planes *PRO / ENTERPRISE / GROUPS*. Suscríbete para obtener una clave.",
+        de: "🔒 API-Zugriff — nur für Tarife *PRO / ENTERPRISE / GROUPS*. Abo nötig, um einen Schlüssel zu erhalten.",
+        en: "🔒 API access is for *PRO / ENTERPRISE / GROUPS* tiers only. Upgrade to get your key.",
+      };
+      try { await ctx.answerCbQuery(); } catch {}
+      await ctx.reply(upgradeMsg[lang] || upgradeMsg.en, {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)]]),
+      });
+      return;
+    }
+    const fullKey = generateApiKey(user.id, user.tgId);
+    const titleMap: Record<string, string> = {
+      uk: "🔑 *Твій API-ключ*",
+      ru: "🔑 *Твой API-ключ*",
+      es: "🔑 *Tu clave API*",
+      de: "🔑 *Dein API-Schlüssel*",
+      en: "🔑 *Your API key*",
+    };
+    const warnMap: Record<string, string> = {
+      uk: "⚠️ Збережи ключ. Використовується у заголовку `Authorization: Bearer …`.\nКлюч прив'язаний до акаунта — не передавай третім особам.",
+      ru: "⚠️ Сохрани ключ. Используется в заголовке `Authorization: Bearer …`.\nКлюч привязан к аккаунту — не передавай третьим лицам.",
+      es: "⚠️ Guarda la clave. Se usa en el header `Authorization: Bearer …`.\nLa clave está ligada a tu cuenta — no la compartas.",
+      de: "⚠️ Schlüssel sichern. Wird im Header `Authorization: Bearer …` verwendet.\nDer Schlüssel ist an dein Konto gebunden — nicht weitergeben.",
+      en: "⚠️ Save it. Used in the `Authorization: Bearer …` header.\nKey is tied to your account — don't share it.",
+    };
+    const text = `${titleMap[lang] || titleMap.en}\n\n\`${fullKey}\`\n\n${warnMap[lang] || warnMap.en}`;
+    const keyboard = Markup.inlineKeyboard([
+      [cb(t(lang, "buttons.back") || "← Back", "open_api", "primary", E.back)],
+    ]);
+    try { await ctx.answerCbQuery(); } catch {}
+    await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+  };
+
+  bot.action("gen_api_key", async (ctx) => { await sendApiKey(ctx); });
 
   bot.action("api_docs", async (ctx) => {
     try { await ctx.answerCbQuery(); } catch {}

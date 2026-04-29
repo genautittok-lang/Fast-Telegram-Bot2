@@ -135,8 +135,8 @@ export async function apiKeyAuth(
     return res.status(403).json({ error: "Account suspended." });
   }
   const tier = (user.tier || "FREE").toUpperCase();
-  if (tier !== "PRO" && tier !== "ENTERPRISE") {
-    return res.status(403).json({ error: "API access requires PRO or ENTERPRISE plan." });
+  if (tier !== "PRO" && tier !== "ENTERPRISE" && tier !== "GROUPS") {
+    return res.status(403).json({ error: "API access requires PRO, ENTERPRISE or GROUPS plan." });
   }
   req.apiUser = user;
   next();
