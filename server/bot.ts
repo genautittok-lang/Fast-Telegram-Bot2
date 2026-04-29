@@ -4,6 +4,7 @@ import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGe
 import { performCheck, CheckResult, validateInput, extractExifFromBuffer } from "./checkService";
 import { t, Language, languageNames } from "./i18n";
 import { generateWireGuardKeyPair, generatePresharedKey, allocatePeerIp, buildPeerConfig, isProTier } from "./vpn";
+import { pe, setEmoji, clearEmoji, getMappings, extractCustomEmojis, escHtml } from "./premiumEmoji";
 
 interface BotContext extends Context {}
 
@@ -946,6 +947,135 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
   bot.command("menu", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     await showDashboard(ctx, tgId, false);
+  });
+
+  /* ───────── Premium emoji admin commands ───────── */
+
+  bot.command("emojiid", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+
+    // 1) Reply to a message that contains premium emojis
+    const replied = (ctx.message as any).reply_to_message;
+    let captured: ReturnType<typeof extractCustomEmojis> = [];
+
+    if (replied && (replied.text || replied.caption)) {
+      const text = replied.text || replied.caption || "";
+      const entities = replied.entities || replied.caption_entities;
+      captured = extractCustomEmojis(text, entities);
+    } else {
+      // 2) Or include emojis in the same message after the command
+      const text = ctx.message.text || "";
+      const entities = (ctx.message as any).entities || [];
+      // Skip the /emojiid bot_command entity itself by reusing all custom_emoji entities
+      captured = extractCustomEmojis(text, entities);
+    }
+
+    if (!captured.length) {
+      return ctx.reply(
+        "🎨 *Premium emoji capture*\n\n" +
+        "Надішли преміум-емодзі двома способами:\n" +
+        "• Reply на повідомлення з преміум-емодзі + команда `/emojiid`\n" +
+        "• Або просто `/emojiid 🛡🔥💎` (з преміум-емодзі в тексті)\n\n" +
+        "Я витягну `custom_emoji_id` для кожного.",
+        { parse_mode: "Markdown" },
+      );
+    }
+
+    const lines = captured.map((c, i) => {
+      const slot = c.suggestedSlot ? `(slot: \`${c.suggestedSlot}\`)` : "(no slot match — pick one)";
+      return `${i + 1}. ${c.fallback}  →  \`${c.customEmojiId}\`  ${slot}`;
+    });
+    const setLines = captured.map((c) => {
+      const slot = c.suggestedSlot || "<slot>";
+      return `\`/setemoji ${slot} ${c.customEmojiId} ${c.fallback}\``;
+    });
+
+    await ctx.reply(
+      `🎨 *Знайдено ${captured.length} преміум-емодзі:*\n\n` +
+      lines.join("\n") +
+      `\n\n*Швидке прив'язування:*\n` +
+      setLines.join("\n") +
+      `\n\nДоступні слоти: /listemojis`,
+      { parse_mode: "Markdown" },
+    );
+  });
+
+  bot.command("setemoji", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    const args = ctx.message.text.split(/\s+/).slice(1);
+    if (args.length < 2) {
+      return ctx.reply(
+        "Usage: `/setemoji <slot> <custom_emoji_id> [fallback]`\n" +
+        "Example: `/setemoji shield 5368324170671202286 🛡`",
+        { parse_mode: "Markdown" },
+      );
+    }
+    const [slot, id, ...rest] = args;
+    if (!/^\d{6,}$/.test(id)) {
+      return ctx.reply("`custom_emoji_id` має бути числом (6+ цифр).", { parse_mode: "Markdown" });
+    }
+    const fallback = rest.join(" ").trim() || undefined;
+    const bound = setEmoji(slot, id, fallback);
+    await ctx.reply(
+      `✅ Slot <b>${escHtml(slot)}</b> bound:\n` +
+      `Premium: <tg-emoji emoji-id="${bound.id}">${escHtml(bound.fallback)}</tg-emoji>\n` +
+      `Fallback: ${escHtml(bound.fallback)}\n` +
+      `ID: <code>${bound.id}</code>`,
+      { parse_mode: "HTML" },
+    );
+  });
+
+  bot.command("clearemoji", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    const args = ctx.message.text.split(/\s+/).slice(1);
+    if (!args[0]) return ctx.reply("Usage: `/clearemoji <slot>`", { parse_mode: "Markdown" });
+    const ok = clearEmoji(args[0]);
+    await ctx.reply(ok ? `🧹 Cleared slot \`${args[0]}\`` : `❓ Slot \`${args[0]}\` not found.`, { parse_mode: "Markdown" });
+  });
+
+  bot.command("listemojis", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    const map = getMappings();
+    const entries = Object.entries(map);
+    const bound = entries.filter(([, v]) => v.id);
+    const unbound = entries.filter(([, v]) => !v.id);
+
+    const renderLine = (slot: string, v: typeof map[string]) => {
+      const visual = v.id
+        ? `<tg-emoji emoji-id="${v.id}">${escHtml(v.fallback)}</tg-emoji>`
+        : escHtml(v.fallback);
+      return `${visual}  <b>${escHtml(slot)}</b>  <i>${escHtml(v.description || "")}</i>`;
+    };
+
+    const lines: string[] = [];
+    lines.push(`<b>🎨 Premium emojis (${bound.length}/${entries.length} bound)</b>`);
+    lines.push("");
+    if (bound.length) {
+      lines.push("<b>Bound:</b>");
+      for (const [slot, v] of bound) lines.push(renderLine(slot, v));
+      lines.push("");
+    }
+    if (unbound.length) {
+      lines.push(`<b>Unbound (${unbound.length}):</b>`);
+      for (const [slot, v] of unbound) lines.push(renderLine(slot, v));
+    }
+    lines.push("");
+    lines.push("Use <code>/emojiid</code> to capture IDs, then <code>/setemoji &lt;slot&gt; &lt;id&gt;</code>.");
+
+    // Telegram message limit ~4096 chars — chunk if needed
+    const text = lines.join("\n");
+    const CHUNK = 3800;
+    if (text.length <= CHUNK) {
+      await ctx.reply(text, { parse_mode: "HTML" });
+    } else {
+      for (let i = 0; i < text.length; i += CHUNK) {
+        await ctx.reply(text.slice(i, i + CHUNK), { parse_mode: "HTML" });
+      }
+    }
   });
 
   bot.command("stats", async (ctx) => {
