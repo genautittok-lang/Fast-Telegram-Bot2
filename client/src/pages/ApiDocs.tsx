@@ -515,7 +515,7 @@ export default function ApiDocs() {
                   onClick={() => setActiveEndpoint(i)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-all duration-200 text-left ${
                     activeEndpoint === i
-                      ? "bg-gradient-to-r from-primary/15 to-transparent border border-primary/25 text-white"
+                      ? "bg-white/[0.04] border border-cyan-400/30 text-white"
                       : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
                   }`}
                   data-testid={`button-endpoint-${i}`}
@@ -550,7 +550,7 @@ export default function ApiDocs() {
               transition={{ duration: 0.2 }}
               className="space-y-5"
             >
-              <Card className={`p-5 border ${currentEndpoint.border} bg-gradient-to-br ${currentEndpoint.bg}`}>
+              <Card className="p-5 border border-white/10 bg-[#0E0E12]">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <Badge
                     variant="outline"

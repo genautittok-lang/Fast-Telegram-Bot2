@@ -425,46 +425,51 @@ export default function Account() {
 
   return (
     <PageLayout title="Account" appMode={isStandalone}>
-      <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
-        <div className="p-4 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
+      <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0A0A0A]">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
-            className="relative p-4 lg:p-8 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 overflow-hidden glass-deep"
+            className="relative p-5 sm:p-6 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/10 overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5" />
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent blur-3xl" />
-            
-            <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
-              <Avatar className="w-16 h-16 lg:w-24 lg:h-24 border-4 border-primary/40 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(ellipse 60% 80% at 100% 0%, rgba(34,211,238,0.08), transparent 60%)",
+              }}
+            />
+
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+              <Avatar className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border border-white/10 shrink-0">
                 <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
-                <AvatarFallback className="bg-gradient-to-br from-primary/30 to-cyan-500/20 text-primary text-3xl font-bold">
+                <AvatarFallback className="bg-white/5 text-cyan-300 text-2xl lg:text-3xl font-semibold">
                   {user?.username?.slice(0, 2).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              
-              <div className="flex-1 space-y-2 lg:space-y-3">
+
+              <div className="flex-1 min-w-0 space-y-2 lg:space-y-3 w-full">
                 <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-                  <h1 className="text-lg lg:text-3xl font-bold text-white" data-testid="text-username">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-white truncate" data-testid="text-username">
                     @{user?.username || "anonymous"}
                   </h1>
                   <TierBadge tier={userTier} />
                 </div>
-                
-                <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs lg:text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="w-3 h-3 lg:w-4 lg:h-4 text-blue-400" />
-                    <span data-testid="text-telegram-id" className="truncate">{user?.tgId?.startsWith('replit:') ? 'Account' : t('account.telegramId')}: {user?.tgId?.startsWith('replit:') ? (user?.username || 'Web User') : (user?.tgId || "N/A")}</span>
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] lg:text-sm text-zinc-400">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Smartphone className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                    <span data-testid="text-telegram-id" className="truncate font-mono">{user?.tgId?.startsWith('replit:') ? 'Account' : t('account.telegramId')}: {user?.tgId?.startsWith('replit:') ? (user?.username || 'Web User') : (user?.tgId || "N/A")}</span>
                   </div>
                   {user?.refCode && (
-                    <div className="flex items-center gap-2">
-                      <Users className="w-3 h-3 lg:w-4 lg:h-4 text-purple-400" />
-                      <span data-testid="text-ref-code" className="truncate">{t('account.ref')}: {user.refCode}</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Users className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                      <span data-testid="text-ref-code" className="truncate font-mono">{t('account.ref')}: {user.refCode}</span>
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2 mt-2" data-testid="text-streak-days">
                   <FireStreak streakDays={user?.streakDays || 0} size="sm" />
                 </div>

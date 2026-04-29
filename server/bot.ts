@@ -3952,18 +3952,87 @@ ${allTypesText}
     }
   });
 
+  const buildHistoryView = async (tgId: string) => {
+    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+
+    if (!user) {
+      return {
+        text: `${t(lang, "history.title")}\n\n${t(lang, "history.empty")}`,
+        keyboard: Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]),
+      };
+    }
+
+    const reports = await storage.getReports(user.id);
+    const watches = await storage.getWatches(user.id).catch(() => [] as any[]);
+    const recent = (reports || []).slice().sort((a: any, b: any) => {
+      const ad = a.generatedAt ? new Date(a.generatedAt).getTime() : 0;
+      const bd = b.generatedAt ? new Date(b.generatedAt).getTime() : 0;
+      return bd - ad;
+    }).slice(0, 10);
+
+    const fmtDate = (d: any) => {
+      try {
+        const dt = new Date(d);
+        return dt.toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US", { dateStyle: "short", timeStyle: "short" });
+      } catch { return ""; }
+    };
+    const riskEmoji = (lvl: string) => lvl === "critical" ? "🔴" : lvl === "high" ? "🟠" : lvl === "medium" ? "🟡" : "🟢";
+
+    const heading = `${t(lang, "history.title")}\n${t(lang, "history.description")}`;
+    const stats = lang === "uk"
+      ? `\n\n📋 Звітів: *${reports.length}* · 👁 Моніторинг: *${watches.length}*`
+      : lang === "ru"
+        ? `\n\n📋 Отчётов: *${reports.length}* · 👁 Мониторинг: *${watches.length}*`
+        : lang === "es"
+          ? `\n\n📋 Informes: *${reports.length}* · 👁 Monitoreo: *${watches.length}*`
+          : lang === "de"
+            ? `\n\n📋 Berichte: *${reports.length}* · 👁 Monitoring: *${watches.length}*`
+            : `\n\n📋 Reports: *${reports.length}* · 👁 Monitoring: *${watches.length}*`;
+
+    let body: string;
+    if (recent.length === 0) {
+      body = `\n\n${t(lang, "history.empty")}\n\n${t(lang, "history.addMonitor")}`;
+    } else {
+      const recentLabel = lang === "uk" ? "Останні перевірки:" : lang === "ru" ? "Последние проверки:" : lang === "es" ? "Comprobaciones recientes:" : lang === "de" ? "Letzte Checks:" : "Recent checks:";
+      const lines = recent.map((r: any, i: number) => {
+        const data = (r.dataJson || {}) as any;
+        const lvl = String(data.riskLevel || r.riskLevel || "low");
+        const score = Number(data.riskScore ?? r.riskScore ?? 0);
+        const rawTarget = String(data.target ?? r.target ?? r.verificationId ?? "—");
+        const safeTarget = rawTarget.replace(/[*_`\[\]]/g, "").slice(0, 36);
+        const date = fmtDate(r.generatedAt);
+        const objType = (r.objectType || data.objectType || "").toString().toUpperCase();
+        return `${i + 1}. ${riskEmoji(lvl)} \`${safeTarget}\` · ${objType} · ${score}/100 · ${date}`;
+      }).join("\n");
+      body = `\n\n*${recentLabel}*\n${lines}`;
+    }
+
+    const text = `${heading}${stats}${body}`;
+
+    const buttons: any[][] = [
+      [urlS(lang === "uk" ? "🌐 Відкрити веб-історію" : lang === "ru" ? "🌐 Открыть веб-историю" : lang === "es" ? "🌐 Abrir historial web" : lang === "de" ? "🌐 Web-Verlauf öffnen" : "🌐 Open web history", `${webUrl}/history`, "primary", E.globe)],
+      [cb(t(lang, "buttons.monitoring"), "monitoring", "primary", E.eye)],
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)],
+    ];
+    return { text, keyboard: Markup.inlineKeyboard(buttons) };
+  };
+
   bot.action("history", async (ctx) => {
     const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
-
-    const text = `${t(lang, "history.title")}\n\n${t(lang, "history.description")}\n\n${t(lang, "history.empty")}\n\n${t(lang, "history.addMonitor")}`;
-
-    const keyboard = Markup.inlineKeyboard([[cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]]);
+    const { text, keyboard } = await buildHistoryView(tgId);
     try {
       await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
     } catch {
       await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
     }
+  });
+
+  bot.command("history", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const { text, keyboard } = await buildHistoryView(tgId);
+    await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
   });
 
   bot.command("admin", async (ctx) => {
@@ -5878,6 +5947,110 @@ ${allTypesText}
   });
 
   // HELP COMMAND - довідка
+  bot.command("api", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+
+    const T: Record<string, { title: string; intro: string; auth: string; endpoints: string; example: string; tiers: string; webBtn: string; docsBtn: string; keyBtn: string }> = {
+      uk: {
+        title: "🔌 *DARKSHARE API*",
+        intro: "Програмний доступ до OSINT-перевірок, моніторингу та звітів.",
+        auth: "*Автентифікація*\nЗаголовок: `Authorization: Bearer <ваш_API_ключ>`\nКлюч створюється у веб-кабінеті.",
+        endpoints: "*Основні ендпоінти*",
+        example: "*Приклад*",
+        tiers: "Доступ: PRO ($9/міс) · ENTERPRISE ($30/міс) · GROUPS ($45/міс).",
+        webBtn: "🌐 Відкрити сайт",
+        docsBtn: "📄 Повна документація",
+        keyBtn: "🔑 Отримати API-ключ",
+      },
+      ru: {
+        title: "🔌 *DARKSHARE API*",
+        intro: "Программный доступ к OSINT-проверкам, мониторингу и отчётам.",
+        auth: "*Аутентификация*\nЗаголовок: `Authorization: Bearer <ваш_API_ключ>`\nКлюч создаётся в веб-кабинете.",
+        endpoints: "*Основные эндпоинты*",
+        example: "*Пример*",
+        tiers: "Доступ: PRO ($9/мес) · ENTERPRISE ($30/мес) · GROUPS ($45/мес).",
+        webBtn: "🌐 Открыть сайт",
+        docsBtn: "📄 Полная документация",
+        keyBtn: "🔑 Получить API-ключ",
+      },
+      es: {
+        title: "🔌 *DARKSHARE API*",
+        intro: "Acceso programático a comprobaciones OSINT, monitoreo e informes.",
+        auth: "*Autenticación*\nCabecera: `Authorization: Bearer <tu_clave_API>`\nLa clave se crea en el panel web.",
+        endpoints: "*Endpoints principales*",
+        example: "*Ejemplo*",
+        tiers: "Acceso: PRO ($9/mes) · ENTERPRISE ($30/mes) · GROUPS ($45/mes).",
+        webBtn: "🌐 Abrir sitio",
+        docsBtn: "📄 Documentación completa",
+        keyBtn: "🔑 Obtener clave API",
+      },
+      de: {
+        title: "🔌 *DARKSHARE API*",
+        intro: "Programmatischer Zugriff auf OSINT-Checks, Monitoring und Berichte.",
+        auth: "*Authentifizierung*\nHeader: `Authorization: Bearer <dein_API_Schlüssel>`\nSchlüssel wird im Web-Konto erstellt.",
+        endpoints: "*Hauptendpunkte*",
+        example: "*Beispiel*",
+        tiers: "Zugang: PRO ($9/Mo) · ENTERPRISE ($30/Mo) · GROUPS ($45/Mo).",
+        webBtn: "🌐 Website öffnen",
+        docsBtn: "📄 Vollständige Doku",
+        keyBtn: "🔑 API-Schlüssel holen",
+      },
+      en: {
+        title: "🔌 *DARKSHARE API*",
+        intro: "Programmatic access to OSINT checks, monitoring and reports.",
+        auth: "*Authentication*\nHeader: `Authorization: Bearer <your_API_key>`\nKey is generated in your web account.",
+        endpoints: "*Core endpoints*",
+        example: "*Example*",
+        tiers: "Access: PRO ($9/mo) · ENTERPRISE ($30/mo) · GROUPS ($45/mo).",
+        webBtn: "🌐 Open website",
+        docsBtn: "📄 Full docs",
+        keyBtn: "🔑 Get API key",
+      },
+    };
+
+    const L = T[lang] || T.en;
+    const endpointsBlock =
+      "`POST /api/check`\n   { type, target } → riskScore, findings\n" +
+      "`GET  /api/reports`\n   list of your reports\n" +
+      "`GET  /api/reports/:id`\n   full report\n" +
+      "`GET  /api/reports/:id/pdf`\n   PDF export\n" +
+      "`POST /api/bulk-check`\n   batch up to 100 targets\n" +
+      "`GET  /api/watches` · `POST /api/watches` · `DELETE /api/watches/:id`\n" +
+      "`GET  /api/quick-check?type=ip&target=8.8.8.8` (free, 3/day per IP)";
+    const exampleBlock =
+      "```\ncurl -X POST " + webUrl + "/api/check \\\n" +
+      "  -H \"Authorization: Bearer $DS_KEY\" \\\n" +
+      "  -H \"Content-Type: application/json\" \\\n" +
+      "  -d '{\"type\":\"ip\",\"target\":\"8.8.8.8\"}'\n```";
+
+    const text =
+      `${L.title}\n` +
+      `${L.intro}\n\n` +
+      `${L.auth}\n\n` +
+      `${L.endpoints}\n${endpointsBlock}\n\n` +
+      `${L.example}\n${exampleBlock}\n\n` +
+      `${L.tiers}`;
+
+    const buttons: any[][] = [
+      [urlS(L.docsBtn, `${webUrl}/api-docs`, "primary", E.doc)],
+      [urlS(L.keyBtn, `${webUrl}/account`, "success", E.lock), urlS(L.webBtn, webUrl, "primary", E.globe)],
+      [cb(t(lang, "buttons.back") || "← Back", "dashboard", "danger", E.back)],
+    ];
+
+    await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+  });
+
+  bot.action("api_docs", async (ctx) => {
+    try { await ctx.answerCbQuery(); } catch {}
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+    const label = lang === "uk" ? "📄 Документація" : lang === "ru" ? "📄 Документация" : lang === "es" ? "📄 Documentación" : lang === "de" ? "📄 Dokumentation" : "📄 Documentation";
+    await ctx.reply(label, Markup.inlineKeyboard([[urlS(label, `${webUrl}/api-docs`, "primary", E.doc)]]));
+  });
+
   bot.command("help", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
@@ -6787,6 +6960,86 @@ ${feature.desc}
       });
     }
   });
+
+  // Telegram monitoring poller — checks active watches and notifies users via DM
+  const MONITOR_INTERVAL_MS = Math.max(60_000, Number(process.env.BOT_MONITOR_INTERVAL_MS || 5 * 60_000));
+  const monitorState = new Map<string, number>();
+  const intervalSeconds = (val: any): number => {
+    const s = String(val || "").toLowerCase().trim();
+    if (s === "1h") return 3600;
+    if (s === "6h") return 21600;
+    if (s === "24h" || s === "1d") return 86400;
+    const n = Number(val);
+    return Number.isFinite(n) && n > 0 ? n : 21600;
+  };
+  setInterval(async () => {
+    try {
+      const watches = await storage.getAllWatches().catch(() => [] as any[]);
+      if (!Array.isArray(watches) || watches.length === 0) return;
+
+      const { performCheck } = await import("./checkService.js").catch(() => ({ performCheck: null as any }));
+      if (typeof performCheck !== "function") return;
+
+      const now = Date.now();
+      for (const w of watches) {
+        try {
+          if (w.alertsOn === false) continue;
+          const meta = (w.thresholdsJson || {}) as any;
+          const intervalS = intervalSeconds((w as any).interval || meta.interval);
+          const lastTs = w.lastCheck ? new Date(w.lastCheck).getTime() : 0;
+          if (lastTs && now - lastTs < intervalS * 1000) continue;
+
+          const result = await performCheck(w.objectType, w.value);
+          const threshold: number = typeof meta.threshold === "number" ? meta.threshold : 70;
+          const lastScore: number | undefined = meta.lastScore;
+          const crossed = result.riskScore >= threshold && (lastScore === undefined || lastScore < threshold);
+
+          await storage.updateWatch(w.id, {
+            lastCheck: new Date(),
+            status: result.riskLevel,
+            thresholdsJson: { ...meta, lastScore: result.riskScore },
+          } as any);
+
+          if (!crossed) continue;
+
+          const user = await storage.getUser(w.userId).catch(() => null);
+          if (!user || !user.tgId) continue;
+
+          const dedupeKey = `${w.id}:${result.riskLevel}`;
+          const lastNotified = monitorState.get(dedupeKey) || 0;
+          if (now - lastNotified < 30 * 60_000) continue;
+          monitorState.set(dedupeKey, now);
+
+          const lang = getUserLang(user.lang);
+          const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+          const emoji = result.riskLevel === "critical" ? "🔴" : result.riskLevel === "high" ? "🟠" : "🟡";
+          const head = lang === "uk" ? "Сповіщення моніторингу" : lang === "ru" ? "Уведомление мониторинга" : lang === "es" ? "Alerta de monitoreo" : lang === "de" ? "Monitoring-Alarm" : "Monitoring alert";
+          const lvlLabel = lang === "uk" ? "Рівень" : lang === "ru" ? "Уровень" : lang === "es" ? "Nivel" : lang === "de" ? "Stufe" : "Level";
+          const scoreLabel = lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : lang === "es" ? "Riesgo" : lang === "de" ? "Risiko" : "Risk";
+          const targetLabel = lang === "uk" ? "Об'єкт" : lang === "ru" ? "Объект" : lang === "es" ? "Objeto" : lang === "de" ? "Ziel" : "Target";
+          const safeTarget = String(w.value || "").replace(/[*_`\[\]]/g, "").slice(0, 80);
+          const text = `${emoji} *${head}*\n\n` +
+            `${targetLabel}: \`${safeTarget}\`\n` +
+            `${lvlLabel}: *${result.riskLevel.toUpperCase()}*\n` +
+            `${scoreLabel}: *${result.riskScore}/100*\n` +
+            `${(w.objectType || "").toUpperCase()}`;
+          const kb = Markup.inlineKeyboard([
+            [urlS(lang === "uk" ? "🌐 Відкрити" : lang === "ru" ? "🌐 Открыть" : lang === "es" ? "🌐 Abrir" : lang === "de" ? "🌐 Öffnen" : "🌐 Open", `${webUrl}/history`, "primary", E.globe)],
+            [cb(t(lang, "buttons.monitoring"), "monitoring", "primary", E.eye)],
+          ]);
+          try {
+            await bot.telegram.sendMessage(user.tgId, text, { parse_mode: "Markdown", ...kb });
+          } catch (e: any) {
+            console.warn("[bot-monitor] sendMessage failed:", e?.message || e);
+          }
+        } catch (perWatchErr: any) {
+          // skip individual failures
+        }
+      }
+    } catch (err: any) {
+      console.warn("[bot-monitor] poller error:", err?.message || err);
+    }
+  }, MONITOR_INTERVAL_MS);
 
   // Daily broadcast scheduler - runs every hour, sends at 10:00 UTC
   setInterval(async () => {
