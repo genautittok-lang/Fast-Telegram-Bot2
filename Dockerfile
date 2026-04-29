@@ -28,5 +28,5 @@ EXPOSE 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Run migrations then start the app
-CMD ["sh", "-c", "npm run db:push && node dist/index.cjs"]
+# Run migrations (non-interactive, forced) then start the app
+CMD ["sh", "-c", "npm run db:push -- --force && node dist/index.cjs"]
