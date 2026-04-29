@@ -1500,10 +1500,10 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     landing: {
       hero: {
-        badge: "Professional OSINT Platform",
-        title: "Cybersecurity &",
-        titleHighlight: "Threat Analysis",
-        description: "10+ modules for comprehensive analysis: IPs, domains, wallets, emails, phones, malware, CVE & leak databases. Integration with leading security APIs.",
+        badge: "{N}+ live OSINT sources · 14 leak databases · no signup",
+        title: "Find out what the internet knows",
+        titleHighlight: "about you.",
+        description: "Scan an email, phone, username, wallet, domain or IP across {N}+ open OSINT sources in seconds. No account required. Real findings, not theatre.",
       },
       features: {
         title: "Features",
@@ -2390,10 +2390,10 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     landing: {
       hero: {
-        badge: "Професійна OSINT платформа",
-        title: "Кібербезпека &",
-        titleHighlight: "Аналіз загроз",
-        description: "10+ модулів для комплексного аналізу: IP, домени, гаманці, email, телефони, malware, CVE та бази витоків. Інтеграція з провідними API безпеки.",
+        badge: "{N}+ живих OSINT-джерел · 14 баз витоків · без реєстрації",
+        title: "Дізнайся, що про тебе",
+        titleHighlight: "знає інтернет.",
+        description: "Перевір email, телефон, нікнейм, гаманець, домен або IP за {N}+ відкритими OSINT-джерелами за секунди. Без реєстрації. Реальні знахідки, без пустих обіцянок.",
       },
       features: {
         title: "Можливості",
@@ -3280,10 +3280,10 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     landing: {
       hero: {
-        badge: "Профессиональная OSINT платформа",
-        title: "Кибербезопасность &",
-        titleHighlight: "Анализ угроз",
-        description: "10+ модулей для комплексного анализа: IP, домены, кошельки, email, телефоны, malware, CVE и базы утечек. Интеграция с ведущими API безопасности.",
+        badge: "{N}+ живых OSINT-источников · 14 баз утечек · без регистрации",
+        title: "Узнай, что о тебе",
+        titleHighlight: "знает интернет.",
+        description: "Проверь email, телефон, ник, кошелёк, домен или IP по {N}+ открытым OSINT-источникам за секунды. Без регистрации. Реальные находки, не пустые обещания.",
       },
       features: {
         title: "Возможности",
@@ -4170,10 +4170,10 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     landing: {
       hero: {
-        badge: "Plataforma OSINT profesional",
-        title: "Ciberseguridad &",
-        titleHighlight: "Análisis de amenazas",
-        description: "10+ módulos para análisis integral: IPs, dominios, billeteras, emails, teléfonos, malware, CVE y bases de datos de filtraciones. Integración con APIs de seguridad líderes.",
+        badge: "{N}+ fuentes OSINT en vivo · 14 bases de filtraciones · sin registro",
+        title: "Descubre qué sabe internet",
+        titleHighlight: "sobre ti.",
+        description: "Escanea un email, teléfono, usuario, wallet, dominio o IP en {N}+ fuentes OSINT abiertas en segundos. Sin cuenta. Hallazgos reales, sin teatro.",
       },
       features: {
         title: "Características",
@@ -5060,10 +5060,10 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     landing: {
       hero: {
-        badge: "Professionelle OSINT-Plattform",
-        title: "Cybersicherheit &",
-        titleHighlight: "Bedrohungsanalyse",
-        description: "10+ Module für umfassende Analyse: IPs, Domains, Wallets, E-Mails, Telefone, Malware, CVE & Leak-Datenbanken. Integration mit führenden Sicherheits-APIs.",
+        badge: "{N}+ Live-OSINT-Quellen · 14 Leak-Datenbanken · ohne Anmeldung",
+        title: "Finde heraus, was das Internet",
+        titleHighlight: "über dich weiß.",
+        description: "Scanne eine E-Mail, Telefon, Nutzername, Wallet, Domain oder IP in {N}+ offenen OSINT-Quellen in Sekunden. Kein Konto nötig. Echte Befunde, kein Theater.",
       },
       features: {
         title: "Funktionen",

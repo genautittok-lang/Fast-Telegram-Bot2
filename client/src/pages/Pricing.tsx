@@ -1058,7 +1058,7 @@ function PricingContent() {
                         </div>
 
                         <Button
-                          className="w-full bg-white text-black hover:bg-zinc-100 font-semibold py-5 rounded-2xl transition-colors"
+                          className="w-full bg-cyan-400 text-black hover:bg-cyan-300 font-semibold py-5 rounded-2xl transition-colors text-[14px] sm:text-[15px] whitespace-normal leading-snug px-3 shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)]"
                           onClick={async () => {
                               try {
                                 const response = await fetch("/api/payments/monopay/create", {

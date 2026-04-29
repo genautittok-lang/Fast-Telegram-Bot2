@@ -360,7 +360,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.text("KEY FINDINGS", M, y);
     y += 25;
 
-    const findings = data.findings.slice(0, 12);
+    const findings = data.findings.slice(0, 30);
     for (let i = 0; i < findings.length; i++) {
       const f = findings[i];
       y = ensureSpace(doc, y, 55, W, H, M);
@@ -383,18 +383,16 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       doc.fillColor(fColor).fontSize(7).font("Helvetica-Bold");
       doc.text(`${fIcon} ${fLabel}`, M + 48, y + 15, { width: 52, align: "center" });
 
-      // Title
-      const rawTitle = sp(f.title);
-      const titleText = rawTitle.length > 65 ? rawTitle.substring(0, 62) + "..." : rawTitle;
+      // Title (let pdfkit wrap up to 2 lines via ellipsis)
+      const titleText = sp(f.title);
       doc.fillColor(C.white).fontSize(10).font("Helvetica-Bold");
-      doc.text(titleText, M + 115, y + 10, { width: CW - 135 });
+      doc.text(titleText, M + 115, y + 10, { width: CW - 135, ellipsis: true, height: 14 });
 
-      // Description
+      // Description (allow longer wrap)
       if (f.description) {
-        const rawDesc = sp(f.description);
-        const desc = rawDesc.length > 85 ? rawDesc.substring(0, 82) + "..." : rawDesc;
+        const desc = sp(f.description);
         doc.fillColor(C.textDim).fontSize(8).font("Helvetica");
-        doc.text(desc, M + 115, y + 25, { width: CW - 135 });
+        doc.text(desc, M + 115, y + 25, { width: CW - 135, ellipsis: true, height: 14 });
       }
 
       y += 48;
@@ -441,7 +439,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
         doc.text("ANALYSIS DETAILS", M, y);
         y += 25;
 
-        const entries = Object.entries(data.metadata!).slice(0, 12);
+        const entries = Object.entries(data.metadata!).slice(0, 20);
         const detCols = 2;
         const detColW = (CW - 20) / detCols;
         const detRows = Math.ceil(entries.length / detCols);
@@ -549,7 +547,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.text("This analysis was performed using the following intelligence sources and databases. Each source was queried in real-time to ensure data accuracy and relevance.", M + 15, y + 10, { width: CW - 30 });
     y += 55;
 
-    const srcs = data.sources.slice(0, 12);
+    const srcs = data.sources.slice(0, 30);
     for (let i = 0; i < srcs.length; i++) {
       y = ensureSpace(doc, y, 30, W, H, M);
       doc.roundedRect(M, y, CW, 24, 4).fill(i % 2 === 0 ? C.surface : C.surfaceAlt);

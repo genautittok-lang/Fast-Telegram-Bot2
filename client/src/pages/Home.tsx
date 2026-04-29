@@ -151,13 +151,13 @@ function TopBar() {
             <span>Bot</span>
           </a>
           <Link href="/login">
-            <span className="hidden cursor-pointer rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-200 transition-colors hover:bg-white/5 sm:inline-block" data-testid="link-login">
-              Sign in
+            <span className="cursor-pointer rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[12.5px] font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.06] sm:border-0 sm:bg-transparent sm:px-3 sm:text-[13px] sm:hover:bg-white/5" data-testid="link-login">
+              {t('auth.signIn')}
             </span>
           </Link>
           <Link href="/pricing">
             <span className="cursor-pointer rounded-md bg-white px-2.5 py-1.5 text-[12.5px] font-medium text-black transition-colors hover:bg-zinc-200 sm:px-3 sm:text-[13px]" data-testid="link-pro">
-              Get PRO
+              PRO
             </span>
           </Link>
         </div>
@@ -262,23 +262,22 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
           <div className="lg:pt-2">
             <div className="inline-flex max-w-full items-center gap-2 truncate rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11.5px] text-zinc-400 sm:text-[12px]">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-              <span className="truncate">{OSINT_SOURCES.length}+ live OSINT sources · 14 leak databases · no signup</span>
+              <span className="truncate">{t('landing.hero.badge', { N: String(OSINT_SOURCES.length) })}</span>
             </div>
 
             <h1
               className="mt-5 text-balance text-[34px] font-semibold leading-[1.05] tracking-tight text-white sm:mt-6 sm:text-[52px] sm:leading-[1.02] lg:text-[64px]"
               data-testid="text-hero-title"
             >
-              Find out what the internet knows{" "}
-              <span className="text-cyan-300">about you.</span>
+              {t('landing.hero.title')}{" "}
+              <span className="text-cyan-300">{t('landing.hero.titleHighlight')}</span>
             </h1>
 
             <p
               className="mt-4 max-w-xl text-[14.5px] leading-relaxed text-zinc-400 sm:mt-6 sm:text-[16px]"
               data-testid="text-hero-sub"
             >
-              Scan an email, phone, username, wallet, domain or IP across {OSINT_SOURCES.length}+ open
-              OSINT sources in seconds. No account required. Real findings, not theatre.
+              {t('landing.hero.description', { N: String(OSINT_SOURCES.length) })}
             </p>
 
             <form onSubmit={submit} className="mt-7 max-w-xl sm:mt-9">
