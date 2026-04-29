@@ -29,6 +29,7 @@ import { Footer } from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { OSINT_SOURCES, CATEGORY_LABELS, type OsintCategory } from "@/data/osintSources";
 import { SourcesScanGrid, type ScanItem } from "@/components/SourcesScanGrid";
+import { Seo } from "@/components/Seo";
 
 type CheckType = "email" | "phone" | "username" | "wallet" | "domain" | "ip";
 
@@ -915,6 +916,50 @@ export default function Home() {
 
   return (
     <div id="top" className="min-h-screen bg-[#0A0A0A] text-white">
+      <Seo
+        title="AI-powered OSINT & Threat Intelligence"
+        description="17 OSINT modules · IP, crypto, email, domain, CVE, EXIF, GEOINT · AI risk scoring · real-time monitoring · branded PDF reports · full REST API. Free tier available."
+        keywords="OSINT, threat intelligence, IP lookup, wallet OSINT, email leak, domain analysis, CVE scanner, EXIF, GEOINT, security API"
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "What is DARKSHARE?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "DARKSHARE is an AI-powered OSINT and threat intelligence platform with 17 scanning modules — IP, crypto wallet, email, domain, URL, CVE, EXIF, GEOINT and more — plus real-time monitoring, branded PDF reports, and a full REST API.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Is there a free tier?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes. The FREE tier lets you run quick checks daily. PRO ($9/mo) unlocks unlimited scans, monitoring, PDF exports and the API. ENTERPRISE ($30/mo) and GROUPS ($45/mo) add bulk checks and team features.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "Can I use DARKSHARE via API?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Yes — PRO, ENTERPRISE and GROUPS plans include REST API access. Generate a key in the web account or directly in the Telegram bot, then call /api/check, /api/reports, /api/watches and more.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "What payment methods are supported?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Card (Visa / Mastercard) via Stripe with Apple Pay & Google Pay support, Telegram Stars, and crypto.",
+              },
+            },
+          ],
+        }}
+      />
       <TopBar />
       <HeroCheck stats={stats} />
       <TrustedAggregators />

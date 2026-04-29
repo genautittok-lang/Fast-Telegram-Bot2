@@ -8,6 +8,7 @@ import { api } from "@shared/routes";
 import { performCheck, validateInput, extractExifFromBuffer } from "./checkService";
 import { SOURCES_COUNT } from "@shared/osintSources";
 import { registerApiV1, generateApiKey } from "./apiV1";
+import { registerSeoRoutes } from "./seo";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
@@ -471,6 +472,7 @@ export async function registerRoutes(
   // VPN routes (Phase 6 — own WireGuard infrastructure)
   registerVpnRoutes(app, loadUser, requireAuth);
   registerApiV1(app);
+  registerSeoRoutes(app);
 
   // Auto-seed demo VPN servers on first run so the /vpn flow has stock to show.
   // Endpoints/keys are placeholders — replace via /admin VPN panel when real boxes come online.

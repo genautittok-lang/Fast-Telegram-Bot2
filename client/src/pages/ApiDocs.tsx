@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Seo } from "@/components/Seo";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -405,6 +406,13 @@ export default function ApiDocs() {
 
   return (
     <PublicShell>
+      <Seo
+        title="API Documentation — REST endpoints, examples & SDK"
+        description="DARKSHARE REST API: 17 OSINT modules, monitoring, bulk checks, PDF reports. Bearer authentication, ready-to-use cURL / JS / Python examples. PRO, ENTERPRISE & GROUPS plans."
+        keywords="OSINT API, threat intelligence API, REST API security, IP API, wallet API, email API"
+        path="/api-docs"
+        type="article"
+      />
       <div className="min-h-screen bg-background relative overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />

@@ -39,6 +39,7 @@ import {
 import { SiTelegram } from "react-icons/si";
 import { Link } from "wouter";
 import { Card } from "@/components/ui/card";
+import { Seo } from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PublicShell } from "@/components/PublicShell";
@@ -315,6 +316,13 @@ export default function Guide() {
 
   return (
     <PublicShell>
+      <Seo
+        title="Guide — How to use OSINT modules, monitoring & PDF reports"
+        description="Step-by-step guide to DARKSHARE: 17 OSINT modules, AI risk scoring, real-time monitoring, branded PDF reports, REST API, Telegram bot. Available in UA / RU / ES / DE / EN."
+        keywords="OSINT guide, threat intelligence tutorial, IP lookup how to, crypto wallet OSINT guide"
+        path="/guide"
+        type="article"
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-10 sm:space-y-14">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">

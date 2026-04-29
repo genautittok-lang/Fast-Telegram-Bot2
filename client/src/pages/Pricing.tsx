@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
+import { Seo } from "@/components/Seo";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1290,6 +1291,13 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95 overflow-x-hidden max-w-[100vw]">
+      <Seo
+        title="Pricing — FREE / PRO $9 / ENTERPRISE $30 / GROUPS $45"
+        description="Transparent pricing for DARKSHARE OSINT platform. Free tier available. PRO from $9/mo unlocks unlimited scans, monitoring, PDF reports & full REST API. Pay with card, Apple Pay, Google Pay, Telegram Stars, or crypto."
+        keywords="OSINT pricing, threat intelligence pricing, security API pricing, DARKSHARE plans"
+        path="/pricing"
+        type="product"
+      />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.1),transparent_50%)]" />
       <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
