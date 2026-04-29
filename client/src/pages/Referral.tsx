@@ -19,7 +19,10 @@ import {
   Award,
   UserPlus,
   Handshake,
-  Send
+  Send,
+  Trophy,
+  Medal,
+  Bitcoin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -127,6 +130,15 @@ export default function Referral() {
   const { data: referralStats, isLoading: statsLoading } = useQuery<ReferralStats>({
     queryKey: ["/api/referrals"],
     enabled: isAuthenticated,
+  });
+
+  const { data: leaderboard } = useQuery<{ period: string; items: Array<{ rank: number; username: string; count: number }> }>({
+    queryKey: ["/api/referrals/leaderboard", "month"],
+    queryFn: async () => {
+      const r = await fetch("/api/referrals/leaderboard?period=month", { credentials: "include" });
+      if (!r.ok) return { period: "month", items: [] };
+      return r.json();
+    },
   });
 
   // Deduplicate referred users by ID as a safety measure
@@ -565,6 +577,59 @@ export default function Referral() {
                   </p>
                 </div>
               )}
+            </div>
+
+            <div className="p-4 lg:p-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0E0E12] to-[#0E0E12]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-white">Monthly Leaderboard</h3>
+                  <p className="text-[11px] text-zinc-500">Top 10 referrers this month win 1-month PRO subscription. Updated hourly.</p>
+                </div>
+              </div>
+              {leaderboard?.items && leaderboard.items.length > 0 ? (
+                <div className="space-y-1.5">
+                  {leaderboard.items.slice(0, 10).map((row) => (
+                    <div
+                      key={row.rank}
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-black/40 border border-white/5"
+                      data-testid={`row-leaderboard-${row.rank}`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold flex-shrink-0 ${
+                          row.rank === 1 ? "bg-amber-500/20 border border-amber-400/30 text-amber-200" :
+                          row.rank === 2 ? "bg-zinc-300/10 border border-zinc-300/20 text-zinc-200" :
+                          row.rank === 3 ? "bg-orange-500/15 border border-orange-400/25 text-orange-200" :
+                          "bg-white/5 border border-white/10 text-zinc-400"
+                        }`}>
+                          {row.rank <= 3 ? <Medal className="w-3.5 h-3.5" /> : row.rank}
+                        </div>
+                        <span className="text-sm text-white/90 truncate font-mono">{row.username}</span>
+                      </div>
+                      <span className="text-sm font-mono text-cyan-300 flex-shrink-0">{row.count} ref</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-zinc-500 text-center py-6">No referrals yet this month — be first!</p>
+              )}
+            </div>
+
+            <div className="p-4 lg:p-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0E0E12] to-[#0E0E12]">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                  <Bitcoin className="w-5 h-5 text-amber-300" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-base text-white mb-1">Crypto Payouts Available</h3>
+                  <p className="text-xs text-zinc-400 mb-2">Earn 30% commission and withdraw in USDT (TRC20/ERC20), BTC, ETH or TON. Minimum $25.</p>
+                  <a href="/account" className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-mono" data-testid="link-setup-payout">
+                    Set up payout address →
+                  </a>
+                </div>
+              </div>
             </div>
 
             <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">

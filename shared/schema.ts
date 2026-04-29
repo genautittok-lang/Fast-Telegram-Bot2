@@ -27,6 +27,13 @@ export const users = pgTable("ds_users", {
   totpEnabled: boolean("totp_enabled").default(false),
   lastReminderSent: timestamp("last_reminder_sent"),
   pendingRefCode: text("pending_ref_code"),
+  companyName: text("company_name"),
+  companyLogoUrl: text("company_logo_url"),
+  brandColor: text("brand_color"),
+  slackWebhookUrl: text("slack_webhook_url"),
+  teamsWebhookUrl: text("teams_webhook_url"),
+  payoutAddress: text("payout_address"),
+  payoutCurrency: text("payout_currency"),
 });
 
 export const reports = pgTable("ds_reports", {

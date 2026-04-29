@@ -43,6 +43,8 @@ import DataDeletion from "@/pages/DataDeletion";
 import CompromiseWizard from "@/pages/CompromiseWizard";
 import TakedownGenerator from "@/pages/TakedownGenerator";
 import ThreatProfilePage from "@/pages/ThreatProfile";
+import Trust from "@/pages/Trust";
+import Community from "@/pages/Community";
 
 const APP_PATHS = ["/dashboard", "/history", "/monitoring", "/referral", "/account", "/teams", "/chat", "/admin", "/exif", "/geoint"];
 
@@ -119,6 +121,8 @@ function Router() {
           <Route path="/wizard" component={CompromiseWizard} />
           <Route path="/takedown" component={TakedownGenerator} />
           <Route path="/threat-profile" component={ThreatProfilePage} />
+          <Route path="/trust" component={Trust} />
+          <Route path="/community" component={Community} />
           <Route component={NotFound} />
         </Switch>
       </AnimatedPage>

@@ -37,7 +37,11 @@ import {
   X,
   Info,
   HardDrive,
-  Wifi
+  Wifi,
+  Palette,
+  Webhook,
+  Bitcoin,
+  Building2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { FireStreak } from "@/components/FireStreak";
@@ -148,6 +152,42 @@ export default function Account() {
     threats: user?.notifsOn ?? true,
     updates: user?.digestsOn ?? false,
   });
+  const [companyName, setCompanyName] = useState(user?.companyName || "");
+  const [companyLogoUrl, setCompanyLogoUrl] = useState(user?.companyLogoUrl || "");
+  const [brandColor, setBrandColor] = useState(user?.brandColor || "#a78bfa");
+  const [slackWebhookUrl, setSlackWebhookUrl] = useState(user?.slackWebhookUrl || "");
+  const [teamsWebhookUrl, setTeamsWebhookUrl] = useState(user?.teamsWebhookUrl || "");
+  const [payoutAddress, setPayoutAddress] = useState(user?.payoutAddress || "");
+  const [payoutCurrency, setPayoutCurrency] = useState(user?.payoutCurrency || "USDT_TRC20");
+  const [savingBranding, setSavingBranding] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setCompanyName(user.companyName || "");
+      setCompanyLogoUrl(user.companyLogoUrl || "");
+      setBrandColor(user.brandColor || "#a78bfa");
+      setSlackWebhookUrl(user.slackWebhookUrl || "");
+      setTeamsWebhookUrl(user.teamsWebhookUrl || "");
+      setPayoutAddress(user.payoutAddress || "");
+      setPayoutCurrency(user.payoutCurrency || "USDT_TRC20");
+    }
+  }, [user?.companyName, user?.companyLogoUrl, user?.brandColor, user?.slackWebhookUrl, user?.teamsWebhookUrl, user?.payoutAddress, user?.payoutCurrency]);
+
+  const saveBranding = useCallback(async (payload: Record<string, any>) => {
+    setSavingBranding(true);
+    try {
+      const res = await apiRequest("PATCH", "/api/account/branding", payload);
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "save_failed");
+      await checkAuth();
+      toast({ title: t('account.settingsSaved') });
+    } catch (e: any) {
+      toast({ title: e.message || t('account.settingsSaveError'), variant: "destructive" });
+    } finally {
+      setSavingBranding(false);
+    }
+  }, [checkAuth, toast, t]);
+
   const [twoFASetupData, setTwoFASetupData] = useState<{ uri: string; secret: string } | null>(null);
   const [twoFACode, setTwoFACode] = useState("");
   const [twoFALoading, setTwoFALoading] = useState(false);
@@ -903,6 +943,149 @@ export default function Account() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+          >
+            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 flex items-center justify-center">
+                <Building2 className="w-4 h-4 lg:w-5 lg:h-5 text-violet-400" />
+              </div>
+              <div>
+                <h2 className="text-lg lg:text-xl font-bold text-white">White-label & Integrations</h2>
+                <p className="text-xs text-muted-foreground">Brand your PDF reports, get monitoring alerts in Slack/Teams, set crypto payout for referrals.</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Palette className="w-4 h-4 text-violet-400" />
+                  <p className="font-medium text-white text-sm">PDF White-label</p>
+                  <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-300">ENTERPRISE / GROUPS</Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Input
+                    placeholder="Company name (e.g. Acme Corp)"
+                    value={companyName}
+                    maxLength={120}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
+                    data-testid="input-company-name"
+                    className="bg-zinc-800 border-zinc-700 text-sm"
+                  />
+                  <Input
+                    placeholder="https://your-cdn.com/logo.png"
+                    value={companyLogoUrl}
+                    onChange={(e) => setCompanyLogoUrl(e.target.value)}
+                    disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
+                    data-testid="input-company-logo"
+                    className="bg-zinc-800 border-zinc-700 text-sm"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={brandColor}
+                      onChange={(e) => setBrandColor(e.target.value)}
+                      disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
+                      data-testid="input-brand-color"
+                      className="h-9 w-12 rounded border border-zinc-700 bg-zinc-800 cursor-pointer disabled:opacity-50"
+                    />
+                    <Input
+                      placeholder="#a78bfa"
+                      value={brandColor}
+                      onChange={(e) => setBrandColor(e.target.value)}
+                      disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
+                      className="bg-zinc-800 border-zinc-700 text-sm font-mono"
+                    />
+                  </div>
+                  <Button
+                    onClick={() => saveBranding({ companyName, companyLogoUrl, brandColor })}
+                    disabled={savingBranding || (userTier !== "ENTERPRISE" && userTier !== "GROUPS")}
+                    data-testid="button-save-branding"
+                    className="bg-violet-500/20 border border-violet-500/40 text-violet-200 hover:bg-violet-500/30"
+                  >
+                    Save Branding
+                  </Button>
+                </div>
+                {(userTier !== "ENTERPRISE" && userTier !== "GROUPS") && (
+                  <p className="text-[11px] text-amber-400/80 mt-2 flex items-center gap-1.5"><Lock className="w-3 h-3" /> Available on ENTERPRISE / GROUPS plans.</p>
+                )}
+              </div>
+
+              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Webhook className="w-4 h-4 text-cyan-400" />
+                  <p className="font-medium text-white text-sm">Monitoring Webhooks</p>
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="https://hooks.slack.com/services/T.../B.../..."
+                    value={slackWebhookUrl}
+                    onChange={(e) => setSlackWebhookUrl(e.target.value)}
+                    data-testid="input-slack-webhook"
+                    className="bg-zinc-800 border-zinc-700 text-sm font-mono"
+                  />
+                  <Input
+                    placeholder="https://outlook.webhook.office.com/webhook/..."
+                    value={teamsWebhookUrl}
+                    onChange={(e) => setTeamsWebhookUrl(e.target.value)}
+                    data-testid="input-teams-webhook"
+                    className="bg-zinc-800 border-zinc-700 text-sm font-mono"
+                  />
+                  <Button
+                    onClick={() => saveBranding({ slackWebhookUrl, teamsWebhookUrl })}
+                    disabled={savingBranding}
+                    data-testid="button-save-webhooks"
+                    className="bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 hover:bg-cyan-500/30"
+                  >
+                    Save Webhooks
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground">Alerts from monitoring (CVE / wallet / domain) will be mirrored to your Slack & Teams channels.</p>
+                </div>
+              </div>
+
+              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bitcoin className="w-4 h-4 text-amber-400" />
+                  <p className="font-medium text-white text-sm">Referral Crypto Payout</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <Select value={payoutCurrency} onValueChange={setPayoutCurrency}>
+                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-sm" data-testid="select-payout-currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USDT_TRC20">USDT (TRC20)</SelectItem>
+                      <SelectItem value="USDT_ERC20">USDT (ERC20)</SelectItem>
+                      <SelectItem value="BTC">BTC</SelectItem>
+                      <SelectItem value="ETH">ETH</SelectItem>
+                      <SelectItem value="TON">TON</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Wallet address"
+                    value={payoutAddress}
+                    onChange={(e) => setPayoutAddress(e.target.value)}
+                    data-testid="input-payout-address"
+                    className="md:col-span-2 bg-zinc-800 border-zinc-700 text-sm font-mono"
+                  />
+                  <Button
+                    onClick={() => saveBranding({ payoutAddress, payoutCurrency })}
+                    disabled={savingBranding}
+                    data-testid="button-save-payout"
+                    className="md:col-span-3 bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30"
+                  >
+                    Save Payout
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-2">Earn 30% of each referred subscription. Payouts processed monthly when balance ≥ $25 equivalent.</p>
               </div>
             </div>
           </motion.div>

@@ -46,6 +46,7 @@ export interface IStorage {
   
   // Referrals
   getReferralStats(userId: number): Promise<ReferralStats>;
+  getReferralLeaderboard(period: "month" | "all", limit: number): Promise<Array<{ userId: number; username: string | null; tier: string | null; count: number; rank: number }>>;
   createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void>;
   
   // Stats
@@ -372,6 +373,34 @@ export class DatabaseStorage implements IStorage {
     } catch (err) {
       console.warn("Error fetching referral stats:", (err as Error).message);
       return { count: 0, pendingCount: 0, referredUsers: [] };
+    }
+  }
+
+  async getReferralLeaderboard(period: "month" | "all", limit: number): Promise<Array<{ userId: number; username: string | null; tier: string | null; count: number; rank: number }>> {
+    if (!db) return [];
+    try {
+      const where = period === "month"
+        ? sql`WHERE r.created_at >= date_trunc('month', now())`
+        : sql``;
+      const result = await db.execute(sql`
+        SELECT r.referrer_id as "userId", u.username as "username", u.tier as "tier", COUNT(*)::int as "count"
+        FROM ds_referrals r
+        JOIN ds_users u ON u.id = r.referrer_id
+        ${where}
+        GROUP BY r.referrer_id, u.username, u.tier
+        ORDER BY "count" DESC
+        LIMIT ${limit}
+      `);
+      return (result.rows as any[]).map((row, i) => ({
+        userId: row.userId,
+        username: row.username,
+        tier: row.tier,
+        count: Number(row.count),
+        rank: i + 1,
+      }));
+    } catch (err) {
+      console.warn("Error fetching referral leaderboard:", (err as Error).message);
+      return [];
     }
   }
 
@@ -997,7 +1026,14 @@ export class MemStorage implements IStorage {
       totpEnabled: false,
       photoUrl: null,
       lastReminderSent: null,
-    };
+      companyName: null,
+      companyLogoUrl: null,
+      brandColor: null,
+      slackWebhookUrl: null,
+      teamsWebhookUrl: null,
+      payoutAddress: null,
+      payoutCurrency: null,
+    } as User;
     this.users.set(id, user);
     return user;
   }
@@ -1168,6 +1204,10 @@ export class MemStorage implements IStorage {
 
   async getReferralStats(userId: number): Promise<ReferralStats> {
     return { count: 0, pendingCount: 0, referredUsers: [] };
+  }
+
+  async getReferralLeaderboard(_period: "month" | "all", _limit: number) {
+    return [] as Array<{ userId: number; username: string | null; tier: string | null; count: number; rank: number }>;
   }
 
   async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void> {

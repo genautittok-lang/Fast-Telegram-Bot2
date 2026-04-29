@@ -2405,6 +2405,10 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       const metadata = generateMetadata(module);
       
       const verificationId = `DS-${Date.now().toString(36).toUpperCase()}`;
+      const wlt = String(user.tier || "FREE").toUpperCase();
+      const branding = (wlt === "ENTERPRISE" || wlt === "GROUPS")
+        ? { companyName: (user as any).companyName, brandColor: (user as any).brandColor, companyLogoUrl: (user as any).companyLogoUrl }
+        : undefined;
       const pdfBuffer = await generateDetailedPDF({
         moduleType: module,
         targetValue: target,
@@ -2415,7 +2419,8 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
         findings,
         sources: checkResult.sources,
         metadata,
-        verificationId
+        verificationId,
+        branding,
       });
 
       const filename = `darkshare_${module}_${Date.now()}.pdf`;
@@ -7118,6 +7123,62 @@ ${feature.desc}
           } catch (e: any) {
             console.warn("[bot-monitor] sendMessage failed:", e?.message || e);
           }
+
+          // Mirror alerts to Slack / Microsoft Teams webhooks if configured
+          try {
+            const plain = `${emoji} ${head}\n${targetLabel}: ${safeTarget}\n${lvlLabel}: ${result.riskLevel.toUpperCase()}\n${scoreLabel}: ${result.riskScore}/100\nModule: ${(w.objectType || "").toUpperCase()}\n${webUrl}/history`;
+            const slack = (user as any).slackWebhookUrl as string | null | undefined;
+            if (slack && /^https:\/\/hooks\.slack\.com\//.test(slack)) {
+              fetch(slack, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  text: `*${head}*`,
+                  blocks: [
+                    { type: "header", text: { type: "plain_text", text: `${emoji} ${head}` } },
+                    { type: "section", fields: [
+                      { type: "mrkdwn", text: `*${targetLabel}:*\n\`${safeTarget}\`` },
+                      { type: "mrkdwn", text: `*${lvlLabel}:*\n${result.riskLevel.toUpperCase()}` },
+                      { type: "mrkdwn", text: `*${scoreLabel}:*\n${result.riskScore}/100` },
+                      { type: "mrkdwn", text: `*Module:*\n${(w.objectType || "").toUpperCase()}` },
+                    ]},
+                    { type: "actions", elements: [
+                      { type: "button", text: { type: "plain_text", text: "Open dashboard" }, url: `${webUrl}/history` },
+                    ]},
+                  ],
+                }),
+              }).catch((err) => console.warn("[bot-monitor] slack webhook failed:", err?.message || err));
+            }
+            const teams = (user as any).teamsWebhookUrl as string | null | undefined;
+            if (teams && /^https:\/\/[\w.-]+\.webhook\.office\.com\//.test(teams)) {
+              const colorMap: Record<string, string> = { critical: "FF3B30", high: "FF9500", medium: "FFCC00", low: "34C759" };
+              fetch(teams, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  "@type": "MessageCard",
+                  "@context": "https://schema.org/extensions",
+                  themeColor: colorMap[result.riskLevel] || "FF9500",
+                  summary: head,
+                  title: `${emoji} ${head}`,
+                  sections: [{
+                    facts: [
+                      { name: targetLabel, value: safeTarget },
+                      { name: lvlLabel, value: result.riskLevel.toUpperCase() },
+                      { name: scoreLabel, value: `${result.riskScore}/100` },
+                      { name: "Module", value: (w.objectType || "").toUpperCase() },
+                    ],
+                    markdown: true,
+                  }],
+                  potentialAction: [{
+                    "@type": "OpenUri",
+                    name: "Open dashboard",
+                    targets: [{ os: "default", uri: `${webUrl}/history` }],
+                  }],
+                }),
+              }).catch((err) => console.warn("[bot-monitor] teams webhook failed:", err?.message || err));
+            }
+          } catch {}
         } catch (perWatchErr: any) {
           // skip individual failures
         }

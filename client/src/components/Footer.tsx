@@ -1,5 +1,5 @@
-import { Shield, ExternalLink, Mail } from "lucide-react";
-import { SiTelegram, SiInstagram } from "react-icons/si";
+import { Shield, ExternalLink, Mail, Users, Lock } from "lucide-react";
+import { SiTelegram, SiInstagram, SiDiscord, SiGithub } from "react-icons/si";
 import { Link } from "wouter";
 import { useTranslation } from "@/lib/i18n";
 
@@ -105,12 +105,51 @@ export function Footer() {
           </div>
 
           <div className="space-y-4">
-            <h4 className="font-semibold text-sm text-white">
-              {t('footer.disclaimer')}
+            <h4 className="font-semibold text-sm flex items-center gap-2 text-white">
+              <Users className="w-4 h-4 text-cyan-400" />
+              {lang === "uk" ? "Спільнота" : lang === "ru" ? "Сообщество" : lang === "es" ? "Comunidad" : lang === "de" ? "Community" : "Community"}
             </h4>
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              {t('footer.disclaimerText')}
-            </p>
+            <ul className="space-y-3 text-sm text-zinc-400">
+              <li>
+                <Link href="/trust">
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-trust">
+                    <Lock className="w-3.5 h-3.5" />
+                    {lang === "uk" ? "Trust Center" : lang === "ru" ? "Trust Center" : lang === "es" ? "Trust Center" : lang === "de" ? "Trust Center" : "Trust Center"}
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/community">
+                  <span className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 cursor-pointer" data-testid="link-community">
+                    <Users className="w-3.5 h-3.5" />
+                    {lang === "uk" ? "Спільнота · SDK" : lang === "ru" ? "Сообщество · SDK" : lang === "es" ? "Comunidad · SDK" : lang === "de" ? "Community · SDK" : "Community · SDK"}
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <a href="https://github.com/darkshare" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5" data-testid="link-github-footer">
+                  <SiGithub className="w-3.5 h-3.5" />
+                  GitHub
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a href="https://discord.gg/darkshare" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5" data-testid="link-discord-footer">
+                  <SiDiscord className="w-3.5 h-3.5" />
+                  Discord
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a href="/.well-known/security.txt" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5" data-testid="link-security-txt">
+                  security.txt
+                </a>
+              </li>
+            </ul>
+            <div className="pt-2">
+              <h4 className="font-semibold text-xs text-zinc-300 mb-2">{t('footer.disclaimer')}</h4>
+              <p className="text-xs text-zinc-500 leading-relaxed">{t('footer.disclaimerText')}</p>
+            </div>
           </div>
         </div>
 

@@ -867,6 +867,88 @@ function FAQ() {
   );
 }
 
+/* ─────────── Compliance / Trust badges ─────────── */
+function ComplianceBadges() {
+  const badges = [
+    { label: "GDPR", sub: "Ready" },
+    { label: "CCPA", sub: "Ready" },
+    { label: "SOC 2 Type II", sub: "In progress · Q4 ’26" },
+    { label: "ISO 27001", sub: "Planned · Q1 ’27" },
+    { label: "PCI DSS", sub: "Stripe-handled" },
+    { label: "RFC 9116", sub: "security.txt published" },
+  ];
+  return (
+    <section className="border-t border-white/5 bg-[#08080A]">
+      <div className="mx-auto max-w-6xl px-5 py-12">
+        <div className="mb-6 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
+          <div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">Compliance & trust</div>
+            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">Built to enterprise standards</h2>
+          </div>
+          <Link href="/trust">
+            <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-trust-center">
+              Trust Center →
+            </span>
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          {badges.map((b) => (
+            <div key={b.label} className="rounded-lg border border-white/10 bg-[#0E0E12] px-3 py-3" data-testid={`badge-compliance-${b.label.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}>
+              <div className="text-[12.5px] font-semibold text-white">{b.label}</div>
+              <div className="text-[10.5px] text-zinc-500">{b.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────── Community CTA ─────────── */
+function CommunityCTA() {
+  return (
+    <section className="border-t border-white/5 bg-[#08080A]">
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/[0.06] via-[#0E0E12] to-[#0E0E12] p-6 sm:p-10">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+            <div>
+              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">Open community</div>
+              <h2 className="text-[24px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">
+                Build with us. SDKs, docs, threat-intel digest.
+              </h2>
+              <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-zinc-400">
+                REST API with examples for curl, Python, Node, Go. Open Telegram channel with daily IoCs,
+                Discord for ops chatter, GitHub for SDK contributions.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-2">
+                <Link href="/community">
+                  <span className="inline-flex h-10 cursor-pointer items-center rounded-lg bg-white px-4 text-[13px] font-medium text-black hover:bg-zinc-200" data-testid="link-community-explore">
+                    Explore community
+                  </span>
+                </Link>
+                <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/15 px-4 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-community-telegram">
+                  Telegram channel
+                </a>
+                <a href="https://github.com/darkshare" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/15 px-4 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-community-github">
+                  GitHub SDKs
+                </a>
+              </div>
+            </div>
+            <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/60 p-4 font-mono text-[12px] leading-relaxed text-zinc-300">
+{`# 60-second integration
+curl -H "X-API-Key: $DS_KEY" \\
+  https://www.darkshare.store/api/check \\
+  -d '{"type":"ip","value":"1.1.1.1"}'
+
+# returns risk score, findings, sources`}
+            </pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─────────── CTA bottom ─────────── */
 function CTABottom() {
   return (
@@ -967,7 +1049,9 @@ export default function Home() {
       <HowItWorks />
       <Sources />
       <TrustStrip stats={stats} />
+      <ComplianceBadges />
       <PricingTeaser />
+      <CommunityCTA />
       <FAQ />
       <CTABottom />
       <Footer />

@@ -663,6 +663,13 @@ export async function registerRoutes(
       email: (req.session as any)?.email || null,
       subscriptionExpiresAt: authReq.user.subscriptionExpiresAt || null,
       autoRenew: authReq.user.autoRenew || false,
+      companyName: (authReq.user as any).companyName || null,
+      companyLogoUrl: (authReq.user as any).companyLogoUrl || null,
+      brandColor: (authReq.user as any).brandColor || null,
+      slackWebhookUrl: (authReq.user as any).slackWebhookUrl || null,
+      teamsWebhookUrl: (authReq.user as any).teamsWebhookUrl || null,
+      payoutAddress: (authReq.user as any).payoutAddress || null,
+      payoutCurrency: (authReq.user as any).payoutCurrency || null,
     });
   });
 
@@ -963,6 +970,64 @@ export async function registerRoutes(
       console.error("Error fetching referral stats:", err);
       res.status(500).json({ error: "Failed to fetch referral stats" });
     }
+  });
+
+  // Public referral leaderboard (top 10 of the month + all-time)
+  app.get("/api/referrals/leaderboard", async (req, res) => {
+    try {
+      const period = (req.query.period === "all" ? "all" : "month") as "month" | "all";
+      const limit = Math.min(parseInt(String(req.query.limit || "10")) || 10, 50);
+      const top = await storage.getReferralLeaderboard(period, limit);
+      const masked = top.map((r) => ({
+        rank: r.rank,
+        username: r.username ? `${r.username.slice(0, 2)}***${r.username.length > 4 ? r.username.slice(-1) : ""}` : `anonymous-${r.rank}`,
+        tier: r.tier || "FREE",
+        count: r.count,
+      }));
+      res.set("Cache-Control", "public, max-age=120");
+      res.json({ period, items: masked });
+    } catch (err: any) {
+      console.error("leaderboard error:", err);
+      res.json({ period: "month", items: [] });
+    }
+  });
+
+  // Save user white-label / payout / webhook settings
+  app.patch("/api/account/branding", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user!;
+    const tier = String(user.tier || "FREE").toUpperCase();
+    const allowed = tier === "ENTERPRISE" || tier === "GROUPS";
+    const body = req.body || {};
+    const updates: any = {};
+    if (typeof body.payoutAddress === "string") updates.payoutAddress = body.payoutAddress.trim().slice(0, 200) || null;
+    if (typeof body.payoutCurrency === "string") updates.payoutCurrency = body.payoutCurrency.trim().slice(0, 16) || null;
+    if (typeof body.slackWebhookUrl === "string") {
+      const v = body.slackWebhookUrl.trim();
+      if (v && !/^https:\/\/hooks\.slack\.com\//.test(v)) return res.status(400).json({ error: "Invalid Slack webhook URL" });
+      updates.slackWebhookUrl = v || null;
+    }
+    if (typeof body.teamsWebhookUrl === "string") {
+      const v = body.teamsWebhookUrl.trim();
+      if (v && !/^https:\/\/[\w.-]+\.webhook\.office\.com\//.test(v)) return res.status(400).json({ error: "Invalid Teams webhook URL" });
+      updates.teamsWebhookUrl = v || null;
+    }
+    if (allowed) {
+      if (typeof body.companyName === "string") updates.companyName = body.companyName.trim().slice(0, 120) || null;
+      if (typeof body.companyLogoUrl === "string") {
+        const v = body.companyLogoUrl.trim();
+        if (v && !/^https:\/\//.test(v)) return res.status(400).json({ error: "Logo URL must be HTTPS" });
+        updates.companyLogoUrl = v || null;
+      }
+      if (typeof body.brandColor === "string") {
+        const v = body.brandColor.trim();
+        if (v && !/^#[0-9A-Fa-f]{6}$/.test(v)) return res.status(400).json({ error: "brandColor must be #RRGGBB" });
+        updates.brandColor = v || null;
+      }
+    }
+    if (Object.keys(updates).length === 0) return res.json({ ok: true });
+    await storage.updateUser(user.id, updates);
+    res.json({ ok: true, whiteLabelEnabled: allowed });
   });
 
   // Web check endpoint (requires auth)
@@ -1549,6 +1614,11 @@ export async function registerRoutes(
       // Use existing verificationId or generate new one if missing
       const verificationId = report.verificationId || generateVerificationId();
       
+      const u = authReq.user! as any;
+      const wlTier = String(u.tier || "FREE").toUpperCase();
+      const branding = (wlTier === "ENTERPRISE" || wlTier === "GROUPS")
+        ? { companyName: u.companyName, brandColor: u.brandColor, companyLogoUrl: u.companyLogoUrl }
+        : undefined;
       const pdfBuffer = await generateDetailedPDF({
         moduleType: report.objectType || 'unknown',
         targetValue: data.target || 'unknown',
@@ -1560,6 +1630,7 @@ export async function registerRoutes(
         sources: data.sources || ["DARKSHARE Intel"],
         metadata: generateMetadata(report.objectType || 'unknown'),
         verificationId,
+        branding,
       });
 
       res.setHeader('Content-Type', 'application/pdf');
@@ -1613,6 +1684,11 @@ export async function registerRoutes(
         ) as Record<string, string | number>;
       }
 
+      const u2 = authReq.user! as any;
+      const wlTier2 = String(u2.tier || "FREE").toUpperCase();
+      const branding2 = (wlTier2 === "ENTERPRISE" || wlTier2 === "GROUPS")
+        ? { companyName: u2.companyName, brandColor: u2.brandColor, companyLogoUrl: u2.companyLogoUrl }
+        : undefined;
       const pdfBuffer = await generateDetailedPDF({
         moduleType: type,
         targetValue: target,
@@ -1625,6 +1701,7 @@ export async function registerRoutes(
         metadata: sanitizedMeta || generateMetadata(type),
         verificationId: `DRAFT-${Date.now().toString(36)}`,
         aiInsights: undefined,
+        branding: branding2,
       });
 
       res.setHeader('Content-Type', 'application/pdf');

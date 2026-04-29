@@ -56,6 +56,11 @@ interface ReportData {
   metadata?: Record<string, string | number>;
   verificationId: string;
   aiInsights?: AIInsights;
+  branding?: {
+    companyName?: string | null;
+    brandColor?: string | null;
+    companyLogoUrl?: string | null;
+  };
 }
 
 interface Finding {
@@ -175,8 +180,11 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     // ═══════════════ PAGE 1: COVER ═══════════════
     drawPageBg(doc, W, H);
 
-    // Top accent bar
-    doc.rect(0, 0, W, 4).fill(C.primary);
+    const validHex = (v?: string | null) => !!v && /^#[0-9A-Fa-f]{6}$/.test(v);
+    const accent = validHex(data.branding?.brandColor) ? (data.branding!.brandColor as string) : C.primary;
+
+    // Top accent bar (white-label color if provided)
+    doc.rect(0, 0, W, 4).fill(accent);
 
     const isDraft = reportId.startsWith("DRAFT-");
 
@@ -322,10 +330,25 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       doc.text(`Verification ID: ${reportId}`, M + 75, y + 46);
     }
 
+    // White-label "Prepared for" block (if branding present)
+    if (data.branding?.companyName) {
+      const co = sp(String(data.branding.companyName).slice(0, 80));
+      y += 78;
+      doc.roundedRect(M, y, CW, 28, 4).fill(C.surface);
+      doc.rect(M, y, 4, 28).fill(accent);
+      doc.fillColor(C.textDark).fontSize(7).font("Helvetica");
+      doc.text("PREPARED FOR", M + 14, y + 6);
+      doc.fillColor(C.white).fontSize(11).font("Helvetica-Bold");
+      doc.text(co, M + 14, y + 14);
+    }
+
     // Footer line
     doc.rect(0, H - 30, W, 30).fill(C.surface);
     doc.fillColor(C.textDark).fontSize(6).font("Helvetica");
-    doc.text("CONFIDENTIAL  ·  DARKSHARE v4.4 Risk Intelligence  ·  Page 1", M, H - 20, { width: CW, align: "center" });
+    const footerText = data.branding?.companyName
+      ? `CONFIDENTIAL  ·  ${sp(String(data.branding.companyName).slice(0, 40))} via DARKSHARE  ·  Page 1`
+      : "CONFIDENTIAL  ·  DARKSHARE v4.4 Risk Intelligence  ·  Page 1";
+    doc.text(footerText, M, H - 20, { width: CW, align: "center" });
 
     // ═══════════════ PAGE 2: FINDINGS ═══════════════
     doc.addPage();

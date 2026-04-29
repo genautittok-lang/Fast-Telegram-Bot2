@@ -92,3 +92,16 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **HTML-mode screens** that render premium emojis: `showDashboard` (the /menu hub), `enter_panel_first` welcome, `upgrade` tier picker, `successful_payment` Stars receipt. All dynamic content escaped via `escHtml()` from the same module. Other bot screens still use Markdown parse_mode for backward compatibility.
 - **Limitation**: Telegram only renders `<tg-emoji>` tags inside HTML parse_mode messages, so converting more screens requires switching their parse_mode + escaping.
 - **Telegraph API**: For generating instruction pages.
+- **Plausible Analytics**: Privacy-friendly analytics on home page (script in `client/index.html`, CSP allowlists `plausible.io`).
+
+## Trust, Community & White-Label
+
+- **`/trust`** (`client/src/pages/Trust.tsx`): public Trust Center. Compliance roadmap (GDPR/CCPA ready, SOC 2 Type II in progress Q4 ’26, ISO 27001 planned Q1 ’27, PCI DSS via Stripe, RFC 9116 security.txt), bug bounty $25–2 000, retention table, PGP fingerprint. No auth required.
+- **`/community`** (`client/src/pages/Community.tsx`): public Community page. SDK tabs (curl/Python/Node/Go), channel grid (Telegram bot+channel, Discord, GitHub, Medium, Telegraph). No auth required.
+- **Home polish** (`client/src/pages/Home.tsx`): adds `ComplianceBadges` + `CommunityCTA` sections, links to `/trust` and `/community`.
+- **Footer** (`client/src/components/Footer.tsx`): Community section with Trust Center, Community SDK, GitHub, Discord, security.txt links.
+- **White-label PDF**: `ReportData.branding` (`server/pdfGenerator.ts`) accepts `{ companyName, brandColor, companyLogoUrl }`. Top accent bar uses `brandColor`, cover page shows "PREPARED FOR", footer rebranded — only if user tier is ENTERPRISE/GROUPS. Wired through 3 call sites: `server/routes.ts` `/api/reports/:id/pdf`, `/api/check/generate-pdf`, and `server/bot.ts` Telegram PDF flow.
+- **Account UI** (`client/src/pages/Account.tsx`): new "White-label & Integrations" card with three panels (PDF white-label gated by tier; Slack & Teams webhooks; crypto payout currency+address). Posts to `PATCH /api/account/branding`.
+- **Slack/Teams webhook alerts**: monitoring scheduler in `server/bot.ts` mirrors each new alert to user's Slack `https://hooks.slack.com/...` (Block Kit) and Teams `https://*.webhook.office.com/...` (MessageCard) endpoints.
+- **Referral leaderboard**: `IStorage.getReferralLeaderboard(period, limit)` (`server/storage.ts`) groups confirmed referrals by referrer with month/all period; `GET /api/referrals/leaderboard?period=month` returns top 10 with privacy-safe masked names (`xx***y` or `anonymous-N`), 120s public cache. Displayed in `client/src/pages/Referral.tsx`.
+- **Schema additions** (`shared/schema.ts` users): `companyName`, `companyLogoUrl`, `brandColor`, `slackWebhookUrl`, `teamsWebhookUrl`, `payoutAddress`, `payoutCurrency`. Returned via `/api/auth/me` and synced through `client/src/lib/auth.tsx` `User` type.

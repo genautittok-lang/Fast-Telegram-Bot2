@@ -21,6 +21,13 @@ interface User {
   totpEnabled?: boolean;
   subscriptionExpiresAt?: string | null;
   autoRenew?: boolean;
+  companyName?: string | null;
+  companyLogoUrl?: string | null;
+  brandColor?: string | null;
+  slackWebhookUrl?: string | null;
+  teamsWebhookUrl?: string | null;
+  payoutAddress?: string | null;
+  payoutCurrency?: string | null;
 }
 
 interface AuthContextType {
@@ -64,6 +71,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             totpEnabled: data.totpEnabled,
             subscriptionExpiresAt: data.subscriptionExpiresAt || null,
             autoRenew: data.autoRenew || false,
+            companyName: data.companyName || null,
+            companyLogoUrl: data.companyLogoUrl || null,
+            brandColor: data.brandColor || null,
+            slackWebhookUrl: data.slackWebhookUrl || null,
+            teamsWebhookUrl: data.teamsWebhookUrl || null,
+            payoutAddress: data.payoutAddress || null,
+            payoutCurrency: data.payoutCurrency || null,
           });
           setRequiresTwoFactor(false);
         } else {
