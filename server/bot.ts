@@ -778,7 +778,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
 
-    const text = `🔍 *${t(lang, "dashboard.selectModule")}*\n\n${lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:"}`;
+    const text = `${pe("search")} <b>${escHtml(t(lang, "dashboard.selectModule"))}</b>\n\n${escHtml(lang === "uk" ? "Оберіть тип перевірки:" : lang === "ru" ? "Выберите тип проверки:" : "Select check type:")}`;
     const keyboard = Markup.inlineKeyboard([
       [
         cb(t(lang, "modules.ip"), "mod_ip", "primary", E.globe),
@@ -812,16 +812,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
   bot.action("cat_network", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const text = `🌐 *${lang === "uk" ? "Мережа & Web" : lang === "ru" ? "Сеть & Web" : "Network & Web"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const text = `${pe("globe")} <b>${escHtml(lang === "uk" ? "Мережа & Web" : lang === "ru" ? "Сеть & Web" : "Network & Web")}</b>\n\n${escHtml(lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:")}`;
     const keyboard = Markup.inlineKeyboard([
       [
         cb(t(lang, "modules.ip"), "mod_ip", "primary", E.globe),
@@ -836,16 +836,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
   bot.action("cat_finance", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const text = `💰 *${lang === "uk" ? "Крипто & Фінанси" : lang === "ru" ? "Крипто & Финансы" : "Crypto & Finance"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const text = `${pe("money")} <b>${escHtml(lang === "uk" ? "Крипто & Фінанси" : lang === "ru" ? "Крипто & Финансы" : "Crypto & Finance")}</b>\n\n${escHtml(lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:")}`;
     const keyboard = Markup.inlineKeyboard([
       [
         cb(t(lang, "modules.wallet"), "mod_wallet", "primary", E.money),
@@ -854,16 +854,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
   bot.action("cat_osint", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const text = `🔍 *OSINT*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const text = `${pe("search")} <b>OSINT</b>\n\n${escHtml(lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:")}`;
     const keyboard = Markup.inlineKeyboard([
       [
         cb(t(lang, "modules.email"), "mod_email", "primary", E.mail),
@@ -876,16 +876,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
   bot.action("cat_security", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
-    const text = `🛡 *${lang === "uk" ? "Безпека" : lang === "ru" ? "Безопасность" : "Security"}*\n\n${lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:"}`;
+    const text = `${pe("shield")} <b>${escHtml(lang === "uk" ? "Безпека" : lang === "ru" ? "Безопасность" : "Security")}</b>\n\n${escHtml(lang === "uk" ? "Оберіть модуль перевірки:" : lang === "ru" ? "Выберите модуль проверки:" : "Select check module:")}`;
     const keyboard = Markup.inlineKeyboard([
       [
         cb(t(lang, "modules.cve"), "mod_cve", "primary", E.warn),
@@ -899,9 +899,9 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
     ]);
     try {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch {
-      await ctx.reply(text, { parse_mode: "Markdown", ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
@@ -1227,7 +1227,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       referralStats = await storage.getReferralStats(user.id);
     } catch (e) {}
 
-    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const tierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
     const statsTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, statsUserLimit);
@@ -1236,33 +1236,33 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
     const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA") : "—";
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const statsText = `📊 *${t(lang, "common.stats")}*
+    const statsText = `${pe("chart")} <b>${escHtml(t(lang, "common.stats"))}</b>
 ━━━━━━━━━━━━━━━━━━━━
 
-👤 ${t(lang, "common.profile")}:
-• ID: ${user.tgId}
-• Username: @${user.username ? escMd(user.username) : "—"}
-• ${tierEmoji} ${t(lang, "common.tier")}: ${user.tier || "FREE"}
-• 📅 ${joinDate}
+${pe("user")} <b>${escHtml(t(lang, "common.profile"))}</b>
+• ID: <code>${escHtml(user.tgId)}</code>
+• Username: @${escHtml(user.username || "—")}
+• ${pe(tierSlot)} ${escHtml(t(lang, "common.tier"))}: <b>${escHtml(user.tier || "FREE")}</b>
+• ${pe("pin")} ${escHtml(joinDate)}
 
-📈 ${t(lang, "common.activity")}:
-• 🔍 ${t(lang, "common.checks")}: ${reports.length}
-• 👁 ${t(lang, "buttons.monitoring")}: ${watches.length}
-• 📣 ${t(lang, "buttons.referrals")}: ${referralStats.count}
-• 🕐 ${lastActive}
+${pe("rocket_up")} <b>${escHtml(t(lang, "common.activity"))}</b>
+• ${pe("search")} ${escHtml(t(lang, "common.checks"))}: <b>${reports.length}</b>
+• ${pe("eye")} ${escHtml(t(lang, "buttons.monitoring"))}: <b>${watches.length}</b>
+• ${pe("people")} ${escHtml(t(lang, "buttons.referrals"))}: <b>${referralStats.count}</b>
+• ${pe("bell")} ${escHtml(lastActive)}
 
-🎯 ${t(lang, "common.progress")}:
-• 📊 ${requestsBar} ${user.requestsLeft || 0}/${statsUserLimit}
-• 🔥 ${streakBar} ${user.streakDays || 0}/30 ${t(lang, "common.days")}
+${pe("sparkle")} <b>${escHtml(t(lang, "common.progress"))}</b>
+• ${pe("chart")} ${escHtml(requestsBar)} <b>${user.requestsLeft || 0}/${statsUserLimit}</b>
+• ${pe("fire")} ${escHtml(streakBar)} <b>${user.streakDays || 0}/30</b> ${escHtml(t(lang, "common.days"))}
 
-🏅 ${t(lang, "buttons.achievements")}:
-${reports.length >= 10 ? "✅" : "⬜"} 🏆 10+
-${reports.length >= 50 ? "✅" : "⬜"} 🛡️ 50+
-${(user.streakDays || 0) >= 7 ? "✅" : "⬜"} 🔥 7d
-${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
+${pe("trophy")} <b>${escHtml(t(lang, "buttons.achievements"))}</b>
+${reports.length >= 10 ? pe("check") : "⬜"} ${pe("trophy")} 10+
+${reports.length >= 50 ? pe("check") : "⬜"} ${pe("shield")} 50+
+${(user.streakDays || 0) >= 7 ? pe("check") : "⬜"} ${pe("fire")} 7d
+${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
 
     await ctx.reply(statsText, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
       ...Markup.inlineKeyboard([
         [cb(t(lang, "buttons.newCheck"), "dashboard", "primary", E.search)],
         [cb(t(lang, "buttons.referrals"), "referrals", "success", E.link)],
@@ -1284,8 +1284,8 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/${botUsername}`)}&text=${encodeURIComponent(shareText)}`;
     
     await ctx.answerCbQuery(t(lang, "share.sharing"));
-    await ctx.reply(`📤 *${t(lang, "share.title")}:*\n\n${t(lang, "share.clickBelow")}`, {
-      parse_mode: "Markdown",
+    await ctx.reply(`${pe("rocket_up")} <b>${escHtml(t(lang, "share.title"))}:</b>\n\n${escHtml(t(lang, "share.clickBelow"))}`, {
+      parse_mode: "HTML",
       ...Markup.inlineKeyboard([
         [urlS(t(lang, "buttons.share"), shareUrl, "success", E.link)],
         [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
@@ -2116,11 +2116,11 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     };
 
     const moduleEmojis: Record<string, string> = {
-      ip: "🌐", wallet: "💰", phone: "📱", 
-      email: "📧", domain: "🏢", url: "🔗",
-      cve: "🔓", hash: "🔢", username: "👤",
-      card: "💳", iot: "📡", cloud: "☁️",
-      password: "🔑", dns: "🌍", ssl: "🔒", mac: "📡"
+      ip: pe("globe"), wallet: pe("money"), phone: pe("mobile"),
+      email: pe("envelope"), domain: pe("briefcase"), url: pe("link"),
+      cve: pe("bug"), hash: pe("key"), username: pe("user"),
+      card: pe("card"), iot: pe("zap"), cloud: pe("globe"),
+      password: pe("key"), dns: pe("globe"), ssl: pe("lock"), mac: pe("zap")
     };
 
     const moduleNames: Record<string, string> = {
@@ -2146,11 +2146,11 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
     const getRiskVisuals = (score: number): { bar: string; color: string; emoji: string } => {
       const filled = Math.round(score / 10);
       const empty = 10 - filled;
-      if (score >= 80) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "CRITICAL", emoji: "💀" };
-      if (score >= 60) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "HIGH", emoji: "🔴" };
-      if (score >= 40) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "MEDIUM", emoji: "⚠️" };
-      if (score >= 20) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "LOW", emoji: "🟢" };
-      return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "SAFE", emoji: "✅" };
+      if (score >= 80) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "CRITICAL", emoji: pe("ghost") };
+      if (score >= 60) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "HIGH", emoji: pe("high_risk") };
+      if (score >= 40) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "MEDIUM", emoji: pe("med_risk") };
+      if (score >= 20) return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "LOW", emoji: pe("low_risk") };
+      return { bar: "▓".repeat(filled) + "░".repeat(empty), color: "SAFE", emoji: pe("check") };
     };
 
     const riskVisuals = getRiskVisuals(checkResult.riskScore);
@@ -2187,24 +2187,24 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
       const typeLabel = t(lang, "checkResult.type");
       const statusLabel = t(lang, "checkResult.status");
 
-      result = `${moduleEmojis.card} *${moduleNames.card}*
+      result = `${moduleEmojis.card} <b>${escHtml(moduleNames.card)}</b>
 
-🔢 BIN: \`${targetDisplay}\`
-⚡ ${statusLabel}: ${statusIndicator}
+${pe("key")} BIN: <code>${escHtml(targetDisplay)}</code>
+${pe("zap")} ${escHtml(statusLabel)}: ${escHtml(statusIndicator)}
 
-📋 *${infoLabel}*
-├ 🏦 ${bankLabel}: *${bankName}*
-├ 🌍 ${countryLabel}: ${countryEmoji} ${countryName}
-├ 💳 ${brandLabel}: *${cardBrand}*
-└ 📋 ${typeLabel}: *${cardType}*
+${pe("scroll")} <b>${escHtml(infoLabel)}</b>
+├ ${pe("home")} ${escHtml(bankLabel)}: <b>${escHtml(bankName)}</b>
+├ ${pe("globe")} ${escHtml(countryLabel)}: ${countryEmoji} ${escHtml(countryName)}
+├ ${pe("card")} ${escHtml(brandLabel)}: <b>${escHtml(cardBrand)}</b>
+└ ${pe("scroll")} ${escHtml(typeLabel)}: <b>${escHtml(cardType)}</b>
 
-🔎 *${analysisLabel}*
-${findingsFormatted}
+${pe("search")} <b>${escHtml(analysisLabel)}</b>
+${escHtml(findingsFormatted)}
 
-${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.color}\`
-\`${riskVisuals.bar}\`
+${riskVisuals.emoji} <b>${escHtml(riskLabel)}:</b> <b>${checkResult.riskScore}%</b>  <code>${riskVisuals.color}</code>
+<code>${riskVisuals.bar}</code>
 
-🔗 ${checkResult.sources.slice(0, 3).join(" · ")}`;
+${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
 
     } else {
       const findingsFormatted = checkResult.findings.slice(0, 6).map((f, i, arr) => 
@@ -2217,6 +2217,7 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       const riskLabel = t(lang, "checkResult.risk");
 
       let detailsSection = "";
+      const detailsLabel = t(lang, "checkResult.details");
       
       if (state.module === "ip" && checkResult.details) {
         const d = checkResult.details;
@@ -2226,53 +2227,53 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
         const locationLabel = t(lang, "checkResult.location");
         const ispLabel = t(lang, "checkResult.isp");
         const lines: string[] = [];
-        if (countryInfo || cityInfo) lines.push(`🌍 ${locationLabel}: *${cityInfo}${cityInfo && countryInfo ? ", " : ""}${countryInfo}*`);
-        if (ispInfo) lines.push(`🏢 ${ispLabel}: *${escMd(ispInfo)}*`);
-        if (d.isTor) lines.push(`🧅 *${lang === "uk" ? "TOR Exit Node — анонімний трафік" : lang === "ru" ? "TOR Exit Node — анонимный трафик" : lang === "es" ? "Nodo de salida TOR — tráfico anónimo" : lang === "de" ? "TOR Exit Node — anonymer Traffic" : "TOR Exit Node — anonymous traffic"}*`);
-        if (d.urlhausCount && d.urlhausCount > 0) lines.push(`🚨 URLhaus: *${d.urlhausCount} ${lang === "uk" ? "загроз" : lang === "ru" ? "угроз" : lang === "es" ? "amenazas" : lang === "de" ? "Bedrohungen" : "threats"}*${d.urlhausOnline ? ` (${d.urlhausOnline} online)` : ""}`);
-        if (d.isProxy || d.isVpn) lines.push(`🛡 ${d.isProxy ? "Proxy" : "VPN"} ${lang === "uk" ? "виявлено" : lang === "ru" ? "обнаружен" : "detected"}`);
+        if (countryInfo || cityInfo) lines.push(`${pe("globe")} ${escHtml(locationLabel)}: <b>${escHtml(cityInfo)}${cityInfo && countryInfo ? ", " : ""}${escHtml(countryInfo)}</b>`);
+        if (ispInfo) lines.push(`${pe("home")} ${escHtml(ispLabel)}: <b>${escHtml(ispInfo)}</b>`);
+        if (d.isTor) lines.push(`${pe("forbidden")} <b>${escHtml(lang === "uk" ? "TOR Exit Node — анонімний трафік" : lang === "ru" ? "TOR Exit Node — анонимный трафик" : lang === "es" ? "Nodo de salida TOR — tráfico anónimo" : lang === "de" ? "TOR Exit Node — anonymer Traffic" : "TOR Exit Node — anonymous traffic")}</b>`);
+        if (d.urlhausCount && d.urlhausCount > 0) lines.push(`${pe("warning")} URLhaus: <b>${d.urlhausCount} ${escHtml(lang === "uk" ? "загроз" : lang === "ru" ? "угроз" : lang === "es" ? "amenazas" : lang === "de" ? "Bedrohungen" : "threats")}</b>${d.urlhausOnline ? ` (${d.urlhausOnline} online)` : ""}`);
+        if (d.isProxy || d.isVpn) lines.push(`${pe("shield")} ${d.isProxy ? "Proxy" : "VPN"} ${escHtml(lang === "uk" ? "виявлено" : lang === "ru" ? "обнаружен" : "detected")}`);
         if (lines.length > 0) {
-          detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
+          detailsSection = `\n\n${pe("scroll")} <b>${escHtml(detailsLabel)}</b>\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
         }
       } else if (state.module === "wallet" && checkResult.details) {
         const chain = checkResult.details.chain || "";
         const chainLabel = t(lang, "checkResult.chain");
         if (chain) {
-          detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n└ ⛓️ ${chainLabel}: *${chain}*`;
+          detailsSection = `\n\n${pe("scroll")} <b>${escHtml(detailsLabel)}</b>\n└ ${pe("link")} ${escHtml(chainLabel)}: <b>${escHtml(chain)}</b>`;
         }
       } else if (state.module === "email" && checkResult.details) {
         const d = checkResult.details;
         const lines: string[] = [];
-        if (d.domain) lines.push(`🌐 ${t(lang, "checkResult.domain")}: *${escMd(d.domain)}*`);
-        lines.push(`📧 MX: ${d.hasMx ? "✅" : "❌"}`);
-        if (d.isDisposable || d.evaDisposable) lines.push(`🗑 *${lang === "uk" ? "Одноразова пошта" : lang === "ru" ? "Одноразовая почта" : lang === "es" ? "Email desechable" : lang === "de" ? "Wegwerf-E-Mail" : "Disposable email"}*`);
-        if (d.smtpValid === false) lines.push(`⚠️ SMTP: ${lang === "uk" ? "не відповідає" : lang === "ru" ? "не отвечает" : "no response"}`);
-        detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
+        if (d.domain) lines.push(`${pe("globe")} ${escHtml(t(lang, "checkResult.domain"))}: <b>${escHtml(d.domain)}</b>`);
+        lines.push(`${pe("envelope")} MX: ${d.hasMx ? pe("check") : pe("cross")}`);
+        if (d.isDisposable || d.evaDisposable) lines.push(`${pe("trash")} <b>${escHtml(lang === "uk" ? "Одноразова пошта" : lang === "ru" ? "Одноразовая почта" : lang === "es" ? "Email desechable" : lang === "de" ? "Wegwerf-E-Mail" : "Disposable email")}</b>`);
+        if (d.smtpValid === false) lines.push(`${pe("warning")} SMTP: ${escHtml(lang === "uk" ? "не відповідає" : lang === "ru" ? "не отвечает" : "no response")}`);
+        detailsSection = `\n\n${pe("scroll")} <b>${escHtml(detailsLabel)}</b>\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
       } else if ((state.module === "domain" || state.module === "business") && checkResult.details) {
         const d = checkResult.details;
         const lines: string[] = [];
-        if (d.registrar) lines.push(`🏷 ${lang === "uk" ? "Реєстратор" : lang === "ru" ? "Регистратор" : "Registrar"}: *${escMd(String(d.registrar))}*`);
-        if (d.creationDate || d.createdDate) lines.push(`📅 ${lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created"}: *${escMd(String(d.creationDate || d.createdDate))}*`);
-        if (d.dmarcMissing) lines.push(`⚠️ *DMARC ${lang === "uk" ? "відсутній — можливі spoofing-атаки" : lang === "ru" ? "отсутствует — возможен спуфинг" : "missing — spoofing risk"}*`);
-        if (d.spfMissing) lines.push(`⚠️ *SPF ${lang === "uk" ? "відсутній" : lang === "ru" ? "отсутствует" : "missing"}*`);
-        if (d.urlhausCount && d.urlhausCount > 0) lines.push(`🚨 URLhaus: *${d.urlhausCount} ${lang === "uk" ? "інцидентів" : lang === "ru" ? "инцидентов" : "incidents"}*`);
+        if (d.registrar) lines.push(`${pe("pin")} ${escHtml(lang === "uk" ? "Реєстратор" : lang === "ru" ? "Регистратор" : "Registrar")}: <b>${escHtml(String(d.registrar))}</b>`);
+        if (d.creationDate || d.createdDate) lines.push(`${pe("pin")} ${escHtml(lang === "uk" ? "Створено" : lang === "ru" ? "Создан" : "Created")}: <b>${escHtml(String(d.creationDate || d.createdDate))}</b>`);
+        if (d.dmarcMissing) lines.push(`${pe("warning")} <b>DMARC ${escHtml(lang === "uk" ? "відсутній — можливі spoofing-атаки" : lang === "ru" ? "отсутствует — возможен спуфинг" : "missing — spoofing risk")}</b>`);
+        if (d.spfMissing) lines.push(`${pe("warning")} <b>SPF ${escHtml(lang === "uk" ? "відсутній" : lang === "ru" ? "отсутствует" : "missing")}</b>`);
+        if (d.urlhausCount && d.urlhausCount > 0) lines.push(`${pe("warning")} URLhaus: <b>${d.urlhausCount} ${escHtml(lang === "uk" ? "інцидентів" : lang === "ru" ? "инцидентов" : "incidents")}</b>`);
         if (lines.length > 0) {
-          detailsSection = `\n\n📋 *${t(lang, "checkResult.details")}*\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
+          detailsSection = `\n\n${pe("scroll")} <b>${escHtml(detailsLabel)}</b>\n${lines.map((l, i) => (i === lines.length - 1 ? "└ " : "├ ") + l).join("\n")}`;
         }
       }
 
-      result = `${moduleEmojis[state.module] || "🔍"} *${moduleNames[state.module] || state.module.toUpperCase()}*
+      result = `${moduleEmojis[state.module] || pe("search")} <b>${escHtml(moduleNames[state.module] || state.module.toUpperCase())}</b>
 
-🎯 ${targetLabel}: \`${targetDisplay}\`
-⚡ ${statusLabel}: ${statusIndicator}${detailsSection}
+${pe("pin")} ${escHtml(targetLabel)}: <code>${escHtml(targetDisplay)}</code>
+${pe("zap")} ${escHtml(statusLabel)}: ${escHtml(statusIndicator)}${detailsSection}
 
-🔎 *${analysisLabel}*
-${findingsFormatted}
+${pe("search")} <b>${escHtml(analysisLabel)}</b>
+${escHtml(findingsFormatted)}
 
-${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.color}\`
-\`${riskVisuals.bar}\`
+${riskVisuals.emoji} <b>${escHtml(riskLabel)}:</b> <b>${checkResult.riskScore}%</b>  <code>${riskVisuals.color}</code>
+<code>${riskVisuals.bar}</code>
 
-🔗 ${checkResult.sources.slice(0, 3).join(" · ")}`;
+${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
     }
 
     if (user) {
@@ -2309,34 +2310,34 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
     if (isFree) {
       if (left === 0) {
         hookLine = lang === "uk"
-          ? "\n\n⚠️ *Безкоштовні перевірки закінчилися.* PRO — $9/міс, безлімітні перевірки + моніторинг 24/7."
+          ? `\n\n${pe("warning")} <b>Безкоштовні перевірки закінчилися.</b> ${pe("diamond")} PRO — $9/міс, безлімітні перевірки + моніторинг 24/7.`
           : lang === "ru"
-          ? "\n\n⚠️ *Бесплатные проверки закончились.* PRO — $9/мес, безлимит + мониторинг 24/7."
+          ? `\n\n${pe("warning")} <b>Бесплатные проверки закончились.</b> ${pe("diamond")} PRO — $9/мес, безлимит + мониторинг 24/7.`
           : lang === "es"
-          ? "\n\n⚠️ *Comprobaciones gratuitas agotadas.* PRO — $9/mes, ilimitado + monitoreo 24/7."
+          ? `\n\n${pe("warning")} <b>Comprobaciones gratuitas agotadas.</b> ${pe("diamond")} PRO — $9/mes, ilimitado + monitoreo 24/7.`
           : lang === "de"
-          ? "\n\n⚠️ *Kostenlose Prüfungen aufgebraucht.* PRO — $9/Monat, unbegrenzt + 24/7-Überwachung."
-          : "\n\n⚠️ *Free checks used up.* PRO — $9/mo, unlimited + 24/7 monitoring.";
+          ? `\n\n${pe("warning")} <b>Kostenlose Prüfungen aufgebraucht.</b> ${pe("diamond")} PRO — $9/Monat, unbegrenzt + 24/7-Überwachung.`
+          : `\n\n${pe("warning")} <b>Free checks used up.</b> ${pe("diamond")} PRO — $9/mo, unlimited + 24/7 monitoring.`;
       } else if (left <= 2) {
         hookLine = lang === "uk"
-          ? `\n\n⏳ Залишилось *${left}* безкоштовних перевірок. PRO — $9/міс, без обмежень.`
+          ? `\n\n${pe("soon")} Залишилось <b>${left}</b> безкоштовних перевірок. ${pe("diamond")} PRO — $9/міс, без обмежень.`
           : lang === "ru"
-          ? `\n\n⏳ Осталось *${left}* бесплатных проверок. PRO — $9/мес, без ограничений.`
+          ? `\n\n${pe("soon")} Осталось <b>${left}</b> бесплатных проверок. ${pe("diamond")} PRO — $9/мес, без ограничений.`
           : lang === "es"
-          ? `\n\n⏳ Quedan *${left}* comprobaciones gratis. PRO — $9/mes, sin límite.`
+          ? `\n\n${pe("soon")} Quedan <b>${left}</b> comprobaciones gratis. ${pe("diamond")} PRO — $9/mes, sin límite.`
           : lang === "de"
-          ? `\n\n⏳ Noch *${left}* kostenlose Prüfungen. PRO — $9/Monat, unbegrenzt.`
-          : `\n\n⏳ *${left}* free checks left. PRO — $9/mo, unlimited.`;
+          ? `\n\n${pe("soon")} Noch <b>${left}</b> kostenlose Prüfungen. ${pe("diamond")} PRO — $9/Monat, unbegrenzt.`
+          : `\n\n${pe("soon")} <b>${left}</b> free checks left. ${pe("diamond")} PRO — $9/mo, unlimited.`;
       } else if (isHighRisk) {
         hookLine = lang === "uk"
-          ? "\n\n🔓 Хочеш бачити *усі* знахідки та джерела? Розблокуй повний звіт — $3."
+          ? `\n\n${pe("key")} Хочеш бачити <b>усі</b> знахідки та джерела? Розблокуй повний звіт — $3.`
           : lang === "ru"
-          ? "\n\n🔓 Хочешь видеть *все* находки и источники? Разблокируй полный отчёт — $3."
+          ? `\n\n${pe("key")} Хочешь видеть <b>все</b> находки и источники? Разблокируй полный отчёт — $3.`
           : lang === "es"
-          ? "\n\n🔓 ¿Quieres ver *todos* los hallazgos y fuentes? Desbloquea el informe completo — $3."
+          ? `\n\n${pe("key")} ¿Quieres ver <b>todos</b> los hallazgos y fuentes? Desbloquea el informe completo — $3.`
           : lang === "de"
-          ? "\n\n🔓 Willst du *alle* Funde und Quellen sehen? Vollständiger Bericht — $3."
-          : "\n\n🔓 Want to see *all* findings and sources? Unlock the full report — $3.";
+          ? `\n\n${pe("key")} Willst du <b>alle</b> Funde und Quellen sehen? Vollständiger Bericht — $3.`
+          : `\n\n${pe("key")} Want to see <b>all</b> findings and sources? Unlock the full report — $3.`;
       }
     }
 
@@ -2348,7 +2349,7 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       : [];
 
     await ctx.reply(result + hookLine, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
       ...Markup.inlineKeyboard([
         ...upgradeRow,
         [
@@ -2613,82 +2614,92 @@ ${riskVisuals.emoji} *${riskLabel}:* ${checkResult.riskScore}%  \`${riskVisuals.
       console.log("Failed to get referral stats:", e);
     }
 
-    const refLink = `t.me/DarkShare1Bot?start=ref_${user.refCode}`;
+    const botUserName = (await bot.telegram.getMe()).username || "DarkShare1Bot";
+    const refLink = `t.me/${botUserName}?start=ref_${user.refCode}`;
     const bonusEarned = referralStats.count * 2;
     const discountProgress = Math.min(referralStats.count, 5);
     const discountPercent = discountProgress * 4;
 
-    let referredList = "";
-    if (referralStats.referredUsers.length > 0) {
-      referredList = "\n\n👥 *Твої реферали:*\n" + 
-        referralStats.referredUsers.slice(0, 5).map((r, i) => {
-          const tierEmoji = r.tier === "PRO" ? "⭐" : r.tier === "ENTERPRISE" ? "👑" : "🆓";
-          return `${i + 1}. ${tierEmoji} @${r.username || "user"} - ${r.paid ? "✅ Оплатив" : "⏳ Free"}`;
-        }).join("\n");
-    }
-
-    const escapeMd = (s: string) => s.replace(/[_*`\[\]()]/g, "\\$&");
     const topRef = referralStats.referredUsers.slice(0, 3);
     const leaderboardText = topRef.length > 0 
       ? topRef.map((r, i) => {
-          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
-          return `${medal} ${r.username ? `@${escapeMd(r.username)}` : "user"} — ${r.tier || "FREE"}`;
+          const medalSlot = i === 0 ? "trophy" : i === 1 ? "star" : "diamond";
+          return `${pe(medalSlot)} ${r.username ? `@${escHtml(r.username)}` : "user"} — <b>${escHtml(r.tier || "FREE")}</b>`;
         }).join("\n")
-      : (lang === "uk" ? "Поки немає рефералів" : lang === "ru" ? "Пока нет рефералов" : "No referrals yet");
+      : escHtml(lang === "uk" ? "Поки немає рефералів" : lang === "ru" ? "Пока нет рефералов" : "No referrals yet");
 
     const participateTitle = lang === "uk" ? "Як можна поучаствувати?" : lang === "ru" ? "Как можно поучаствовать?" : "How to participate?";
     const participateSteps = lang === "uk"
-      ? `🎬 Знімай відео в TikTok / Reels / Shorts\n(вказуй бота прямо в відео)\n\n🗣 Діліся своєю реферальною\nпосиланням в чатах і ком'юніті\n\n👥 Відправляй посилання друзям та\nзнайомим\n\n⚠️ Пусті переходи і боти не зараховуються`
+      ? `${pe("camera")} Знімай відео в TikTok / Reels / Shorts\n(вказуй бота прямо в відео)\n\n${pe("wave")} Діліся своєю реферальною\nпосиланням в чатах і ком'юніті\n\n${pe("people")} Відправляй посилання друзям та\nзнайомим\n\n${pe("warning")} Пусті переходи і боти не зараховуються`
       : lang === "ru"
-      ? `🎬 Снимай видео в TikTok / Reels / Shorts\n(указывай бота прямо в видео)\n\n🗣 Делись своей реферальной\nссылкой в чатах и комьюнити\n\n👥 Отправляй ссылку друзьям и\nзнакомым\n\n⚠️ Пустые переходы и боты не засчитываются`
-      : `🎬 Create TikTok / Reels / Shorts videos\n(mention the bot in your video)\n\n🗣 Share your referral link in chats\nand communities\n\n👥 Send the link to friends and\nacquaintances\n\n⚠️ Empty clicks and bots don't count`;
+      ? `${pe("camera")} Снимай видео в TikTok / Reels / Shorts\n(указывай бота прямо в видео)\n\n${pe("wave")} Делись своей реферальной\nссылкой в чатах и комьюнити\n\n${pe("people")} Отправляй ссылку друзьям и\nзнакомым\n\n${pe("warning")} Пустые переходы и боты не засчитываются`
+      : `${pe("camera")} Create TikTok / Reels / Shorts videos\n(mention the bot in your video)\n\n${pe("wave")} Share your referral link in chats\nand communities\n\n${pe("people")} Send the link to friends and\nacquaintances\n\n${pe("warning")} Empty clicks and bots don't count`;
 
     const faqTitle = lang === "uk" ? "FAQ | Нарахування бонусів" : lang === "ru" ? "FAQ | Начисление бонусов" : "FAQ | Earning bonuses";
     const faqText = lang === "uk"
-      ? `❓ Як нараховуються бонуси?\nБонуси нараховуються за кожного нового користувача, який перейшов за вашим посиланням та почав користуватися ботом.`
+      ? `${pe("thinking")} <b>Як нараховуються бонуси?</b>\nБонуси нараховуються за кожного нового користувача, який перейшов за вашим посиланням та почав користуватися ботом.`
       : lang === "ru"
-      ? `❓ Как начисляются бонусы?\nБонусы начисляются за каждого нового пользователя, перешедшего по вашей ссылке и начавшего использовать бота.`
-      : `❓ How are bonuses earned?\nBonuses are earned for each new user who joins via your link and starts using the bot.`;
+      ? `${pe("thinking")} <b>Как начисляются бонусы?</b>\nБонусы начисляются за каждого нового пользователя, перешедшего по вашей ссылке и начавшего использовать бота.`
+      : `${pe("thinking")} <b>How are bonuses earned?</b>\nBonuses are earned for each new user who joins via your link and starts using the bot.`;
 
-    const text = `🏆 *${lang === "uk" ? "Реферальна програма" : lang === "ru" ? "Реферальная программа" : "Referral Program"}*
-🎁 ${lang === "uk" ? "Запрошуй користувачів і заробляй!" : lang === "ru" ? "Приглашай пользователей и зарабатывай!" : "Invite users and earn rewards!"}
+    const text = `${pe("trophy")} <b>${escHtml(lang === "uk" ? "Реферальна програма" : lang === "ru" ? "Реферальная программа" : "Referral Program")}</b>
+${pe("gift")} ${escHtml(lang === "uk" ? "Запрошуй користувачів і заробляй!" : lang === "ru" ? "Приглашай пользователей и зарабатывай!" : "Invite users and earn rewards!")}
 
-📊 *${lang === "uk" ? "Твоя статистика" : lang === "ru" ? "Твоя статистика" : "Your stats"}:*
-├ 👥 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralStats.count}*
-├ 🎁 ${lang === "uk" ? "Бонус запитів" : lang === "ru" ? "Бонус запросов" : "Bonus checks"}: *+${bonusEarned}*
-└ 💰 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : "Discount"}: *${discountPercent}%*
+${pe("chart")} <b>${escHtml(lang === "uk" ? "Твоя статистика" : lang === "ru" ? "Твоя статистика" : "Your stats")}:</b>
+├ ${pe("people")} ${escHtml(lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals")}: <b>${referralStats.count}</b>
+├ ${pe("gift")} ${escHtml(lang === "uk" ? "Бонус запитів" : lang === "ru" ? "Бонус запросов" : "Bonus checks")}: <b>+${bonusEarned}</b>
+└ ${pe("money")} ${escHtml(lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : "Discount")}: <b>${discountPercent}%</b>
 
-🔗 *${lang === "uk" ? "Реферальне посилання" : lang === "ru" ? "Реферальная ссылка" : "Referral link"}:*
-\`${refLink}\`
-🔄 ${lang === "uk" ? "Поділися з друзями" : lang === "ru" ? "Поделись с друзьями" : "Share with friends"}
+${pe("link")} <b>${escHtml(lang === "uk" ? "Реферальне посилання" : lang === "ru" ? "Реферальная ссылка" : "Referral link")}:</b>
+<code>${escHtml(refLink)}</code>
+${pe("rocket_up")} ${escHtml(lang === "uk" ? "Поділися з друзями" : lang === "ru" ? "Поделись с друзьями" : "Share with friends")}
 
-🏅 *${lang === "uk" ? "Твої реферали" : lang === "ru" ? "Твои рефералы" : "Your referrals"}*
+${pe("trophy")} <b>${escHtml(lang === "uk" ? "Топ реферали" : lang === "ru" ? "Топ рефералы" : "Top referrals")}</b>
 ${leaderboardText}
 
-🚀 *${participateTitle}*
+${pe("rocket")} <b>${escHtml(participateTitle)}</b>
 
 ${participateSteps}
 
-❓ *${faqTitle}*
+${pe("thinking")} <b>${escHtml(faqTitle)}</b>
 ${faqText}`;
 
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      ...Markup.inlineKeyboard([
-        [cb("Копіювати посилання", "copy_ref_link", "primary", E.link)],
-        [urlS("Поділитись", `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("Приєднуйся до DARKSHARE - найкращої OSINT платформи! 🔍")}`, "success", E.link)],
-        [cb("Панель", "back_to_dashboard", "danger", E.back)]
-      ])
-    });
+    const copyLabel = lang === "uk" ? "Копіювати посилання" : lang === "ru" ? "Скопировать ссылку" : "Copy link";
+    const shareLabel = lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : "Share";
+    const shareCaption = lang === "uk" ? "Приєднуйся до DARKSHARE — найкращої OSINT платформи! 🔍"
+      : lang === "ru" ? "Присоединяйся к DARKSHARE — лучшей OSINT-платформе! 🔍"
+      : "Join DARKSHARE — the best OSINT platform! 🔍";
+
+    try {
+      await ctx.editMessageText(text, {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [cb(copyLabel, "copy_ref_link", "primary", E.link)],
+          [urlS(shareLabel, `https://t.me/share/url?url=${encodeURIComponent("https://" + refLink)}&text=${encodeURIComponent(shareCaption)}`, "success", E.link)],
+          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+        ])
+      });
+    } catch {
+      await ctx.reply(text, {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [cb(copyLabel, "copy_ref_link", "primary", E.link)],
+          [urlS(shareLabel, `https://t.me/share/url?url=${encodeURIComponent("https://" + refLink)}&text=${encodeURIComponent(shareCaption)}`, "success", E.link)],
+          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+        ])
+      });
+    }
   });
 
   bot.action("copy_ref_link", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
     if (user) {
-      const refLink = `t.me/DarkShare1Bot?start=ref_${user.refCode}`;
-      await ctx.answerCbQuery("Посилання скопійовано!");
-      await ctx.reply(`📋 Твоє реферальне посилання:\n\n\`${refLink}\``, { parse_mode: "Markdown" });
+      const botUserName = (await bot.telegram.getMe()).username || "DarkShare1Bot";
+      const refLink = `t.me/${botUserName}?start=ref_${user.refCode}`;
+      await ctx.answerCbQuery(lang === "uk" ? "Посилання скопійовано!" : lang === "ru" ? "Ссылка скопирована!" : "Link copied!");
+      await ctx.reply(`${pe("scroll")} <b>${escHtml(lang === "uk" ? "Твоє реферальне посилання" : lang === "ru" ? "Твоя реферальная ссылка" : "Your referral link")}:</b>\n\n<code>${escHtml(refLink)}</code>`, { parse_mode: "HTML" });
     }
   });
 
@@ -3706,8 +3717,8 @@ ${faqText}`;
       return;
     }
     
-    const username = user.username?.replace(/[_*`\[\]]/g, "\\$&") || "—";
-    const refCode = user.refCode?.replace(/[_*`\[\]]/g, "\\$&") || "—";
+    const username = user.username || "—";
+    const refCode = user.refCode || "—";
     
     const reports = await storage.getReports(user.id);
     const watches = await storage.getWatches(user.id);
@@ -3731,75 +3742,70 @@ ${faqText}`;
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
     
-    const moduleEmojis: Record<string, string> = {
-      ip: "🌐", wallet: "💰", phone: "📱", email: "📧", domain: "🏢",
-      url: "🔗", cve: "🔓", hash: "🔢", username: "👤", card: "💳",
-      iot: "📡", cloud: "☁️"
+    const moduleEmojiSlots: Record<string, string> = {
+      ip: pe("globe"), wallet: pe("money"), phone: pe("mobile"), email: pe("envelope"), domain: pe("briefcase"),
+      url: pe("link"), cve: pe("bug"), hash: pe("key"), username: pe("user"), card: pe("card"),
+      iot: pe("zap"), cloud: pe("globe")
     };
     
     const topTypesText = topCheckTypes.length > 0
-      ? topCheckTypes.map(([type, count]) => `${moduleEmojis[type] || "📊"} ${type}: ${count}`).join("\n")
+      ? topCheckTypes.map(([type, count]) => `${moduleEmojiSlots[type] || pe("chart")} ${escHtml(type)}: <b>${count}</b>`).join("\n")
       : "—";
     
     const createdAt = user.createdAt 
       ? new Date(user.createdAt).toLocaleDateString(lang === "en" ? "en-US" : "uk-UA")
       : "—";
     
-    const tierEmoji = user.tier === "ENTERPRISE" ? "👑" : user.tier === "PRO" ? "⭐" : "🆓";
+    const tierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
     const tierName = user.tier || "FREE";
     
     const tierBenefits = user.tier === "ENTERPRISE" 
-      ? "API, SIEM, ∞ запитів"
+      ? (lang === "uk" ? "API, SIEM, ∞ запитів" : lang === "ru" ? "API, SIEM, ∞ запросов" : "API, SIEM, ∞ checks")
       : user.tier === "PRO" 
-        ? "∞ запитів, PDF, моніторинг"
-        : "5 запитів/день, 1 монітор";
+        ? (lang === "uk" ? "∞ запитів, PDF, моніторинг" : lang === "ru" ? "∞ запросов, PDF, мониторинг" : "∞ checks, PDF, monitoring")
+        : (lang === "uk" ? "5 запитів/день, 1 монітор" : lang === "ru" ? "5 запросов/день, 1 монитор" : "5 checks/day, 1 monitor");
     
     const riskHunterProgress = Math.min(totalChecks, 10);
     const scamSlayerProgress = Math.min(totalChecks, 50);
     const streakMasterProgress = Math.min(streakDays, 7);
     const referralKingProgress = Math.min(referralCount, 5);
     
-    const riskHunterBar = generateProgressBar(riskHunterProgress, 10, 10);
-    const scamSlayerBar = generateProgressBar(scamSlayerProgress, 50, 10);
-    const streakMasterBar = generateProgressBar(streakMasterProgress, 7, 10);
-    const referralKingBar = generateProgressBar(referralKingProgress, 5, 10);
-    
-    const riskHunterDone = riskHunterProgress >= 10 ? "✅" : "⬜";
-    const scamSlayerDone = scamSlayerProgress >= 50 ? "✅" : "⬜";
-    const streakMasterDone = streakMasterProgress >= 7 ? "✅" : "⬜";
-    const referralKingDone = referralKingProgress >= 5 ? "✅" : "⬜";
+    const riskHunterDone = riskHunterProgress >= 10 ? pe("check") : "⬜";
+    const scamSlayerDone = scamSlayerProgress >= 50 ? pe("check") : "⬜";
+    const streakMasterDone = streakMasterProgress >= 7 ? pe("check") : "⬜";
+    const referralKingDone = referralKingProgress >= 5 ? pe("check") : "⬜";
 
     const lastActive = formatLastActivity(user.lastLogin, lang);
 
-    const text = `👤 *${lang === "uk" ? "Мій акаунт" : lang === "ru" ? "Мой аккаунт" : "My Account"}*
+    const text = `${pe("user")} <b>${escHtml(lang === "uk" ? "Мій акаунт" : lang === "ru" ? "Мой аккаунт" : "My Account")}</b>
 
-📋 *${lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile"}*
-├ 🆔 ID: \`${tgId}\`
-├ 👤 @${username}
-├ ${tierEmoji} ${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan"}: *${tierName}*
-├ 📅 ${createdAt}
-└ 🎁 Ref: \`${refCode}\`
+${pe("scroll")} <b>${escHtml(lang === "uk" ? "Профіль" : lang === "ru" ? "Профиль" : "Profile")}</b>
+├ ${pe("pin")} ID: <code>${escHtml(tgId)}</code>
+├ ${pe("user")} @${escHtml(username)}
+├ ${pe(tierSlot)} ${escHtml(lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan")}: <b>${escHtml(tierName)}</b>
+├ ${pe("pin")} ${escHtml(createdAt)}
+└ ${pe("gift")} Ref: <code>${escHtml(refCode)}</code>
 
-📊 *${lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics"}*
-├ 🔍 ${lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks"}: *${totalChecks}*
-├ 👁 ${lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors"}: *${activeMonitors}*
-├ 📣 ${lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals"}: *${referralCount}*
-├ 🔥 ${lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak"}: *${streakDays}* ${lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days"}
-└ 💳 ${lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left"}: *${user.requestsLeft ?? 3}*
+${pe("chart")} <b>${escHtml(lang === "uk" ? "Статистика" : lang === "ru" ? "Статистика" : "Statistics")}</b>
+├ ${pe("search")} ${escHtml(lang === "uk" ? "Перевірок" : lang === "ru" ? "Проверок" : "Checks")}: <b>${totalChecks}</b>
+├ ${pe("eye")} ${escHtml(lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors")}: <b>${activeMonitors}</b>
+├ ${pe("people")} ${escHtml(lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals")}: <b>${referralCount}</b>
+├ ${pe("fire")} ${escHtml(lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak")}: <b>${streakDays}</b> ${escHtml(lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days")}
+└ ${pe("card")} ${escHtml(lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left")}: <b>${user.requestsLeft ?? 3}</b>
 
-🎯 *${lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks"}*
+${pe("trophy")} <b>${escHtml(lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks")}</b>
 ${topTypesText}
 
-🏅 *${lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements"}*
-${riskHunterDone} 🏆 Risk Hunter — ${riskHunterProgress}/10
-${scamSlayerDone} 🛡 Scam Slayer — ${scamSlayerProgress}/50
-${streakMasterDone} 🔥 Streak Master — ${streakMasterProgress}/7
-${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
+${pe("trophy")} <b>${escHtml(lang === "uk" ? "Досягнення" : lang === "ru" ? "Достижения" : "Achievements")}</b>
+${riskHunterDone} ${pe("trophy")} Risk Hunter — <b>${riskHunterProgress}/10</b>
+${scamSlayerDone} ${pe("shield")} Scam Slayer — <b>${scamSlayerProgress}/50</b>
+${streakMasterDone} ${pe("fire")} Streak Master — <b>${streakMasterProgress}/7</b>
+${referralKingDone} ${pe("people")} Referral King — <b>${referralKingProgress}/5</b>
 
-💎 *${lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits"}*
-└ ${tierBenefits}
+${pe("diamond")} <b>${escHtml(lang === "uk" ? "Переваги тарифу" : lang === "ru" ? "Преимущества тарифа" : "Tier benefits")}</b>
+└ ${escHtml(tierBenefits)}
 
-🌐 *${lang === "uk" ? "Мова" : lang === "ru" ? "Язык" : "Language"}:* ${languageNames[lang]}`;
+${pe("globe")} <b>${escHtml(lang === "uk" ? "Мова" : lang === "ru" ? "Язык" : "Language")}:</b> ${escHtml(languageNames[lang])}`;
 
     const langFlags: Record<string, string> = { uk: "🇺🇦", en: "🇬🇧", ru: "🇷🇺", es: "🇪🇸", de: "🇩🇪" };
     const currentFlag = langFlags[lang] || "🌐";
@@ -3820,12 +3826,12 @@ ${referralKingDone} 📣 Referral King — ${referralKingProgress}/5
     ]);
     
     try {
-      await ctx.editMessageText(text, { ...keyboard });
+      await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
     } catch (e: any) {
       if (e.message?.includes("message is not modified")) {
         return;
       }
-      await ctx.reply(text, { ...keyboard });
+      await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
     }
   });
 
