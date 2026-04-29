@@ -140,6 +140,8 @@ export const OSINT_SOURCES: OsintSource[] = [
   { name: "Username Search", url: "https://username-search.com", category: "username" },
 
   { name: "AlienVault OTX", url: "https://otx.alienvault.com", category: "threat" },
+  { name: "Cloudflare DNS", url: "https://cloudflare-dns.com", category: "domain", notes: "DNS-over-HTTPS independent resolver" },
+  { name: "CertSpotter", url: "https://sslmate.com/certspotter", category: "domain", notes: "Certificate Transparency log search by SSLMate" },
   { name: "MISP", url: "https://misp-project.org", category: "threat" },
   { name: "Pulsedive", url: "https://pulsedive.com", category: "threat" },
   { name: "ThreatFox (abuse.ch)", url: "https://threatfox.abuse.ch", category: "threat" },

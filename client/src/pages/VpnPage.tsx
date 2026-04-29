@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { OSINT_SOURCES } from "@/data/osintSources";
 
 interface VpnEntry {
   slug: string;
@@ -319,7 +320,7 @@ function CTABottom() {
           A free VPN is step one. Step two: check what&rsquo;s already leaked.
         </h3>
         <p className="mx-auto mt-2 max-w-xl text-[13.5px] text-zinc-400">
-          Run an OSINT scan on your email, phone, username or wallet across 150+ sources.
+          Run an OSINT scan on your email, phone, username or wallet across {OSINT_SOURCES.length}+ sources.
         </p>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
           <Link href="/">

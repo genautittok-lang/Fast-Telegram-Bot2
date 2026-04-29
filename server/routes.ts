@@ -6,6 +6,7 @@ import { pool } from "./db";
 import { setupBot, botInstance, ADMIN_IDS } from "./bot";
 import { api } from "@shared/routes";
 import { performCheck, validateInput, extractExifFromBuffer } from "./checkService";
+import { SOURCES_COUNT } from "@shared/osintSources";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
@@ -1225,7 +1226,7 @@ export async function registerRoutes(
         findings: (result.findings || []).slice(0, 3),
         findingsHidden: Math.max(0, findingsCount - 3),
         sourcesChecked,
-        sourcesTotal: result.sourcesScanned?.length || 150,
+        sourcesTotal: result.sourcesScanned?.length || SOURCES_COUNT,
         sourcesScanned: sourcesScannedPublic,
         coverage: result.coverage || null,
         dangerSignals: dangerCount,

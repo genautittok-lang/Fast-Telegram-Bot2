@@ -266,7 +266,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
               className="mt-6 max-w-xl text-[15px] leading-relaxed text-zinc-400 sm:text-[16px]"
               data-testid="text-hero-sub"
             >
-              Scan an email, phone, username, wallet, domain or IP across 150+ open
+              Scan an email, phone, username, wallet, domain or IP across {OSINT_SOURCES.length}+ open
               OSINT sources in seconds. No account required. Real findings, not theatre.
             </p>
 
@@ -657,7 +657,7 @@ function WhatWeCheck() {
 function HowItWorks() {
   const steps = [
     { n: "01", t: "Введи идентификатор", d: "Email, телефон, username, кошелёк, домен или IP. Формат определяется автоматически." },
-    { n: "02", t: "Сканируем 150 источников", d: "Базы утечек, threat intelligence, ончейн-данные, dark web, репутационные сервисы." },
+    { n: "02", t: `Сканируем ${OSINT_SOURCES.length} источников`, d: "Базы утечек, threat intelligence, ончейн-данные, dark web, репутационные сервисы." },
     { n: "03", t: "Получи риск-отчёт", d: "Risk score, список находок, рекомендации, PDF. Бесплатно — 3 проверки в сутки." },
   ];
   return (
@@ -829,7 +829,7 @@ function FAQ() {
   const items = [
     { q: "Это легально?", a: "Да. Используем только публичные источники и API: HIBP, AbuseIPDB, VirusTotal, ончейн-данные, OSINT-каталоги. Никаких слитых баз без правовых оснований." },
     { q: "Что я получу за $3?", a: "Полный отчёт по одной цели: все находки, перечень источников, связанные сущности, рекомендации, PDF на скачивание." },
-    { q: "А чем отличается от Have I Been Pwned?", a: "HIBP проверяет только email-утечки. DarkShare охватывает email, телефон, username, кошелёк, домен и IP — и использует не одну базу, а 150+ открытых источников и threat-фидов." },
+    { q: "А чем отличается от Have I Been Pwned?", a: `HIBP проверяет только email-утечки. DarkShare охватывает email, телефон, username, кошелёк, домен и IP — и использует не одну базу, а ${OSINT_SOURCES.length}+ открытых источников и threat-фидов.` },
     { q: "Хранятся ли мои запросы?", a: "Бесплатные проверки — нет. В платных тарифах сохраняется только история твоих собственных проверок, доступная только тебе. Удалить можно в один клик." },
     { q: "Можно ли вернуть деньги?", a: "Да, в течение 7 дней по подписке PRO без вопросов. Разовый отчёт — невозвратный, но ты можешь увидеть превью бесплатно." },
     { q: "Как оплатить?", a: "Карта (Stripe), Telegram Stars, USDT/BTC. Все способы доступны на странице тарифов." },

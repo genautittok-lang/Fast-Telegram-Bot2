@@ -11,10 +11,11 @@ import {
   Globe,
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
+import { OSINT_SOURCES } from "@/data/osintSources";
 
 const PERKS = [
   { Icon: Gift,    title: "+5 free scans",        sub: "Stacked on top of the daily 3" },
-  { Icon: Shield,  title: "Full source coverage", sub: "Same 150+ OSINT sources as PRO" },
+  { Icon: Shield,  title: "Full source coverage", sub: `Same ${OSINT_SOURCES.length}+ OSINT sources as PRO` },
   { Icon: Lock,    title: "PDF reports",          sub: "Sharable, signed, watermark-free" },
   { Icon: Sparkles,title: "AI threat profile",    sub: "One generated automatically" },
 ];
@@ -77,7 +78,7 @@ export default function ReferralLanding() {
             </span>
           </Link>
           <div className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400 sm:inline-flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Live · 150+ OSINT sources
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Live · {OSINT_SOURCES.length}+ OSINT sources
           </div>
         </div>
       </header>

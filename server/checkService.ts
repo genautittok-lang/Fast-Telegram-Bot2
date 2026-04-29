@@ -1,5 +1,6 @@
 import { generateAIAnalysis } from "./aiAnalyzer";
 import exifr from "exifr";
+import { createHash } from "crypto";
 import { buildScanCoverage, summarizeCoverage, type ScanResult } from "./sourceCoverage";
 
 export interface AIInsights {
@@ -34,6 +35,106 @@ async function fetchWithTimeout(url: string, timeout = 5000, options?: RequestIn
   } catch (error) {
     clearTimeout(id);
     throw error;
+  }
+}
+
+// ───────────────────────── Free OSINT helpers (no API key) ─────────────────────────
+async function otxLookup(
+  kind: "IPv4" | "domain" | "url" | "file",
+  indicator: string,
+): Promise<{ pulses: number; sample?: string } | null> {
+  try {
+    const url = `https://otx.alienvault.com/api/v1/indicators/${kind}/${encodeURIComponent(indicator)}/general`;
+    const r = await fetchWithTimeout(url, 5000);
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    const pulses = j?.pulse_info?.count || 0;
+    const first = j?.pulse_info?.pulses?.[0]?.name;
+    return { pulses, sample: first };
+  } catch {
+    return null;
+  }
+}
+
+async function waybackAvailable(
+  target: string,
+): Promise<{ available: boolean; firstYear?: string; url?: string } | null> {
+  try {
+    const r = await fetchWithTimeout(
+      `https://archive.org/wayback/available?url=${encodeURIComponent(target)}`,
+      5000,
+    );
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    const snap = j?.archived_snapshots?.closest;
+    if (!snap?.available) return { available: false };
+    return { available: true, firstYear: snap.timestamp?.slice(0, 4), url: snap.url };
+  } catch {
+    return null;
+  }
+}
+
+async function certSpotterIssuances(domain: string): Promise<number | null> {
+  try {
+    const r = await fetchWithTimeout(
+      `https://api.certspotter.com/v1/issuances?domain=${encodeURIComponent(domain)}&include_subdomains=false&expand=dns_names`,
+      5000,
+    );
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    return Array.isArray(j) ? j.length : null;
+  } catch {
+    return null;
+  }
+}
+
+async function cloudflareDohA(domain: string): Promise<string[] | null> {
+  try {
+    const r = await fetchWithTimeout(
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=A`,
+      4000,
+      { headers: { Accept: "application/dns-json" } },
+    );
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    if (!Array.isArray(j?.Answer)) return [];
+    return j.Answer.filter((a: any) => a.type === 1).map((a: any) => a.data).slice(0, 4);
+  } catch {
+    return null;
+  }
+}
+
+async function redditUserExists(
+  username: string,
+): Promise<{ exists: boolean; karma?: number; createdYear?: string } | null> {
+  try {
+    const r = await fetchWithTimeout(
+      `https://www.reddit.com/user/${encodeURIComponent(username)}/about.json`,
+      5000,
+      { headers: { "User-Agent": "DarkShare-OSINT/1.0" } },
+    );
+    if (r.status === 404) return { exists: false };
+    if (!r.ok) return null;
+    const j: any = await r.json();
+    if (!j?.data) return { exists: false };
+    const created = j.data.created_utc
+      ? new Date(j.data.created_utc * 1000).getFullYear().toString()
+      : undefined;
+    return { exists: true, karma: j.data.total_karma ?? 0, createdYear: created };
+  } catch {
+    return null;
+  }
+}
+
+async function gravatarExists(email: string): Promise<boolean | null> {
+  try {
+    const md5 = createHash("md5").update(email.trim().toLowerCase()).digest("hex");
+    const r = await fetchWithTimeout(`https://www.gravatar.com/${md5}.json`, 4000);
+    if (r.status === 404) return false;
+    if (!r.ok) return null;
+    return true;
+  } catch {
+    return null;
   }
 }
 
@@ -501,6 +602,21 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
   
+  // AlienVault OTX (free, public threat intel)
+  try {
+    const otx = await otxLookup("IPv4", value);
+    if (otx) {
+      sources.push("otx.alienvault.com");
+      if (otx.pulses > 0) {
+        riskScore += Math.min(otx.pulses * 5, 35);
+        findings.push(`🔴 OTX: ${otx.pulses} threat pulses${otx.sample ? ` (${otx.sample.slice(0, 40)})` : ""}`);
+        ipData.otxPulses = otx.pulses;
+      } else {
+        findings.push("✅ OTX: no threat reports");
+      }
+    }
+  } catch {}
+
   // API 7: Tor exit-node check (cached 30 min, free, no key)
   try {
     const torSet = await getTorExitNodes();
@@ -1145,6 +1261,32 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     // This is the k-anonymity check for passwords, for emails we'd need the API key
     // For demonstration, we'll check common breach databases via DNS-based check
     
+  } catch {}
+
+  // Gravatar (free, public, md5(email)) — confirms public profile
+  try {
+    const g = await gravatarExists(value);
+    if (g !== null) {
+      sources.push("gravatar.com");
+      if (g) {
+        emailData.hasGravatar = true;
+        findings.push("🖼️ Gravatar: публічний профіль знайдено");
+      } else {
+        findings.push("ℹ️ Gravatar: профіль відсутній");
+      }
+    }
+  } catch {}
+
+  // Cloudflare DoH on email domain — independent MX/A consensus
+  try {
+    const cf = await cloudflareDohA(domain);
+    if (cf !== null) {
+      sources.push("cloudflare-dns.com");
+      if (cf.length === 0 && emailData.hasMX === false) {
+        riskScore += 10;
+        findings.push("⚠️ Cloudflare DoH також не бачить домен");
+      }
+    }
   } catch {}
   
   // API: Hunter.io (uses key if available)
@@ -1859,6 +2001,64 @@ async function checkDomain(value: string, timestamp: Date): Promise<CheckResult>
   } catch {}
   }
 
+  // CertSpotter (sslmate) — second independent CT log lookup besides crt.sh
+  try {
+    const cnt = await certSpotterIssuances(domain);
+    if (cnt !== null) {
+      sources.push("certspotter.com");
+      if (cnt > 0) {
+        findings.push(`📜 CertSpotter: ${cnt} cert issuances`);
+        domainData.certSpotterCount = cnt;
+      }
+    }
+  } catch {}
+
+  // Wayback Machine — historical archive presence (legitimacy signal)
+  try {
+    const wb = await waybackAvailable(domain);
+    if (wb) {
+      sources.push("archive.org");
+      if (wb.available) {
+        findings.push(`🕰️ Wayback: archived since ${wb.firstYear ?? "?"}`);
+        domainData.waybackArchivedSince = wb.firstYear;
+      } else {
+        riskScore += 10;
+        findings.push("⚠️ Не знайдено в Wayback Machine (новий або непублічний)");
+      }
+    }
+  } catch {}
+
+  // Cloudflare DNS-over-HTTPS — independent DNS resolver consensus
+  try {
+    const cf = await cloudflareDohA(domain);
+    if (cf !== null) {
+      sources.push("cloudflare-dns.com");
+      domainData.cloudflareIPs = cf;
+      if (cf.length > 0 && Array.isArray(domainData.ipAddresses) && domainData.ipAddresses.length > 0) {
+        const overlap = cf.filter((ip) => domainData.ipAddresses.includes(ip));
+        if (overlap.length === 0) {
+          riskScore += 15;
+          findings.push("⚠️ DNS розбіжність: Google ≠ Cloudflare (можливе hijack)");
+        } else {
+          findings.push("✅ DNS-консенсус (Google = Cloudflare)");
+        }
+      }
+    }
+  } catch {}
+
+  // AlienVault OTX — domain threat intel
+  try {
+    const otx = await otxLookup("domain", domain);
+    if (otx) {
+      sources.push("otx.alienvault.com");
+      if (otx.pulses > 0) {
+        riskScore += Math.min(otx.pulses * 5, 30);
+        findings.push(`🔴 OTX: ${otx.pulses} threat pulses${otx.sample ? ` (${otx.sample.slice(0, 40)})` : ""}`);
+        domainData.otxPulses = otx.pulses;
+      }
+    }
+  } catch {}
+
   // API: HackerTarget (free - reverse DNS / associated hosts)
   try {
     const response = await fetchWithTimeout(`https://api.hackertarget.com/hostsearch/?q=${domain}`, 3000);
@@ -2217,6 +2417,34 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
         } else if (data.query_status === 'no_results') {
           sources.push("urlhaus.abuse.ch");
           findings.push("✅ Не знайдено в базі URLhaus");
+        }
+      }
+    } catch {}
+
+    // Wayback Machine — historical archive snapshot
+    try {
+      const wb = await waybackAvailable(value);
+      if (wb) {
+        sources.push("archive.org");
+        if (wb.available) {
+          findings.push(`🕰️ Wayback: snapshot from ${wb.firstYear ?? "?"}`);
+          urlData.waybackUrl = wb.url;
+          urlData.waybackYear = wb.firstYear;
+        } else {
+          findings.push("ℹ️ Wayback: ніколи не архівувався");
+        }
+      }
+    } catch {}
+
+    // AlienVault OTX — URL threat intel
+    try {
+      const otx = await otxLookup("url", value);
+      if (otx) {
+        sources.push("otx.alienvault.com");
+        if (otx.pulses > 0) {
+          riskScore += Math.min(otx.pulses * 8, 40);
+          findings.push(`🔴 OTX: ${otx.pulses} threat pulses${otx.sample ? ` (${otx.sample.slice(0, 40)})` : ""}`);
+          urlData.otxPulses = otx.pulses;
         }
       }
     } catch {}
@@ -2705,6 +2933,21 @@ async function checkHash(value: string, timestamp: Date): Promise<CheckResult> {
     } catch {}
   }
 
+  // AlienVault OTX — file-hash threat intel (works for md5/sha1/sha256)
+  try {
+    const otx = await otxLookup("file", hash);
+    if (otx) {
+      sources.push("otx.alienvault.com");
+      if (otx.pulses > 0) {
+        riskScore += Math.min(otx.pulses * 10, 50);
+        findings.push(`🔴 OTX: ${otx.pulses} threat pulses${otx.sample ? ` (${otx.sample.slice(0, 40)})` : ""}`);
+        hashData.otxPulses = otx.pulses;
+      } else {
+        findings.push("✅ OTX: репортів немає");
+      }
+    }
+  } catch {}
+
   // API: CIRCL hashlookup (free, no key needed)
   try {
     const lookupType = hash.length === 32 ? 'md5' : hash.length === 40 ? 'sha1' : 'sha256';
@@ -2859,8 +3102,41 @@ async function checkUsername(value: string, timestamp: Date): Promise<CheckResul
     }
   } catch {}
   
+  // Reddit profile (free public JSON)
+  try {
+    const r = await redditUserExists(username);
+    if (r !== null) {
+      sources.push("reddit.com");
+      if (r.exists) {
+        usernameData.reddit = {
+          exists: true,
+          karma: r.karma,
+          createdYear: r.createdYear,
+        };
+        findings.push(
+          `👽 Reddit: u/${username}${r.karma !== undefined ? ` · ${r.karma} karma` : ""}${r.createdYear ? ` · since ${r.createdYear}` : ""}`,
+        );
+      } else {
+        usernameData.reddit = { exists: false };
+        findings.push("❌ Reddit: не знайдено");
+      }
+    }
+  } catch {}
+
+  // Gravatar profile (md5 of username — many people use email-username pair)
+  try {
+    const g = await gravatarExists(`${username}@gmail.com`);
+    if (g) {
+      sources.push("gravatar.com");
+      usernameData.gravatarLikely = true;
+      findings.push("🖼️ Gravatar: ймовірний профіль (gmail-варіант)");
+    } else if (g === false) {
+      sources.push("gravatar.com");
+    }
+  } catch {}
+
   // Calculate uniqueness score
-  const platformsFound = [usernameData.github?.exists, usernameData.instagram?.exists].filter(Boolean).length;
+  const platformsFound = [usernameData.github?.exists, usernameData.instagram?.exists, usernameData.reddit?.exists].filter(Boolean).length;
   if (platformsFound === 0) {
     riskScore += 15;
     findings.push("⚠️ Не знайдено на платформах");

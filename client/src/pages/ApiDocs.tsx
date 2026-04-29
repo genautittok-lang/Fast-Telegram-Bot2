@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { OSINT_SOURCES } from "@/data/osintSources";
 import {
   Shield,
   Key,
@@ -311,7 +312,7 @@ export default function ApiDocs() {
             <h1 className="mt-4 text-balance text-[32px] font-semibold leading-[1.05] tracking-tight text-white sm:text-[44px]" data-testid="text-api-title">
               DarkShare API.
               <br />
-              <span className="text-cyan-300">150+ OSINT sources, one endpoint.</span>
+              <span className="text-cyan-300">{OSINT_SOURCES.length}+ OSINT sources, one endpoint.</span>
             </h1>
             <p className="mt-4 max-w-2xl text-[14.5px] leading-relaxed text-zinc-400">
               Programmatic access to the same risk-scoring engine that powers the web app and the
