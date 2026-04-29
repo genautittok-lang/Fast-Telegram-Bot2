@@ -745,6 +745,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
         cb((lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : lang === "es" ? "Guía" : lang === "de" ? "Anleitung" : "Guide"), "open_guide", "primary", E.doc),
       ],
       [
+        cb((lang === "uk" ? "🔌 API" : lang === "ru" ? "🔌 API" : lang === "es" ? "🔌 API" : lang === "de" ? "🔌 API" : "🔌 API"), "open_api", "primary", E.lock),
         cb((lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : lang === "es" ? "Actualizar" : lang === "de" ? "Aktualisieren" : "Refresh"), "refresh_dashboard", "danger", E.bolt)
       ],
       [
@@ -5947,9 +5948,7 @@ ${allTypesText}
   });
 
   // HELP COMMAND - довідка
-  bot.command("api", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
+  const buildApiInfo = (lang: string) => {
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
     const T: Record<string, { title: string; intro: string; auth: string; endpoints: string; example: string; tiers: string; webBtn: string; docsBtn: string; keyBtn: string }> = {
@@ -6039,7 +6038,26 @@ ${allTypesText}
       [cb(t(lang, "buttons.back") || "← Back", "dashboard", "danger", E.back)],
     ];
 
+    return { text, buttons };
+  };
+
+  bot.command("api", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const { text, buttons } = buildApiInfo(lang);
     await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+  });
+
+  bot.action("open_api", async (ctx) => {
+    try { await ctx.answerCbQuery(); } catch {}
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const { text, buttons } = buildApiInfo(lang);
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+    } catch {
+      await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
+    }
   });
 
   bot.action("api_docs", async (ctx) => {
