@@ -6039,9 +6039,11 @@ ${allTypesText}
       `${L.tiers}`;
 
     const buttons: any[][] = [];
-    if (opts?.canGenerate) {
-      buttons.push([cb(L.genBtn, "gen_api_key", "success", E.bolt)]);
-    }
+    const lockHint: Record<string, string> = {
+      uk: " 🔒", ru: " 🔒", es: " 🔒", de: " 🔒", en: " 🔒",
+    };
+    const genLabel = opts?.canGenerate ? L.genBtn : `${L.genBtn}${lockHint[lang] || lockHint.en}`;
+    buttons.push([cb(genLabel, "gen_api_key", opts?.canGenerate ? "success" : "primary", E.bolt)]);
     buttons.push([urlS(L.docsBtn, `${webUrl}/api-docs`, "primary", E.doc)]);
     buttons.push([urlS(L.keyBtn, `${webUrl}/account`, "success", E.lock), urlS(L.webBtn, webUrl, "primary", E.globe)]);
     buttons.push([cb(t(lang, "buttons.back") || "← Back", "dashboard", "danger", E.back)]);
@@ -6074,6 +6076,9 @@ ${allTypesText}
       await ctx.reply(text, { parse_mode: "Markdown", ...Markup.inlineKeyboard(buttons) });
     }
   });
+
+  // Make API key visible from the dashboard /account screen as well
+  bot.action("open_api_key", async (ctx) => { await sendApiKey(ctx); });
 
   const sendApiKey = async (ctx: any) => {
     const tgId = ctx.from!.id.toString();
