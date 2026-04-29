@@ -1186,8 +1186,8 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
   });
 
   bot.command("testemojis", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    if (!isAdmin(tgId)) return;
+    // Public diagnostic — no admin gate. Helps any user verify if their
+    // Telegram client renders premium custom emojis (requires Telegram Premium).
     const map = getMappings();
     const bound = Object.entries(map).filter(([, v]) => v.id);
     const isPremium = (ctx.from as any)?.is_premium === true;
