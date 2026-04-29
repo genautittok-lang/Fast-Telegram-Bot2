@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import {
   Search,
   Loader2,
@@ -607,86 +607,84 @@ function TrustedAggregators() {
   );
 }
 
-/* ─────────── What we check ─────────── */
+/* ─────────── What we check (minimal line) ─────────── */
 function WhatWeCheck() {
-  const items: { Icon: typeof Mail; title: string; desc: string; example: string }[] = [
-    { Icon: Mail,        title: "Email",     desc: "Breach databases, public profiles, leaked passwords",   example: "you@gmail.com" },
-    { Icon: Phone,       title: "Phone",     desc: "Carrier data, leaks, spam reports, OSINT trace",          example: "+1 555 0142" },
-    { Icon: AtSign,      title: "Username",  desc: "Social networks, code repos and leak forums",             example: "alex_morgan" },
-    { Icon: Wallet,      title: "Crypto wallet", desc: "On-chain risk, sanctions lists, scam tags",            example: "0xab12…f9c3" },
-    { Icon: Globe,       title: "Domain",    desc: "WHOIS, DNS, TLS, malware, phishing reputation",           example: "example.com" },
-    { Icon: Network,     title: "IP address",desc: "Threat intel, abuse reports, ASN, geolocation",           example: "8.8.8.8" },
-    { Icon: Hash,        title: "File hash", desc: "Malware lookup across MalwareBazaar / VT / hybrid",       example: "MD5 / SHA256" },
-    { Icon: Bug,         title: "CVE",       desc: "NIST NVD, exploit DB, vendor advisories",                  example: "CVE-2024-…" },
-    { Icon: CreditCard,  title: "Card BIN",  desc: "Issuer, brand, country — non-PII lookup",                   example: "First 6 digits" },
-    { Icon: KeyRound,    title: "Password",  desc: "Pwned-passwords k-anonymity hash check",                    example: "Hashed locally" },
-    { Icon: Shield,      title: "SSL cert",  desc: "Issuer, expiry, chain, weak ciphers",                       example: "site.tld" },
-    { Icon: Bot,         title: "Telegram bot", desc: "Bot info, scam history, abuse reports",                  example: "@somebot" },
+  const items: { Icon: typeof Mail; title: string }[] = [
+    { Icon: Mail,       title: "Email" },
+    { Icon: Phone,      title: "Phone" },
+    { Icon: AtSign,     title: "Username" },
+    { Icon: Wallet,     title: "Wallet" },
+    { Icon: Globe,      title: "Domain" },
+    { Icon: Network,    title: "IP" },
+    { Icon: Hash,       title: "Hash" },
+    { Icon: Bug,        title: "CVE" },
+    { Icon: CreditCard, title: "Card BIN" },
+    { Icon: KeyRound,   title: "Password" },
+    { Icon: Shield,     title: "SSL" },
+    { Icon: Bot,        title: "Bot" },
   ];
   return (
     <section className="border-t border-white/5">
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-24">
-        <div className="mb-10 max-w-2xl">
-          <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">What gets checked</div>
-          <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[36px]">
-            12 entity types. One scan field.
-          </h2>
-          <p className="mt-3 text-[14.5px] leading-relaxed text-zinc-400">
-            We auto-detect what you paste — then route the query to the right OSINT category.
-            Below is everything DarkShare understands today.
-          </p>
+      <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Что проверяем</div>
+            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
+              12 типов проверок · одно поле ввода
+            </h2>
+          </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map(({ Icon, title, desc, example }) => (
-            <div
-              key={title}
-              className="group rounded-xl border border-white/10 bg-[#0E0E12] p-5 transition-colors hover:border-cyan-400/30"
-              data-testid={`card-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-cyan-500/20 bg-cyan-500/[0.06] transition-colors group-hover:border-cyan-400/40">
-                  <Icon className="h-4 w-4 text-cyan-300" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-[14.5px] font-medium text-white">{title}</div>
-                    <span className="font-mono text-[10.5px] text-zinc-600">{example}</span>
-                  </div>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-400">{desc}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* thin pro divider line */}
+        <div className="relative">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent" />
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 px-2 py-5">
+            {items.map(({ Icon, title }, i) => (
+              <span
+                key={title}
+                className="inline-flex items-center gap-1.5 text-[12.5px] text-zinc-400 transition-colors hover:text-white"
+                data-testid={`chip-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <Icon className="h-3.5 w-3.5 text-cyan-300/80" />
+                <span>{title}</span>
+                {i < items.length - 1 && <span className="ml-3 text-zinc-700">·</span>}
+              </span>
+            ))}
+          </div>
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent" />
         </div>
       </div>
     </section>
   );
 }
 
-/* ─────────── How it works ─────────── */
+/* ─────────── How it works (minimal line) ─────────── */
 function HowItWorks() {
   const steps = [
-    { n: "01", t: "Введи идентификатор", d: "Email, телефон, username, кошелёк, домен или IP. Формат определяется автоматически." },
-    { n: "02", t: `Сканируем ${OSINT_SOURCES.length} источников`, d: "Базы утечек, threat intelligence, ончейн-данные, dark web, репутационные сервисы." },
-    { n: "03", t: "Получи риск-отчёт", d: "Risk score, список находок, рекомендации, PDF. Бесплатно — 3 проверки в сутки." },
+    { n: "01", t: "Введи" },
+    { n: "02", t: `Сканируем ${OSINT_SOURCES.length}+ источников` },
+    { n: "03", t: "Получи отчёт" },
   ];
   return (
     <section id="how" className="border-t border-white/5">
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-24">
-        <div className="mb-12 max-w-2xl">
-          <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">Как это работает</div>
-          <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">
-            Три шага. Десять секунд. Без регистрации.
-          </h2>
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Как это работает</div>
+            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
+              Три шага · 10 секунд · без регистрации
+            </h2>
+          </div>
         </div>
-        <div className="grid gap-6 sm:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.n} className="rounded-xl border border-white/10 bg-[#0E0E12] p-6">
-              <div className="mb-5 text-[12px] font-mono text-zinc-600">{s.n}</div>
-              <div className="text-[16px] font-medium text-white">{s.t}</div>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-zinc-400">{s.d}</p>
-            </div>
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3 rounded-xl border border-white/10 bg-[#0A0A0C] px-5 py-5">
+          {steps.map((s, i) => (
+            <span key={s.n} className="inline-flex items-center gap-3" data-testid={`step-${s.n}`}>
+              <span className="font-mono text-[11px] text-cyan-300/70">{s.n}</span>
+              <span className="text-[13.5px] text-white">{s.t}</span>
+              {i < steps.length - 1 && (
+                <span className="mx-3 text-zinc-700">→</span>
+              )}
+            </span>
           ))}
         </div>
       </div>
@@ -694,49 +692,41 @@ function HowItWorks() {
   );
 }
 
-/* ─────────── Sources ─────────── */
+/* ─────────── Sources (minimal strip) ─────────── */
 function Sources() {
   const cats: OsintCategory[] = ["leaks", "email", "phone", "ip", "domain", "wallet", "username", "threat", "darkweb", "social"];
   return (
     <section id="sources" className="border-t border-white/5 bg-[#08080A]">
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-24">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-          <div className="max-w-2xl">
-            <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">Источники</div>
-            <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">
-              {OSINT_SOURCES.length}+ открытых OSINT-источников
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Источники</div>
+            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
+              {OSINT_SOURCES.length}+ открытых OSINT-источников · {cats.length} категорий
             </h2>
-            <p className="mt-3 max-w-xl text-[14px] text-zinc-400">
-              Используем общедоступные базы и API. Никаких слитых данных без правовых оснований.
-              Полный перечень — в каждом отчёте.
-            </p>
           </div>
+          <Link href="/trust">
+            <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-sources-all">
+              полный список →
+            </span>
+          </Link>
         </div>
 
-        <div className="space-y-8">
-          {cats.map((cat) => {
-            const items = OSINT_SOURCES.filter((s) => s.category === cat);
-            return (
-              <div key={cat}>
-                <div className="mb-3 flex items-baseline justify-between">
-                  <h3 className="text-[14px] font-medium text-white">{CATEGORY_LABELS[cat].ru}</h3>
-                  <span className="text-[12px] text-zinc-600">{items.length} источников</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {items.map((s) => (
-                    <span
-                      key={s.name}
-                      className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1.5 text-[12.5px] text-zinc-300 transition-colors hover:border-white/20 hover:text-white"
-                      data-testid={`badge-source-${s.name}`}
-                      title={s.url}
-                    >
-                      {s.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <div className="relative">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 py-4 text-[12.5px]">
+            {cats.map((cat, i) => {
+              const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
+              return (
+                <span key={cat} className="inline-flex items-center gap-2 text-zinc-400">
+                  <span className="text-white">{CATEGORY_LABELS[cat].ru}</span>
+                  <span className="font-mono text-[11px] text-zinc-600">{count}</span>
+                  {i < cats.length - 1 && <span className="ml-2 text-zinc-700">·</span>}
+                </span>
+              );
+            })}
+          </div>
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         </div>
       </div>
     </section>
@@ -747,62 +737,43 @@ function Sources() {
 function PricingTeaser() {
   return (
     <section className="border-t border-white/5">
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-24">
-        <div className="mb-10 max-w-2xl">
-          <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">Цены</div>
-          <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">
-            Только то, что нужно. Без скрытых платежей.
-          </h2>
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Цены</div>
+            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
+              Прозрачные тарифы · без скрытых платежей
+            </h2>
+          </div>
+          <Link href="/pricing">
+            <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-pricing-all">
+              все тарифы →
+            </span>
+          </Link>
         </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          {/* Single */}
-          <div className="rounded-2xl border border-white/10 bg-[#0E0E12] p-7">
-            <div className="text-[13px] text-zinc-400">Разовый отчёт</div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-[40px] font-semibold tracking-tight text-white">$3</span>
-              <span className="text-[13px] text-zinc-500">за один отчёт</span>
-            </div>
-            <p className="mt-3 text-[13.5px] text-zinc-400">
-              Полный отчёт по одной цели: все находки, источники, связанные аккаунты, PDF.
-            </p>
-            <ul className="mt-5 space-y-2 text-[13.5px] text-zinc-300">
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/80" /> Полный список находок</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/80" /> Скачиваемый PDF</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/80" /> Без подписки</li>
-            </ul>
-            <Link href="/pricing?single=1">
-              <span className="mt-6 inline-flex h-10 w-full cursor-pointer items-center justify-center rounded-lg border border-white/15 bg-transparent text-[13.5px] font-medium text-white hover:bg-white/5" data-testid="link-pricing-single">
-                Купить отчёт
-              </span>
-            </Link>
-          </div>
 
-          {/* PRO */}
-          <div className="relative rounded-2xl border border-cyan-400/30 bg-gradient-to-b from-cyan-400/[0.04] to-transparent p-7">
-            <div className="absolute right-5 top-5 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-cyan-300">
-              Популярно
-            </div>
-            <div className="text-[13px] text-zinc-400">PRO</div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-[40px] font-semibold tracking-tight text-white">$9</span>
-              <span className="text-[13px] text-zinc-500">в месяц</span>
-            </div>
-            <p className="mt-3 text-[13.5px] text-zinc-400">
-              Всё, что нужно для постоянного контроля своих данных и доменов.
-            </p>
-            <ul className="mt-5 space-y-2 text-[13.5px] text-zinc-300">
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300" /> 200 проверок в месяц</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300" /> Мониторинг утечек 24/7</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300" /> История + экспорт</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300" /> API-доступ</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300" /> Встроенный VPN</li>
-            </ul>
-            <Link href="/pricing?plan=PRO">
-              <span className="mt-6 inline-flex h-10 w-full cursor-pointer items-center justify-center rounded-lg bg-white text-[13.5px] font-medium text-black hover:bg-zinc-200" data-testid="link-pricing-pro">
-                Оформить PRO
+        <div className="relative">
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 px-2 py-5 text-[13px]">
+            {[
+              { name: "Single", price: "$3", note: "за отчёт", href: "/pricing?single=1", testId: "link-price-single" },
+              { name: "PRO", price: "$9", note: "/мес", href: "/pricing?plan=PRO", testId: "link-price-pro", hot: true },
+              { name: "ENTERPRISE", price: "$30", note: "/мес", href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
+              { name: "GROUPS", price: "$45", note: "/мес", href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
+            ].map((p, i, arr) => (
+              <span key={p.name} className="inline-flex items-center gap-3">
+                <Link href={p.href}>
+                  <span className="inline-flex cursor-pointer items-baseline gap-1.5 hover:opacity-90" data-testid={p.testId}>
+                    <span className={`text-[12px] uppercase tracking-wider ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>{p.name}</span>
+                    <span className="text-[18px] font-semibold text-white">{p.price}</span>
+                    <span className="text-[11.5px] text-zinc-500">{p.note}</span>
+                  </span>
+                </Link>
+                {i < arr.length - 1 && <span className="text-zinc-700">·</span>}
               </span>
-            </Link>
+            ))}
           </div>
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         </div>
       </div>
     </section>
