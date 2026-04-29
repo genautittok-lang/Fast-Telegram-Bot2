@@ -133,18 +133,29 @@ function TopBar() {
           <Link href="/api-docs"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-api">API</span></Link>
           <Link href="/guide"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-guide">Guide</span></Link>
           <Link href="/vpn"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-vpn">VPN</span></Link>
-          <a href="#how" className="transition-colors hover:text-white">How it works</a>
+          <Link href="/trust"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-trust">Trust</span></Link>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <LanguageSwitcher />
+          <a
+            href="https://t.me/darkshare_bot"
+            target="_blank"
+            rel="noopener"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-cyan-400/25 bg-cyan-500/10 px-2.5 text-[12.5px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/15 sm:h-9 sm:px-3 sm:text-[13px]"
+            data-testid="link-telegram-bot"
+            aria-label="Open DarkShare Telegram bot"
+          >
+            <Bot className="h-3.5 w-3.5" />
+            <span>Bot</span>
+          </a>
           <Link href="/login">
             <span className="hidden cursor-pointer rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-200 transition-colors hover:bg-white/5 sm:inline-block" data-testid="link-login">
               Sign in
             </span>
           </Link>
           <Link href="/pricing">
-            <span className="cursor-pointer rounded-md bg-white px-3 py-1.5 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200" data-testid="link-pro">
+            <span className="cursor-pointer rounded-md bg-white px-2.5 py-1.5 text-[12.5px] font-medium text-black transition-colors hover:bg-zinc-200 sm:px-3 sm:text-[13px]" data-testid="link-pro">
               Get PRO
             </span>
           </Link>
@@ -243,35 +254,32 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
         />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-5 pt-20 pb-16 sm:pt-28 sm:pb-20 lg:pt-32">
-        <div className="grid items-start gap-12 lg:grid-cols-[1.05fr_minmax(0,440px)] lg:gap-16">
+      <div className="relative mx-auto max-w-6xl px-5 pt-8 pb-12 sm:pt-20 sm:pb-20 lg:pt-28">
+        <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_minmax(0,440px)] lg:gap-16">
           {/* LEFT — copy + form */}
           <div className="lg:pt-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              {OSINT_SOURCES.length}+ live OSINT sources · 14 leak databases · no signup
+            <div className="inline-flex max-w-full items-center gap-2 truncate rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11.5px] text-zinc-400 sm:text-[12px]">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+              <span className="truncate">{OSINT_SOURCES.length}+ live OSINT sources · 14 leak databases · no signup</span>
             </div>
 
             <h1
-              className="mt-6 text-balance text-[40px] font-semibold leading-[1.02] tracking-tight text-white sm:text-[56px] lg:text-[64px]"
+              className="mt-5 text-balance text-[34px] font-semibold leading-[1.05] tracking-tight text-white sm:mt-6 sm:text-[52px] sm:leading-[1.02] lg:text-[64px]"
               data-testid="text-hero-title"
             >
-              Find out what the
-              <br />
-              internet knows
-              <br />
+              Find out what the internet knows{" "}
               <span className="text-cyan-300">about you.</span>
             </h1>
 
             <p
-              className="mt-6 max-w-xl text-[15px] leading-relaxed text-zinc-400 sm:text-[16px]"
+              className="mt-4 max-w-xl text-[14.5px] leading-relaxed text-zinc-400 sm:mt-6 sm:text-[16px]"
               data-testid="text-hero-sub"
             >
               Scan an email, phone, username, wallet, domain or IP across {OSINT_SOURCES.length}+ open
               OSINT sources in seconds. No account required. Real findings, not theatre.
             </p>
 
-            <form onSubmit={submit} className="mt-9 max-w-xl">
+            <form onSubmit={submit} className="mt-7 max-w-xl sm:mt-9">
               <div className="group relative">
                 <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
                   {detected ? typeIcon(detected, "h-4 w-4 text-cyan-300") : <Search className="h-4 w-4" />}
@@ -289,11 +297,11 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                 />
                 <button
                   type="submit"
-                  disabled={loading || !value.trim()}
-                  className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-2 rounded-lg bg-white px-4 text-[13.5px] font-medium text-black transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={loading}
+                  className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-1.5 rounded-lg bg-cyan-400 px-3.5 text-[13.5px] font-semibold text-black shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)] transition-all hover:bg-cyan-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:px-4"
                   data-testid="button-check"
                 >
-                  {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning</> : <>Run scan <ArrowRight className="h-4 w-4" /></>}
+                  {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning</> : <>Scan <ArrowRight className="h-4 w-4" /></>}
                 </button>
               </div>
 

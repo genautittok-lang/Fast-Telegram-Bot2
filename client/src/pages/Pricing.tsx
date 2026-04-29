@@ -730,7 +730,7 @@ function PricingContent() {
                     ✕
                   </button>
 
-                  <div className="flex items-center gap-3.5">
+                  <div className="flex items-center gap-3 pr-12 sm:gap-3.5">
                     {paymentStep === "details" && (
                       <Button
                         size="icon"
@@ -742,7 +742,7 @@ function PricingContent() {
                         <ArrowLeftIcon className="w-4 h-4" />
                       </Button>
                     )}
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
+                    <div className={`shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-lg ${
                       showPaymentModal === "PRO" 
                         ? "bg-gradient-to-br from-cyan-500/30 to-cyan-600/10 border border-cyan-500/30 shadow-cyan-500/20" 
                         : showPaymentModal === "ENTERPRISE"
@@ -757,11 +757,11 @@ function PricingContent() {
                         <Users className="w-5 h-5 text-violet-400" />
                       )}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold font-display" data-testid="text-plan-name">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base sm:text-lg font-bold font-display truncate" data-testid="text-plan-name">
                         {showPaymentModal} {t('pricing.planLabel')}
                       </h3>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="text-muted-foreground text-[11.5px] sm:text-xs truncate">
                         {isYearly ? t('pricing.yearlySubscription') : t('pricing.monthlySubscription')} — {getFinalAmount(showPaymentModal) < getPrice(showPaymentModal) ? (
                           <>
                             <span className="line-through text-muted-foreground/50">${getPrice(showPaymentModal)}</span>{" "}
