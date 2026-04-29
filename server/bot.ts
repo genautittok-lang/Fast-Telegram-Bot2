@@ -4,7 +4,7 @@ import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGe
 import { performCheck, CheckResult, validateInput, extractExifFromBuffer } from "./checkService";
 import { t, Language, languageNames } from "./i18n";
 import { generateWireGuardKeyPair, generatePresharedKey, allocatePeerIp, buildPeerConfig, isProTier } from "./vpn";
-import { pe, setEmoji, clearEmoji, getMappings, extractCustomEmojis, escHtml } from "./premiumEmoji";
+import { pe, setEmoji, clearEmoji, getMappings, extractCustomEmojis, escHtml, suggestSlotForEmoji } from "./premiumEmoji";
 
 interface BotContext extends Context {}
 
@@ -951,52 +951,136 @@ ${lang === "uk" ? "Привіт" : lang === "ru" ? "Привет" : "Hi"}, *${gr
 
   /* ───────── Premium emoji admin commands ───────── */
 
-  bot.command("emojiid", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    if (!isAdmin(tgId)) return;
+  // Persistent capture mode set — while admin's tg_id is here, every message
+  // they send (text with premium emojis OR a sticker) is parsed and IDs returned.
+  const emojiCaptureMode = new Set<string>();
 
-    // 1) Reply to a message that contains premium emojis
-    const replied = (ctx.message as any).reply_to_message;
-    let captured: ReturnType<typeof extractCustomEmojis> = [];
-
-    if (replied && (replied.text || replied.caption)) {
-      const text = replied.text || replied.caption || "";
-      const entities = replied.entities || replied.caption_entities;
-      captured = extractCustomEmojis(text, entities);
-    } else {
-      // 2) Or include emojis in the same message after the command
-      const text = ctx.message.text || "";
-      const entities = (ctx.message as any).entities || [];
-      // Skip the /emojiid bot_command entity itself by reusing all custom_emoji entities
-      captured = extractCustomEmojis(text, entities);
-    }
-
-    if (!captured.length) {
-      return ctx.reply(
-        "🎨 *Premium emoji capture*\n\n" +
-        "Надішли преміум-емодзі двома способами:\n" +
-        "• Reply на повідомлення з преміум-емодзі + команда `/emojiid`\n" +
-        "• Або просто `/emojiid 🛡🔥💎` (з преміум-емодзі в тексті)\n\n" +
-        "Я витягну `custom_emoji_id` для кожного.",
-        { parse_mode: "Markdown" },
-      );
-    }
-
+  function formatCaptureReply(captured: ReturnType<typeof extractCustomEmojis>): string {
     const lines = captured.map((c, i) => {
-      const slot = c.suggestedSlot ? `(slot: \`${c.suggestedSlot}\`)` : "(no slot match — pick one)";
+      const slot = c.suggestedSlot ? `(slot: \`${c.suggestedSlot}\`)` : "(no slot match — pick manually)";
       return `${i + 1}. ${c.fallback}  →  \`${c.customEmojiId}\`  ${slot}`;
     });
     const setLines = captured.map((c) => {
       const slot = c.suggestedSlot || "<slot>";
       return `\`/setemoji ${slot} ${c.customEmojiId} ${c.fallback}\``;
     });
-
-    await ctx.reply(
+    return (
       `🎨 *Знайдено ${captured.length} преміум-емодзі:*\n\n` +
       lines.join("\n") +
-      `\n\n*Швидке прив'язування:*\n` +
-      setLines.join("\n") +
-      `\n\nДоступні слоти: /listemojis`,
+      `\n\n*Швидке прив'язування — копіюй та виконуй:*\n` +
+      setLines.join("\n")
+    );
+  }
+
+  bot.command("emojiid", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) {
+      return ctx.reply(
+        `🚫 Команда лише для адмінів.\nВаш Telegram ID: \`${tgId}\`\n` +
+          `Поточні адміни: \`${ADMIN_IDS.join(", ")}\`\n\n` +
+          `Якщо ви адмін — додайте свій ID у змінну середовища ADMIN_IDS.`,
+        { parse_mode: "Markdown" },
+      );
+    }
+
+    const args = ctx.message.text.split(/\s+/).slice(1);
+    const sub = (args[0] || "").toLowerCase();
+
+    // Explicit on/off toggle
+    if (sub === "on" || sub === "start") {
+      emojiCaptureMode.add(tgId);
+      return ctx.reply(
+        "🟢 *Capture mode ON.*\n\n" +
+          "Тепер шли мені:\n" +
+          "• Повідомлення з преміум-емодзі (просто 🛡🔥💎 у тексті)\n" +
+          "• Преміум-стікери (sticker-pack або custom_emoji-стікери)\n\n" +
+          "На кожне я поверну `custom_emoji_id` + готову команду `/setemoji`.\n\n" +
+          "Вимкнути: `/emojiid off`",
+        { parse_mode: "Markdown" },
+      );
+    }
+    if (sub === "off" || sub === "stop") {
+      emojiCaptureMode.delete(tgId);
+      return ctx.reply("🔴 Capture mode OFF.");
+    }
+
+    // 1) Reply to a message with premium emojis
+    const replied = (ctx.message as any).reply_to_message;
+    let captured: ReturnType<typeof extractCustomEmojis> = [];
+    if (replied && (replied.text || replied.caption)) {
+      const text = replied.text || replied.caption || "";
+      const entities = replied.entities || replied.caption_entities;
+      captured = extractCustomEmojis(text, entities);
+    } else {
+      // 2) Inline emojis in the same message
+      const text = ctx.message.text || "";
+      const entities = (ctx.message as any).entities || [];
+      captured = extractCustomEmojis(text, entities);
+    }
+
+    // 3) If admin replied to a sticker
+    if (!captured.length && replied?.sticker) {
+      const s = replied.sticker;
+      const fallback = s.emoji || "⭐";
+      const sId = s.custom_emoji_id || s.file_unique_id;
+      return ctx.reply(
+        `🎨 *Sticker info:*\n` +
+          `Emoji: ${fallback}\n` +
+          `\`custom_emoji_id\`: ${s.custom_emoji_id ? `\`${s.custom_emoji_id}\`` : "_(this is a regular sticker, not a premium custom emoji — only premium custom emojis can be embedded in messages)_"}\n` +
+          `\`file_id\`: \`${s.file_id}\`\n` +
+          `\`set_name\`: \`${s.set_name || "—"}\`\n` +
+          (s.custom_emoji_id
+            ? `\n*Швидке прив'язування:*\n\`/setemoji <slot> ${s.custom_emoji_id} ${fallback}\``
+            : ""),
+        { parse_mode: "Markdown" },
+      );
+    }
+
+    if (!captured.length) {
+      // Auto-enable capture mode for convenience
+      emojiCaptureMode.add(tgId);
+      return ctx.reply(
+        "🎨 *Premium emoji capture* — режим увімкнено автоматично.\n\n" +
+          "Тепер просто шли мені:\n" +
+          "• Преміум-емодзі в тексті: `🛡🔥💎` (з твого преміум-набору)\n" +
+          "• Або преміум-стікер (тільки `custom_emoji`-тип містить ID)\n\n" +
+          "На кожне я поверну `custom_emoji_id`.\n\n" +
+          "Вимкнути: `/emojiid off`",
+        { parse_mode: "Markdown" },
+      );
+    }
+
+    await ctx.reply(formatCaptureReply(captured), { parse_mode: "Markdown" });
+  });
+
+  // Sticker handler — when admin sends a sticker, return its custom_emoji_id (if any)
+  bot.on("sticker", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return;
+    if (!emojiCaptureMode.has(tgId)) return;
+
+    const s = (ctx.message as any).sticker;
+    if (!s) return;
+    const fallback = s.emoji || "⭐";
+    if (s.custom_emoji_id) {
+      const slot = suggestSlotForEmoji(fallback);
+      return ctx.reply(
+        `🎨 *Premium custom emoji captured:*\n\n` +
+          `Emoji: ${fallback}\n` +
+          `\`custom_emoji_id\`: \`${s.custom_emoji_id}\`\n` +
+          `Suggested slot: \`${slot || "<pick>"}\`\n\n` +
+          `*Швидке прив'язування:*\n\`/setemoji ${slot || "<slot>"} ${s.custom_emoji_id} ${fallback}\``,
+        { parse_mode: "Markdown" },
+      );
+    }
+    // Regular sticker — no premium emoji ID, just info
+    return ctx.reply(
+      `ℹ️ Це звичайний *стікер*, а не преміум-емодзі.\n` +
+        `Преміум-емодзі — це ті, які ти набираєш у текст з клавіатури (тип \`custom_emoji\`).\n\n` +
+        `Sticker info:\n` +
+        `\`file_id\`: \`${s.file_id}\`\n` +
+        `\`set_name\`: \`${s.set_name || "—"}\`\n` +
+        `Emoji label: ${fallback}`,
       { parse_mode: "Markdown" },
     );
   });
@@ -1251,6 +1335,18 @@ ${referralStats.count >= 5 ? "✅" : "⬜"} 📣 5+`;
   bot.on("text", async (ctx) => {
     const text = ctx.message.text;
     const tgId = ctx.from!.id.toString();
+
+    // Premium emoji capture mode — intercept any text from admin that contains
+    // custom_emoji entities and respond with their IDs.
+    if (isAdmin(tgId) && emojiCaptureMode.has(tgId) && !text.startsWith("/")) {
+      const entities = (ctx.message as any).entities || [];
+      const captured = extractCustomEmojis(text, entities);
+      if (captured.length) {
+        await ctx.reply(formatCaptureReply(captured), { parse_mode: "Markdown" });
+        return;
+      }
+    }
+
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     const state = userStates.get(tgId);
