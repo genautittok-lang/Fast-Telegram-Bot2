@@ -638,12 +638,26 @@ function WhatWeCheck() {
         {/* thin pro divider line */}
         <div className="relative">
           <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent" />
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 px-2 py-5">
+
+          {/* Mobile: clean 3-col grid; sm+: single inline strip with dot separators */}
+          <div className="grid grid-cols-3 gap-x-2 gap-y-3 px-2 py-5 sm:hidden">
+            {items.map(({ Icon, title }) => (
+              <span
+                key={title}
+                className="inline-flex items-center justify-center gap-1.5 text-[12px] text-zinc-300"
+                data-testid={`chip-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0 text-cyan-300/80" />
+                <span className="truncate">{title}</span>
+              </span>
+            ))}
+          </div>
+
+          <div className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-3 px-2 py-5 sm:flex">
             {items.map(({ Icon, title }, i) => (
               <span
                 key={title}
                 className="inline-flex items-center gap-1.5 text-[12.5px] text-zinc-400 transition-colors hover:text-white"
-                data-testid={`chip-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 <Icon className="h-3.5 w-3.5 text-cyan-300/80" />
                 <span>{title}</span>
@@ -651,6 +665,7 @@ function WhatWeCheck() {
               </span>
             ))}
           </div>
+
           <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent" />
         </div>
       </div>
@@ -676,16 +691,25 @@ function HowItWorks() {
             </h2>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3 rounded-xl border border-white/10 bg-[#0A0A0C] px-5 py-5">
-          {steps.map((s, i) => (
-            <span key={s.n} className="inline-flex items-center gap-3" data-testid={`step-${s.n}`}>
-              <span className="font-mono text-[11px] text-cyan-300/70">{s.n}</span>
-              <span className="text-[13.5px] text-white">{s.t}</span>
-              {i < steps.length - 1 && (
-                <span className="mx-3 text-zinc-700">→</span>
-              )}
-            </span>
-          ))}
+        {/* Mobile: vertical stacked steps; sm+: single horizontal line */}
+        <div className="rounded-xl border border-white/10 bg-[#0A0A0C] px-5 py-5">
+          <div className="flex flex-col gap-3 sm:hidden">
+            {steps.map((s) => (
+              <div key={s.n} className="flex items-center gap-3" data-testid={`step-${s.n}`}>
+                <span className="font-mono text-[11px] text-cyan-300/70">{s.n}</span>
+                <span className="text-[13.5px] text-white">{s.t}</span>
+              </div>
+            ))}
+          </div>
+          <div className="hidden flex-wrap items-center justify-center gap-x-2 gap-y-3 sm:flex">
+            {steps.map((s, i) => (
+              <span key={s.n} className="inline-flex items-center gap-3">
+                <span className="font-mono text-[11px] text-cyan-300/70">{s.n}</span>
+                <span className="text-[13.5px] text-white">{s.t}</span>
+                {i < steps.length - 1 && <span className="mx-3 text-zinc-700">→</span>}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -714,7 +738,21 @@ function Sources() {
 
         <div className="relative">
           <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 py-4 text-[12.5px]">
+
+          {/* Mobile: 2-col tidy grid; sm+: single inline strip */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 px-2 py-4 text-[12.5px] sm:hidden">
+            {cats.map((cat) => {
+              const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
+              return (
+                <span key={cat} className="inline-flex items-baseline justify-between gap-2">
+                  <span className="text-white">{CATEGORY_LABELS[cat].ru}</span>
+                  <span className="font-mono text-[11px] text-zinc-600">{count}</span>
+                </span>
+              );
+            })}
+          </div>
+
+          <div className="hidden flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 py-4 text-[12.5px] sm:flex">
             {cats.map((cat, i) => {
               const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
               return (
@@ -726,6 +764,7 @@ function Sources() {
               );
             })}
           </div>
+
           <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         </div>
       </div>
@@ -752,29 +791,58 @@ function PricingTeaser() {
           </Link>
         </div>
 
-        <div className="relative">
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 px-2 py-5 text-[13px]">
-            {[
-              { name: "Single", price: "$3", note: "за отчёт", href: "/pricing?single=1", testId: "link-price-single" },
-              { name: "PRO", price: "$9", note: "/мес", href: "/pricing?plan=PRO", testId: "link-price-pro", hot: true },
-              { name: "ENTERPRISE", price: "$30", note: "/мес", href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
-              { name: "GROUPS", price: "$45", note: "/мес", href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
-            ].map((p, i, arr) => (
-              <span key={p.name} className="inline-flex items-center gap-3">
-                <Link href={p.href}>
-                  <span className="inline-flex cursor-pointer items-baseline gap-1.5 hover:opacity-90" data-testid={p.testId}>
-                    <span className={`text-[12px] uppercase tracking-wider ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>{p.name}</span>
-                    <span className="text-[18px] font-semibold text-white">{p.price}</span>
-                    <span className="text-[11.5px] text-zinc-500">{p.note}</span>
+        {(() => {
+          const plans = [
+            { name: "Single", price: "$3", note: "за отчёт", href: "/pricing?single=1", testId: "link-price-single" },
+            { name: "PRO", price: "$9", note: "/мес", href: "/pricing?plan=PRO", testId: "link-price-pro", hot: true },
+            { name: "ENTERPRISE", price: "$30", note: "/мес", href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
+            { name: "GROUPS", price: "$45", note: "/мес", href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
+          ];
+          return (
+            <div className="relative">
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+              {/* Mobile: 2x2 grid of plan tiles; sm+: single inline strip */}
+              <div className="grid grid-cols-2 gap-2 px-2 py-4 sm:hidden">
+                {plans.map((p) => (
+                  <Link key={p.name} href={p.href}>
+                    <span
+                      className={`flex cursor-pointer flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 transition-colors ${
+                        p.hot
+                          ? "border-cyan-400/40 bg-cyan-400/[0.04] hover:border-cyan-300"
+                          : "border-white/10 bg-[#0A0A0C] hover:border-white/20"
+                      }`}
+                      data-testid={p.testId}
+                    >
+                      <span className={`text-[11px] uppercase tracking-wider ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>{p.name}</span>
+                      <span className="flex items-baseline gap-1">
+                        <span className="text-[18px] font-semibold text-white">{p.price}</span>
+                        <span className="text-[11px] text-zinc-500">{p.note}</span>
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="hidden flex-wrap items-center justify-center gap-x-6 gap-y-3 px-2 py-5 text-[13px] sm:flex">
+                {plans.map((p, i, arr) => (
+                  <span key={p.name} className="inline-flex items-center gap-3">
+                    <Link href={p.href}>
+                      <span className="inline-flex cursor-pointer items-baseline gap-1.5 hover:opacity-90">
+                        <span className={`text-[12px] uppercase tracking-wider ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>{p.name}</span>
+                        <span className="text-[18px] font-semibold text-white">{p.price}</span>
+                        <span className="text-[11.5px] text-zinc-500">{p.note}</span>
+                      </span>
+                    </Link>
+                    {i < arr.length - 1 && <span className="text-zinc-700">·</span>}
                   </span>
-                </Link>
-                {i < arr.length - 1 && <span className="text-zinc-700">·</span>}
-              </span>
-            ))}
-          </div>
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        </div>
+                ))}
+              </div>
+
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            </div>
+          );
+        })()}
       </div>
     </section>
   );
