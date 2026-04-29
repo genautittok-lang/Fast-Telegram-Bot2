@@ -1,64 +1,312 @@
 {
-  "shield":     { "id": "5902016123972358349", "fallback": "🛡",  "description": "Захист, головна іконка бренду" },
-  "fire":       { "id": "5893185207355315979", "fallback": "🔥",  "description": "Гарячі/нові пропозиції, акції" },
-  "star":       { "id": "5893494861612455015", "fallback": "⭐",  "description": "Преміум, оцінка, важливе" },
-  "warning":    { "id": "5904692292324692386", "fallback": "⚠️",  "description": "Попередження середнього ризику" },
-  "check":      { "id": "6041919344995209164", "fallback": "✅",  "description": "Успішна дія, підтвердження" },
-  "cross":      { "id": "5893163582194978381", "fallback": "❌",  "description": "Помилка, відмова, відхилення" },
-  "rocket":     { "id": "6041705726206808304", "fallback": "🚀",  "description": "Старт, апгрейд, оновлення" },
-  "crown":      { "id": "",                    "fallback": "👑",  "description": "ENTERPRISE / VIP / адмін" },
-  "diamond":    { "id": "",                    "fallback": "💎",  "description": "PRO тариф, ексклюзивне" },
-  "eye":        { "id": "",                    "fallback": "👁",  "description": "Моніторинг, спостереження" },
-  "lock":       { "id": "",                    "fallback": "🔒",  "description": "Безпека, шифрування, 2FA" },
-  "key":        { "id": "",                    "fallback": "🔑",  "description": "API-ключ, доступ" },
-  "zap":        { "id": "5920515922505765329", "fallback": "⚡",  "description": "Швидко, миттєво" },
-  "globe":      { "id": "6039709013090768335", "fallback": "🌐",  "description": "Мова, інтернет, IP" },
-  "bug":        { "id": "5893293174243201165", "fallback": "🕷",  "description": "CVE / вразливості / павук" },
-  "search":     { "id": "5893382531037794941", "fallback": "🔎",  "description": "Перевірка, пошук" },
-  "bot":        { "id": "",                    "fallback": "🤖",  "description": "Бот, AI, автоматизація" },
-  "bell":       { "id": "",                    "fallback": "🔔",  "description": "Сповіщення, алерт" },
-  "pin":        { "id": "5895440460322706085", "fallback": "📌",  "description": "Закріплене, важливе" },
-  "scroll":     { "id": "5937999673510858217", "fallback": "🎞",  "description": "Звіт, документ, плівка" },
-  "chart":      { "id": "5895444149699612825", "fallback": "📊",  "description": "Статистика, дашборд" },
-  "card":       { "id": "5902056028513505203", "fallback": "💳",  "description": "Оплата, картка" },
-  "money":      { "id": "5893473283696759404", "fallback": "💰",  "description": "Тарифи, ціна" },
-  "envelope":   { "id": "",                    "fallback": "✉️",  "description": "Email, повідомлення" },
-  "wave":       { "id": "",                    "fallback": "👋",  "description": "Привітання" },
-  "party":      { "id": "",                    "fallback": "🎉",  "description": "Успіх, святкування" },
-  "link":       { "id": "5902449142575141204", "fallback": "🔗",  "description": "Посилання, реферал" },
-  "people":     { "id": "",                    "fallback": "👥",  "description": "Команда, реферали" },
-  "gift":       { "id": "",                    "fallback": "🎁",  "description": "Бонус, подарунок" },
-  "thinking":   { "id": "6043960760130868895", "fallback": "🤔",  "description": "Стан невизначеності" },
-  "rocket_up":  { "id": "",                    "fallback": "📈",  "description": "Зростання, апгрейд" },
-  "arrow":      { "id": "",                    "fallback": "➡️",  "description": "Перехід, далі" },
-  "back":       { "id": "",                    "fallback": "⬅️",  "description": "Назад" },
-  "cog":        { "id": "5893161718179173515", "fallback": "⚙️",  "description": "Налаштування" },
-  "ghost":      { "id": "",                    "fallback": "👻",  "description": "Анонім, прихований" },
-  "sparkle":    { "id": "5893321843149902412", "fallback": "✨",  "description": "Магія, AI-фіча" },
-  "trophy":     { "id": "",                    "fallback": "🏆",  "description": "Досягнення, лідер" },
-  "high_risk":  { "id": "",                    "fallback": "🔴",  "description": "Високий ризик" },
-  "med_risk":   { "id": "",                    "fallback": "🟡",  "description": "Середній ризик" },
-  "low_risk":   { "id": "",                    "fallback": "🟢",  "description": "Низький ризик / OK" },
-  "heart":      { "id": "5938368005611195877", "fallback": "❤️",  "description": "Подобається, фаворит" },
-  "music":      { "id": "5938473438468378529", "fallback": "🎶",  "description": "Аудіо/музика" },
-  "plane":      { "id": "5893333516871012690", "fallback": "✈️",  "description": "Telegram-повідомлення / швидко" },
-  "phone":      { "id": "5893297890117292323", "fallback": "📞",  "description": "Телефон, контакт" },
-  "briefcase":  { "id": "5893255507380014983", "fallback": "💼",  "description": "Бізнес, корпоративне" },
-  "bulb":       { "id": "5893290369629556374", "fallback": "💡",  "description": "Підказка, ідея" },
-  "bang":       { "id": "5893072412924187198", "fallback": "❗️",  "description": "Важливо, увага" },
-  "mobile":     { "id": "5895652322469482989", "fallback": "📱",  "description": "Мобільний / телефон" },
-  "happy":      { "id": "6043996047582170909", "fallback": "😀",  "description": "Радість, успіх" },
-  "thumbsup":   { "id": "6041720006973067267", "fallback": "👍",  "description": "Схвалення" },
-  "thumbsdown": { "id": "6041716699848249286", "fallback": "👎",  "description": "Несхвалення" },
-  "clap":       { "id": "5994417835630137549", "fallback": "👏",  "description": "Аплодисменти" },
-  "trash":      { "id": "5904542823167824187", "fallback": "🗑",  "description": "Видалення" },
-  "forbidden":  { "id": "5904238507555033712", "fallback": "⛔️",  "description": "Заборонено" },
-  "user":       { "id": "5902335789798265487", "fallback": "👤",  "description": "Користувач, профіль" },
-  "soon":       { "id": "5893368370530621889", "fallback": "🔜",  "description": "Скоро / coming soon" },
-  "sun":        { "id": "5893080732275840699", "fallback": "☀️",  "description": "День / світла тема" },
-  "snow":       { "id": "5893162100431261050", "fallback": "❄️",  "description": "Зима / преміум-холод" },
-  "home":       { "id": "5938537205847822613", "fallback": "🏡",  "description": "Головна, домівка" },
-  "game":       { "id": "5938413566624272793", "fallback": "🎮",  "description": "Геймінг" },
-  "camera":     { "id": "5881806211195605908", "fallback": "📸",  "description": "Фото, EXIF" },
-  "ban":        { "id": "5938071395169734715", "fallback": "🚫",  "description": "Заборона" }
+  "shield": {
+    "id": "5902016123972358349",
+    "fallback": "🛡",
+    "description": "Захист, головна іконка бренду"
+  },
+  "fire": {
+    "id": "5893185207355315979",
+    "fallback": "🔥",
+    "description": "Гарячі/нові пропозиції, акції"
+  },
+  "star": {
+    "id": "5893494861612455015",
+    "fallback": "⭐",
+    "description": "Преміум, оцінка, важливе"
+  },
+  "warning": {
+    "id": "5904692292324692386",
+    "fallback": "⚠️",
+    "description": "Попередження середнього ризику"
+  },
+  "check": {
+    "id": "6041919344995209164",
+    "fallback": "✅",
+    "description": "Успішна дія, підтвердження"
+  },
+  "cross": {
+    "id": "5893163582194978381",
+    "fallback": "❌",
+    "description": "Помилка, відмова, відхилення"
+  },
+  "rocket": {
+    "id": "6041705726206808304",
+    "fallback": "🚀",
+    "description": "Старт, апгрейд, оновлення"
+  },
+  "crown": {
+    "id": "5291981754050028585",
+    "fallback": "👑",
+    "description": "ENTERPRISE / VIP / адмін"
+  },
+  "diamond": {
+    "id": "5285248761453374652",
+    "fallback": "💎",
+    "description": "PRO тариф, ексклюзивне"
+  },
+  "eye": {
+    "id": "5372979683291835136",
+    "fallback": "👁",
+    "description": "Моніторинг, спостереження"
+  },
+  "lock": {
+    "id": "5231450353290976069",
+    "fallback": "🔒",
+    "description": "Безпека, шифрування, 2FA"
+  },
+  "key": {
+    "id": "5229153645299245972",
+    "fallback": "🔑",
+    "description": "API-ключ, доступ"
+  },
+  "zap": {
+    "id": "5920515922505765329",
+    "fallback": "⚡",
+    "description": "Швидко, миттєво"
+  },
+  "globe": {
+    "id": "6039709013090768335",
+    "fallback": "🌐",
+    "description": "Мова, інтернет, IP"
+  },
+  "bug": {
+    "id": "5893293174243201165",
+    "fallback": "🕷",
+    "description": "CVE / вразливості / павук"
+  },
+  "search": {
+    "id": "5893382531037794941",
+    "fallback": "🔎",
+    "description": "Перевірка, пошук"
+  },
+  "bot": {
+    "id": "5431490770089560625",
+    "fallback": "🤖",
+    "description": "Бот, AI, автоматизація"
+  },
+  "bell": {
+    "id": "",
+    "fallback": "🔔",
+    "description": "Сповіщення, алерт"
+  },
+  "pin": {
+    "id": "5895440460322706085",
+    "fallback": "📌",
+    "description": "Закріплене, важливе"
+  },
+  "scroll": {
+    "id": "5937999673510858217",
+    "fallback": "🎞",
+    "description": "Звіт, документ, плівка"
+  },
+  "chart": {
+    "id": "5895444149699612825",
+    "fallback": "📊",
+    "description": "Статистика, дашборд"
+  },
+  "card": {
+    "id": "5902056028513505203",
+    "fallback": "💳",
+    "description": "Оплата, картка"
+  },
+  "money": {
+    "id": "5893473283696759404",
+    "fallback": "💰",
+    "description": "Тарифи, ціна"
+  },
+  "envelope": {
+    "id": "5291812201626084541",
+    "fallback": "✉️",
+    "description": "Email, повідомлення"
+  },
+  "wave": {
+    "id": "5407076281898512830",
+    "fallback": "👋",
+    "description": "Привітання"
+  },
+  "party": {
+    "id": "",
+    "fallback": "🎉",
+    "description": "Успіх, святкування"
+  },
+  "link": {
+    "id": "5902449142575141204",
+    "fallback": "🔗",
+    "description": "Посилання, реферал"
+  },
+  "people": {
+    "id": "5292027658660488873",
+    "fallback": "👥",
+    "description": "Команда, реферали"
+  },
+  "gift": {
+    "id": "5411271889421086677",
+    "fallback": "🎁",
+    "description": "Бонус, подарунок"
+  },
+  "thinking": {
+    "id": "6043960760130868895",
+    "fallback": "🤔",
+    "description": "Стан невизначеності"
+  },
+  "rocket_up": {
+    "id": "5291853184204023905",
+    "fallback": "📈",
+    "description": "Зростання, апгрейд"
+  },
+  "arrow": {
+    "id": "5291892070837921372",
+    "fallback": "▶️",
+    "description": "Перехід, далі"
+  },
+  "back": {
+    "id": "5363896514655564837",
+    "fallback": "⬅️",
+    "description": "Назад"
+  },
+  "cog": {
+    "id": "5893161718179173515",
+    "fallback": "⚙️",
+    "description": "Налаштування"
+  },
+  "ghost": {
+    "id": "5402069969234043254",
+    "fallback": "👻",
+    "description": "Анонім, прихований"
+  },
+  "sparkle": {
+    "id": "5893321843149902412",
+    "fallback": "✨",
+    "description": "Магія, AI-фіча"
+  },
+  "trophy": {
+    "id": "5893376775781617954",
+    "fallback": "🏆",
+    "description": "Досягнення, лідер"
+  },
+  "high_risk": {
+    "id": "5291787819096745578",
+    "fallback": "🔴",
+    "description": "Високий ризик"
+  },
+  "med_risk": {
+    "id": "5291822866029882345",
+    "fallback": "🟡",
+    "description": "Середній ризик"
+  },
+  "low_risk": {
+    "id": "5292034513428296116",
+    "fallback": "🟢",
+    "description": "Низький ризик / OK"
+  },
+  "heart": {
+    "id": "5938368005611195877",
+    "fallback": "❤️",
+    "description": "Подобається, фаворит"
+  },
+  "music": {
+    "id": "5938473438468378529",
+    "fallback": "🎶",
+    "description": "Аудіо/музика"
+  },
+  "plane": {
+    "id": "5893333516871012690",
+    "fallback": "✈️",
+    "description": "Telegram-повідомлення / швидко"
+  },
+  "phone": {
+    "id": "5893297890117292323",
+    "fallback": "📞",
+    "description": "Телефон, контакт"
+  },
+  "briefcase": {
+    "id": "5893255507380014983",
+    "fallback": "💼",
+    "description": "Бізнес, корпоративне"
+  },
+  "bulb": {
+    "id": "5893290369629556374",
+    "fallback": "💡",
+    "description": "Підказка, ідея"
+  },
+  "bang": {
+    "id": "5893072412924187198",
+    "fallback": "❗️",
+    "description": "Важливо, увага"
+  },
+  "mobile": {
+    "id": "5895652322469482989",
+    "fallback": "📱",
+    "description": "Мобільний / телефон"
+  },
+  "happy": {
+    "id": "6043996047582170909",
+    "fallback": "😀",
+    "description": "Радість, успіх"
+  },
+  "thumbsup": {
+    "id": "6041720006973067267",
+    "fallback": "👍",
+    "description": "Схвалення"
+  },
+  "thumbsdown": {
+    "id": "6041716699848249286",
+    "fallback": "👎",
+    "description": "Несхвалення"
+  },
+  "clap": {
+    "id": "5994417835630137549",
+    "fallback": "👏",
+    "description": "Аплодисменти"
+  },
+  "trash": {
+    "id": "5904542823167824187",
+    "fallback": "🗑",
+    "description": "Видалення"
+  },
+  "forbidden": {
+    "id": "5904238507555033712",
+    "fallback": "⛔️",
+    "description": "Заборонено"
+  },
+  "user": {
+    "id": "5902335789798265487",
+    "fallback": "👤",
+    "description": "Користувач, профіль"
+  },
+  "soon": {
+    "id": "5893368370530621889",
+    "fallback": "🔜",
+    "description": "Скоро / coming soon"
+  },
+  "sun": {
+    "id": "5893080732275840699",
+    "fallback": "☀️",
+    "description": "День / світла тема"
+  },
+  "snow": {
+    "id": "5893162100431261050",
+    "fallback": "❄️",
+    "description": "Зима / преміум-холод"
+  },
+  "home": {
+    "id": "5938537205847822613",
+    "fallback": "🏡",
+    "description": "Головна, домівка"
+  },
+  "game": {
+    "id": "5938413566624272793",
+    "fallback": "🎮",
+    "description": "Геймінг"
+  },
+  "camera": {
+    "id": "5881806211195605908",
+    "fallback": "📸",
+    "description": "Фото, EXIF"
+  },
+  "ban": {
+    "id": "5938071395169734715",
+    "fallback": "🚫",
+    "description": "Заборона"
+  }
 }
