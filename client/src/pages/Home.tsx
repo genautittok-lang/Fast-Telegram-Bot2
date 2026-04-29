@@ -17,6 +17,13 @@ import {
   Eye,
   Database,
   Activity,
+  Hash,
+  CreditCard,
+  Bug,
+  Bot,
+  KeyRound,
+  Sparkles,
+  Network,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -154,6 +161,15 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   const detected = useMemo(() => detectType(value), [value]);
   const resultRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isLg, setIsLg] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsLg(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   async function submit(e?: React.FormEvent) {
     e?.preventDefault();
@@ -202,85 +218,238 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
 
   return (
     <section className="relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(34,211,238,0.12), transparent 60%)",
-        }}
-      />
-      <div className="relative mx-auto max-w-3xl px-5 pt-24 pb-20 text-center sm:pt-32 sm:pb-28">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          150+ источников · 14 баз утечек · realtime
-        </div>
+      {/* Background layer */}
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-x-0 top-0 h-[640px]"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.10), transparent 65%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)",
+          }}
+        />
+      </div>
 
-        <h1 className="text-balance text-[40px] font-semibold leading-[1.05] tracking-tight text-white sm:text-[56px]" data-testid="text-hero-title">
-          Проверь, попали ли твои данные в утечки.
-        </h1>
-        <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-zinc-400 sm:text-[16px]" data-testid="text-hero-sub">
-          Email, телефон, username, кошелёк, домен или IP — анализ из десятков OSINT-источников за 10 секунд.
-          Без регистрации.
-        </p>
-
-        <form onSubmit={submit} className="mx-auto mt-10 max-w-xl">
-          <div className="group relative">
-            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
-              {detected ? typeIcon(detected, "h-4 w-4 text-cyan-300") : <Search className="h-4 w-4" />}
+      <div className="relative mx-auto max-w-6xl px-5 pt-20 pb-16 sm:pt-28 sm:pb-20 lg:pt-32">
+        <div className="grid items-start gap-12 lg:grid-cols-[1.05fr_minmax(0,440px)] lg:gap-16">
+          {/* LEFT — copy + form */}
+          <div className="lg:pt-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              {OSINT_SOURCES.length}+ live OSINT sources · 14 leak databases · no signup
             </div>
-            <input
-              ref={inputRef}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="email, телефон, username, кошелёк, домен или IP"
-              className="h-14 w-full rounded-xl border border-white/10 bg-[#111114] pl-11 pr-36 text-[15px] text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-cyan-400/50"
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              data-testid="input-target"
-            />
-            <button
-              type="submit"
-              disabled={loading || !value.trim()}
-              className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-2 rounded-lg bg-white px-4 text-[13.5px] font-medium text-black transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
-              data-testid="button-check"
+
+            <h1
+              className="mt-6 text-balance text-[40px] font-semibold leading-[1.02] tracking-tight text-white sm:text-[56px] lg:text-[64px]"
+              data-testid="text-hero-title"
             >
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Сканирую</> : <>Проверить <ArrowRight className="h-4 w-4" /></>}
-            </button>
-          </div>
+              Find out what the
+              <br />
+              internet knows
+              <br />
+              <span className="text-cyan-300">about you.</span>
+            </h1>
 
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[12px] text-zinc-500">
-            {detected ? (
-              <span className="inline-flex items-center gap-1.5 text-cyan-300/90" data-testid="text-detected">
-                {typeIcon(detected, "h-3 w-3")} распознано: {typeLabel(detected)}
-              </span>
-            ) : (
-              <span>Анонимно · 3 проверки в сутки бесплатно</span>
-            )}
-            <span className="text-zinc-700">·</span>
-            <span>SSL · логи не хранятся</span>
-            {stats && stats.checksToday > 0 ? (
-              <>
+            <p
+              className="mt-6 max-w-xl text-[15px] leading-relaxed text-zinc-400 sm:text-[16px]"
+              data-testid="text-hero-sub"
+            >
+              Scan an email, phone, username, wallet, domain or IP across 150+ open
+              OSINT sources in seconds. No account required. Real findings, not theatre.
+            </p>
+
+            <form onSubmit={submit} className="mt-9 max-w-xl">
+              <div className="group relative">
+                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                  {detected ? typeIcon(detected, "h-4 w-4 text-cyan-300") : <Search className="h-4 w-4" />}
+                </div>
+                <input
+                  ref={inputRef}
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder="email · phone · username · wallet · domain · IP"
+                  className="h-14 w-full rounded-xl border border-white/10 bg-[#111114] pl-11 pr-36 text-[15px] text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-cyan-400/60"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  data-testid="input-target"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !value.trim()}
+                  className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-2 rounded-lg bg-white px-4 text-[13.5px] font-medium text-black transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  data-testid="button-check"
+                >
+                  {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning</> : <>Run scan <ArrowRight className="h-4 w-4" /></>}
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-zinc-500">
+                {detected ? (
+                  <span className="inline-flex items-center gap-1.5 text-cyan-300/90" data-testid="text-detected">
+                    {typeIcon(detected, "h-3 w-3")} detected: {typeLabel(detected)}
+                  </span>
+                ) : (
+                  <span>3 anonymous scans / day · no signup</span>
+                )}
                 <span className="text-zinc-700">·</span>
-                <span data-testid="text-stats-today">{stats.checksToday.toLocaleString("ru-RU")} проверок сегодня</span>
-              </>
-            ) : null}
+                <span>TLS encrypted · zero query logs</span>
+                {stats && stats.checksToday > 0 ? (
+                  <>
+                    <span className="text-zinc-700">·</span>
+                    <span data-testid="text-stats-today">{stats.checksToday.toLocaleString("en-US")} scans today</span>
+                  </>
+                ) : null}
+              </div>
+
+              {error && (
+                <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-2 text-[13px] text-rose-300" data-testid="text-error">
+                  <AlertTriangle className="h-3.5 w-3.5" /> {error}
+                </div>
+              )}
+            </form>
+
+            {/* Mobile / md — result rendered inline (one mount) */}
+            {!isLg && result && (
+              <div ref={resultRef} className="mt-10">
+                <ResultCard data={result} />
+              </div>
+            )}
           </div>
 
-          {error && (
-            <div className="mx-auto mt-5 inline-flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-2 text-[13px] text-rose-300" data-testid="text-error">
-              <AlertTriangle className="h-3.5 w-3.5" /> {error}
+          {/* RIGHT — desktop only: live result or static demo (one mount) */}
+          {isLg && (
+            <div>
+              {result ? (
+                <div ref={resultRef}>
+                  <ResultCard data={result} />
+                </div>
+              ) : (
+                <HeroDemoCard />
+              )}
             </div>
           )}
-        </form>
-
-        {result && (
-          <div ref={resultRef} className="mt-12">
-            <ResultCard data={result} />
-          </div>
-        )}
+        </div>
       </div>
     </section>
+  );
+}
+
+/* ─────────── Hero static product mockup ─────────── */
+function HeroDemoCard() {
+  return (
+    <div className="relative">
+      <div
+        className="pointer-events-none absolute -inset-6 rounded-[2rem] opacity-60 blur-2xl"
+        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 30%, rgba(34,211,238,0.18), transparent 60%)" }}
+      />
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+        {/* Window chrome */}
+        <div className="flex items-center gap-1.5 border-b border-white/5 px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+          <span className="ml-3 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.02] px-2 py-0.5 text-[10.5px] font-mono text-zinc-500">
+            <Lock className="h-3 w-3" /> darkshare.io / scan
+          </span>
+        </div>
+
+        {/* Target row */}
+        <div className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-rose-500/10 ring-1 ring-rose-500/20">
+              <Mail className="h-4 w-4 text-rose-300" />
+            </div>
+            <div className="min-w-0">
+              <div className="truncate text-[12px] uppercase tracking-wider text-zinc-500">Email</div>
+              <div className="truncate font-mono text-[14px] text-white">alex.morgan@gmail.com</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10.5px] font-medium tracking-wider text-rose-300">HIGH RISK</div>
+            <div className="text-[22px] font-semibold leading-none text-white">
+              78<span className="text-[12px] text-zinc-500">/100</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Risk bar */}
+        <div className="px-5 pt-5">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/5">
+            <div className="h-full w-[78%] rounded-full bg-gradient-to-r from-amber-400 to-rose-400" />
+          </div>
+          <p className="mt-4 text-[13px] text-zinc-300">
+            Found in 4 confirmed leaks since 2019. Email is publicly indexed across 6 sites.
+          </p>
+        </div>
+
+        {/* Findings */}
+        <div className="px-5 pb-5 pt-4">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">Findings</div>
+          <ul className="space-y-2 text-[13px]">
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-rose-400" />
+              <span className="text-zinc-200"><span className="text-rose-300">LinkedIn</span> · 700M record breach (2021)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-rose-400" />
+              <span className="text-zinc-200"><span className="text-rose-300">MyFitnessPal</span> · password hash exposed (2019)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-amber-400" />
+              <span className="text-zinc-200"><span className="text-amber-300">Gravatar</span> · profile metadata public</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="text-zinc-200"><span className="text-emerald-300">HIBP Pwned Passwords</span> · no match</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Source dots */}
+        <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
+          <div className="mb-2 flex items-center justify-between text-[10.5px] uppercase tracking-wider text-zinc-500">
+            <span>Sources scanned</span>
+            <span>73 applicable · {OSINT_SOURCES.length} total</span>
+          </div>
+          <div className="flex flex-wrap gap-[5px]">
+            {Array.from({ length: 73 }).map((_, i) => {
+              const status = i < 4 ? "rose" : i < 12 ? "amber" : i < 38 ? "emerald" : "zinc";
+              const cls =
+                status === "rose"
+                  ? "bg-rose-400/80"
+                  : status === "amber"
+                  ? "bg-amber-400/70"
+                  : status === "emerald"
+                  ? "bg-emerald-400/70"
+                  : "bg-zinc-700";
+              return <span key={i} className={`h-2 w-2 rounded-sm ${cls}`} />;
+            })}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-rose-400" /> hits 4</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-amber-400" /> warnings 8</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-emerald-400" /> clean 26</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-zinc-600" /> no data 35</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-end gap-1.5 text-[10.5px] text-zinc-600">
+        <Sparkles className="h-3 w-3" /> Sample report · run yours above
+      </div>
+    </div>
   );
 }
 
@@ -393,6 +562,93 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
         ) : null}
       </div>
     </div>
+  );
+}
+
+/* ─────────── Trusted aggregators strip ─────────── */
+function TrustedAggregators() {
+  const sources = [
+    "HIBP", "Shodan", "VirusTotal", "AbuseIPDB", "GreyNoise",
+    "Censys", "MaxMind", "IPQualityScore", "URLhaus", "Etherscan",
+    "WHOIS", "PhishTank",
+  ];
+  return (
+    <section className="border-t border-white/5 bg-[#08080A]">
+      <div className="mx-auto max-w-6xl px-5 py-10">
+        <div className="text-center text-[11px] uppercase tracking-[0.2em] text-zinc-600">
+          Aggregating signal from
+        </div>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[13px] font-mono">
+          {sources.map((s) => (
+            <span
+              key={s}
+              className="text-zinc-500 transition-colors hover:text-zinc-200"
+              data-testid={`text-aggregator-${s}`}
+            >
+              {s}
+            </span>
+          ))}
+          <span className="text-zinc-700">+ {OSINT_SOURCES.length - sources.length} more</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────── What we check ─────────── */
+function WhatWeCheck() {
+  const items: { Icon: typeof Mail; title: string; desc: string; example: string }[] = [
+    { Icon: Mail,        title: "Email",     desc: "Breach databases, public profiles, leaked passwords",   example: "you@gmail.com" },
+    { Icon: Phone,       title: "Phone",     desc: "Carrier data, leaks, spam reports, OSINT trace",          example: "+1 555 0142" },
+    { Icon: AtSign,      title: "Username",  desc: "Social networks, code repos and leak forums",             example: "alex_morgan" },
+    { Icon: Wallet,      title: "Crypto wallet", desc: "On-chain risk, sanctions lists, scam tags",            example: "0xab12…f9c3" },
+    { Icon: Globe,       title: "Domain",    desc: "WHOIS, DNS, TLS, malware, phishing reputation",           example: "example.com" },
+    { Icon: Network,     title: "IP address",desc: "Threat intel, abuse reports, ASN, geolocation",           example: "8.8.8.8" },
+    { Icon: Hash,        title: "File hash", desc: "Malware lookup across MalwareBazaar / VT / hybrid",       example: "MD5 / SHA256" },
+    { Icon: Bug,         title: "CVE",       desc: "NIST NVD, exploit DB, vendor advisories",                  example: "CVE-2024-…" },
+    { Icon: CreditCard,  title: "Card BIN",  desc: "Issuer, brand, country — non-PII lookup",                   example: "First 6 digits" },
+    { Icon: KeyRound,    title: "Password",  desc: "Pwned-passwords k-anonymity hash check",                    example: "Hashed locally" },
+    { Icon: Shield,      title: "SSL cert",  desc: "Issuer, expiry, chain, weak ciphers",                       example: "site.tld" },
+    { Icon: Bot,         title: "Telegram bot", desc: "Bot info, scam history, abuse reports",                  example: "@somebot" },
+  ];
+  return (
+    <section className="border-t border-white/5">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-24">
+        <div className="mb-10 max-w-2xl">
+          <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">What gets checked</div>
+          <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[36px]">
+            12 entity types. One scan field.
+          </h2>
+          <p className="mt-3 text-[14.5px] leading-relaxed text-zinc-400">
+            We auto-detect what you paste — then route the query to the right OSINT category.
+            Below is everything DarkShare understands today.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map(({ Icon, title, desc, example }) => (
+            <div
+              key={title}
+              className="group rounded-xl border border-white/10 bg-[#0E0E12] p-5 transition-colors hover:border-cyan-400/30"
+              data-testid={`card-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-cyan-500/20 bg-cyan-500/[0.06] transition-colors group-hover:border-cyan-400/40">
+                  <Icon className="h-4 w-4 text-cyan-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-[14.5px] font-medium text-white">{title}</div>
+                    <span className="font-mono text-[10.5px] text-zinc-600">{example}</span>
+                  </div>
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-zinc-400">{desc}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -660,9 +916,11 @@ export default function Home() {
     <div id="top" className="min-h-screen bg-[#0A0A0A] text-white">
       <TopBar />
       <HeroCheck stats={stats} />
-      <TrustStrip stats={stats} />
+      <TrustedAggregators />
+      <WhatWeCheck />
       <HowItWorks />
       <Sources />
+      <TrustStrip stats={stats} />
       <PricingTeaser />
       <FAQ />
       <CTABottom />
