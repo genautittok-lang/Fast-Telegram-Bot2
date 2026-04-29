@@ -826,6 +826,9 @@ export interface TranslationSchema {
     serverError: string;
     invalidInput: string;
     limitReached: string;
+    detectFormat: string;
+    parseResponse: string;
+    quickCheckFailed: string;
   };
   footer: {
     description: string;
@@ -1714,7 +1717,10 @@ export const translations: Record<Language, TranslationSchema> = {
       notFound: "Not found",
       serverError: "Server error. Please try again later.",
       invalidInput: "Invalid input",
-      limitReached: "Request limit reached",
+      limitReached: "Daily free-scan limit reached. Sign in for more.",
+      detectFormat: "Could not detect the format. Enter an email, phone, username, domain, IP or wallet.",
+      parseResponse: "Could not parse server response.",
+      quickCheckFailed: "Scan failed. Please try again.",
     },
     footer: {
       description: "Professional platform for OSINT intelligence and cyber threat analysis. Secure and ethical open-source data collection.",
@@ -2599,9 +2605,12 @@ export const translations: Record<Language, TranslationSchema> = {
       networkError: "Помилка мережі. Спробуйте ще раз.",
       unauthorized: "Увійдіть для продовження.",
       notFound: "Не знайдено",
-      serverError: "Помилка сервера. Спробуйте пізніше.",
+      serverError: "Сервіс тимчасово недоступний. Спробуйте за хвилину.",
       invalidInput: "Невірний ввід",
-      limitReached: "Ліміт запитів вичерпано",
+      limitReached: "Денний ліміт безкоштовних перевірок вичерпано. Увійдіть для більшої кількості.",
+      detectFormat: "Не вдалося визначити формат. Введіть email, телефон, username, домен, IP або wallet.",
+      parseResponse: "Не вдалося розібрати відповідь сервера.",
+      quickCheckFailed: "Не вдалося виконати перевірку. Спробуйте ще раз.",
     },
     footer: {
       description: "Професійна платформа для OSINT розвідки та аналізу кіберзагроз. Безпечний та етичний збір відкритих даних.",
@@ -3486,9 +3495,12 @@ export const translations: Record<Language, TranslationSchema> = {
       networkError: "Ошибка сети. Попробуйте ещё раз.",
       unauthorized: "Войдите для продолжения.",
       notFound: "Не найдено",
-      serverError: "Ошибка сервера. Попробуйте позже.",
+      serverError: "Сервис временно недоступен. Попробуйте через минуту.",
       invalidInput: "Неверный ввод",
-      limitReached: "Лимит запросов исчерпан",
+      limitReached: "Дневной лимит бесплатных проверок исчерпан. Войдите для большего количества.",
+      detectFormat: "Не удалось определить формат. Введите email, телефон, username, домен, IP или wallet.",
+      parseResponse: "Не удалось разобрать ответ сервера.",
+      quickCheckFailed: "Не удалось выполнить проверку. Попробуйте ещё раз.",
     },
     footer: {
       description: "Профессиональная платформа для OSINT разведки и анализа киберугроз. Безопасный и этичный сбор открытых данных.",
@@ -4373,9 +4385,12 @@ export const translations: Record<Language, TranslationSchema> = {
       networkError: "Error de red. Inténtalo de nuevo.",
       unauthorized: "Inicia sesión para continuar.",
       notFound: "No encontrado",
-      serverError: "Error del servidor. Inténtalo más tarde.",
+      serverError: "Servicio temporalmente no disponible. Inténtalo en un minuto.",
       invalidInput: "Entrada inválida",
-      limitReached: "Límite de solicitudes alcanzado",
+      limitReached: "Límite diario de escaneos gratuitos alcanzado. Inicia sesión para más.",
+      detectFormat: "No se pudo detectar el formato. Introduce un email, teléfono, usuario, dominio, IP o wallet.",
+      parseResponse: "No se pudo procesar la respuesta del servidor.",
+      quickCheckFailed: "El escaneo falló. Inténtalo de nuevo.",
     },
     footer: {
       description: "Plataforma profesional para inteligencia OSINT y análisis de amenazas cibernéticas. Recopilación segura y ética de datos públicos.",
@@ -5260,9 +5275,12 @@ export const translations: Record<Language, TranslationSchema> = {
       networkError: "Netzwerkfehler. Bitte versuchen Sie es erneut.",
       unauthorized: "Bitte melden Sie sich an, um fortzufahren.",
       notFound: "Nicht gefunden",
-      serverError: "Serverfehler. Bitte versuchen Sie es später erneut.",
+      serverError: "Dienst vorübergehend nicht verfügbar. Bitte in einer Minute erneut versuchen.",
       invalidInput: "Ungültige Eingabe",
-      limitReached: "Anfragelimit erreicht",
+      limitReached: "Tägliches Limit für kostenlose Scans erreicht. Bitte anmelden für mehr.",
+      detectFormat: "Format konnte nicht erkannt werden. Geben Sie eine E-Mail, Telefonnummer, Benutzername, Domain, IP oder Wallet ein.",
+      parseResponse: "Serverantwort konnte nicht verarbeitet werden.",
+      quickCheckFailed: "Scan fehlgeschlagen. Bitte erneut versuchen.",
     },
     footer: {
       description: "Professionelle Plattform für OSINT-Aufklärung und Cyber-Bedrohungsanalyse. Sichere und ethische Erfassung öffentlicher Daten.",

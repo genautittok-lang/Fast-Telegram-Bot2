@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 import { OSINT_SOURCES, CATEGORY_LABELS, type OsintCategory } from "@/data/osintSources";
 import { SourcesScanGrid, type ScanItem } from "@/components/SourcesScanGrid";
 import { Seo } from "@/components/Seo";
@@ -175,6 +176,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   const resultRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLg, setIsLg] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -194,7 +196,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
     }
     const type = detectType(value);
     if (!type) {
-      setError("Не удалось определить формат. Введите email, телефон, username, домен, IP или wallet.");
+      setError(t('errors.detectFormat'));
       return;
     }
     setLoading(true);
@@ -211,19 +213,19 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
       let data: any = null;
       try { data = await resp.json(); } catch {}
       if (!resp.ok) {
-        if (resp.status === 429) setError("Дневной лимит бесплатных проверок исчерпан. Войди для большего количества.");
-        else if (resp.status >= 500) setError("Сервис временно недоступен. Попробуйте через минуту.");
-        else setError(data?.error || "Не удалось выполнить проверку");
+        if (resp.status === 429) setError(t('errors.limitReached'));
+        else if (resp.status >= 500) setError(t('errors.serverError'));
+        else setError(data?.error || t('errors.quickCheckFailed'));
         return;
       }
       if (!data || typeof data.riskScore !== "number") {
-        setError("Не удалось разобрать ответ сервера.");
+        setError(t('errors.parseResponse'));
         return;
       }
       setResult(data as QuickCheckResponse);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch {
-      setError("Сеть недоступна. Проверьте соединение.");
+      setError(t('errors.networkError'));
     } finally {
       setLoading(false);
     }
