@@ -22,7 +22,7 @@ export function PublicHeader() {
   const links = [
     { href: "/pricing",  label: t("nav.pricing") || "Pricing" },
     { href: "/api-docs", label: t("nav.apiDocs") || "API Docs" },
-    { href: "/guide",    label: t("nav.guide")   || "Guide" },
+    { href: "/guide",    label: t("nav.guide")   || "Guide", badge: "New" },
     { href: "/vpn",      label: t("nav.vpn")     || "VPN" },
     { href: "/trust",    label: "Trust" },
   ];
@@ -38,13 +38,13 @@ export function PublicHeader() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "border-b border-white/[0.06] bg-[#09090B]/95 backdrop-blur-xl shadow-[0_1px_40px_rgba(0,0,0,0.4)]" : "border-b border-transparent bg-transparent backdrop-blur-none"}`}>
+      <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "border-b border-white/[0.08] bg-[#09090B]/95 backdrop-blur-xl shadow-[0_1px_40px_rgba(0,0,0,0.4)]" : "border-b border-transparent bg-transparent backdrop-blur-none"}`}>
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-5">
 
           {/* ── Logo ── */}
           <Link href="/">
             <span className="flex cursor-pointer items-center gap-2.5" data-testid="link-logo">
-              <div className="grid h-8 w-8 place-items-center rounded-lg border border-cyan-400/25 bg-cyan-500/10">
+              <div className="grid h-8 w-8 place-items-center rounded-lg border border-cyan-400/30 bg-cyan-500/[0.12] shadow-[0_0_8px_-2px_rgba(34,211,238,0.20)]">
                 <Shield className="h-4 w-4 text-cyan-300" />
               </div>
               <span className="text-[15px] font-semibold tracking-tight text-white">DarkShare</span>
@@ -56,7 +56,7 @@ export function PublicHeader() {
             {links.map((l) => (
               <Link key={l.href} href={l.href}>
                 <span
-                  className={`relative inline-flex cursor-pointer items-center rounded-md px-3 py-1.5 text-[13px] transition-all ${
+                  className={`relative inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] transition-all ${
                     isActive(l.href)
                       ? "text-white after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[1.5px] after:rounded-full after:bg-cyan-400/70"
                       : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
@@ -64,6 +64,11 @@ export function PublicHeader() {
                   data-testid={`link-nav-${l.href.replace("/", "")}`}
                 >
                   {l.label}
+                  {(l as any).badge && (
+                    <span className="rounded-full bg-cyan-500/[0.20] border border-cyan-500/45 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cyan-300 leading-none shadow-[0_0_8px_rgba(34,211,238,0.40)]">
+                      {(l as any).badge}
+                    </span>
+                  )}
                 </span>
               </Link>
             ))}
@@ -77,7 +82,7 @@ export function PublicHeader() {
               href="https://t.me/darkshare_bot"
               target="_blank"
               rel="noopener"
-              className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-500/[0.08] px-2.5 text-[12.5px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/15"
+              className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-lg border border-cyan-400/25 bg-cyan-500/[0.09] px-2.5 text-[12.5px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/[0.16] hover:border-cyan-400/35"
               data-testid="link-header-bot"
               aria-label="Telegram bot"
             >
@@ -106,9 +111,10 @@ export function PublicHeader() {
                 </Link>
                 <Link href="/pricing">
                   <span
-                    className="inline-flex h-8 cursor-pointer items-center rounded-lg bg-white px-3.5 text-[12.5px] font-semibold text-black transition-colors hover:bg-zinc-100"
+                    className="relative inline-flex h-8 cursor-pointer items-center rounded-lg bg-cyan-400 px-3.5 text-[12.5px] font-semibold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_18px_-3px_rgba(34,211,238,0.70)] shadow-[0_0_14px_-3px_rgba(34,211,238,0.60)]"
                     data-testid="link-header-pro"
                   >
+                    <span className="pointer-events-none absolute -inset-0.5 animate-[ping_3.5s_cubic-bezier(0,0,0.2,1)_infinite] rounded-lg bg-cyan-400/30" />
                     PRO
                   </span>
                 </Link>
@@ -118,7 +124,7 @@ export function PublicHeader() {
             {/* ── Burger ── */}
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="ml-0.5 grid h-8 w-8 place-items-center rounded-lg border border-white/10 text-zinc-400 transition-colors hover:border-white/20 hover:text-white md:hidden"
+              className="ml-0.5 grid h-8 w-8 place-items-center rounded-lg border border-white/[0.12] text-zinc-300 transition-colors hover:border-white/[0.25] hover:text-white md:hidden"
               aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
               data-testid="button-mobile-menu"
@@ -135,9 +141,9 @@ export function PublicHeader() {
           className="fixed inset-0 z-30 md:hidden"
           onClick={() => setMenuOpen(false)}
         >
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" />
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-[6px]" />
           <nav
-            className="absolute inset-x-0 top-14 overflow-hidden border-b border-white/[0.07] bg-[#0D0D0F] shadow-[0_20px_60px_rgba(0,0,0,0.7)]"
+            className="absolute inset-x-0 top-14 overflow-hidden border-b border-white/[0.08] bg-[#0D0D0F] shadow-[0_20px_60px_rgba(0,0,0,0.75)]"
             onClick={(e) => e.stopPropagation()}
             aria-label="Mobile navigation"
           >

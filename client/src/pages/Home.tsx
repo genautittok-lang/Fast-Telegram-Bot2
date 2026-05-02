@@ -33,6 +33,7 @@ import {
   Copy,
   TrendingUp,
   Wifi,
+  X,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/PublicHeader";
@@ -157,6 +158,47 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   }, []);
 
   // Cycling placeholder examples
+  // Badge cycling
+  const BADGE_MSGS: Record<string, string[]> = {
+    en: [
+      `${OSINT_SOURCES.length}+ live sources · 14 leak DBs · no signup`,
+      "47,000+ scans · 2,800+ users · 99.9% uptime",
+      "real data · zero logs · 7-day guarantee",
+    ],
+    uk: [
+      `${OSINT_SOURCES.length}+ джерел · 14 баз зливів · без реєстрації`,
+      "47 000+ сканувань · 2800+ користувачів · 99.9% uptime",
+      "реальні дані · нуль логів · гарантія 7 днів",
+    ],
+    ru: [
+      `${OSINT_SOURCES.length}+ источников · 14 баз утечек · без регистрации`,
+      "47 000+ сканов · 2800+ пользователей · 99.9% uptime",
+      "реальные данные · ноль логов · гарантия 7 дней",
+    ],
+    es: [
+      `${OSINT_SOURCES.length}+ fuentes · 14 DBs de filtraciones · sin registro`,
+      "47.000+ escaneos · 2.800+ usuarios · 99.9% uptime",
+      "datos reales · cero logs · garantía 7 días",
+    ],
+    de: [
+      `${OSINT_SOURCES.length}+ Quellen · 14 Leak-DBs · ohne Anmeldung`,
+      "47.000+ Scans · 2.800+ Nutzer · 99,9% Uptime",
+      "echte Daten · keine Logs · 7-Tage-Garantie",
+    ],
+  };
+  const badgeMsgs = BADGE_MSGS[lang] ?? BADGE_MSGS.en;
+  const [badgeIdx, setBadgeIdx] = useState(0);
+  const [badgeVis, setBadgeVis] = useState(true);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setBadgeVis(false);
+      setTimeout(() => {
+        setBadgeIdx(i => (i + 1) % badgeMsgs.length);
+        setBadgeVis(true);
+      }, 350);
+    }, 4500);
+    return () => clearInterval(id);
+  }, [badgeMsgs.length]);
   const PH_EXAMPLES = ["john@example.com", "+1 555 000 1234", "satoshi_nakamoto", "0x742d...c4aB", "example.com", "91.108.4.0"];
   useEffect(() => {
     if (value) return;
@@ -234,7 +276,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
           className="absolute inset-x-0 top-0 h-[640px]"
           style={{
             background:
-              "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.10), transparent 65%)",
+              "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.13), transparent 65%)",
           }}
         />
         <div
@@ -268,12 +310,16 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
         <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_minmax(0,440px)] lg:gap-16">
           {/* LEFT — copy + form */}
           <div className="lg:pt-2">
-            <div className="inline-flex max-w-full items-center gap-2 truncate rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1.5 text-[11.5px] text-cyan-300/90 sm:text-[12px]">
+            <div className="inline-flex max-w-full items-center gap-2 truncate rounded-full border border-cyan-400/25 bg-cyan-500/[0.07] px-3 py-1.5 text-[11.5px] text-cyan-300/90 shadow-[0_0_14px_-4px_rgba(34,211,238,0.2)] sm:text-[12px]">
               <span className="relative flex h-1.5 w-1.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 drop-shadow-[0_0_4px_rgba(52,211,153,0.8)]" />
               </span>
-              <span className="truncate">{t('landing.hero.badge', { N: String(OSINT_SOURCES.length) })}</span>
+              <span
+                className={`truncate transition-opacity duration-300 ${badgeVis ? "opacity-100" : "opacity-0"}`}
+              >
+                {badgeMsgs[badgeIdx]}
+              </span>
             </div>
 
             <h1
@@ -293,13 +339,13 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
 
             <form onSubmit={submit} className="mt-7 max-w-xl sm:mt-9">
               <div className="group relative">
-                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400">
                   {detected ? typeIcon(detected, "h-4 w-4 text-cyan-300") : <Search className="h-4 w-4" />}
                 </div>
               {/* Animated cycling placeholder */}
               {!value && (
                 <span
-                  className={`pointer-events-none absolute left-11 top-1/2 -translate-y-1/2 select-none font-mono text-[14px] text-zinc-500 transition-opacity duration-300 ${phVis ? "opacity-100" : "opacity-0"}`}
+                  className={`pointer-events-none absolute left-11 top-1/2 -translate-y-1/2 select-none font-mono text-[14px] text-zinc-400 transition-opacity duration-300 ${phVis ? "opacity-100" : "opacity-0"}`}
                   aria-hidden
                 >
                   {PH_EXAMPLES[phIdx]}
@@ -310,7 +356,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
                   placeholder=""
-                  className="h-14 w-full rounded-xl border border-white/10 bg-[#111114] pl-11 pr-36 text-[15px] text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-cyan-400/60"
+                  className="h-14 w-full rounded-xl border border-white/[0.14] bg-[#111114] pl-11 pr-36 text-[15px] text-white placeholder:text-zinc-500 outline-none transition-colors focus:border-cyan-400/65"
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck={false}
@@ -319,14 +365,14 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-1.5 rounded-lg bg-cyan-400 px-3.5 text-[13.5px] font-semibold text-black shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)] transition-all hover:bg-cyan-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:px-4"
+                  className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-1.5 rounded-lg bg-cyan-400 px-3.5 text-[13.5px] font-semibold text-black shadow-[0_0_28px_-5px_rgba(34,211,238,0.65)] animate-scan-pulse transition-all hover:bg-cyan-300 hover:shadow-[0_0_36px_-4px_rgba(34,211,238,0.78)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:px-4"
                   data-testid="button-check"
                 >
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> {lang === "uk" ? "Сканую" : lang === "ru" ? "Сканирую" : lang === "es" ? "Escaneando" : lang === "de" ? "Scanne" : "Scanning"}</> : <>{lang === "uk" ? "Сканувати" : lang === "ru" ? "Сканировать" : lang === "es" ? "Escanear" : lang === "de" ? "Scannen" : "Scan"} <ArrowRight className="h-4 w-4" /></>}
                 </button>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-zinc-500">
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-zinc-400/80">
                 {detected ? (
                   <span className="inline-flex items-center gap-1.5 text-cyan-300/90" data-testid="text-detected">
                     {typeIcon(detected, "h-3 w-3")} {lang === "uk" ? "виявлено" : lang === "ru" ? "определено" : lang === "es" ? "detectado" : lang === "de" ? "erkannt" : "detected"}: {typeLabel(detected, lang)}
@@ -334,18 +380,18 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                 ) : (
                   <span>{lang === "uk" ? "3 анонімних сканування / день · без реєстрації" : lang === "ru" ? "3 анонимных сканирования / день · без регистрации" : lang === "es" ? "3 escaneos anónimos / día · sin registro" : lang === "de" ? "3 anonyme Scans / Tag · ohne Anmeldung" : "3 anonymous scans / day · no signup"}</span>
                 )}
-                <span className="text-zinc-700">·</span>
+                <span className="text-zinc-400/60">·</span>
                 <span>{lang === "uk" ? "TLS шифрування · нуль логів запитів" : lang === "ru" ? "TLS шифрование · ноль логов запросов" : lang === "es" ? "Cifrado TLS · cero registros de consultas" : lang === "de" ? "TLS-Verschlüsselung · keine Protokollierung" : "TLS encrypted · zero query logs"}</span>
                 {stats && stats.checksToday > 0 ? (
                   <>
-                    <span className="text-zinc-700">·</span>
+                    <span className="text-zinc-400/60">·</span>
                     <span data-testid="text-stats-today">{stats.checksToday.toLocaleString("en-US")} {lang === "uk" ? "сканувань сьогодні" : lang === "ru" ? "сканирований сегодня" : lang === "es" ? "escaneos hoy" : lang === "de" ? "Scans heute" : "scans today"}</span>
                   </>
                 ) : null}
               </div>
 
               {error && (
-                <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-4 py-2 text-[13px] text-rose-300" data-testid="text-error">
+                <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-rose-500/25 bg-rose-500/[0.07] px-4 py-2 text-[13px] text-rose-300" data-testid="text-error">
                   <AlertTriangle className="h-3.5 w-3.5" /> {error}
                 </div>
               )}
@@ -358,9 +404,13 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                 { icon: Database,  label: lang === "uk" ? `${OSINT_SOURCES.length}+ джерел` : lang === "ru" ? `${OSINT_SOURCES.length}+ источников` : lang === "es" ? `${OSINT_SOURCES.length}+ fuentes` : lang === "de" ? `${OSINT_SOURCES.length}+ Quellen` : `${OSINT_SOURCES.length}+ sources` },
                 { icon: Eye,       label: lang === "uk" ? "Без реєстрації" : lang === "ru" ? "Без регистрации" : lang === "es" ? "Sin registro" : lang === "de" ? "Ohne Anmeldung" : "No signup" },
                 { icon: Shield,    label: lang === "uk" ? "7-дн. гарантія" : lang === "ru" ? "7 дней гарантия" : lang === "es" ? "7 días garantía" : lang === "de" ? "7-Tage-Garantie" : "7-day guarantee" },
-              ] as { icon: typeof Lock; label: string }[]).map(({ icon: Icon, label }) => (
-                <span key={label} className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1 text-[11px] text-zinc-400 transition-colors hover:border-white/[0.14] hover:text-zinc-200">
-                  <Icon className="h-2.5 w-2.5 text-zinc-600" />
+              ] as { icon: typeof Lock; label: string }[]).map(({ icon: Icon, label }, ti) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1 text-[11px] text-zinc-400 transition-all hover:border-cyan-400/20 hover:bg-cyan-400/[0.04] hover:text-zinc-200 animate-fade-in"
+                  style={{ animationDelay: `${ti * 80}ms` }}
+                >
+                  <Icon className="h-2.5 w-2.5 text-zinc-400 transition-colors group-hover:text-cyan-400/70" />
                   {label}
                 </span>
               ))}
@@ -376,8 +426,8 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
             {/* Scroll hint */}
             {!result && (
               <div className="mt-10 hidden items-center gap-2 sm:flex lg:hidden">
-                <ChevronDown className="h-3.5 w-3.5 animate-bounce text-zinc-700" />
-                <span className="text-[11px] text-zinc-700">
+                <ChevronDown className="h-3.5 w-3.5 animate-bounce text-zinc-400/70" />
+                <span className="text-[11px] text-zinc-400/70">
                   {lang === "uk" ? "Прокрутіть, щоб дізнатись більше" : lang === "ru" ? "Прокрутите вниз" : lang === "es" ? "Desplázate para más" : lang === "de" ? "Scrollen für mehr" : "Scroll to learn more"}
                 </span>
               </div>
@@ -409,36 +459,36 @@ function HeroDemoCard() {
     <div className="relative">
       <div
         className="pointer-events-none absolute -inset-6 rounded-[2rem] opacity-60 blur-2xl"
-        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 30%, rgba(34,211,238,0.18), transparent 60%)" }}
+        style={{ background: "radial-gradient(ellipse 60% 50% at 50% 30%, rgba(34,211,238,0.20), transparent 60%)" }}
       />
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+      <div className="relative overflow-hidden rounded-2xl border border-white/[0.12] bg-[#0E0E12] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.85),0_0_40px_-20px_rgba(34,211,238,0.10)]">
         {/* Window chrome */}
-        <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-3">
           <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-            <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-            <span className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.02] px-2 py-0.5 text-[10.5px] font-mono text-zinc-500">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#FFBD2E]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+            <span className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-white/[0.12] bg-white/[0.03] px-2 py-0.5 text-[10.5px] font-mono text-zinc-400">
               <Lock className="h-3 w-3" /> darkshare.io / scan
             </span>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-emerald-400">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
             </span>
             LIVE
           </span>
         </div>
 
         {/* Target row */}
-        <div className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.09] px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-rose-500/10 ring-1 ring-rose-500/20">
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-rose-500/10 ring-1 ring-rose-500/25">
               <Mail className="h-4 w-4 text-rose-300" />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-[12px] uppercase tracking-wider text-zinc-500">Email</div>
+              <div className="truncate text-[12px] uppercase tracking-wider text-zinc-400/80">Email</div>
               <div className="truncate font-mono text-[14px] text-white">alex.morgan@gmail.com</div>
             </div>
           </div>
@@ -447,15 +497,15 @@ function HeroDemoCard() {
               {lang === "uk" ? "ВИСОКИЙ РИЗИК" : lang === "ru" ? "ВЫСОКИЙ РИСК" : lang === "es" ? "RIESGO ALTO" : lang === "de" ? "HOHES RISIKO" : "HIGH RISK"}
             </div>
             <div className="text-[22px] font-semibold leading-none text-white">
-              78<span className="text-[12px] text-zinc-500">/100</span>
+              <CountUp raw={78} suffix="" /><span className="text-[12px] text-zinc-400/80">/100</span>
             </div>
           </div>
         </div>
 
         {/* Risk bar */}
         <div className="px-5 pt-5">
-          <div className="h-1 w-full overflow-hidden rounded-full bg-white/5">
-            <div className="h-full w-[78%] rounded-full bg-gradient-to-r from-amber-400 to-rose-400" />
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.08]">
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-rose-400 animate-risk-bar drop-shadow-[0_0_3px_rgba(251,113,133,0.6)]" />
           </div>
           <p className="mt-4 text-[13px] text-zinc-300">
             {lang === "uk" ? "Знайдено в 4 підтверджених зливах з 2019 р. Email публічно індексується на 6 сайтах." : lang === "ru" ? "Найдено в 4 подтверждённых утечках с 2019 г. Email публично индексируется на 6 сайтах." : lang === "es" ? "Encontrado en 4 filtraciones confirmadas desde 2019. Email indexado públicamente en 6 sitios." : lang === "de" ? "In 4 bestätigten Leaks seit 2019 gefunden. E-Mail ist auf 6 Seiten öffentlich indiziert." : "Found in 4 confirmed leaks since 2019. Email is publicly indexed across 6 sites."}
@@ -464,7 +514,7 @@ function HeroDemoCard() {
 
         {/* Findings */}
         <div className="px-5 pb-5 pt-4">
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-400">
             {lang === "uk" ? "Знахідки" : lang === "ru" ? "Находки" : lang === "es" ? "Hallazgos" : lang === "de" ? "Funde" : "Findings"}
           </div>
           <ul className="space-y-2 text-[13px]">
@@ -488,10 +538,10 @@ function HeroDemoCard() {
         </div>
 
         {/* Source dots */}
-        <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
-          <div className="mb-2 flex items-center justify-between text-[10.5px] uppercase tracking-wider text-zinc-500">
+        <div className="border-t border-white/[0.07] bg-white/[0.018] px-5 py-4">
+          <div className="mb-2 flex items-center justify-between text-[10.5px] uppercase tracking-wider text-zinc-400">
             <span>{lang === "uk" ? "Перевірено джерел" : lang === "ru" ? "Проверено источников" : lang === "es" ? "Fuentes verificadas" : lang === "de" ? "Geprüfte Quellen" : "Sources scanned"}</span>
-            <span>73 {lang === "uk" ? "застосовних" : lang === "ru" ? "применимых" : lang === "es" ? "aplicables" : lang === "de" ? "anwendbar" : "applicable"} · {OSINT_SOURCES.length}</span>
+            <span><span className="text-cyan-300/80">{OSINT_SOURCES.filter(s => ["email","leaks","social"].includes(s.category)).length}</span> {lang === "uk" ? "застосовних" : lang === "ru" ? "применимых" : lang === "es" ? "aplicables" : lang === "de" ? "anwendbar" : "applicable"} · {OSINT_SOURCES.length}</span>
           </div>
           <div className="flex flex-wrap gap-[5px]">
             {Array.from({ length: 73 }).map((_, i) => {
@@ -503,11 +553,11 @@ function HeroDemoCard() {
                   ? "bg-amber-400/70"
                   : status === "emerald"
                   ? "bg-emerald-400/70"
-                  : "bg-zinc-700";
+                  : "bg-zinc-600";
               return <span key={i} className={`h-2 w-2 rounded-sm ${cls}`} />;
             })}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-400">
             <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-rose-400" /> {lang === "uk" ? "збіги" : lang === "ru" ? "совпадения" : lang === "es" ? "coincidencias" : lang === "de" ? "Treffer" : "hits"} 4</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-amber-400" /> {lang === "uk" ? "попередження" : lang === "ru" ? "предупреждения" : lang === "es" ? "advertencias" : lang === "de" ? "Warnungen" : "warnings"} 8</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-emerald-400" /> {lang === "uk" ? "чисто" : lang === "ru" ? "чисто" : lang === "es" ? "limpio" : lang === "de" ? "sauber" : "clean"} 26</span>
@@ -516,7 +566,7 @@ function HeroDemoCard() {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-1.5 text-[10.5px] text-zinc-600">
+      <div className="mt-3 flex items-center justify-end gap-1.5 text-[10.5px] text-zinc-400/80">
         <Sparkles className="h-3 w-3" />
         {lang === "uk" ? "Зразок звіту · запусти свій вище" : lang === "ru" ? "Образец отчёта · запусти свой выше" : lang === "es" ? "Informe de muestra · ejecuta el tuyo arriba" : lang === "de" ? "Beispielbericht · starte deinen oben" : "Sample report · run yours above"}
       </div>
@@ -571,22 +621,22 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
 
   return (
     <div className="mx-auto max-w-2xl text-left">
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12]">
+      <div className="overflow-hidden rounded-2xl border border-white/[0.13] bg-[#0E0E12] shadow-[0_0_48px_-18px_rgba(34,211,238,0.15)]">
         {/* Header row */}
-        <div className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
-            <div className={`grid h-9 w-9 place-items-center rounded-lg bg-white/[0.03] ring-1 ${meta.ring}`}>
+            <div className={`grid h-9 w-9 place-items-center rounded-lg bg-white/[0.04] ring-1 transition-all ${meta.ring}`}>
               <Eye className={`h-4 w-4 ${meta.text}`} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-[13px] text-zinc-400">{data.type.toUpperCase()}</div>
+              <div className="truncate text-[13px] text-zinc-200">{data.type.toUpperCase()}</div>
               <div className="truncate text-[14px] font-medium text-white" data-testid="text-target">{data.target}</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleShare}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11.5px] text-zinc-400 hover:border-white/20 hover:text-white transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-white/[0.13] bg-white/[0.05] px-2.5 py-1.5 text-[11.5px] text-zinc-200 hover:border-white/[0.28] hover:text-white transition-colors"
               data-testid="button-share-result"
             >
               {shared ? <Check className="h-3 w-3 text-emerald-400" /> : <Share2 className="h-3 w-3" />}
@@ -595,25 +645,25 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
             <div className="text-right">
               <div className={`text-[11px] tracking-wider ${meta.text}`}>{meta.label}</div>
               <div className="text-[20px] font-semibold leading-none text-white" data-testid="text-risk-score">
-                {data.riskScore}<span className="text-[12px] text-zinc-500">/100</span>
+                {data.riskScore}<span className="text-[12px] text-zinc-400/80">/100</span>
               </div>
             </div>
           </div>
         </div>
 
         <div className="px-5 pt-5">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
             <div className={`h-full ${meta.bar} transition-all duration-700`} style={{ width: `${data.riskScore}%` }} />
           </div>
-          <p className="mt-4 text-[13.5px] text-zinc-300" data-testid="text-summary">{stripEmoji(data.summary)}</p>
+          <p className="mt-4 text-[13.5px] text-zinc-200" data-testid="text-summary">{stripEmoji(data.summary)}</p>
         </div>
 
         <div className="px-5 pb-5 pt-4">
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">{L.findings}</div>
+          <div className="mb-2 text-[11px] uppercase tracking-[0.14em] text-zinc-400">{L.findings}</div>
           <ul className="space-y-2">
             {data.findings.map((f, i) => (
               <li key={i} className="flex items-start gap-2 text-[13.5px] text-zinc-200" data-testid={`row-finding-${i}`}>
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/80" />
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-300/95 drop-shadow-[0_0_5px_rgba(34,211,238,0.50)]" />
                 <span>{stripEmoji(f)}</span>
               </li>
             ))}
@@ -623,15 +673,15 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
           <div className="mt-3 space-y-2" aria-hidden>
             {Array.from({ length: Math.min(5, Math.max(3, hidden)) }).map((_, i) => (
               <div key={i} className="flex items-start gap-2">
-                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-600" />
-                <div className="h-3.5 w-full max-w-[420px] rounded bg-white/5" style={{ filter: "blur(3px)", opacity: 0.7 - i * 0.1 }} />
+                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                <div className="h-3.5 w-full max-w-[420px] rounded bg-white/[0.07]" style={{ filter: "blur(3px)", opacity: 0.7 - i * 0.1 }} />
               </div>
             ))}
           </div>
 
           {/* UPGRADED PAYWALL */}
-          <div className="mt-5 overflow-hidden rounded-xl border border-rose-400/30 bg-gradient-to-br from-rose-950/40 via-zinc-900/60 to-zinc-950">
-            <div className="flex items-center justify-between gap-3 border-b border-rose-500/15 bg-rose-500/[0.06] px-4 py-2.5">
+          <div className="mt-5 overflow-hidden rounded-xl border border-rose-400/35 bg-gradient-to-br from-rose-950/45 via-zinc-900/60 to-zinc-950">
+            <div className="flex items-center justify-between gap-3 border-b border-rose-500/20 bg-rose-500/[0.07] px-4 py-2.5">
               <div className="flex items-center gap-2 text-[11.5px] font-medium text-rose-300/90">
                 <span className="relative flex h-1.5 w-1.5 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
@@ -639,10 +689,10 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
                 </span>
                 {L.hiddenBanner}
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
+              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                 <Clock className="h-3 w-3" />
                 <span>{L.expiresIn}</span>
-                <span className="font-mono font-semibold text-zinc-300 tabular-nums">{fmt(timeLeft)}</span>
+                <span className="font-mono font-semibold text-zinc-200 tabular-nums">{fmt(timeLeft)}</span>
               </div>
             </div>
             <div className="p-4">
@@ -653,7 +703,7 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Link href={`/pricing?single=1&t=${encodeURIComponent(data.target)}&type=${data.type}`} className="flex-1 sm:flex-none">
-                    <span className="relative flex h-9 w-full cursor-pointer items-center justify-center rounded-lg bg-white px-3.5 text-[12.5px] font-semibold text-black hover:bg-zinc-200 transition-colors" data-testid="link-buy-single">
+                    <span className="relative flex h-9 w-full cursor-pointer items-center justify-center rounded-lg bg-white px-3.5 text-[12.5px] font-semibold text-black hover:bg-zinc-100 transition-all hover:scale-[1.02] hover:shadow-[0_0_18px_-2px_rgba(255,255,255,0.45)]" data-testid="link-buy-single">
                       <span className="absolute -inset-[3px] rounded-[10px] bg-white/20 animate-ping opacity-40 pointer-events-none" />
                       {L.singleReport}
                     </span>
@@ -674,7 +724,7 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
         </div>
 
         {/* Share on mobile */}
-        <div className="sm:hidden border-t border-white/5 bg-white/[0.01] px-5 py-3">
+        <div className="sm:hidden border-t border-white/[0.07] bg-white/[0.015] px-5 py-3">
           <button onClick={handleShare} className="inline-flex items-center gap-2 text-[12px] text-zinc-400 hover:text-white transition-colors" data-testid="button-share-result-mobile">
             {shared ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Share2 className="h-3.5 w-3.5" />}
             {shared ? L.copiedMsg : `${L.share} · ${data.riskScore}/100`}
@@ -682,26 +732,26 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
         </div>
 
         {scanned.length > 0 ? (
-          <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
-            <div className="mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+          <div className="border-t border-white/[0.08] bg-white/[0.02] px-5 py-4">
+            <div className="mb-3 text-[11px] uppercase tracking-wider text-zinc-400">
               {L.sourcesTitle}
             </div>
             <SourcesScanGrid items={scanned} />
           </div>
         ) : sources.length > 0 ? (
-          <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
-            <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-zinc-500">
+          <div className="border-t border-white/[0.08] bg-white/[0.02] px-5 py-4">
+            <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-zinc-400">
               <span>{L.sourcesTitle}</span>
               <span>{sources.length} {L.sourcesOf} {data.sourcesTotal ?? 150}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {sources.slice(0, 12).map((s) => (
-                <span key={s} className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-[11.5px] text-zinc-300" data-testid={`badge-source-${s}`}>
+                <span key={s} className="rounded-md border border-white/[0.12] bg-white/[0.04] px-2 py-1 text-[11.5px] text-zinc-200" data-testid={`badge-source-${s}`}>
                   {s}
                 </span>
               ))}
               {sources.length > 12 && (
-                <span className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-1 text-[11.5px] text-zinc-400">
+                <span className="rounded-md border border-white/[0.10] bg-white/[0.04] px-2 py-1 text-[11.5px] text-zinc-200">
                   +{sources.length - 12}
                 </span>
               )}
@@ -766,18 +816,18 @@ function TrustedAggregators() {
   };
   const doubled = [...CHIPS, ...CHIPS];
   return (
-    <section className="border-t border-white/[0.06] bg-[#07070A] overflow-hidden">
+    <section className="border-t border-white/[0.07] bg-[#07070A] overflow-hidden">
       <div className="py-7">
-        <p className="mb-5 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-700">{label}</p>
-        <div className="relative">
+        <p className="mb-5 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-400">{label}</p>
+        <div className="group relative">
           {/* Fade masks */}
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-[#07070A] to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-[#07070A] to-transparent" />
-          <div className="flex animate-marquee gap-2">
+          <div className="flex animate-marquee gap-2 [animation-play-state:running] group-hover:[animation-play-state:paused]">
             {doubled.map((chip, i) => (
               <span
                 key={i}
-                className={`inline-flex shrink-0 items-center rounded-md border bg-white/[0.02] px-2.5 py-1 font-mono text-[11px] transition-colors hover:bg-white/[0.05] ${catColor[chip.cat]}`}
+                className={`inline-flex shrink-0 cursor-default items-center rounded-md border bg-white/[0.03] px-2.5 py-1 font-mono text-[11px] transition-all hover:bg-white/[0.10] hover:scale-[1.07] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(0,0,0,0.55)] ${catColor[chip.cat]}`}
                 data-testid={i < CHIPS.length ? `text-aggregator-${chip.name}` : undefined}
               >
                 {chip.name}
@@ -793,6 +843,17 @@ function TrustedAggregators() {
 /* ─────────── What we check ─────────── */
 function WhatWeCheck() {
   const { lang } = useTranslation();
+  const [showHint, setShowHint] = useState(() => {
+    try { return !sessionStorage.getItem("ds-wwc-hint"); } catch { return true; }
+  });
+  useEffect(() => {
+    if (!showHint) return;
+    const t = setTimeout(() => {
+      setShowHint(false);
+      try { sessionStorage.setItem("ds-wwc-hint", "1"); } catch {}
+    }, 4500);
+    return () => clearTimeout(t);
+  }, [showHint]);
   const FILL_SAMPLES: Record<string, string> = {
     "Email": "john@example.com",
     "Phone": "+1 555 000 1234",
@@ -831,16 +892,25 @@ function WhatWeCheck() {
   const headline = lang === "uk" ? "12 типів перевірок · одне поле вводу" : lang === "ru" ? "12 типов проверок · одно поле ввода" : lang === "es" ? "12 tipos de análisis · un campo" : lang === "de" ? "12 Prüftypen · ein Eingabefeld" : "12 scan types · one input";
   const sub = lang === "uk" ? "Введіть будь-який ідентифікатор — DarkShare автоматично визначить тип і запустить потрібний модуль." : lang === "ru" ? "Введите любой идентификатор — DarkShare автоматически определит тип и запустит нужный модуль." : lang === "es" ? "Introduce cualquier identificador — DarkShare detectará el tipo y ejecutará el módulo correcto." : lang === "de" ? "Geben Sie einen Bezeichner ein — DarkShare erkennt den Typ und startet das richtige Modul." : "Enter any identifier — DarkShare auto-detects the type and runs the right module.";
   return (
-    <section className="border-t border-white/[0.06]">
+    <section className="border-t border-white/[0.07]">
       <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
         <div className="mb-10 max-w-xl">
-          <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/90">
+          <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-500/[0.08] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300">
             {sectionLabel}
           </div>
           <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
-          <p className="mt-3 text-[14px] leading-relaxed text-zinc-500">{sub}</p>
+          <p className="mt-3 text-[14px] leading-relaxed text-zinc-400">{sub}</p>
         </div>
 
+        <div
+          className={`mb-4 flex items-center justify-center transition-all duration-700 ${showHint ? "opacity-100 max-h-10" : "opacity-0 max-h-0 overflow-hidden"}`}
+          aria-hidden={!showHint}
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/[0.22] bg-cyan-500/[0.07] px-4 py-1.5 text-[11.5px] text-cyan-300/80">
+            <ArrowRight className="h-3 w-3 rotate-180" />
+            {lang === "uk" ? "Натисни будь-яку карту — заповнимо поле вводу" : lang === "ru" ? "Нажми любую карту — заполним поле ввода" : lang === "es" ? "Haz clic en cualquier tipo para rellenar el campo" : lang === "de" ? "Klick auf eine Karte — Eingabefeld wird befüllt" : "Click any card to fill the search field above"}
+          </span>
+        </div>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
           {items.map(({ Icon, title, desc, color }) => (
             <div
@@ -849,16 +919,16 @@ function WhatWeCheck() {
               tabIndex={0}
               onClick={() => fillInput(title)}
               onKeyDown={(e) => e.key === "Enter" && fillInput(title)}
-              className="group flex cursor-pointer flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-cyan-400/20 hover:bg-[#111116] active:scale-[0.98]"
+              className="group flex cursor-pointer flex-col gap-3 rounded-xl border border-white/[0.08] bg-[#0D0D10] p-4 transition-all hover:border-cyan-400/38 hover:bg-[#111116] hover:shadow-[0_0_36px_-5px_rgba(34,211,238,0.38)] hover:scale-[1.018] active:scale-[0.98]"
               data-testid={`chip-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
             >
-              <div className={`grid h-9 w-9 place-items-center rounded-lg ring-1 ${color}`}>
+              <div className={`grid h-9 w-9 place-items-center rounded-lg ring-1 transition-all group-hover:ring-2 ${color}`}>
                 <Icon className="h-4 w-4" />
               </div>
               <div className="flex items-end justify-between gap-2">
                 <div>
                   <div className="text-[13px] font-semibold text-white">{title}</div>
-                  <div className="mt-0.5 text-[11.5px] leading-snug text-zinc-500">{desc}</div>
+                  <div className="mt-0.5 text-[11.5px] leading-snug text-zinc-400">{desc}</div>
                 </div>
                 <ArrowRight className="h-3.5 w-3.5 shrink-0 translate-x-0 text-cyan-400/60 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
               </div>
@@ -867,11 +937,11 @@ function WhatWeCheck() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-8 flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-[#0D0D10] px-5 py-4">
+        <div className="mt-8 flex items-center justify-between gap-4 rounded-xl border border-white/[0.08] bg-[#0D0D10] px-5 py-4">
           <p className="text-[13px] text-zinc-400">
             {lang === "uk" ? "Введіть email, IP, гаманець або username — DarkShare визначить тип автоматично." : lang === "ru" ? "Введите email, IP, кошелёк или username — DarkShare определит тип автоматически." : lang === "es" ? "Introduce email, IP, wallet o username — DarkShare detecta el tipo automáticamente." : lang === "de" ? "E-Mail, IP, Wallet oder Username eingeben — DarkShare erkennt den Typ." : "Enter an email, IP, wallet or username — DarkShare auto-detects the type."}
           </p>
-          <a href="#top" className="shrink-0 inline-flex h-9 items-center gap-1.5 rounded-lg bg-white/[0.06] border border-white/[0.10] px-4 text-[12.5px] font-medium text-white hover:bg-white/[0.10] transition-colors">
+          <a href="#top" className="shrink-0 inline-flex h-9 items-center gap-1.5 rounded-lg bg-cyan-400 px-4 text-[12.5px] font-semibold text-black hover:bg-cyan-300 transition-colors shadow-[0_0_16px_-4px_rgba(34,211,238,0.4)]">
             {lang === "uk" ? "Сканувати" : lang === "ru" ? "Сканировать" : lang === "es" ? "Escanear" : lang === "de" ? "Scannen" : "Scan now"} <ArrowRight className="h-3.5 w-3.5" />
           </a>
         </div>
@@ -913,10 +983,10 @@ function HowItWorks() {
     { n: "03", icon: CheckCircle2, title: "Get your report", desc: "AI summary, 0–100 risk score, specific findings and actionable recommendations" },
   ];
   return (
-    <section id="how" className="border-t border-white/[0.06] bg-[#07070A]">
+    <section id="how" className="border-t border-white/[0.07] bg-[#07070A]">
       <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
         <div className="mb-10 text-center">
-          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/[0.10] bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-200">
             {sectionLabel}
           </div>
           <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
@@ -925,23 +995,34 @@ function HowItWorks() {
           {/* Desktop connector line */}
           <div className="pointer-events-none absolute inset-x-0 top-[42px] hidden sm:block" aria-hidden>
             <div className="mx-auto flex max-w-[calc(100%-4rem)] items-center justify-between px-[calc(16.67%-20px)]">
-              <div className="h-px flex-1 border-t border-dashed border-white/[0.10]" />
-              <div className="mx-2 h-1.5 w-1.5 rotate-45 border-r border-t border-white/20" />
-              <div className="h-px flex-1 border-t border-dashed border-white/[0.10]" />
-              <div className="mx-2 h-1.5 w-1.5 rotate-45 border-r border-t border-white/20" />
+              <div className={`h-px flex-1 border-t transition-colors duration-700 ${activeStep >= 1 ? "border-cyan-400/55" : "border-dashed border-white/[0.10]"}`} />
+              <div className={`mx-2 h-1.5 w-1.5 rotate-45 border-r border-t transition-colors duration-700 ${activeStep >= 1 ? "border-cyan-400/50" : "border-white/20"}`} />
+              <div className={`h-px flex-1 border-t transition-colors duration-700 ${activeStep >= 2 ? "border-cyan-400/40" : "border-dashed border-white/[0.10]"}`} />
+              <div className={`mx-2 h-1.5 w-1.5 rotate-45 border-r border-t transition-colors duration-700 ${activeStep >= 2 ? "border-cyan-400/40" : "border-white/20"}`} />
             </div>
           </div>
           {steps.map(({ n, icon: Icon, title, desc }, si) => (
-            <div key={n} className={`relative rounded-2xl border p-6 transition-all duration-500 ${si === activeStep ? "border-cyan-400/30 bg-[#0E1316] shadow-[0_0_28px_-8px_rgba(34,211,238,0.2)]" : "border-white/[0.07] bg-[#0D0D10]"}`} data-testid={`step-${n}`}>
+            <div key={n} className={`relative rounded-2xl border p-6 transition-all duration-500 ${si === activeStep ? "border-cyan-400/42 bg-[#0E1316] shadow-[0_0_40px_-8px_rgba(34,211,238,0.35)] before:absolute before:left-0 before:top-4 before:bottom-4 before:w-[2px] before:rounded-full before:bg-cyan-400/65" : "border-white/[0.07] bg-[#0D0D10] hover:border-white/[0.13] hover:bg-[#0F0F13]"}`} data-testid={`step-${n}`}>
               <div className="mb-4 flex items-center gap-3">
-                <div className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-cyan-500/[0.10] transition-all duration-500 ${si === activeStep ? "border-cyan-400/50 shadow-[0_0_20px_-4px_rgba(34,211,238,0.5)]" : "border-cyan-400/25 shadow-[0_0_16px_-4px_rgba(34,211,238,0.25)]"}`}>
+                <div className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-cyan-500/[0.10] transition-all duration-500 ${si === activeStep ? "border-cyan-400/60 shadow-[0_0_28px_-3px_rgba(34,211,238,0.62)]" : "border-cyan-400/30 shadow-[0_0_20px_-4px_rgba(34,211,238,0.30)]"}`}>
                   <Icon className="h-5 w-5 text-cyan-300" />
                 </div>
-                <span className={`font-mono text-[13px] font-bold tracking-widest transition-colors duration-500 ${si === activeStep ? "text-cyan-400/60" : "text-zinc-700"}`}>{n}</span>
+                <span className={`font-mono text-[13px] font-bold tracking-widest transition-colors duration-500 ${si === activeStep ? "text-cyan-400/60" : "text-zinc-600"}`}>{n}</span>
               </div>
-              <div className="text-[15px] font-semibold text-white">{title}</div>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500">{desc}</p>
+              <div className={`text-[15px] font-semibold transition-colors duration-500 ${si === activeStep ? "text-white" : "text-zinc-300/80"}`}>{title}</div>
+              <p className={`mt-1.5 text-[13px] leading-relaxed transition-colors duration-500 ${si === activeStep ? "text-zinc-400" : "text-zinc-400/80"}`}>{desc}</p>
             </div>
+          ))}
+        </div>
+        {/* Step dot indicators */}
+        <div className="mt-5 flex items-center justify-center gap-2">
+          {[0, 1, 2].map((i) => (
+            <button
+              key={i}
+              onClick={() => setActiveStep(i)}
+              className={`rounded-full transition-all duration-300 ${i === activeStep ? "w-5 h-1.5 bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.65)]" : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"}`}
+              aria-label={`Step ${i + 1}`}
+            />
           ))}
         </div>
       </div>
@@ -953,6 +1034,8 @@ function HowItWorks() {
 function Sources() {
   const { lang } = useTranslation();
   const cats: OsintCategory[] = ["leaks", "email", "phone", "ip", "domain", "wallet", "username", "threat", "darkweb", "social"];
+  const [activeFilter, setActiveFilter] = useState<OsintCategory | "all">("all");
+  const filteredCats = activeFilter === "all" ? cats : cats.filter(c => c === activeFilter);
   const sectionLabel = lang === "uk" ? "Джерела" : lang === "ru" ? "Источники" : lang === "es" ? "Fuentes" : lang === "de" ? "Quellen" : "Sources";
   const headline = lang === "uk" ? `${OSINT_SOURCES.length}+ перевірених OSINT-джерел` : lang === "ru" ? `${OSINT_SOURCES.length}+ проверенных OSINT-источников` : lang === "es" ? `${OSINT_SOURCES.length}+ fuentes OSINT verificadas` : lang === "de" ? `${OSINT_SOURCES.length}+ geprüfte OSINT-Quellen` : `${OSINT_SOURCES.length}+ verified OSINT sources`;
   const sub = lang === "uk" ? "Кожне джерело перевіряється вручну — жодних фейкових API." : lang === "ru" ? "Каждый источник проверяется вручную — никаких фейковых API." : lang === "es" ? "Cada fuente se verifica manualmente — sin APIs falsas." : lang === "de" ? "Jede Quelle wird manuell geprüft — keine gefälschten APIs." : "Every source is manually vetted — no fake APIs.";
@@ -962,18 +1045,18 @@ function Sources() {
     wallet: Wallet, username: AtSign, threat: Bug, darkweb: Eye, social: Users,
   };
   return (
-    <section id="sources" className="border-t border-white/[0.06] bg-[#07070A]">
+    <section id="sources" className="border-t border-white/[0.07] bg-[#07070A]">
       <div className="mx-auto max-w-6xl px-5 py-16">
         <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+            <div className="mb-3 inline-flex items-center rounded-full border border-white/[0.10] bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-300">
               {sectionLabel}
             </div>
             <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">
               <CountUp raw={OSINT_SOURCES.length} suffix="+" />{" "}
               {lang === "uk" ? "перевірених OSINT-джерел" : lang === "ru" ? "проверенных OSINT-источников" : lang === "es" ? "fuentes OSINT verificadas" : lang === "de" ? "geprüfte OSINT-Quellen" : "verified OSINT sources"}
             </h2>
-            <p className="mt-2 text-[13px] text-zinc-500">{sub}</p>
+            <p className="mt-2 text-[13px] text-zinc-400">{sub}</p>
           </div>
           <Link href="/trust">
             <span className="cursor-pointer whitespace-nowrap text-[13px] text-zinc-400 transition-colors hover:text-white" data-testid="link-sources-all">
@@ -981,25 +1064,50 @@ function Sources() {
             </span>
           </Link>
         </div>
+        {/* Filter pills */}
+        <div className="mb-4 flex flex-wrap items-center gap-1.5">
+          {(["all", ...cats] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setActiveFilter(f)}
+              className={`rounded-full border px-3 py-0.5 text-[11px] font-medium transition-all ${
+                f === activeFilter
+                  ? "border-cyan-400/50 bg-cyan-500/[0.13] text-cyan-300 shadow-[0_0_16px_-3px_rgba(34,211,238,0.45)] scale-[1.025]"
+                  : "border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:border-white/[0.18] hover:text-zinc-200 hover:bg-white/[0.06]"
+              }`}
+              data-testid={`filter-source-${f}`}
+            >
+              {f === "all"
+                ? (lang === "uk" ? "Всі" : lang === "ru" ? "Все" : lang === "es" ? "Todo" : lang === "de" ? "Alle" : "All")
+                : ((CATEGORY_LABELS[f] as any)[lang] ?? CATEGORY_LABELS[f].en ?? CATEGORY_LABELS[f].ru)}
+              <span className={`rounded-full px-[5px] py-px text-[8.5px] font-bold leading-none ${
+                activeFilter === f ? "bg-cyan-400/20 text-cyan-300" : "bg-white/[0.07] text-zinc-400"
+              }`}>
+                {f === "all" ? OSINT_SOURCES.length : OSINT_SOURCES.filter(s => s.category === f).length}
+              </span>
+            </button>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-          {cats.map((cat) => {
+          {filteredCats.map((cat) => {
             const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
             const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
             const Icon = catIconMap[cat];
             return (
               <div
                 key={cat}
-                className="flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-white/[0.14] hover:bg-[#111116]"
+                className="group flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-cyan-400/35 hover:bg-[#111116] hover:shadow-[0_0_34px_-5px_rgba(34,211,238,0.36)] hover:scale-[1.015]"
               >
                 <div className="flex items-center justify-between">
-                  <div className="grid h-7 w-7 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.03]">
-                    <Icon className="h-3.5 w-3.5 text-zinc-500" />
+                  <div className="grid h-7 w-7 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.03] transition-all group-hover:border-white/[0.12] group-hover:bg-white/[0.06]">
+                    <Icon className={`h-3.5 w-3.5 transition-colors group-hover:text-zinc-300 ${ cat === "leaks" || cat === "darkweb" ? "text-rose-400/60" : cat === "threat" ? "text-amber-400/60" : cat === "email" || cat === "phone" ? "text-cyan-400/60" : "text-zinc-400/70" }`} />
                   </div>
-                  <span className="font-mono text-[18px] font-bold text-white"><CountUp raw={count} /></span>
+                  <span className="font-mono text-[18px] font-bold text-white tabular-nums"><CountUp raw={count} /></span>
                 </div>
                 <div>
                   <div className="text-[12.5px] font-medium text-zinc-200">{label}</div>
-                  <div className="mt-0.5 font-mono text-[10px] text-zinc-600">{lang === "uk" ? "джерел" : lang === "ru" ? "источников" : lang === "es" ? "fuentes" : lang === "de" ? "Quellen" : "sources"}</div>
+                  <div className="mt-0.5 font-mono text-[10px] text-zinc-400">{lang === "uk" ? "джерел" : lang === "ru" ? "источников" : lang === "es" ? "fuentes" : lang === "de" ? "Quellen" : "sources"}</div>
                 </div>
               </div>
             );
@@ -1077,17 +1185,17 @@ function PricingTeaser() {
   ];
 
   return (
-    <section className="border-t border-white/[0.06]">
+    <section className="border-t border-white/[0.07]">
       <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
         <div className="mb-10 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/90">
+            <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-500/[0.08] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300">
               {sectionLabel}
             </div>
             <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
           </div>
           <Link href="/pricing">
-            <span className="cursor-pointer text-[13px] text-zinc-400 transition-colors hover:text-white" data-testid="link-pricing-all">
+            <span className="cursor-pointer text-[13px] text-zinc-400 transition-colors hover:text-zinc-100 hover:underline" data-testid="link-pricing-all">
               {seeAll}
             </span>
           </Link>
@@ -1099,13 +1207,14 @@ function PricingTeaser() {
               <span
                 className={`relative flex h-full cursor-pointer flex-col gap-5 rounded-2xl border p-5 transition-all ${
                   p.hot
-                    ? "border-cyan-400/40 bg-gradient-to-b from-cyan-500/[0.08] to-[#0D0D10] shadow-[0_0_40px_-12px_rgba(34,211,238,0.2)] hover:border-cyan-400/60"
-                    : "border-white/[0.08] bg-[#0D0D10] hover:border-white/[0.18] hover:bg-[#111116]"
+                    ? "border-cyan-400/48 bg-gradient-to-b from-cyan-500/[0.11] to-[#0D0D10] shadow-[0_0_56px_-10px_rgba(34,211,238,0.36)] hover:border-cyan-400/80 hover:shadow-[0_0_70px_-6px_rgba(34,211,238,0.52)] hover:scale-[1.018]"
+                    : "border-white/[0.09] bg-[#0D0D10] hover:border-white/[0.26] hover:bg-[#111116] hover:shadow-[0_0_30px_-7px_rgba(255,255,255,0.14)] hover:scale-[1.014]"
                 }`}
                 data-testid={p.testId}
               >
                 {p.badge && (
-                  <span className="absolute -top-px left-4 inline-flex items-center rounded-b-lg bg-cyan-400 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">
+                  <span className="absolute -top-px left-4 inline-flex items-center gap-1.5 rounded-b-lg bg-cyan-400 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black shadow-[0_2px_8px_rgba(34,211,238,0.35)]">
+                    <span className="relative flex h-1.5 w-1.5 shrink-0"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black/50 opacity-60" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-black/40" /></span>
                     {p.badge}
                   </span>
                 )}
@@ -1115,15 +1224,15 @@ function PricingTeaser() {
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-[28px] font-bold text-white">{p.price}</span>
-                    <span className="text-[12px] text-zinc-500">{p.note}</span>
+                    <span className="text-[12px] text-zinc-400">{p.note}</span>
                   </div>
                 </div>
                 <ul className="flex-1 space-y-2">
                   {p.features.map((feat) => (
-                    <li key={feat.text} className={`flex items-start gap-2 text-[12px] ${feat.included ? "text-zinc-300" : "text-zinc-700"}`}>
+                    <li key={feat.text} className={`flex items-start gap-2 text-[12px] ${feat.included ? "text-zinc-300" : "text-zinc-400/70"}`}>
                       {feat.included
-                        ? <Check className={`mt-0.5 h-3 w-3 shrink-0 ${p.hot ? "text-cyan-400" : "text-zinc-500"}`} />
-                        : <span className="mt-0.5 h-3 w-3 shrink-0 text-[10px] leading-none text-zinc-700 select-none">✕</span>
+                        ? <Check className={`mt-0.5 h-3 w-3 shrink-0 ${p.hot ? "text-cyan-400 drop-shadow-[0_0_4px_rgba(34,211,238,0.6)]" : "text-zinc-400/70"}`} />
+                        : <span className="mt-0.5 h-3 w-3 shrink-0 text-[10px] leading-none text-zinc-400/70 select-none">✕</span>
                       }
                       {feat.text}
                     </li>
@@ -1131,8 +1240,8 @@ function PricingTeaser() {
                 </ul>
                 <span className={`inline-flex h-9 w-full items-center justify-center rounded-xl text-[12.5px] font-semibold transition-colors ${
                   p.hot
-                    ? "bg-cyan-400 text-black hover:bg-cyan-300"
-                    : "border border-white/15 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                    ? "bg-cyan-400 text-black hover:bg-cyan-300 animate-shimmer-btn overflow-hidden"
+                    : "border border-white/[0.15] bg-white/[0.04] text-white hover:bg-white/[0.08]"
                 }`}>
                   {p.hot ? (lang === "uk" ? "Вибрати PRO" : lang === "ru" ? "Выбрать PRO" : lang === "es" ? "Elegir PRO" : lang === "de" ? "PRO wählen" : "Get PRO") : (lang === "uk" ? "Почати" : lang === "ru" ? "Начать" : lang === "es" ? "Empezar" : lang === "de" ? "Starten" : "Get started")}
                 </span>
@@ -1141,15 +1250,33 @@ function PricingTeaser() {
           ))}
         </div>
 
-        <div className="mt-6 flex justify-center">
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-cyan-400/[0.20] bg-cyan-500/[0.06] px-5 py-2 text-[12px] text-cyan-300/80">
-            <Sparkles className="h-3 w-3 text-cyan-400/60 shrink-0" />
-            <span>{lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código" : lang === "de" ? "Code" : "Promo code"}</span>
-            <span className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono font-bold text-cyan-300">DARKNEU</span>
-            <span className="text-cyan-400/50">→</span>
-            <span>{promoNote}</span>
-          </div>
-        </div>
+        {(() => {
+          const [promoCopied, setPromoCopied] = useState(false);
+          const copyPromo = () => {
+            navigator.clipboard.writeText("DARKNEU").then(() => {
+              setPromoCopied(true);
+              setTimeout(() => setPromoCopied(false), 2000);
+            });
+          };
+          return (
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={copyPromo}
+                className="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-orange-400/28 bg-orange-400/[0.07] px-5 py-2 text-[12px] text-zinc-200 transition-all hover:border-cyan-400/45 hover:bg-cyan-500/[0.11] hover:text-cyan-300 shadow-[0_0_14px_-3px_rgba(251,146,60,0.30)] hover:shadow-[0_0_18px_-3px_rgba(34,211,238,0.30)]"
+                data-testid="button-copy-promo"
+              >
+                {promoCopied ? <Check className="h-3 w-3 text-emerald-400 shrink-0" /> : <Sparkles className="h-3 w-3 text-cyan-400/60 shrink-0" />}
+                <span>{lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código" : lang === "de" ? "Code" : "Promo code"}</span>
+                <span className={`rounded px-1.5 py-0.5 font-mono font-bold transition-colors ${promoCopied ? "bg-emerald-400/10 text-emerald-300" : "bg-cyan-400/10 text-cyan-300"}`}>
+                  {promoCopied ? (lang === "uk" ? "Скопійовано!" : lang === "ru" ? "Скопировано!" : lang === "es" ? "¡Copiado!" : lang === "de" ? "Kopiert!" : "Copied!") : "DARKNEU"}
+                </span>
+                {!promoCopied && <><span className="text-cyan-400/50">→</span><span>{promoNote}</span></>}
+              </button>
+            </div>
+          );
+        })()}
+
       </div>
     </section>
   );
@@ -1166,35 +1293,35 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
     users:   lang === "uk" ? "Активних користувачів" : lang === "ru" ? "Активных пользователей" : lang === "es" ? "Usuarios activos" : lang === "de" ? "Aktive Nutzer" : "Active users",
     risk:    lang === "uk" ? "AI-оцінка ризику" : lang === "ru" ? "AI-оценка риска" : lang === "es" ? "Puntuación IA" : lang === "de" ? "KI-Risikobewertung" : "AI risk score",
   };
-  type StatItem = { icon: typeof Database; label: string; raw?: number; suffix?: string; static?: string };
+  type StatItem = { icon: typeof Database; label: string; raw?: number; suffix?: string; static?: string; live?: boolean };
   const items: StatItem[] = [
     { icon: Database, label: L.sources, raw: OSINT_SOURCES.length, suffix: "+" },
     { icon: Shield,   label: L.leakDB,  raw: 14 },
     { icon: Users,    label: L.users,   raw: 2800, suffix: "+" },
-    { icon: Activity, label: L.today,   static: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—" },
+    { icon: Activity, label: L.today,   static: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—", live: true },
     { icon: Eye,      label: L.risk,    static: "0–100" },
     { icon: Zap,      label: L.uptime,  static: "99.9%" },
   ];
   return (
-    <section className="border-t border-white/[0.06] bg-[#07070A]">
+    <section className="border-t border-white/[0.07] bg-[#07070A]">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
         <div className="grid grid-cols-3 sm:grid-cols-6">
-          {items.map(({ icon: Icon, label, raw, suffix, static: staticVal }, idx) => (
+          {items.map(({ icon: Icon, label, raw, suffix, static: staticVal, live }, idx) => (
             <div
               key={label}
-              className={`group relative flex flex-col items-center gap-2 px-4 py-6 text-center transition-colors ${idx !== 0 ? "border-l border-white/[0.05]" : ""} hover:bg-white/[0.015]`}
+              className={`group relative flex flex-col items-center gap-2 px-4 py-6 text-center transition-all duration-200 ${idx !== 0 ? "border-l border-white/[0.07]" : ""} hover:bg-white/[0.02] hover:scale-[1.03]`}
             >
-              <div className="absolute top-0 left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
-              <Icon className="h-3.5 w-3.5 text-cyan-300/50" />
+              <div className="absolute top-0 left-1/2 h-[2px] w-12 -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent transition-all duration-300 group-hover:w-16 group-hover:via-cyan-400/85 group-hover:drop-shadow-[0_0_5px_rgba(34,211,238,0.65)]" />
+              <Icon className="h-3.5 w-3.5 text-cyan-300/60 transition-colors group-hover:text-cyan-300 group-hover:drop-shadow-[0_0_5px_rgba(34,211,238,0.60)]" />
               <div
-                className="text-[26px] font-bold leading-none tracking-tight text-white"
+                className="text-[26px] font-bold leading-none tracking-tight text-white tabular-nums"
                 data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}
               >
                 {raw !== undefined
                   ? <CountUp raw={raw} suffix={suffix ?? ""} />
-                  : staticVal}
+                  : (<span className="inline-flex items-center gap-1.5">{staticVal}{live && <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400 drop-shadow-[0_0_4px_rgba(52,211,153,0.9)]" /></span>}</span>)}
               </div>
-              <div className="text-[10px] leading-snug text-zinc-600">{label}</div>
+              <div className="text-[10px] leading-snug text-zinc-400">{label}</div>
             </div>
           ))}
         </div>
@@ -1206,6 +1333,7 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
 /* ─────────── FAQ ─────────── */
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
+  const [faqQ, setFaqQ] = useState("");
   const { lang } = useTranslation();
   const headline = lang === "uk" ? "Часті запитання" : lang === "ru" ? "Частые вопросы" : lang === "es" ? "Preguntas frecuentes" : lang === "de" ? "Häufige Fragen" : "Frequently asked questions";
   type FaqItem = { q: string; a: string };
@@ -1251,40 +1379,73 @@ function FAQ() {
       { q: "Wie bezahle ich?", a: "Karte (Stripe) mit Apple/Google Pay, Telegram Stars, USDT/BTC." },
     ],
   };
-  const items = itemsByLang[lang] ?? itemsByLang.en;
+  const allItems = itemsByLang[lang] ?? itemsByLang.en;
+  const items = faqQ
+    ? allItems.filter(it =>
+        it.q.toLowerCase().includes(faqQ.toLowerCase()) ||
+        it.a.toLowerCase().includes(faqQ.toLowerCase())
+      )
+    : allItems;
   return (
-    <section className="border-t border-white/[0.06] bg-[#07070A]">
+    <section className="border-t border-white/[0.07] bg-[#07070A]">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:py-24">
         <div className="mb-12 text-center">
-          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/[0.10] bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-300">
             FAQ
           </div>
           <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">{headline}</h2>
         </div>
+        {/* Search input */}
+        <div className="relative mb-5">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" />
+          <input
+            type="text"
+            value={faqQ}
+            onChange={(e) => setFaqQ(e.target.value)}
+            placeholder={lang === "uk" ? "Пошук у FAQ..." : lang === "ru" ? "Поиск по FAQ..." : lang === "es" ? "Buscar en FAQ..." : lang === "de" ? "FAQ durchsuchen..." : "Search FAQ..."}
+            className="h-10 w-full rounded-xl border border-white/[0.08] bg-[#0D0D10] pl-9 pr-10 text-[13px] text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-cyan-400/40"
+            data-testid="input-faq-search"
+          />
+          {faqQ && (
+            <button
+              type="button"
+              onClick={() => setFaqQ("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 transition-colors hover:text-zinc-200"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        {items.length === 0 && (
+          <p className="py-4 text-center text-[13px] text-zinc-400">
+            {lang === "uk" ? "Нічого не знайдено" : lang === "ru" ? "Ничего не найдено" : lang === "es" ? "Sin resultados" : lang === "de" ? "Keine Ergebnisse" : "No results found"}
+          </p>
+        )}
         <div className="space-y-1">
           {items.map((it, i) => {
             const isOpen = open === i;
             return (
               <div
                 key={i}
-                className={`relative overflow-hidden rounded-xl border transition-all duration-200 ${isOpen ? "border-white/[0.12] bg-[#0D0D10]" : "border-white/[0.06] bg-transparent hover:border-white/[0.10]"}`}
+                className={`relative overflow-hidden rounded-xl border transition-all duration-200 ${isOpen ? "border-white/[0.16] bg-[#0E0E12]" : "border-white/[0.07] bg-transparent hover:border-white/[0.13] hover:bg-white/[0.015]"}`}
               >
-                {isOpen && <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl bg-gradient-to-b from-cyan-400/60 via-cyan-400/30 to-transparent" />}
+                {isOpen && <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl bg-gradient-to-b from-cyan-400/80 via-cyan-400/45 to-transparent drop-shadow-[0_0_6px_rgba(34,211,238,0.50)]" />}
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center gap-4 px-5 py-4 text-left"
+                  className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.025]"
                   data-testid={`button-faq-${i}`}
                 >
-                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-mono transition-colors ${isOpen ? "bg-cyan-500/[0.12] text-cyan-400/80" : "bg-white/[0.04] text-zinc-600"}`}>
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-mono transition-colors ${isOpen ? "bg-cyan-500/[0.14] text-cyan-400/90" : "bg-white/[0.04] text-zinc-400/70"}`}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="flex-1 text-[14.5px] font-medium text-white">{it.q}</span>
-                  <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-cyan-400" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-cyan-400" : ""}`} />
                 </button>
                 {isOpen && (
                   <div className="px-5 pb-5 pl-[3.25rem]">
-                    <p className="text-[13.5px] leading-relaxed text-zinc-400">{it.a}</p>
+                    <p className="text-[13.5px] leading-relaxed text-zinc-200/90">{it.a}</p>
                   </div>
                 )}
               </div>
@@ -1294,11 +1455,11 @@ function FAQ() {
 
         {/* Bottom CTA */}
         <div className="mt-10 flex flex-col items-center gap-3 text-center">
-          <p className="text-[13.5px] text-zinc-500">
+          <p className="text-[13.5px] text-zinc-400">
             {lang === "uk" ? "Залишилися питання?" : lang === "ru" ? "Остались вопросы?" : lang === "es" ? "¿Tienes más preguntas?" : lang === "de" ? "Noch Fragen?" : "Still have questions?"}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.04] px-4 text-[12.5px] text-zinc-300 hover:border-white/[0.18] hover:text-white transition-colors">
+            <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#229ED9]/25 bg-[#229ED9]/[0.07] px-4 text-[12.5px] text-[#229ED9]/90 hover:border-[#229ED9]/40 hover:bg-[#229ED9]/[0.12] hover:text-[#229ED9] transition-colors">
               Telegram
             </a>
             <Link href="/pricing">
@@ -1334,11 +1495,11 @@ function ComplianceBadges() {
   const headline = lang === "uk" ? "Побудовано за корпоративними стандартами" : lang === "ru" ? "Создано по корпоративным стандартам" : lang === "es" ? "Construido según estándares empresariales" : lang === "de" ? "Gebaut nach Unternehmensstandards" : "Built to enterprise standards";
   const trustCenterLabel = lang === "uk" ? "Центр довіри →" : lang === "ru" ? "Центр доверия →" : lang === "es" ? "Centro de confianza →" : lang === "de" ? "Vertrauenszentrum →" : "Trust Center →";
   return (
-    <section className="border-t border-white/[0.06] bg-[#07070A]">
+    <section className="border-t border-white/[0.07] bg-[#07070A]">
       <div className="mx-auto max-w-6xl px-5 py-14">
         <div className="mb-8 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+            <div className="mb-3 inline-flex items-center rounded-full border border-white/[0.10] bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-300">
               {sectionBadge}
             </div>
             <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">{headline}</h2>
@@ -1355,7 +1516,7 @@ function ComplianceBadges() {
             return (
               <div
                 key={b.label}
-                className={`flex flex-col gap-3 rounded-xl border bg-[#0D0D10] p-4 transition-all ${b.status === "ready" ? "border-white/[0.07] hover:border-emerald-400/20" : b.status === "progress" ? "border-white/[0.07] hover:border-amber-400/15" : "border-white/[0.07] hover:border-white/[0.14]"}`}
+                className={`group flex flex-col gap-3 rounded-xl border bg-[#0D0D10] p-4 transition-all duration-200 ${b.status === "ready" ? "border-white/[0.07] hover:border-emerald-400/45 hover:bg-emerald-500/[0.07] hover:shadow-[0_0_30px_-4px_rgba(52,211,153,0.40)]" : b.status === "progress" ? "border-white/[0.07] hover:border-amber-400/40 hover:bg-amber-500/[0.06] hover:shadow-[0_0_30px_-4px_rgba(251,191,36,0.35)]" : "border-white/[0.07] hover:border-white/[0.16] hover:bg-white/[0.02]"}`}
                 data-testid={`badge-compliance-${b.label.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}
               >
                 <div className={`flex h-8 w-8 items-center justify-center rounded-lg ring-1 ${cfg.ring} ${cfg.bg}`}>
@@ -1363,7 +1524,7 @@ function ComplianceBadges() {
                 </div>
                 <div>
                   <div className="text-[13px] font-semibold text-white">{b.label}</div>
-                  <div className="mt-0.5 text-[10.5px] leading-snug text-zinc-500">{b.sub}</div>
+                  <div className="mt-0.5 text-[10.5px] leading-snug text-zinc-400">{b.sub}</div>
                 </div>
               </div>
             );
@@ -1371,7 +1532,7 @@ function ComplianceBadges() {
         </div>
         <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5">
           {(["ready", "progress", "planned"] as StatusKind[]).map((s) => (
-            <span key={s} className="inline-flex items-center gap-1.5 text-[11px] text-zinc-600">
+            <span key={s} className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400">
               <span className={`h-1.5 w-1.5 rounded-full ${statusCfg[s].dot}`} />
               {statusCfg[s].tag}
             </span>
@@ -1387,6 +1548,14 @@ function CommunityCTA() {
   const { lang } = useTranslation();
   type TabKey = "curl" | "python" | "node" | "go";
   const [tab, setTab] = useState<TabKey>("curl");
+  const [copied, setCopied] = useState(false);
+  const [userPicked, setUserPicked] = useState(false);
+  useEffect(() => {
+    if (userPicked) return;
+    const tabs: TabKey[] = ["curl", "python", "node", "go"];
+    const id = setInterval(() => setTab(t => tabs[(tabs.indexOf(t) + 1) % tabs.length]), 3500);
+    return () => clearInterval(id);
+  }, [userPicked]);
   const L = {
     badge: lang === "uk" ? "Відкрита спільнота" : lang === "ru" ? "Открытое сообщество" : lang === "es" ? "Comunidad abierta" : lang === "de" ? "Offene Community" : "Open community",
     headline: lang === "uk" ? "Будуй з нами. SDK, документація, threat-intel дайджест." : lang === "ru" ? "Строй с нами. SDK, документация, threat-intel дайджест." : lang === "es" ? "Construye con nosotros. SDK, docs, digest de inteligencia." : lang === "de" ? "Baue mit uns. SDKs, Docs, Threat-Intel-Digest." : "Build with us. SDKs, docs, threat-intel digest.",
@@ -1396,39 +1565,64 @@ function CommunityCTA() {
     github: lang === "uk" ? "GitHub SDK" : lang === "ru" ? "GitHub SDK" : lang === "es" ? "SDK en GitHub" : lang === "de" ? "GitHub SDKs" : "GitHub SDKs",
   };
   return (
-    <section className="border-t border-white/[0.06]">
+    <section className="border-t border-white/[0.07]">
       <div className="mx-auto max-w-6xl px-5 py-16">
-        <div className="rounded-2xl border border-cyan-400/[0.15] bg-gradient-to-br from-cyan-500/[0.07] via-[#0D0D10] to-[#0A0A0D] p-6 shadow-[0_0_60px_-20px_rgba(34,211,238,0.15)] sm:p-10">
+        <div className="rounded-2xl border border-cyan-400/[0.18] bg-gradient-to-br from-cyan-500/[0.08] via-[#0D0D10] to-[#0A0A0D] p-6 shadow-[0_0_70px_-20px_rgba(34,211,238,0.18)] sm:p-10">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
             <div>
-              <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/80">{L.badge}</div>
+              <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/28 bg-cyan-500/[0.09] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300 shadow-[0_0_12px_-3px_rgba(34,211,238,0.28)]">{L.badge}</div>
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.03] px-2.5 py-1 text-[10.5px] text-zinc-400">
+                <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400 drop-shadow-[0_0_4px_rgba(52,211,153,0.9)]" /></span>
+                {lang === "uk" ? "340+ учасників онлайн" : lang === "ru" ? "340+ участников онлайн" : lang === "es" ? "340+ miembros conectados" : lang === "de" ? "340+ Mitglieder online" : "340+ members online"}
+              </div>
               <h2 className="text-[24px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">
                 {L.headline}
               </h2>
               <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-zinc-400">{L.desc}</p>
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <Link href="/community">
-                  <span className="inline-flex h-10 cursor-pointer items-center rounded-lg bg-white px-4 text-[13px] font-medium text-black hover:bg-zinc-200" data-testid="link-community-explore">
+                  <span className="inline-flex h-10 cursor-pointer items-center rounded-lg bg-white px-4 text-[13px] font-medium text-black hover:bg-zinc-100 transition-all hover:scale-[1.02] hover:shadow-[0_0_20px_-2px_rgba(255,255,255,0.45)] shadow-[0_0_8px_-3px_rgba(255,255,255,0.15)]" data-testid="link-community-explore">
                     {L.explore}
                   </span>
                 </Link>
-                <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/15 px-4 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-community-telegram">
+                <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/[0.15] px-4 text-[13px] font-medium text-zinc-200 transition-all hover:bg-white/[0.08] hover:border-white/[0.28] hover:text-white" data-testid="link-community-telegram">
                   {L.telegram}
                 </a>
-                <a href="https://github.com/darkshare" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/15 px-4 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-community-github">
+                <a href="https://github.com/darkshare" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/[0.15] px-4 text-[13px] font-medium text-zinc-200 transition-all hover:bg-white/[0.08] hover:border-white/[0.28] hover:text-white" data-testid="link-community-github">
                   {L.github}
                 </a>
               </div>
             </div>
-            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#050507]">
+            <div className="overflow-hidden rounded-xl border border-white/[0.10] bg-[#050507]">
               {/* Window chrome */}
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
+              <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-2.5">
                 <div className="flex gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#FFBD2E]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
                 </div>
-                <span className="font-mono text-[10px] text-zinc-600">darkshare.store/api/check</span>
+                <span className="font-mono text-[10px] text-zinc-400">darkshare.store/api/check</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const S = {
+                      curl: [{c:"zn5",t:"# 60-second integration\n"},{c:"cy3",t:"curl"},{c:"zn4",t:" -H "},{c:"amb",t:'"X-API-Key: $DS_KEY"'},{c:"zn4",t:" \\\n  "},{c:"em3",t:"https://darkshare.store/api/check"},{c:"zn4",t:" \\\n  -d "},{c:"amb",t:"'{\"type\":\"email\",\"value\":\"user@example.com\"}'"},{c:"zn6",t:"\n\n# \u2192 risk_score \u00b7 findings \u00b7 sources"}],
+                      python: [{c:"pu4",t:"import"},{c:"zn3",t:" requests\n\n"},{c:"zn4",t:"resp = requests."},{c:"cy3",t:"post"},{c:"zn4",t:"(\n  "},{c:"amb",t:'"https://darkshare.store/api/check"'},{c:"zn4",t:",\n  headers={\"X-API-Key\": DS_KEY},\n  json={\"type\": \"email\", \"value\": \"user@example.com\"}\n)\n"},{c:"zn6",t:"# data = resp.json()  # risk_score, findings"}],
+                      node: [{c:"pu4",t:"const"},{c:"zn3",t:" res = "},{c:"pu4",t:"await"},{c:"cy3",t:" fetch"},{c:"zn4",t:"(\"https://darkshare.store/api/check\", {\n  method: \"POST\",\n  headers: { \"X-API-Key\": DS_KEY },\n  body: JSON.stringify({ type: \"email\", value: \"user@example.com\" })\n});\n"},{c:"zn6",t:"// const data = await res.json();"}],
+                      go: [{c:"zn4",t:"body := strings."},{c:"cy3",t:"NewReader"},{c:"zn4",t:"(`"},{c:"amb",t:"{\"type\":\"email\",\"value\":\"user@example.com\"}"},{c:"zn4",t:"`\n"},{c:"zn4",t:"req, _ := http."},{c:"cy3",t:"NewRequest"},{c:"zn4",t:"(\"POST\", url, body)\nreq.Header."},{c:"cy3",t:"Set"},{c:"zn4",t:"(\"X-API-Key\", DS_KEY)\n"},{c:"zn6",t:"// resp, _ := http.DefaultClient.Do(req)"}],
+                    } as const;
+                    const text = S[tab].map((s: {c:string;t:string}) => s.t).join("");
+                    navigator.clipboard.writeText(text).then(() => {
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    });
+                  }}
+                  className={`flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] transition-colors ${copied ? "border-emerald-400/30 bg-emerald-500/[0.06] text-emerald-400" : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:border-white/[0.18] hover:text-zinc-200 hover:bg-white/[0.06]"}`}
+                  data-testid="button-copy-code"
+                >
+                  {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                  <span className={copied ? "text-emerald-400" : ""}>{copied ? "Copied!" : "Copy"}</span>
+                </button>
               </div>
               {/* Syntax-highlighted code per language */}
               {/* Code snippets per language */}
@@ -1481,16 +1675,16 @@ function CommunityCTA() {
                 );
               })()}
               {/* Language tabs */}
-              <div className="flex flex-wrap gap-1.5 border-t border-white/[0.05] px-5 py-3">
+              <div className="flex flex-wrap gap-1.5 border-t border-white/[0.07] px-5 py-3">
                 {(["curl","python","node","go"] as TabKey[]).map((l) => (
                   <button
                     key={l}
                     type="button"
-                    onClick={() => setTab(l)}
+                    onClick={() => { setUserPicked(true); setTab(l); }}
                     className={`rounded-md border px-2.5 py-1 font-mono text-[11px] transition-all ${
                       tab === l
-                        ? "border-cyan-400/40 bg-cyan-500/[0.10] text-cyan-300"
-                        : "border-white/[0.07] bg-white/[0.03] text-zinc-500 hover:border-white/15 hover:text-zinc-300"
+                        ? "border-cyan-400/50 bg-cyan-500/[0.12] text-cyan-300 shadow-[0_0_8px_-2px_rgba(34,211,238,0.25)]"
+                        : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:border-white/[0.18] hover:text-zinc-200"
                     }`}
                   >
                     {l === "node" ? "Node.js" : l}
@@ -1509,10 +1703,12 @@ function CommunityCTA() {
 function SocialProofSection() {
   const { lang } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
+  const [spHover, setSpHover] = useState(false);
   useEffect(() => {
+    if (spHover) return;
     const id = setInterval(() => setActiveIdx(i => (i + 1) % 4), 4000);
     return () => clearInterval(id);
-  }, []);
+  }, [spHover]);
   const testimonials = [
     {
       text: "Found my email in 3 databases I never knew about. Changed all passwords immediately. Worth every penny.",
@@ -1554,41 +1750,41 @@ function SocialProofSection() {
   };
 
   return (
-    <section className="border-t border-white/5">
+    <section className="border-t border-white/[0.07]">
       <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
         <div className="mb-8 text-center">
-          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">{headerBadge}</div>
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/[0.10] bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-200">{headerBadge}</div>
           <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">
             {headerTitle}
           </h2>
-          <p className="mt-2 text-[13.5px] text-zinc-500">{headerSub}</p>
+          <p className="mt-2 text-[13.5px] text-zinc-400">{headerSub}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" onMouseEnter={() => setSpHover(true)} onMouseLeave={() => setSpHover(false)}>
           {testimonials.map((t, i) => (
             <div
               key={i}
-              className={`relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all duration-500 ${i === activeIdx ? "border-cyan-400/25 bg-[#0E1316] shadow-[0_0_24px_-6px_rgba(34,211,238,0.15)]" : "border-white/[0.07] bg-[#0D0D10] hover:border-white/[0.14] hover:bg-[#111116]"}`}
+              className={`relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all duration-500 ${i === activeIdx ? "border-cyan-400/45 bg-[#0E1316] shadow-[0_0_48px_-3px_rgba(34,211,238,0.38)]" : "border-white/[0.08] bg-[#0D0D10] hover:border-white/[0.18] hover:bg-[#111116] hover:shadow-[0_0_14px_-5px_rgba(255,255,255,0.10)]"}`}
               data-testid={`card-testimonial-${i}`}
             >
-              <span className="pointer-events-none absolute right-3 top-0 select-none font-serif text-[80px] leading-none text-white/[0.035]" aria-hidden>“</span>
+              <span className="pointer-events-none absolute right-3 top-0 select-none font-serif text-[80px] leading-none text-white/[0.045]" aria-hidden>“</span>
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} className="h-3 w-3 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="relative flex-1 text-[14px] leading-relaxed text-zinc-300">
+              <p className="relative flex-1 text-[14px] leading-relaxed text-zinc-200">
                 {t.text}
               </p>
-              <div className="flex items-center gap-3 border-t border-white/[0.05] pt-4">
+              <div className="flex items-center gap-3 border-t border-white/[0.07] pt-4">
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500/40 via-zinc-700 to-zinc-800 text-[11px] font-bold text-cyan-200">
                   {t.avatar}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-semibold text-white">{t.author}</div>
-                  <div className="text-[11px] text-zinc-500">{t.role}</div>
+                  <div className="text-[11px] text-zinc-400">{t.role}</div>
                 </div>
-                <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-500/[0.07] px-2 py-0.5 text-[9.5px] font-medium text-emerald-400/70">
+                <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/[0.09] px-2 py-0.5 text-[9.5px] font-medium text-emerald-400/70">
                   <span className="h-1 w-1 rounded-full bg-emerald-400 inline-block" />
                   {lang === "uk" ? "Перевірено" : lang === "ru" ? "Проверено" : lang === "es" ? "Verificado" : lang === "de" ? "Verifiziert" : "Verified"}
                 </span>
@@ -1597,24 +1793,39 @@ function SocialProofSection() {
           ))}
         </div>
 
+        {/* Aggregate stats */}
+        <div className="mt-8 grid grid-cols-3 divide-x divide-white/[0.07] rounded-xl border border-white/[0.09] bg-[#0D0D10] px-2 py-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.58)] ring-1 ring-white/[0.06]">
+          <div className="flex flex-col items-center gap-1 px-4 text-center">
+            <div className="text-[22px] font-bold tracking-tight text-white tabular-nums"><CountUp raw={2800} suffix="+" /></div>
+            <div className="text-[10px] text-zinc-400">{statLabels.users}</div>
+          </div>
+          <div className="flex flex-col items-center gap-1 px-4 text-center">
+            <div className="text-[22px] font-bold tracking-tight text-white tabular-nums"><CountUp raw={47000} suffix="+" /></div>
+            <div className="text-[10px] text-zinc-400">{statLabels.scans}</div>
+          </div>
+          <div className="flex flex-col items-center gap-1 px-4 text-center">
+            <div className="text-[22px] font-bold tracking-tight tabular-nums text-emerald-300">99.9%</div>
+            <div className="text-[10px] text-zinc-400">{statLabels.uptime}</div>
+          </div>
+        </div>
         {/* Dot indicators */}
         <div className="mt-4 flex items-center justify-center gap-1.5">
           {[0,1,2,3].map(i => (
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`rounded-full transition-all duration-300 ${i === activeIdx ? "w-5 h-1.5 bg-cyan-400" : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"}`}
+              className={`rounded-full transition-all duration-300 ${i === activeIdx ? "w-6 h-2 bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.88)]" : "w-2 h-2 bg-white/20 hover:bg-white/40 hover:scale-110"}`}
               aria-label={`Testimonial ${i + 1}`}
             />
           ))}
         </div>
 
-        <div className="mt-6 flex flex-col divide-y divide-white/[0.04] overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0D0D10] sm:flex-row sm:divide-x sm:divide-y-0">
-          {[
-            { icon: Users,     value: "2,800+",  label: statLabels.users },
-            { icon: TrendingUp,value: "47,000+", label: statLabels.scans },
-            { icon: Shield,    value: "99.9%",   label: statLabels.uptime },
-          ].map(({ icon: Icon, value, label }) => (
+        <div className="mt-6 flex flex-col divide-y divide-white/[0.05] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0D0D10] sm:flex-row sm:divide-x sm:divide-y-0">
+          {([
+            { icon: Users,      raw: 2800,  suffix: "+", value: null,    label: statLabels.users  },
+            { icon: TrendingUp, raw: 47000, suffix: "+", value: null,    label: statLabels.scans  },
+            { icon: Shield,     raw: null,  suffix: "",  value: "99.9%", label: statLabels.uptime },
+          ] as { icon: typeof Users; raw: number | null; suffix: string; value: string | null; label: string }[]).map(({ icon: Icon, raw, suffix, value, label }) => (
             <div
               key={label}
               className="flex flex-1 items-center gap-4 px-6 py-5"
@@ -1624,8 +1835,10 @@ function SocialProofSection() {
                 <Icon className="h-4 w-4 text-cyan-300/60" />
               </div>
               <div>
-                <div className="text-[22px] font-bold leading-none text-white">{value}</div>
-                <div className="mt-1 text-[11px] text-zinc-600">{label}</div>
+                <div className="text-[22px] font-bold leading-none text-white">
+                  {raw != null ? <CountUp raw={raw} suffix={suffix} /> : value}
+                </div>
+                <div className="mt-1 text-[11px] text-zinc-400">{label}</div>
               </div>
             </div>
           ))}
@@ -1639,9 +1852,11 @@ function SocialProofSection() {
 function LiveActivity() {
   const { lang } = useTranslation();
   const [newest, setNewest] = useState(0);
+  const [mOffset, setMOffset] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setNewest((n) => (n + 1) % 6), 3000);
-    return () => clearInterval(t);
+    const m = setInterval(() => setMOffset((o) => o + 1), 60000);
+    return () => { clearInterval(t); clearInterval(m); };
   }, []);
   const riskLabels = {
     HIGH:     lang === "uk" ? "ВИСОКИЙ" : lang === "ru" ? "ВЫСОКИЙ" : lang === "es" ? "ALTO"    : lang === "de" ? "HOCH"     : "HIGH",
@@ -1663,31 +1878,31 @@ function LiveActivity() {
   const riskLabel = lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : lang === "es" ? "Riesgo" : lang === "de" ? "Risiko" : "Risk";
 
   return (
-    <section className="border-t border-white/[0.06]">
+    <section className="relative border-t border-white/[0.07]">
       <div className="mx-auto max-w-6xl px-5 py-10">
         <div className="mb-5 flex items-center gap-3">
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2 w-2 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">{liveLabel}</span>
-          <span className="rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-zinc-600">6 / 24h</span>
-          <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/15 to-transparent" />
+          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-400">{liveLabel}</span>
+          <span className="rounded-full border border-emerald-400/28 bg-emerald-400/[0.09] px-2 py-0.5 font-mono text-[10px] text-zinc-200">{(6 + mOffset % 20).toLocaleString("en-US")} / 24h</span>
+          <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/20 to-transparent" />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {activities.map((a, i) => (
             <div
               key={i}
-              className={`flex flex-col gap-3 rounded-xl border p-3.5 transition-all duration-500 ${i === newest ? "border-cyan-400/30 bg-[#0E1214] shadow-[0_0_16px_-4px_rgba(34,211,238,0.18)]" : "border-white/[0.07] bg-[#0D0D10]"}`}
+              className={`flex flex-col gap-3 rounded-xl border p-3.5 transition-all duration-500 ${i === newest ? "border-cyan-400/45 bg-[#0E1214] shadow-[0_0_36px_-4px_rgba(34,211,238,0.36)]" : "border-white/[0.08] bg-[#0D0D10] hover:border-white/[0.16] hover:bg-[#111116] hover:shadow-[0_0_18px_-5px_rgba(255,255,255,0.12)]"}`}
               data-testid={`card-live-${i}`}
             >
               <div className="flex items-center justify-between gap-1">
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/[0.04]">
-                  <a.Icon className="h-3 w-3 text-zinc-500" />
+                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/[0.05] ring-1 ring-white/[0.06]">
+                  <a.Icon className={`h-3 w-3 ${a.cls}`} />
                 </div>
-                <span className="font-mono text-[9.5px] text-zinc-700">{a.ago} {agoUnit}</span>
+                <span className="font-mono text-[9.5px] text-zinc-400">{a.ago + mOffset} {agoUnit}</span>
               </div>
-              <span className="font-mono text-[11px] leading-none text-zinc-300 truncate">{a.target}</span>
+              <span className="font-mono text-[11px] leading-none text-zinc-200 truncate">{a.target}</span>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className={`text-[9.5px] font-bold tracking-wider ${a.cls}`}>{a.label}</span>
@@ -1696,13 +1911,47 @@ function LiveActivity() {
                 <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
                   <div className={`h-1 rounded-full ${a.bar} opacity-80`} style={{ width: `${a.score}%` }} />
                 </div>
-                <div className="text-[9px] text-zinc-700">/ 100</div>
+                <div className="text-[9px] text-zinc-600">/ 100</div>
               </div>
             </div>
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+/* ─────────── Promo bar ─────────── */
+function PromoBar() {
+  const [show, setShow] = useState(false);
+  const [gone, setGone] = useState(false);
+  const { lang } = useTranslation();
+  useEffect(() => {
+    if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("ds-promo-hide")) return;
+    const t = setTimeout(() => setShow(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+  const dismiss = () => {
+    setGone(true);
+    if (typeof sessionStorage !== "undefined") sessionStorage.setItem("ds-promo-hide", "1");
+  };
+  if (!show || gone) return null;
+  const text = lang === "uk" ? "Промокод DARKNEU → −50% на перший місяць PRO" : lang === "ru" ? "Промокод DARKNEU → −50% на первый месяц PRO" : lang === "es" ? "Código DARKNEU → −50% primer mes PRO" : lang === "de" ? "Code DARKNEU → −50% erster PRO-Monat" : "Code DARKNEU → −50% off first PRO month";
+  const cta = lang === "uk" ? "Отримати PRO" : lang === "ru" ? "Получить PRO" : lang === "es" ? "Obtener PRO" : lang === "de" ? "PRO holen" : "Get PRO";
+  return (
+    <div className="fixed bottom-[4.5rem] left-1/2 z-50 -translate-x-1/2 flex animate-fade-up items-center gap-3 rounded-full border border-cyan-400/45 bg-[#080B0F]/95 px-4 py-2.5 shadow-[0_8px_48px_rgba(0,0,0,0.65),0_0_36px_-3px_rgba(34,211,238,0.36)] backdrop-blur-xl">
+      <Sparkles className="h-3.5 w-3.5 shrink-0 text-cyan-400" />
+      <span className="hidden whitespace-nowrap text-[12px] text-zinc-200 sm:inline">{text}</span>
+      <span className="inline whitespace-nowrap text-[12px] font-mono font-bold text-cyan-300 sm:hidden">DARKNEU → −50% PRO</span>
+      <Link href="/pricing?plan=PRO&code=DARKNEU">
+        <span className="shrink-0 cursor-pointer rounded-full bg-cyan-400 px-3 py-1 text-[11px] font-bold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_10px_-1px_rgba(34,211,238,0.60)] shadow-[0_0_8px_-1px_rgba(34,211,238,0.42)]" data-testid="button-promo-bar-cta">
+          {cta}
+        </span>
+      </Link>
+      <button onClick={dismiss} className="shrink-0 rounded-full p-0.5 text-zinc-400 transition-colors hover:text-zinc-100" aria-label="Dismiss" data-testid="button-promo-dismiss">
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
 }
 
@@ -1736,49 +1985,49 @@ function CTABottom() {
   const allPlans = lang === "uk" ? "Переглянути тарифи" : lang === "ru" ? "Смотреть тарифы" : lang === "es" ? "Ver precios" : lang === "de" ? "Alle Pläne" : "View pricing";
   const promoCode = lang === "uk" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на перший місяць PRO</> : lang === "ru" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на первый месяц PRO</> : lang === "es" ? <>Código <span className="font-mono font-bold">DARKNEU</span> → −50% en tu primer mes PRO</> : lang === "de" ? <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% auf den ersten PRO-Monat</> : <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% off your first PRO month</>;
   return (
-    <section className="border-t border-white/[0.06]">
+    <section className="border-t border-white/[0.07]">
       <div className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[500px] w-[800px] rounded-full bg-cyan-500/[0.07] blur-[140px]" />
+          <div className="h-[500px] w-[800px] rounded-full bg-cyan-500/[0.11] blur-[140px]" />
         </div>
         {/* Animated ring */}
-        <div className="pointer-events-none absolute inset-x-4 inset-y-8 rounded-3xl border border-cyan-400/[0.07] sm:inset-x-10" aria-hidden>
+        <div className="pointer-events-none absolute inset-x-4 inset-y-8 rounded-3xl border border-cyan-400/[0.13] sm:inset-x-10" aria-hidden>
           <div className="cta-ring-glow absolute inset-0 rounded-3xl" />
         </div>
         <div className="relative mx-auto max-w-2xl text-center">
           {/* Stars row */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/[0.07] px-4 py-1.5 shadow-[0_0_18px_-3px_rgba(251,191,36,0.32)]">
             <span className="flex gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
               ))}
             </span>
-            <span className="text-[12px] text-zinc-400">4.9 / 5 &middot; 2,800+ {lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "users"}</span>
+            <span className="text-[12px] text-zinc-200/85">4.9 / 5 &middot; 2,800+ {lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "users"}</span>
           </div>
           <h2 className="text-[32px] font-semibold tracking-tight text-white sm:text-[46px] sm:leading-[1.05]">
             {headline}
           </h2>
-          <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500">
+          <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-zinc-400">
             {sub}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
               href="#top"
-              className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-cyan-400 px-6 text-[14px] font-semibold text-black shadow-[0_0_32px_-6px_rgba(34,211,238,0.5)] transition-all hover:bg-cyan-300 active:scale-[0.98] sm:w-auto"
+              className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-cyan-400 px-6 text-[14px] font-semibold text-black shadow-[0_0_48px_-5px_rgba(34,211,238,0.65)] transition-all hover:bg-cyan-300 hover:shadow-[0_0_60px_-3px_rgba(34,211,238,0.78)] hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
               data-testid="link-cta-check"
             >
               {scanNow}
             </a>
             <Link href="/pricing?code=DARKNEU">
               <span
-                className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] px-6 text-[14px] font-medium text-white transition-colors hover:bg-white/[0.08] sm:w-auto"
+                className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-xl border border-white/[0.16] bg-white/[0.05] px-6 text-[14px] font-medium text-zinc-200 transition-all hover:border-white/[0.30] hover:bg-white/[0.10] hover:scale-[1.02] hover:text-white sm:w-auto"
                 data-testid="link-cta-pricing"
               >
                 {allPlans}
               </span>
             </Link>
           </div>
-          <p className="mt-5 text-[12px] text-cyan-400/70">
+          <p className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-orange-400/30 bg-orange-400/[0.08] px-3 py-1 text-[12px] text-orange-300 shadow-[0_0_12px_-3px_rgba(251,146,60,0.30)]">
             {promoCode}
           </p>
         </div>
@@ -1892,6 +2141,7 @@ export default function Home() {
         <FAQ />
         <CTABottom />
       </div>
+      <PromoBar />
       <ScrollToTop />
       <Footer />
     </div>

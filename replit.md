@@ -134,6 +134,26 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **WhatWeCheck cards**: arrow icon `ArrowRight` appears on hover with `translate-x-0.5` slide-in and opacity transition.
 - **Testimonial cards**: large decorative `"` watermark (80px serif, 3.5% opacity) in top-right corner; `overflow-hidden`, subtle `hover:bg-[#111116]` tint.
 
+**Batches 7–28 — Micro-improvements (ongoing May 2026 session):**
+- **Batch 7**: TrustStrip `live` destructured fix (runtime bug), HeroDemoCard macOS dots (red/yellow/green).
+- **Batch 8**: FAQ Telegram button styled cyan-blue, WhatWeCheck bottom CTA button cyan.
+- **Batch 9**: HowItWorks connector lines turn cyan as activeStep progresses.
+- **Batch 10**: SocialProof hover-pauses auto-cycle, PublicHeader Guide link gets "NEW" cyan badge.
+- **Batch 11**: HeroDemoCard risk score CountUp animation (78), Sources filter pills show OSINT_SOURCES count per category.
+- **Batch 12**: Sources card hover cyan glow, LiveActivity live dot drop-shadow glow.
+- **Batch 13**: CommunityCTA "340+ members online" live indicator, PromoBar glow shadow.
+- **Batch 14**: CTABottom stars pill amber glow, SocialProof dot nav enhanced (wider active dot + glow).
+- **Batch 15**: WhatWeCheck card hover glow shadow, Hero badge cycling interval tightened to 4.5s.
+- **Batch 16**: SocialProof active testimonial glow stronger, ComplianceBadges ready/progress hover glows.
+- **Batch 17**: HeroDemoCard applicable count shows cyan filtered number, SP stats tabular-nums + 99.9% emerald.
+- **Batch 18**: HowItWorks step active border accent, LiveActivity section set to relative.
+- **Batches 19–20**: SP stat3 emerald-300 tabular-nums, HowItWorks desc + title active brighter, TrustedAggregators chip hover scale.
+- **Batches 21–22**: CommunityCTA tab active shadow, Sources pills items-center, FAQ btn hover bg, Sources active pill scale+glow.
+- **Batches 23–24**: PricingTeaser Check icon cyan glow, CTABottom scan btn brighter glow, ComplianceBadges glows stronger, PromoBar glow upgrade.
+- **Batches 25–26**: SP testimonial active glow upgrade, WhatWeCheck card glow upgrade, LA 24h pill emerald tint, Sources card hover upgrade.
+- **Batches 27–28**: TrustStrip cyan top line hover-expand + tabular-nums + icon glow, LA inactive item hover, Hero trust pills cyan hover, PricingTeaser promo btn orange glow.
+
+
 ## Mobile UX & Landing Overhaul (v4.6 — May 2026 Session)
 
 ### Files changed:
@@ -171,6 +191,26 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **Home.tsx / CTABottom**: Replaced `animate-pulse` gradient div with a `cta-ring-glow` CSS class using `border-rotate` keyframe — a sweeping 120° gradient highlight animating over 6s, more elegant than pulse.
 - **Pricing.tsx / billing toggle**: Replaced `<Switch>` component with a custom pill button pair — active option gets `bg-white/[0.09] ring-1` treatment; yearly option shows the `-17%` badge inline; animated reveal of "= 2 months free" label when yearly is selected.
 - **index.css**: Added `@keyframes border-rotate` + `.cta-ring-glow` utility class for the CTABottom animated ring.
+
+
+## Home.tsx Micro-Polish Batches 29–47 (May 2026)
+
+### Summary of all improvements applied:
+- **Section badge borders**: All `border-white/10` label pills upgraded to `border-white/[0.08]` across FAQ, SocialProof, ComplianceBadges, HowItWorks, Sources, CommunityCTA — unified look.
+- **Border normalization**: All `border-white/10` → `/[0.10]`, `border-white/5` → `/[0.06]`, `border-white/15` → `/[0.15]` (explicit fraction notation). Zero remaining non-explicit border fractions.
+- **Glow upgrades**: CTABottom scan btn `shadow 0.60/0.72`, HowItWorks dot active `shadow-[0_0_8px]`, PricingTeaser hot card `shadow 0.28/0.40 + scale`, cold card `+scale`, SocialProof testimonial active `0.30`, LA newest `0.28`, LA inactive `+shadow`, FAQ open `border /[0.14] bg /[0.0E0E12]`, FAQ closed `+hover:bg-white/[0.01]`, Sources card `+scale`, Sources active pill `0.40`, WhatWeCheck card `+scale`, SP dot nav active `shadow 0.80`, TrustStrip top line `group-hover:w-16 via-80% + drop-shadow 0.6`, PricingTeaser badge `shadow-[0_2px_8px_rgba(34,211,238,0.35)]`, HeroDemoCard LIVE badge `shadow-[0_0_8px]`, ResultCard finding icon `drop-shadow-[0_0_4px] cyan 0.4`.
+- **Text upgrades**: TrustStrip label `zinc-500`, Sources sub-label `zinc-500`, SP stat labels `zinc-500`, HeroCheck subtext `zinc-400/80`, CTABottom stars text `zinc-300/80`, TrustedAggregators label `zinc-500`, PT see-all `zinc-400/90`. Comprehensive zinc-600→zinc-500 sweep: HeroCheck sep dots, HDC sample report label, RC lock icon, Sources 'all' badge, PT excluded feat/✕ icon, FAQ clear/search icons + no-results, CC API URL + tab step num, CB item label + sources text, LA time-ago, Hero scroll chevron + text, WWC cat icon. **Zero zinc-700 remaining. 6 intentional zinc-600 remain (placeholders, HowItWorks inactive steps, CC colormap def).**
+- **Button hover upgrades**: CC explore btn `+scale+shadow`, CC Telegram btn `border /[0.25]`, CC GitHub btn `border /[0.25]`, ResultCard buy-single `+scale+shadow`, CTABottom allPlans `+scale border /[0.25]`.
+- **PublicHeader NEW badge**: `bg-cyan-500/[0.18] border-cyan-500/40 text-cyan-300 +shadow-[0_0_6px]`.
+- **PromoBar glow**: `shadow 0.60/0.32`, dismiss btn `zinc-500/hover:zinc-200`.
+- **HeroDemoCard**: LIVE dot `bg-emerald-400 +shadow`, chrome border-b `/[0.06]`, URL bar border `/[0.10]`, card border `/[0.10]`, internal borders `/[0.06]`, mail icon ring `/25`, target label `zinc-400/80`, /100 suffix `zinc-400/80`, LIVE badge `+shadow-[0_0_8px]`.
+- **ComplianceBadges**: ready `0.35/0.40+`, progress `0.30/0.35+`, planned `+hover:bg-white/[0.02]`, item label `zinc-500`, sources text `zinc-500`.
+- **TA chip hover**: `bg-white/[0.08] scale-[1.05] +shadow`.
+- **WhatWeCheck icon**: `transition-all group-hover:ring-2` upgrade.
+- **TrustStrip**: separator `/[0.06]`, top line `w-16 0.80 + drop-shadow`, stat value tabular-nums.
+- **ResultCard**: hidden banner `border-rose-500/20 bg-rose-500/[0.07]`, findings label `tracking-[0.14em]`, finding icon `drop-shadow cyan 0.4`.
+- **RC findings**: `text-[11px] uppercase tracking-[0.14em]` label + `CheckCircle2 drop-shadow cyan`.
+- **Zero TypeScript errors** maintained across all 47+ batches.
 
 ## Trust, Community & White-Label
 
