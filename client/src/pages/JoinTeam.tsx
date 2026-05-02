@@ -52,10 +52,10 @@ export default function JoinTeam() {
               {lang === "uk" ? "Увійдіть, щоб приєднатися" : lang === "ru" ? "Войдите, чтобы присоединиться" : lang === "es" ? "Inicia sesión para unirte" : lang === "de" ? "Melde dich an, um beizutreten" : "Sign in to join"}
             </h2>
             <p className="text-sm text-muted-foreground">
-              {lang === "uk" ? "Вам потрібно увійти в акаунт, щоб приєднатися до команди." : lang === "ru" ? "Вам нужно войти в аккаунт, чтобы присоединиться к команде." : "You need to sign in to join a team."}
+              {lang === "uk" ? "Вам потрібно увійти в акаунт, щоб приєднатися до команди." : lang === "ru" ? "Вам нужно войти в аккаунт, чтобы присоединиться к команде." : lang === "es" ? "Necesitas iniciar sesión para unirte a un equipo." : lang === "de" ? "Du musst dich anmelden, um einem Team beizutreten." : "You need to sign in to join a team."}
             </p>
             <Button onClick={() => setLocation("/login")} data-testid="button-login-to-join">
-              {lang === "uk" ? "Увійти" : lang === "ru" ? "Войти" : "Sign In"}
+              {lang === "uk" ? "Увійти" : lang === "ru" ? "Войти" : lang === "es" ? "Iniciar sesión" : lang === "de" ? "Anmelden" : "Sign In"}
             </Button>
           </CardContent>
         </Card>
@@ -71,7 +71,7 @@ export default function JoinTeam() {
             <>
               <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
               <p className="text-sm text-muted-foreground">
-                {lang === "uk" ? "Приєднання до команди..." : lang === "ru" ? "Присоединение к команде..." : "Joining team..."}
+                {lang === "uk" ? "Приєднання до команди..." : lang === "ru" ? "Присоединение к команде..." : lang === "es" ? "Uniéndose al equipo..." : lang === "de" ? "Dem Team beitreten..." : "Joining team..."}
               </p>
             </>
           )}
@@ -81,14 +81,14 @@ export default function JoinTeam() {
                 <CheckCircle className="w-7 h-7 text-green-400" />
               </div>
               <h2 className="text-lg font-bold">
-                {lang === "uk" ? "Ви приєдналися!" : lang === "ru" ? "Вы присоединились!" : "You joined!"}
+                {lang === "uk" ? "Ви приєдналися!" : lang === "ru" ? "Вы присоединились!" : lang === "es" ? "¡Te uniste!" : lang === "de" ? "Beigetreten!" : "You joined!"}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {lang === "uk" ? "Ви успішно приєдналися до команди." : lang === "ru" ? "Вы успешно присоединились к команде." : "You have successfully joined the team."}
+                {lang === "uk" ? "Ви успішно приєдналися до команди." : lang === "ru" ? "Вы успешно присоединились к команде." : lang === "es" ? "Te has unido al equipo con éxito." : lang === "de" ? "Du bist dem Team erfolgreich beigetreten." : "You have successfully joined the team."}
               </p>
               <Button onClick={() => setLocation("/teams")} data-testid="button-go-to-teams">
                 <Users className="w-4 h-4 mr-2" />
-                {lang === "uk" ? "Перейти до команд" : lang === "ru" ? "Перейти к командам" : "Go to Teams"}
+                {lang === "uk" ? "Перейти до команд" : lang === "ru" ? "Перейти к командам" : lang === "es" ? "Ir a equipos" : lang === "de" ? "Zu Teams" : "Go to Teams"}
               </Button>
             </>
           )}
@@ -98,13 +98,13 @@ export default function JoinTeam() {
                 <XCircle className="w-7 h-7 text-red-400" />
               </div>
               <h2 className="text-lg font-bold">
-                {lang === "uk" ? "Помилка" : lang === "ru" ? "Ошибка" : "Error"}
+                {lang === "uk" ? "Помилка" : lang === "ru" ? "Ошибка" : lang === "es" ? "Error" : lang === "de" ? "Fehler" : "Error"}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {joinMutation.error?.message || "Failed to join team"}
+                {joinMutation.error?.message || (lang === "uk" ? "Не вдалося приєднатися до команди" : lang === "ru" ? "Не удалось присоединиться к команде" : lang === "es" ? "Error al unirse al equipo" : lang === "de" ? "Beitritt zum Team fehlgeschlagen" : "Failed to join team")}
               </p>
               <Button variant="outline" onClick={() => setLocation("/teams")} data-testid="button-back-to-teams">
-                {lang === "uk" ? "До команд" : lang === "ru" ? "К командам" : "Back to Teams"}
+                {lang === "uk" ? "До команд" : lang === "ru" ? "К командам" : lang === "es" ? "Volver a equipos" : lang === "de" ? "Zurück zu Teams" : "Back to Teams"}
               </Button>
             </>
           )}

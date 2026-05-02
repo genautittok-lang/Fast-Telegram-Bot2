@@ -920,12 +920,12 @@ export default function Chat() {
   }, []);
 
   const chatTitle = activeTeamId
-    ? userTeams.find(t => t.id === activeTeamId)?.name || "Team"
+    ? userTeams.find(t => t.id === activeTeamId)?.name || (lang === "uk" ? "Команда" : lang === "ru" ? "Команда" : lang === "es" ? "Equipo" : lang === "de" ? "Team" : "Team")
     : (lang === "uk" ? "Загальний чат" : lang === "ru" ? "Общий чат" : lang === "es" ? "Chat General" : lang === "de" ? "Allgemeiner Chat" : "General Chat");
 
   const chatSubtitle = activeTeamId
-    ? (lang === "uk" ? "Приватний чат команди" : lang === "ru" ? "Приватный чат команды" : "Private team chat")
-    : (lang === "uk" ? "Обговорюйте ризики з спільнотою" : lang === "ru" ? "Обсуждайте риски с сообществом" : "Discuss risks with the community");
+    ? (lang === "uk" ? "Приватний чат команди" : lang === "ru" ? "Приватный чат команды" : lang === "es" ? "Chat privado del equipo" : lang === "de" ? "Privater Team-Chat" : "Private team chat")
+    : (lang === "uk" ? "Обговорюйте ризики з спільнотою" : lang === "ru" ? "Обсуждайте риски с сообществом" : lang === "es" ? "Discute riesgos con la comunidad" : lang === "de" ? "Risiken mit der Community besprechen" : "Discuss risks with the community");
 
   const messagesWithSeparators = useMemo(() => {
     const result: { type: 'separator' | 'message'; label?: string; msg?: ChatMsg; showAvatar?: boolean }[] = [];

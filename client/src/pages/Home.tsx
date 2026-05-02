@@ -677,16 +677,19 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
 
 /* ─────────── Trusted aggregators strip ─────────── */
 function TrustedAggregators() {
+  const { lang } = useTranslation();
   const sources = [
     "HIBP", "Shodan", "VirusTotal", "AbuseIPDB", "GreyNoise",
     "Censys", "MaxMind", "IPQualityScore", "URLhaus", "Etherscan",
     "WHOIS", "PhishTank",
   ];
+  const aggregatingLabel = lang === "uk" ? "Агрегуємо сигнали з" : lang === "ru" ? "Агрегируем сигналы из" : lang === "es" ? "Agregando señales de" : lang === "de" ? "Signale aggregiert von" : "Aggregating signal from";
+  const moreLabel = lang === "uk" ? `+ ${OSINT_SOURCES.length - sources.length} більше` : lang === "ru" ? `+ ${OSINT_SOURCES.length - sources.length} ещё` : lang === "es" ? `+ ${OSINT_SOURCES.length - sources.length} más` : lang === "de" ? `+ ${OSINT_SOURCES.length - sources.length} weitere` : `+ ${OSINT_SOURCES.length - sources.length} more`;
   return (
     <section className="border-t border-white/5 bg-[#08080A]">
       <div className="mx-auto max-w-6xl px-5 py-10">
         <div className="text-center text-[11px] uppercase tracking-[0.2em] text-zinc-600">
-          Aggregating signal from
+          {aggregatingLabel}
         </div>
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[13px] font-mono">
           {sources.map((s) => (
@@ -698,7 +701,7 @@ function TrustedAggregators() {
               {s}
             </span>
           ))}
-          <span className="text-zinc-700">+ {OSINT_SOURCES.length - sources.length} more</span>
+          <span className="text-zinc-700">{moreLabel}</span>
         </div>
       </div>
     </section>
@@ -1088,25 +1091,29 @@ function FAQ() {
 
 /* ─────────── Compliance / Trust badges ─────────── */
 function ComplianceBadges() {
+  const { lang } = useTranslation();
   const badges = [
-    { label: "GDPR", sub: "Ready" },
-    { label: "CCPA", sub: "Ready" },
-    { label: "SOC 2 Type II", sub: "In progress · Q4 ’26" },
-    { label: "ISO 27001", sub: "Planned · Q1 ’27" },
-    { label: "PCI DSS", sub: "Stripe-handled" },
-    { label: "RFC 9116", sub: "security.txt published" },
+    { label: "GDPR", sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
+    { label: "CCPA", sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
+    { label: "SOC 2 Type II", sub: lang === "uk" ? "В процесі · Q4 ’26" : lang === "ru" ? "В процессе · Q4 ’26" : lang === "es" ? "En progreso · Q4 ’26" : lang === "de" ? "In Arbeit · Q4 ’26" : "In progress · Q4 ’26" },
+    { label: "ISO 27001", sub: lang === "uk" ? "Заплановано · Q1 ’27" : lang === "ru" ? "Запланировано · Q1 ’27" : lang === "es" ? "Planificado · Q1 ’27" : lang === "de" ? "Geplant · Q1 ’27" : "Planned · Q1 ’27" },
+    { label: "PCI DSS", sub: lang === "uk" ? "Через Stripe" : lang === "ru" ? "Через Stripe" : lang === "es" ? "Gestionado por Stripe" : lang === "de" ? "Stripe-verwaltet" : "Stripe-handled" },
+    { label: "RFC 9116", sub: lang === "uk" ? "security.txt опубліковано" : lang === "ru" ? "security.txt опубликован" : lang === "es" ? "security.txt publicado" : lang === "de" ? "security.txt veröffentlicht" : "security.txt published" },
   ];
+  const sectionBadge = lang === "uk" ? "Відповідність та довіра" : lang === "ru" ? "Соответствие и доверие" : lang === "es" ? "Cumplimiento & confianza" : lang === "de" ? "Compliance & Vertrauen" : "Compliance & trust";
+  const headline = lang === "uk" ? "Побудовано за корпоративними стандартами" : lang === "ru" ? "Создано по корпоративным стандартам" : lang === "es" ? "Construido según estándares empresariales" : lang === "de" ? "Gebaut nach Unternehmensstandards" : "Built to enterprise standards";
+  const trustCenterLabel = lang === "uk" ? "Центр довіри →" : lang === "ru" ? "Центр доверия →" : lang === "es" ? "Centro de confianza →" : lang === "de" ? "Vertrauenszentrum →" : "Trust Center →";
   return (
     <section className="border-t border-white/5 bg-[#08080A]">
       <div className="mx-auto max-w-6xl px-5 py-12">
         <div className="mb-6 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">Compliance & trust</div>
-            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">Built to enterprise standards</h2>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">{sectionBadge}</div>
+            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">{headline}</h2>
           </div>
           <Link href="/trust">
             <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-trust-center">
-              Trust Center →
+              {trustCenterLabel}
             </span>
           </Link>
         </div>

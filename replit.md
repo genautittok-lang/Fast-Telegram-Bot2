@@ -95,6 +95,27 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **Telegraph API**: For generating instruction pages.
 - **Plausible Analytics**: Privacy-friendly analytics on home page (script in `client/index.html`, CSP allowlists `plausible.io`).
 
+## i18n Polish (v4.5 — May 2026 Session)
+
+### Files changed in this session:
+- **History.tsx**: `Export JSON` button title/aria-label now multilingual (es/de added).
+- **Account.tsx**: Fixed 13 more hardcoded English strings in the White-label & Integrations section — section title/description, PDF White-label subtitle, company name placeholder, Save Branding/Webhooks/Payout buttons, Monitoring Webhooks title, Webhook alert description, Referral Crypto Payout title, wallet address placeholder, payout description. Subscription subLabels (daysLeft/expires/expired/autoRenew/on/off/renew) now include es/de. `toLocaleDateString` locale covers es/de.
+- **Dashboard.tsx**: `PageLayout title=` now multilingual (es/de/uk/ru).
+- **Account.tsx**: `PageLayout title=` now multilingual.
+- **History.tsx**: `PageLayout title=` now multilingual.
+- **Monitoring.tsx**: `PageLayout title=` now multilingual.
+- **Referral.tsx**: `PageLayout title=` now multilingual.
+- **Support.tsx**: `lang` destructured from `useTranslation`, `PageLayout title=` now multilingual.
+- **Pricing.tsx**: `lang` destructured from outer `useTranslation`, `PageLayout title=` now multilingual.
+- **JoinTeam.tsx**: All 9 strings (sign-in message, Sign In button, Joining team..., You joined!, success message, Go to Teams, Error, Failed to join, Back to Teams) now fully include es/de.
+- **Chat.tsx**: Team name fallback, chatSubtitle (private/general), and community subtitle now fully include es/de.
+
+### Coverage after this session:
+- All pages have multilingual `PageLayout title=` (5 languages).
+- All button labels, placeholders, descriptions in Account White-label section are multilingual.
+- JoinTeam and Chat fully multilingual including es/de.
+- No ternary chains missing es/de across any page or component (verified by grep sweep).
+
 ## Trust, Community & White-Label
 
 - **`/trust`** (`client/src/pages/Trust.tsx`): public Trust Center. Compliance roadmap (GDPR/CCPA ready, SOC 2 Type II in progress Q4 ’26, ISO 27001 planned Q1 ’27, PCI DSS via Stripe, RFC 9116 security.txt), bug bounty $25–2 000, retention table, PGP fingerprint. No auth required.

@@ -158,7 +158,7 @@ function SupportForm() {
 
 export default function Support() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [, setLocation] = useLocation();
 
   if (isLoading) {
@@ -176,7 +176,7 @@ export default function Support() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout title="Support">
+      <PageLayout title={lang === "uk" ? "Підтримка" : lang === "ru" ? "Поддержка" : lang === "es" ? "Soporte" : lang === "de" ? "Support" : "Support"}>
         <SupportForm />
       </PageLayout>
     );

@@ -251,6 +251,7 @@ function RiskBadge({ level, score }: { level: string; score: number }) {
 }
 
 function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: any; streakDays: number; checksLeft: number; maxChecks: number; tier: string }) {
+  const { lang } = useTranslation();
   const isUnlimited = maxChecks >= 9999;
   const pct = isUnlimited ? 100 : Math.max(0, Math.min(100, Math.round((checksLeft / maxChecks) * 100)));
   const greetName = user?.username || user?.email?.split("@")[0] || "agent";
@@ -286,7 +287,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
 
       <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="text-[11px] uppercase tracking-wider text-zinc-500">Checks remaining</div>
+          <div className="text-[11px] uppercase tracking-wider text-zinc-500">{lang === "uk" ? "Залишилось перевірок" : lang === "ru" ? "Осталось проверок" : lang === "es" ? "Verificaciones restantes" : lang === "de" ? "Verbleibende Checks" : "Checks remaining"}</div>
           <div className="mt-1 text-[28px] font-semibold leading-none text-white tabular-nums" data-testid="text-checks-remaining">
             {isUnlimited ? "∞" : checksLeft}
             {!isUnlimited && <span className="ml-1 text-[14px] font-normal text-zinc-500">/ {maxChecks}</span>}
@@ -295,7 +296,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
         {lowOnChecks && (
           <Link href="/pricing?plan=PRO">
             <span className="inline-flex h-9 cursor-pointer items-center rounded-lg bg-white px-3.5 text-[13px] font-medium text-black hover:bg-zinc-200" data-testid="link-upgrade-pro">
-              Upgrade to PRO
+              {lang === "uk" ? "Перейти на PRO" : lang === "ru" ? "Перейти на PRO" : lang === "es" ? "Actualizar a PRO" : lang === "de" ? "Upgrade auf PRO" : "Upgrade to PRO"}
             </span>
           </Link>
         )}
@@ -322,7 +323,8 @@ function SecurityGauge({ score }: { score: number }) {
   const color2 = score >= 80 ? '#06b6d4' : score >= 60 ? '#f97316' : '#f43f5e';
   const glowColor = score >= 80 ? 'rgba(34,197,94,0.5)' : score >= 60 ? 'rgba(234,179,8,0.5)' : 'rgba(239,68,68,0.5)';
   const neonClass = score >= 80 ? 'neon-text-green' : score >= 60 ? 'neon-text-yellow' : 'neon-text-red';
-  const label = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : 'At Risk';
+  const { lang: sgLang } = useTranslation();
+  const label = score >= 80 ? (sgLang === 'uk' ? 'Відмінно' : sgLang === 'ru' ? 'Отлично' : sgLang === 'es' ? 'Excelente' : sgLang === 'de' ? 'Ausgezeichnet' : 'Excellent') : score >= 60 ? (sgLang === 'uk' ? 'Добре' : sgLang === 'ru' ? 'Хорошо' : sgLang === 'es' ? 'Bien' : sgLang === 'de' ? 'Gut' : 'Good') : (sgLang === 'uk' ? 'Під загрозою' : sgLang === 'ru' ? 'Под угрозой' : sgLang === 'es' ? 'En riesgo' : sgLang === 'de' ? 'Gefährdet' : 'At Risk');
 
   const ticks = Array.from({ length: 36 }, (_, i) => {
     const angle = (i * 10) * (Math.PI / 180);
@@ -423,7 +425,7 @@ function SecurityGauge({ score }: { score: number }) {
           </motion.span>
         </div>
       </div>
-      <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">Security Score</span>
+      <span className="text-xs text-muted-foreground mt-2 font-medium tracking-wider uppercase">{sgLang === "uk" ? "Рейтинг безпеки" : sgLang === "ru" ? "Рейтинг безопасности" : sgLang === "es" ? "Puntuación de seguridad" : sgLang === "de" ? "Sicherheitsbewertung" : "Security Score"}</span>
     </div>
   );
 }
@@ -442,10 +444,11 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
     ? lastCheck.riskLevel === 'critical' ? 'text-red-400' : lastCheck.riskLevel === 'high' ? 'text-orange-400' : lastCheck.riskLevel === 'medium' ? 'text-yellow-400' : 'text-green-400'
     : 'text-zinc-500';
 
+  const { lang: qLang } = useTranslation();
   const actions = [
     {
       icon: History,
-      label: "Last Check",
+      label: qLang === "uk" ? "Остання перевірка" : qLang === "ru" ? "Последняя проверка" : qLang === "es" ? "Última verificación" : qLang === "de" ? "Letzter Check" : "Last Check",
       value: lastCheck ? (lastCheck.target?.length > 10 ? `${lastCheck.target.slice(0, 8)}..` : lastCheck.target) : "—",
       gradient: "from-blue-500 to-indigo-600",
       bgGlow: "rgba(59,130,246,0.15)",
@@ -453,7 +456,7 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
     },
     {
       icon: Eye,
-      label: "Monitoring",
+      label: qLang === "uk" ? "Моніторинг" : qLang === "ru" ? "Мониторинг" : qLang === "es" ? "Monitoreo" : qLang === "de" ? "Überwachung" : "Monitoring",
       value: `${monitoringCount}`,
       gradient: "from-cyan-400 to-teal-500",
       bgGlow: "rgba(34,211,238,0.15)",
@@ -461,7 +464,7 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
     },
     {
       icon: Flame,
-      label: "Streak",
+      label: qLang === "uk" ? "Серія" : qLang === "ru" ? "Серия" : qLang === "es" ? "Racha" : qLang === "de" ? "Serie" : "Streak",
       value: `${streakDays}d`,
       gradient: "from-orange-400 to-red-500",
       bgGlow: "rgba(249,115,22,0.15)",
@@ -469,7 +472,7 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
     },
     {
       icon: Activity,
-      label: "Total",
+      label: qLang === "uk" ? "Всього" : qLang === "ru" ? "Всего" : qLang === "es" ? "Total" : qLang === "de" ? "Gesamt" : "Total",
       value: `${totalChecks}`,
       gradient: "from-purple-400 to-pink-500",
       bgGlow: "rgba(168,85,247,0.15)",
@@ -530,22 +533,23 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
     if (navigator.vibrate) navigator.vibrate(10);
   };
 
+  const { lang: fabLang } = useTranslation();
   const actions = [
     {
       icon: Scan,
-      label: "New Scan",
+      label: fabLang === "uk" ? "Новий скан" : fabLang === "ru" ? "Новый скан" : fabLang === "es" ? "Nuevo escaneo" : fabLang === "de" ? "Neuer Scan" : "New Scan",
       color: "from-primary to-cyan-400",
       onClick: () => { triggerHaptic(); onNewScan(); setIsExpanded(false); },
     },
     {
       icon: History,
-      label: "History",
+      label: fabLang === "uk" ? "Історія" : fabLang === "ru" ? "История" : fabLang === "es" ? "Historial" : fabLang === "de" ? "Verlauf" : "History",
       color: "from-blue-500 to-cyan-400",
       href: "/history",
     },
     {
       icon: Share2,
-      label: "Share",
+      label: fabLang === "uk" ? "Поділитись" : fabLang === "ru" ? "Поделиться" : fabLang === "es" ? "Compartir" : fabLang === "de" ? "Teilen" : "Share",
       color: "from-purple-500 to-pink-400",
       onClick: async () => {
         triggerHaptic();
@@ -557,7 +561,7 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
     },
     ...(!isMobile ? [{
       icon: HelpCircle,
-      label: "Shortcuts",
+      label: fabLang === "uk" ? "Ярлики" : fabLang === "ru" ? "Горячие клавиши" : fabLang === "es" ? "Atajos" : fabLang === "de" ? "Tastenkürzel" : "Shortcuts",
       color: "from-amber-500 to-orange-400",
       onClick: () => { onShowShortcuts(); setIsExpanded(false); },
     }] : []),
@@ -732,6 +736,11 @@ function SecurityTipRotator({ lang }: { lang: string }) {
         "Revisa las URLs cuidadosamente — los sitios de phishing imitan a los reales",
         "Nunca compartas tus claves privadas o frases semilla",
         "Revisa regularmente si tu email apareció en filtraciones de datos",
+        "Usa contraseñas únicas en cada servicio — un gestor de contraseñas ayuda",
+        "Verifica los bots de Telegram antes de compartir datos personales",
+        "Comprueba la antigüedad del dominio — los nuevos suelen usarse para estafas",
+        "Monitorea tu huella digital — busca tu nombre de usuario en distintas plataformas",
+        "Activa las notificaciones de inicio de sesión en todas las cuentas críticas",
       ],
       de: [
         "Überprüfen Sie immer Wallet-Adressen bevor Sie Kryptowährung senden",
@@ -739,6 +748,11 @@ function SecurityTipRotator({ lang }: { lang: string }) {
         "Überprüfen Sie URLs sorgfältig — Phishing-Seiten imitieren echte mit kleinen Unterschieden",
         "Teilen Sie niemals Ihre privaten Schlüssel oder Seed-Phrasen",
         "Überprüfen Sie regelmäßig ob Ihre E-Mail in Datenlecks aufgetaucht ist",
+        "Verwenden Sie für jeden Dienst ein einzigartiges Passwort — ein Passwortmanager hilft",
+        "Überprüfen Sie Telegram-Bots bevor Sie persönliche Daten teilen",
+        "Prüfen Sie das Domain-Alter — neu registrierte Domains werden oft für Betrug genutzt",
+        "Überwachen Sie Ihren digitalen Fußabdruck — suchen Sie Ihren Benutzernamen auf Plattformen",
+        "Aktivieren Sie Anmeldebenachrichtigungen auf allen wichtigen Konten",
       ],
     };
     return allTips[lang] || allTips.en;
@@ -1302,7 +1316,7 @@ Sources: ${result.sources.join(', ')}`;
   const selectedCheck = checkTypes.find(c => c.id === selectedType);
 
   return (
-    <PageLayout title="Dashboard" appMode={isStandalone}>
+    <PageLayout title={lang === "uk" ? "Дашборд" : lang === "ru" ? "Панель" : lang === "es" ? "Panel" : lang === "de" ? "Übersicht" : "Dashboard"} appMode={isStandalone}>
       <AnimatePresence>
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>
@@ -1343,7 +1357,7 @@ Sources: ${result.sources.join(', ')}`;
                     <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-cyan-500/10 border border-primary/20">
                       <Scan className="w-7 h-7 text-primary" />
                     </div>
-                    <span className="bg-gradient-to-r from-white via-white to-primary/80 bg-clip-text text-transparent">Security Scanner</span>
+                    <span className="bg-gradient-to-r from-white via-white to-primary/80 bg-clip-text text-transparent">{lang === "uk" ? "Сканер безпеки" : lang === "ru" ? "Сканер безопасности" : lang === "es" ? "Escáner de seguridad" : lang === "de" ? "Sicherheitsscanner" : "Security Scanner"}</span>
                   </h1>
                   <p className="text-muted-foreground mt-2 ml-14">{t('dashboard.selectTypeAndEnter')}</p>
                 </div>
@@ -1426,13 +1440,13 @@ Sources: ${result.sources.join(', ')}`;
               const iconBg = isExpired ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 3 ? "bg-red-500/20 border-red-500/30" : daysRemaining <= 7 ? "bg-orange-500/20 border-orange-500/30" : "bg-cyan-500/20 border-cyan-500/30";
 
               const subLabels = {
-                title: lang === "uk" ? "Підписка" : lang === "ru" ? "Подписка" : "Subscription",
-                daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : "days left",
-                expires: lang === "uk" ? "Закінчується" : lang === "ru" ? "Истекает" : "Expires",
-                expired: lang === "uk" ? "Закінчилась" : lang === "ru" ? "Истекла" : "Expired",
-                autoRenew: lang === "uk" ? "Авто-продовження" : lang === "ru" ? "Авто-продление" : "Auto-renew",
-                on: lang === "uk" ? "Увімк." : lang === "ru" ? "Вкл." : "On",
-                off: lang === "uk" ? "Вимк." : lang === "ru" ? "Выкл." : "Off",
+                title: lang === "uk" ? "Підписка" : lang === "ru" ? "Подписка" : lang === "es" ? "Suscripción" : lang === "de" ? "Abonnement" : "Subscription",
+                daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : lang === "es" ? "días restantes" : lang === "de" ? "Tage übrig" : "days left",
+                expires: lang === "uk" ? "Закінчується" : lang === "ru" ? "Истекает" : lang === "es" ? "Vence" : lang === "de" ? "Läuft ab" : "Expires",
+                expired: lang === "uk" ? "Закінчилась" : lang === "ru" ? "Истекла" : lang === "es" ? "Vencida" : lang === "de" ? "Abgelaufen" : "Expired",
+                autoRenew: lang === "uk" ? "Авто-продовження" : lang === "ru" ? "Авто-продление" : lang === "es" ? "Auto-renovación" : lang === "de" ? "Auto-Verlängerung" : "Auto-renew",
+                on: lang === "uk" ? "Увімк." : lang === "ru" ? "Вкл." : lang === "es" ? "Act." : lang === "de" ? "Ein" : "On",
+                off: lang === "uk" ? "Вимк." : lang === "ru" ? "Выкл." : lang === "es" ? "Des." : lang === "de" ? "Aus" : "Off",
               };
 
               const formattedDate = expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US", {
@@ -1503,14 +1517,14 @@ Sources: ${result.sources.join(', ')}`;
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xs lg:text-sm font-display font-semibold">API Key</h3>
-                    <p className="text-[9px] lg:text-[10px] text-muted-foreground">Integration access</p>
+                    <p className="text-[9px] lg:text-[10px] text-muted-foreground">{lang === "uk" ? "Інтеграційний доступ" : lang === "ru" ? "Интеграционный доступ" : lang === "es" ? "Acceso de integración" : lang === "de" ? "Integrationszugang" : "Integration access"}</p>
                   </div>
                   {(() => {
                     const paidTiers = ["PRO", "ENTERPRISE", "GROUPS"];
                     const hasApiAccess = paidTiers.includes((user?.tier || "FREE").toUpperCase());
                     return (
                       <Badge className={`text-[9px] lg:text-[10px] ${hasApiAccess ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'} border`} data-testid="badge-api-status">
-                        {hasApiAccess ? 'Active' : 'Inactive'}
+                        {hasApiAccess ? (lang === "uk" ? "Активний" : lang === "ru" ? "Активен" : lang === "es" ? "Activo" : lang === "de" ? "Aktiv" : "Active") : (lang === "uk" ? "Неактивний" : lang === "ru" ? "Неактивен" : lang === "es" ? "Inactivo" : lang === "de" ? "Inaktiv" : "Inactive")}
                       </Badge>
                     );
                   })()}
@@ -1521,7 +1535,7 @@ Sources: ${result.sources.join(', ')}`;
                   return (
                     <div className="flex items-center gap-2">
                       <code className="flex-1 text-[10px] lg:text-xs font-mono bg-black/40 border border-white/5 rounded-lg p-2 truncate text-indigo-300" data-testid="text-api-key">
-                        {hasApiAccess ? `dk_${'•'.repeat(24)}` : 'Upgrade to PRO'}
+                        {hasApiAccess ? `dk_${'\u2022'.repeat(24)}` : (lang === "uk" ? "Перейдіть на PRO" : lang === "ru" ? "Перейдите на PRO" : lang === "es" ? "Actualizar a PRO" : lang === "de" ? "Upgrade auf PRO" : "Upgrade to PRO")}
                       </code>
                       {hasApiAccess && (
                         <Link href="/account">
@@ -1541,7 +1555,7 @@ Sources: ${result.sources.join(', ')}`;
                 <Link href="/api-docs">
                   <Button variant="ghost" size="sm" className="mt-2 text-[10px] lg:text-xs text-indigo-400 w-full justify-start" data-testid="link-api-docs">
                     <ExternalLink className="w-3 h-3 mr-1.5" />
-                    View API Documentation
+                    {lang === "uk" ? "Переглянути API документацію" : lang === "ru" ? "Просмотр документации API" : lang === "es" ? "Ver documentación API" : lang === "de" ? "API-Dokumentation ansehen" : "View API Documentation"}
                   </Button>
                 </Link>
               </div>
@@ -1555,8 +1569,8 @@ Sources: ${result.sources.join(', ')}`;
                     <BarChart3 className="w-4 h-4 lg:w-4.5 lg:h-4.5 text-cyan-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xs lg:text-sm font-display font-semibold">Scan Frequency</h3>
-                    <p className="text-[9px] lg:text-[10px] text-muted-foreground">Last 7 days</p>
+                    <h3 className="text-xs lg:text-sm font-display font-semibold">{lang === "uk" ? "Частота сканувань" : lang === "ru" ? "Частота сканирований" : lang === "es" ? "Frecuencia de escaneos" : lang === "de" ? "Scan-Häufigkeit" : "Scan Frequency"}</h3>
+                    <p className="text-[9px] lg:text-[10px] text-muted-foreground">{lang === "uk" ? "Останні 7 днів" : lang === "ru" ? "Последние 7 дней" : lang === "es" ? "Últimos 7 días" : lang === "de" ? "Letzte 7 Tage" : "Last 7 days"}</p>
                   </div>
                 </div>
                 {(() => {
@@ -1880,7 +1894,7 @@ Sources: ${result.sources.join(', ')}`;
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <div className="flex items-center gap-2">
                         <Layers className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Bulk Mode</span>
+                        <span className="text-xs text-muted-foreground">{lang === "uk" ? "Пакетний режим" : lang === "ru" ? "Пакетный режим" : lang === "es" ? "Modo masivo" : lang === "de" ? "Batch-Modus" : "Bulk Mode"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
@@ -1951,7 +1965,7 @@ Sources: ${result.sources.join(', ')}`;
                                 <Camera className="w-6 h-6 text-pink-400/70" />
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                {lang === "uk" ? "Перетягніть фото або натисніть" : lang === "ru" ? "Перетащите фото или нажмите" : "Drag photo or click to upload"}
+                                {lang === "uk" ? "Перетягніть фото або натисніть" : lang === "ru" ? "Перетащите фото или нажмите" : lang === "es" ? "Arrastra foto o haz clic" : lang === "de" ? "Foto hier ablegen oder klicken" : "Drag photo or click to upload"}
                               </p>
                               <p className="text-xs text-muted-foreground/60">JPG, PNG, TIFF</p>
                             </>
@@ -1963,7 +1977,7 @@ Sources: ${result.sources.join(', ')}`;
                         {geointLoading ? (
                           <div className="flex items-center justify-center py-8 gap-3">
                             <Loader2 className="w-5 h-5 text-teal-400 animate-spin" />
-                            <span className="text-sm text-muted-foreground">{lang === "uk" ? "Завантаження..." : lang === "ru" ? "Загрузка..." : "Loading..."}</span>
+                            <span className="text-sm text-muted-foreground">{lang === "uk" ? "Завантаження..." : lang === "ru" ? "Загрузка..." : lang === "es" ? "Cargando..." : lang === "de" ? "Laden..." : "Loading..."}</span>
                           </div>
                         ) : !geointRegion ? (
                           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
@@ -1989,7 +2003,7 @@ Sources: ${result.sources.join(', ')}`;
                               </div>
                               <Button variant="ghost" size="sm" onClick={() => { setGeointRegion(null); setGeointData(null); }} data-testid="button-geoint-back">
                                 <ArrowLeft className="w-4 h-4 mr-1" />
-                                {lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : "Back"}
+                                {lang === "uk" ? "Назад" : lang === "ru" ? "Назад" : lang === "es" ? "Volver" : lang === "de" ? "Zurück" : "Back"}
                               </Button>
                             </div>
                             {geointData?.tips && (
@@ -2058,13 +2072,13 @@ Sources: ${result.sources.join(', ')}`;
                               <Camera className="w-5 h-5" />
                             </motion.div>
                             <motion.span animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>
-                              {lang === "uk" ? "Аналіз EXIF..." : lang === "ru" ? "Анализ EXIF..." : "Analyzing EXIF..."}
+                              {lang === "uk" ? "Аналіз EXIF..." : lang === "ru" ? "Анализ EXIF..." : lang === "es" ? "Analizando EXIF..." : lang === "de" ? "EXIF analysieren..." : "Analyzing EXIF..."}
                             </motion.span>
                           </div>
                         ) : selectedType === "exif" ? (
                           <>
                             <Camera className="w-4 h-4 lg:w-5 lg:h-5 mr-2" />
-                            {lang === "uk" ? "Аналізувати EXIF" : lang === "ru" ? "Анализировать EXIF" : "Analyze EXIF"}
+                            {lang === "uk" ? "Аналізувати EXIF" : lang === "ru" ? "Анализировать EXIF" : lang === "es" ? "Analizar EXIF" : lang === "de" ? "EXIF analysieren" : "Analyze EXIF"}
                           </>
                         ) : (checkMutation.isPending || bulkCheckMutation.isPending) ? (
                           <div className="flex items-center gap-2">
@@ -2342,7 +2356,7 @@ Sources: ${result.sources.join(', ')}`;
                             <p className="font-mono text-[10px] lg:text-sm break-all leading-relaxed">
                               {typeof value === "boolean" ? (
                                 <Badge variant={value ? "destructive" : "secondary"} className="text-[9px] lg:text-xs px-1.5">
-                                  {value ? "Yes" : "No"}
+                                  {value ? (lang === "uk" ? "Так" : lang === "ru" ? "Да" : lang === "es" ? "Sí" : lang === "de" ? "Ja" : "Yes") : (lang === "uk" ? "Ні" : lang === "ru" ? "Нет" : lang === "es" ? "No" : lang === "de" ? "Nein" : "No")}
                                 </Badge>
                               ) : typeof value === "object" ? 
                                 JSON.stringify(value) : 
@@ -2367,7 +2381,7 @@ Sources: ${result.sources.join(', ')}`;
                             onClick={async () => {
                               if (!result) return;
                               try {
-                                toast({ title: lang === "uk" ? "Генерація PDF..." : "Generating PDF..." });
+                                toast({ title: lang === "uk" ? "Генерація PDF..." : lang === "ru" ? "Генерация PDF..." : lang === "es" ? "Generando PDF..." : lang === "de" ? "PDF wird erstellt..." : "Generating PDF..." });
                                 const response = await fetch("/api/check/generate-pdf", {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
@@ -2393,9 +2407,9 @@ Sources: ${result.sources.join(', ')}`;
                                 a.click();
                                 document.body.removeChild(a);
                                 URL.revokeObjectURL(url);
-                                toast({ title: lang === "uk" ? "PDF завантажено!" : "PDF downloaded!" });
+                                toast({ title: lang === "uk" ? "PDF завантажено!" : lang === "ru" ? "PDF загружен!" : lang === "es" ? "¡PDF descargado!" : lang === "de" ? "PDF heruntergeladen!" : "PDF downloaded!" });
                               } catch (err) {
-                                toast({ title: lang === "uk" ? "Помилка генерації PDF" : "PDF generation error", variant: "destructive" });
+                                toast({ title: lang === "uk" ? "Помилка генерації PDF" : lang === "ru" ? "Ошибка генерации PDF" : lang === "es" ? "Error al generar PDF" : lang === "de" ? "PDF-Generierungsfehler" : "PDF generation error", variant: "destructive" });
                               }
                             }}
                             data-testid="button-download-pdf"
@@ -2468,9 +2482,9 @@ Sources: ${result.sources.join(', ')}`;
                                   if (err.name !== 'AbortError') {
                                     try {
                                       await navigator.clipboard.writeText(shareText);
-                                      toast({ title: 'Copied to clipboard' });
+                                      toast({ title: lang === 'uk' ? 'Скопійовано' : lang === 'ru' ? 'Скопировано' : lang === 'es' ? 'Copiado' : lang === 'de' ? 'Kopiert' : 'Copied to clipboard' });
                                     } catch {
-                                      toast({ title: 'Share not available', variant: 'destructive' });
+                                      toast({ title: lang === 'uk' ? 'Поширення недоступне' : lang === 'ru' ? 'Поделиться недоступно' : lang === 'es' ? 'Compartir no disponible' : lang === 'de' ? 'Teilen nicht verfügbar' : 'Share not available', variant: 'destructive' });
                                     }
                                   }
                                 }
@@ -2478,7 +2492,7 @@ Sources: ${result.sources.join(', ')}`;
                               data-testid="button-share-results"
                             >
                               <Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
-                              <span className="truncate">Share</span>
+                              <span className="truncate">{lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : lang === "es" ? "Compartir" : lang === "de" ? "Teilen" : "Share"}</span>
                             </Button>
                           </motion.div>
                         )}
@@ -2571,7 +2585,7 @@ Sources: ${result.sources.join(', ')}`;
                   </div>
                 ) : (
                   <p className="text-[10px] lg:text-xs text-muted-foreground" data-testid="text-no-favorites">
-                    {lang === "uk" ? "Додайте перші обрані для швидкого доступу" : lang === "ru" ? "Добавьте первые избранные для быстрого доступа" : lang === "es" ? "Agregue los primeros favoritos para acceso rpido" : lang === "de" ? "Erste Favoriten fr Schnellzugriff hinzufgen" : "Add your first favorites for quick access"}
+                    {lang === "uk" ? "Додайте перші обрані для швидкого доступу" : lang === "ru" ? "Добавьте первые избранные для быстрого доступа" : lang === "es" ? "Agregue los primeros favoritos para acceso rápido" : lang === "de" ? "Erste Favoriten für Schnellzugriff hinzufügen" : "Add your first favorites for quick access"}
                   </p>
                 )}
               </motion.div>
@@ -2629,7 +2643,7 @@ Sources: ${result.sources.join(', ')}`;
                                     {bulkResult.riskLevel}
                                   </span>
                                   <span className="text-[10px] text-muted-foreground">
-                                    Score: {bulkResult.riskScore}/100
+                                    {lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : lang === "es" ? "Riesgo" : lang === "de" ? "Risiko" : "Score"}: {bulkResult.riskScore}/100
                                   </span>
                                   {bulkResult.error && (
                                     <Badge variant="destructive" className="text-[9px] px-1.5">
@@ -2666,7 +2680,7 @@ Sources: ${result.sources.join(', ')}`;
                                         ))}
                                         {bulkResult.findings.length > 3 && (
                                           <p className="text-[10px] text-muted-foreground/60">
-                                            +{bulkResult.findings.length - 3} more findings...
+                                            +{bulkResult.findings.length - 3} {lang === "uk" ? "ще знахідок..." : lang === "ru" ? "ещё находок..." : lang === "es" ? "más hallazgos..." : lang === "de" ? "weitere Funde..." : "more findings..."}
                                           </p>
                                         )}
                                       </div>

@@ -442,7 +442,7 @@ function PricingContent() {
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500" />
                 </span>
                 <span className="text-[10px] text-orange-400 font-medium">
-                  {lang === "uk" ? "Лише 12 місць залишилось" : lang === "ru" ? "Только 12 мест осталось" : "Only 12 spots left"}
+                  {lang === "uk" ? "Лише 12 місць залишилось" : lang === "ru" ? "Только 12 мест осталось" : lang === "es" ? "Solo quedan 12 lugares" : lang === "de" ? "Nur noch 12 Plätze" : "Only 12 spots left"}
                 </span>
               </div>
             </div>
@@ -592,6 +592,233 @@ function PricingContent() {
           </motion.div>
         </div>
 
+        {/* ── Feature Comparison Table ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="mt-10 sm:mt-14"
+          data-testid="feature-comparison-table"
+        >
+          <div className="text-center mb-6">
+            <div className="text-[11px] uppercase tracking-[0.2em] text-cyan-300/70 mb-1">
+              {lang === "uk" ? "Повне порівняння" : lang === "ru" ? "Полное сравнение" : lang === "es" ? "Comparación completa" : lang === "de" ? "Vollständiger Vergleich" : "Full comparison"}
+            </div>
+            <h2 className="text-[20px] sm:text-[24px] font-semibold text-white tracking-tight">
+              {lang === "uk" ? "Що входить у кожен план" : lang === "ru" ? "Что входит в каждый план" : lang === "es" ? "Qué incluye cada plan" : lang === "de" ? "Was jeder Plan beinhaltet" : "What's included in each plan"}
+            </h2>
+          </div>
+
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="min-w-[600px] sm:min-w-0">
+              {/* Header row */}
+              <div className="grid grid-cols-5 gap-px mb-px">
+                <div className="bg-transparent px-3 py-3" />
+                {(["FREE", "PRO", "ENTERPRISE", "GROUPS"] as const).map((plan) => (
+                  <div
+                    key={plan}
+                    className={`px-3 py-3 text-center rounded-t-xl text-[12px] font-bold tracking-wide ${
+                      plan === "PRO"
+                        ? "bg-cyan-500/15 border border-b-0 border-cyan-500/30 text-cyan-300"
+                        : "bg-white/[0.03] border border-b-0 border-white/[0.06] text-zinc-300"
+                    }`}
+                  >
+                    {plan}
+                  </div>
+                ))}
+              </div>
+
+              {/* Feature rows */}
+              {(() => {
+                type Plan = "FREE" | "PRO" | "ENTERPRISE" | "GROUPS";
+                type FeatureValue = boolean | string;
+                interface FeatureRow {
+                  category?: boolean;
+                  label: string;
+                  values: Record<Plan, FeatureValue>;
+                }
+                const rows: FeatureRow[] = [
+                  {
+                    category: true,
+                    label: lang === "uk" ? "Перевірки" : lang === "ru" ? "Проверки" : lang === "es" ? "Verificaciones" : lang === "de" ? "Checks" : "Checks",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: false },
+                  },
+                  {
+                    label: lang === "uk" ? "Щоденних перевірок" : lang === "ru" ? "Проверок в день" : lang === "es" ? "Checks por día" : lang === "de" ? "Checks pro Tag" : "Checks per day",
+                    values: { FREE: "15", PRO: "100", ENTERPRISE: lang === "uk" ? "Безліміт" : lang === "ru" ? "Безлимит" : lang === "es" ? "Ilimitado" : lang === "de" ? "Unbegrenzt" : "Unlimited", GROUPS: lang === "uk" ? "Безліміт" : lang === "ru" ? "Безлимит" : lang === "es" ? "Ilimitado" : lang === "de" ? "Unbegrenzt" : "Unlimited" },
+                  },
+                  {
+                    label: lang === "uk" ? "Типів перевірок" : lang === "ru" ? "Типов проверок" : lang === "es" ? "Tipos de verificación" : lang === "de" ? "Check-Typen" : "Check types",
+                    values: { FREE: "5", PRO: "17", ENTERPRISE: "17", GROUPS: "17" },
+                  },
+                  {
+                    label: lang === "uk" ? "Пакетні перевірки" : lang === "ru" ? "Пакетные проверки" : lang === "es" ? "Verificaciones masivas" : lang === "de" ? "Batch-Checks" : "Batch checks",
+                    values: { FREE: false, PRO: false, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    category: true,
+                    label: lang === "uk" ? "Аналітика та звіти" : lang === "ru" ? "Аналитика и отчёты" : lang === "es" ? "Análisis e informes" : lang === "de" ? "Analyse & Berichte" : "Analytics & reports",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: false },
+                  },
+                  {
+                    label: lang === "uk" ? "AI-аналіз ризиків" : lang === "ru" ? "AI-анализ рисков" : lang === "es" ? "Análisis de riesgos IA" : lang === "de" ? "KI-Risikoanalyse" : "AI risk analysis",
+                    values: { FREE: false, PRO: true, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: "PDF " + (lang === "uk" ? "звіти" : lang === "ru" ? "отчёты" : lang === "es" ? "informes" : lang === "de" ? "Berichte" : "reports"),
+                    values: { FREE: false, PRO: true, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: lang === "uk" ? "Кастомні звіти" : lang === "ru" ? "Кастомные отчёты" : lang === "es" ? "Informes personalizados" : lang === "de" ? "Custom-Berichte" : "Custom reports",
+                    values: { FREE: false, PRO: false, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: lang === "uk" ? "Командний дашборд" : lang === "ru" ? "Командный дашборд" : lang === "es" ? "Panel de equipo" : lang === "de" ? "Team-Dashboard" : "Team dashboard",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: true },
+                  },
+                  {
+                    category: true,
+                    label: lang === "uk" ? "Можливості" : lang === "ru" ? "Возможности" : lang === "es" ? "Funcionalidades" : lang === "de" ? "Features" : "Features",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: false },
+                  },
+                  {
+                    label: lang === "uk" ? "Моніторинг у реальному часі" : lang === "ru" ? "Мониторинг в реальном времени" : lang === "es" ? "Monitoreo en tiempo real" : lang === "de" ? "Echtzeit-Monitoring" : "Real-time monitoring",
+                    values: { FREE: false, PRO: true, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: "API " + (lang === "uk" ? "доступ" : lang === "ru" ? "доступ" : lang === "es" ? "acceso" : lang === "de" ? "Zugang" : "access"),
+                    values: { FREE: false, PRO: lang === "uk" ? "Бета" : lang === "ru" ? "Бета" : lang === "es" ? "Beta" : lang === "de" ? "Beta" : "Beta", ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: "WireGuard VPN",
+                    values: { FREE: false, PRO: lang === "uk" ? "3 пристрої" : lang === "ru" ? "3 устройства" : lang === "es" ? "3 dispositivos" : lang === "de" ? "3 Geräte" : "3 devices", ENTERPRISE: lang === "uk" ? "10 пристроїв" : lang === "ru" ? "10 устройств" : lang === "es" ? "10 dispositivos" : lang === "de" ? "10 Geräte" : "10 devices", GROUPS: lang === "uk" ? "25/учасник" : lang === "ru" ? "25/участник" : lang === "es" ? "25/miembro" : lang === "de" ? "25/Mitglied" : "25/member" },
+                  },
+                  {
+                    label: "White-label",
+                    values: { FREE: false, PRO: false, ENTERPRISE: true, GROUPS: false },
+                  },
+                  {
+                    label: lang === "uk" ? "Telegram бот" : lang === "ru" ? "Telegram бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram-Bot" : "Telegram bot",
+                    values: { FREE: true, PRO: true, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    category: true,
+                    label: lang === "uk" ? "Команда та безпека" : lang === "ru" ? "Команда и безопасность" : lang === "es" ? "Equipo y seguridad" : lang === "de" ? "Team & Sicherheit" : "Team & security",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: false },
+                  },
+                  {
+                    label: lang === "uk" ? "Учасників команди" : lang === "ru" ? "Участников команды" : lang === "es" ? "Miembros del equipo" : lang === "de" ? "Teammitglieder" : "Team members",
+                    values: { FREE: "1", PRO: "1", ENTERPRISE: "5", GROUPS: "25" },
+                  },
+                  {
+                    label: lang === "uk" ? "Управління ролями" : lang === "ru" ? "Управление ролями" : lang === "es" ? "Gestión de roles" : lang === "de" ? "Rollenverwaltung" : "Role management",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: true },
+                  },
+                  {
+                    label: lang === "uk" ? "Спільні звіти" : lang === "ru" ? "Общие отчёты" : lang === "es" ? "Informes compartidos" : lang === "de" ? "Geteilte Berichte" : "Shared reports",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: true },
+                  },
+                  {
+                    label: "SLA " + (lang === "uk" ? "гарантія" : lang === "ru" ? "гарантия" : lang === "es" ? "garantía" : lang === "de" ? "Garantie" : "guarantee"),
+                    values: { FREE: false, PRO: false, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    category: true,
+                    label: lang === "uk" ? "Підтримка" : lang === "ru" ? "Поддержка" : lang === "es" ? "Soporte" : lang === "de" ? "Support" : "Support",
+                    values: { FREE: false, PRO: false, ENTERPRISE: false, GROUPS: false },
+                  },
+                  {
+                    label: lang === "uk" ? "Пріоритетна підтримка" : lang === "ru" ? "Приоритетная поддержка" : lang === "es" ? "Soporte prioritario" : lang === "de" ? "Prioritätssupport" : "Priority support",
+                    values: { FREE: false, PRO: true, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: "24/7 " + (lang === "uk" ? "підтримка" : lang === "ru" ? "поддержка" : lang === "es" ? "soporte" : lang === "de" ? "Support" : "support"),
+                    values: { FREE: false, PRO: false, ENTERPRISE: true, GROUPS: true },
+                  },
+                  {
+                    label: lang === "uk" ? "Повернення коштів" : lang === "ru" ? "Возврат средств" : lang === "es" ? "Reembolso" : lang === "de" ? "Rückerstattung" : "Money-back",
+                    values: { FREE: false, PRO: lang === "uk" ? "7 днів" : lang === "ru" ? "7 дней" : lang === "es" ? "7 días" : lang === "de" ? "7 Tage" : "7 days", ENTERPRISE: lang === "uk" ? "7 днів" : lang === "ru" ? "7 дней" : lang === "es" ? "7 días" : lang === "de" ? "7 Tage" : "7 days", GROUPS: lang === "uk" ? "7 днів" : lang === "ru" ? "7 дней" : lang === "es" ? "7 días" : lang === "de" ? "7 Tage" : "7 days" },
+                  },
+                ];
+
+                const plans: Plan[] = ["FREE", "PRO", "ENTERPRISE", "GROUPS"];
+
+                return rows.map((row, idx) => {
+                  if (row.category) {
+                    return (
+                      <div key={idx} className="grid grid-cols-5 gap-px mt-3 mb-1">
+                        <div className="col-span-5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-zinc-500 font-semibold bg-white/[0.02] rounded-lg">
+                          {row.label}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={idx} className="grid grid-cols-5 gap-px hover:bg-white/[0.02] transition-colors group">
+                      <div className="px-3 py-2.5 text-[12px] text-zinc-400 group-hover:text-zinc-300 transition-colors flex items-center">
+                        {row.label}
+                      </div>
+                      {plans.map((plan) => {
+                        const val = row.values[plan];
+                        return (
+                          <div
+                            key={plan}
+                            className={`px-3 py-2.5 text-center flex items-center justify-center text-[12px] ${
+                              plan === "PRO"
+                                ? "bg-cyan-500/[0.04] border-x border-cyan-500/20"
+                                : ""
+                            }`}
+                          >
+                            {val === true ? (
+                              <Check className="w-4 h-4 text-cyan-400 mx-auto" />
+                            ) : val === false ? (
+                              <span className="w-3 h-px bg-zinc-700 block mx-auto" />
+                            ) : (
+                              <span className="text-[11px] text-zinc-300 font-medium">{val}</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                });
+              })()}
+
+              {/* Bottom CTA row */}
+              <div className="grid grid-cols-5 gap-px mt-px">
+                <div className="px-3 py-3" />
+                {(["FREE", "PRO", "ENTERPRISE", "GROUPS"] as const).map((plan) => (
+                  <div
+                    key={plan}
+                    className={`px-3 py-3 rounded-b-xl ${
+                      plan === "PRO"
+                        ? "bg-cyan-500/15 border border-t-0 border-cyan-500/30"
+                        : "bg-white/[0.03] border border-t-0 border-white/[0.06]"
+                    }`}
+                  >
+                    <button
+                      onClick={() => {
+                        if (plan === "FREE") { setLocation(isAuthenticated ? "/dashboard" : "/login"); }
+                        else { handlePayment(plan as "PRO" | "ENTERPRISE" | "GROUPS"); }
+                      }}
+                      className={`w-full text-[11px] font-semibold py-1.5 px-2 rounded-lg transition-colors ${
+                        plan === "PRO"
+                          ? "bg-cyan-500 hover:bg-cyan-400 text-black"
+                          : "bg-white/10 hover:bg-white/15 text-white"
+                      }`}
+                      data-testid={`button-compare-${plan.toLowerCase()}`}
+                    >
+                      {plan === "FREE"
+                        ? (lang === "uk" ? "Почати" : lang === "ru" ? "Начать" : lang === "es" ? "Empezar" : lang === "de" ? "Starten" : "Start free")
+                        : (lang === "uk" ? "Обрати" : lang === "ru" ? "Выбрать" : lang === "es" ? "Elegir" : lang === "de" ? "Wählen" : "Choose")}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -620,10 +847,10 @@ function PricingContent() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">
-                  {lang === "uk" ? "Безпечна оплата" : lang === "ru" ? "Безопасная оплата" : "Secure Payment"}
+                  {lang === "uk" ? "Безпечна оплата" : lang === "ru" ? "Безопасная оплата" : lang === "es" ? "Pago seguro" : lang === "de" ? "Sichere Zahlung" : "Secure Payment"}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {lang === "uk" ? "Шифрування та захист даних" : lang === "ru" ? "Шифрование и защита данных" : "Encrypted & protected"}
+                  {lang === "uk" ? "Шифрування та захист даних" : lang === "ru" ? "Шифрование и защита данных" : lang === "es" ? "Cifrado y protegido" : lang === "de" ? "Verschlüsselt & geschützt" : "Encrypted & protected"}
                 </p>
               </div>
             </div>
@@ -633,10 +860,10 @@ function PricingContent() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">
-                  {lang === "uk" ? "Миттєва активація" : lang === "ru" ? "Мгновенная активация" : "Instant Activation"}
+                  {lang === "uk" ? "Миттєва активація" : lang === "ru" ? "Мгновенная активация" : lang === "es" ? "Activación instantánea" : lang === "de" ? "Sofortige Aktivierung" : "Instant Activation"}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {lang === "uk" ? "Доступ відразу після оплати" : lang === "ru" ? "Доступ сразу после оплаты" : "Access right after payment"}
+                  {lang === "uk" ? "Доступ відразу після оплати" : lang === "ru" ? "Доступ сразу после оплаты" : lang === "es" ? "Acceso justo después del pago" : lang === "de" ? "Zugang sofort nach Zahlung" : "Access right after payment"}
                 </p>
               </div>
             </div>
@@ -646,10 +873,10 @@ function PricingContent() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">
-                  {lang === "uk" ? "Підтримка 24/7" : lang === "ru" ? "Поддержка 24/7" : "24/7 Support"}
+                  {lang === "uk" ? "Підтримка 24/7" : lang === "ru" ? "Поддержка 24/7" : lang === "es" ? "Soporte 24/7" : lang === "de" ? "24/7 Support" : "24/7 Support"}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {lang === "uk" ? "Відповідаємо у Telegram" : lang === "ru" ? "Отвечаем в Telegram" : "We respond in Telegram"}
+                  {lang === "uk" ? "Відповідаємо у Telegram" : lang === "ru" ? "Отвечаем в Telegram" : lang === "es" ? "Respondemos en Telegram" : lang === "de" ? "Wir antworten in Telegram" : "We respond in Telegram"}
                 </p>
               </div>
             </div>
@@ -667,14 +894,14 @@ function PricingContent() {
               <div className="text-3xl">💎</div>
               <div>
                 <p className="text-sm font-bold text-white">
-                  {lang === "uk" ? "Чому обирають DARKSHARE?" : lang === "ru" ? "Почему выбирают DARKSHARE?" : "Why choose DARKSHARE?"}
+                  {lang === "uk" ? "Чому обирають DARKSHARE?" : lang === "ru" ? "Почему выбирают DARKSHARE?" : lang === "es" ? "¿Por qué elegir DARKSHARE?" : lang === "de" ? "Warum DARKSHARE wählen?" : "Why choose DARKSHARE?"}
                 </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                   {[
-                    lang === "uk" ? "17 типів перевірок" : lang === "ru" ? "17 типов проверок" : "17 check types",
-                    lang === "uk" ? "AI аналіз ризиків" : lang === "ru" ? "AI анализ рисков" : "AI risk analysis",
-                    lang === "uk" ? "PDF звіти" : lang === "ru" ? "PDF отчёты" : "PDF reports",
-                    lang === "uk" ? "Telegram бот" : lang === "ru" ? "Telegram бот" : "Telegram bot",
+                    lang === "uk" ? "17 типів перевірок" : lang === "ru" ? "17 типов проверок" : lang === "es" ? "17 tipos de verificación" : lang === "de" ? "17 Check-Typen" : "17 check types",
+                    lang === "uk" ? "AI аналіз ризиків" : lang === "ru" ? "AI анализ рисков" : lang === "es" ? "Análisis IA de riesgos" : lang === "de" ? "KI-Risikoanalyse" : "AI risk analysis",
+                    lang === "uk" ? "PDF звіти" : lang === "ru" ? "PDF отчёты" : lang === "es" ? "Informes PDF" : lang === "de" ? "PDF-Berichte" : "PDF reports",
+                    lang === "uk" ? "Telegram бот" : lang === "ru" ? "Telegram бот" : lang === "es" ? "Bot de Telegram" : lang === "de" ? "Telegram-Bot" : "Telegram bot",
                   ].map((item, i) => (
                     <span key={i} className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Check className="w-3 h-3 text-cyan-500 shrink-0" />
@@ -691,7 +918,7 @@ function PricingContent() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {lang === "uk" ? "Оцінка 4.9 · 2800+ користувачів" : lang === "ru" ? "Оценка 4.9 · 2800+ пользователей" : "Rated 4.9 · 2800+ users"}
+                {lang === "uk" ? "Оцінка 4.9 · 2800+ користувачів" : lang === "ru" ? "Оценка 4.9 · 2800+ пользователей" : lang === "es" ? "Calificación 4.9 · 2800+ usuarios" : lang === "de" ? "Bewertet 4.9 · 2800+ Nutzer" : "Rated 4.9 · 2800+ users"}
               </p>
             </div>
           </div>
@@ -1265,7 +1492,7 @@ function PricingContent() {
 
 export default function Pricing() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [, setLocation] = useLocation();
 
   if (isLoading) {
@@ -1283,7 +1510,7 @@ export default function Pricing() {
 
   if (isAuthenticated) {
     return (
-      <PageLayout title="Pricing">
+      <PageLayout title={lang === "uk" ? "Тарифи" : lang === "ru" ? "Тарифы" : lang === "es" ? "Precios" : lang === "de" ? "Preise" : "Pricing"}>
         <PricingContent />
       </PageLayout>
     );

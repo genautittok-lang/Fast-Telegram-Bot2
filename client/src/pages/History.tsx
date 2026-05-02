@@ -403,8 +403,8 @@ export default function History() {
           }
           window.open('/api/reports/export/json', '_blank');
         }}
-        title={isFreeTier ? freeLimitTooltip : "Export JSON"}
-        aria-label={isFreeTier ? `Export JSON — ${freeLimitTooltip}` : "Export JSON"}
+        title={isFreeTier ? freeLimitTooltip : (lang === "uk" ? "Експорт JSON" : lang === "ru" ? "Экспорт JSON" : lang === "es" ? "Exportar JSON" : lang === "de" ? "JSON exportieren" : "Export JSON")}
+        aria-label={isFreeTier ? `${lang === "uk" ? "Експорт JSON" : lang === "ru" ? "Экспорт JSON" : lang === "es" ? "Exportar JSON" : lang === "de" ? "JSON exportieren" : "Export JSON"} — ${freeLimitTooltip}` : (lang === "uk" ? "Експорт JSON" : lang === "ru" ? "Экспорт JSON" : lang === "es" ? "Exportar JSON" : lang === "de" ? "JSON exportieren" : "Export JSON")}
         data-testid="button-export-json"
       >
         <FileJson className="w-4 h-4" />
@@ -465,7 +465,7 @@ export default function History() {
   );
 
   return (
-    <PageLayout title="History" appMode={isStandalone} headerActions={headerActions}>
+    <PageLayout title={lang === "uk" ? "Історія" : lang === "ru" ? "История" : lang === "es" ? "Historial" : lang === "de" ? "Verlauf" : "History"} appMode={isStandalone} headerActions={headerActions}>
       <div className="min-h-screen bg-[#0A0A0A] relative overflow-x-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-x-0 top-0 h-[480px]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.07), transparent 65%)" }} />

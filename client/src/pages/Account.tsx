@@ -464,7 +464,7 @@ export default function Account() {
   const isDataLoading = reportsLoading || watchesLoading || referralsLoading;
 
   return (
-    <PageLayout title="Account" appMode={isStandalone}>
+    <PageLayout title={lang === "uk" ? "Акаунт" : lang === "ru" ? "Аккаунт" : lang === "es" ? "Cuenta" : lang === "de" ? "Konto" : "Account"} appMode={isStandalone}>
       <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0A0A0A]">
         <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
@@ -958,8 +958,8 @@ export default function Account() {
                 <Building2 className="w-4 h-4 lg:w-5 lg:h-5 text-violet-400" />
               </div>
               <div>
-                <h2 className="text-lg lg:text-xl font-bold text-white">White-label & Integrations</h2>
-                <p className="text-xs text-muted-foreground">Brand your PDF reports, get monitoring alerts in Slack/Teams, set crypto payout for referrals.</p>
+                <h2 className="text-lg lg:text-xl font-bold text-white">{lang === "uk" ? "White-label та Інтеграції" : lang === "ru" ? "White-label и Интеграции" : lang === "es" ? "White-label e Integraciones" : lang === "de" ? "White-label & Integrationen" : "White-label & Integrations"}</h2>
+                <p className="text-xs text-muted-foreground">{lang === "uk" ? "Брендуйте PDF звіти, отримуйте сповіщення у Slack/Teams, налаштуйте виплати за реферали." : lang === "ru" ? "Брендируйте PDF отчёты, получайте уведомления в Slack/Teams, настройте выплаты за рефералов." : lang === "es" ? "Personaliza tus informes PDF, recibe alertas en Slack/Teams, configura pagos de referidos." : lang === "de" ? "Marken Sie PDF-Berichte, erhalten Sie Slack/Teams-Alerts, richten Sie Krypto-Auszahlungen ein." : "Brand your PDF reports, get monitoring alerts in Slack/Teams, set crypto payout for referrals."}</p>
               </div>
             </div>
 
@@ -967,12 +967,12 @@ export default function Account() {
               <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
                 <div className="flex items-center gap-2 mb-3">
                   <Palette className="w-4 h-4 text-violet-400" />
-                  <p className="font-medium text-white text-sm">PDF White-label</p>
+                  <p className="font-medium text-white text-sm">{lang === "uk" ? "PDF White-label" : lang === "ru" ? "PDF White-label" : lang === "es" ? "PDF White-label" : lang === "de" ? "PDF White-label" : "PDF White-label"}</p>
                   <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-300">ENTERPRISE / GROUPS</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <Input
-                    placeholder="Company name (e.g. Acme Corp)"
+                    placeholder={lang === "uk" ? "Назва компанії (напр. Acme Corp)" : lang === "ru" ? "Название компании (напр. Acme Corp)" : lang === "es" ? "Nombre de empresa (ej. Acme Corp)" : lang === "de" ? "Firmenname (z.B. Acme Corp)" : "Company name (e.g. Acme Corp)"}
                     value={companyName}
                     maxLength={120}
                     onChange={(e) => setCompanyName(e.target.value)}
@@ -1011,18 +1011,18 @@ export default function Account() {
                     data-testid="button-save-branding"
                     className="bg-violet-500/20 border border-violet-500/40 text-violet-200 hover:bg-violet-500/30"
                   >
-                    Save Branding
+                    {lang === "uk" ? "Зберегти бренд" : lang === "ru" ? "Сохранить бренд" : lang === "es" ? "Guardar marca" : lang === "de" ? "Branding speichern" : "Save Branding"}
                   </Button>
                 </div>
                 {(userTier !== "ENTERPRISE" && userTier !== "GROUPS") && (
-                  <p className="text-[11px] text-amber-400/80 mt-2 flex items-center gap-1.5"><Lock className="w-3 h-3" /> Available on ENTERPRISE / GROUPS plans.</p>
+                  <p className="text-[11px] text-amber-400/80 mt-2 flex items-center gap-1.5"><Lock className="w-3 h-3" /> {lang === "uk" ? "Доступно на тарифах ENTERPRISE / GROUPS." : lang === "ru" ? "Доступно на тарифах ENTERPRISE / GROUPS." : lang === "es" ? "Disponible en planes ENTERPRISE / GROUPS." : lang === "de" ? "Verfügbar für ENTERPRISE / GROUPS-Pläne." : "Available on ENTERPRISE / GROUPS plans."}</p>
                 )}
               </div>
 
               <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
                 <div className="flex items-center gap-2 mb-3">
                   <Webhook className="w-4 h-4 text-cyan-400" />
-                  <p className="font-medium text-white text-sm">Monitoring Webhooks</p>
+                  <p className="font-medium text-white text-sm">{lang === "uk" ? "Вебхуки моніторингу" : lang === "ru" ? "Вебхуки мониторинга" : lang === "es" ? "Webhooks de monitoreo" : lang === "de" ? "Monitoring-Webhooks" : "Monitoring Webhooks"}</p>
                 </div>
                 <div className="space-y-2">
                   <Input
@@ -1045,16 +1045,16 @@ export default function Account() {
                     data-testid="button-save-webhooks"
                     className="bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 hover:bg-cyan-500/30"
                   >
-                    Save Webhooks
+                    {lang === "uk" ? "Зберегти вебхуки" : lang === "ru" ? "Сохранить вебхуки" : lang === "es" ? "Guardar webhooks" : lang === "de" ? "Webhooks speichern" : "Save Webhooks"}
                   </Button>
-                  <p className="text-[11px] text-muted-foreground">Alerts from monitoring (CVE / wallet / domain) will be mirrored to your Slack & Teams channels.</p>
+                  <p className="text-[11px] text-muted-foreground">{lang === "uk" ? "Сповіщення від моніторингу (CVE / гаманець / домен) будуть дублюватись у Slack та Teams." : lang === "ru" ? "Уведомления мониторинга (CVE / кошелёк / домен) будут дублироваться в Slack и Teams." : lang === "es" ? "Las alertas de monitoreo (CVE / billetera / dominio) se copiarán a tus canales de Slack y Teams." : lang === "de" ? "Monitoring-Alerts (CVE / Wallet / Domain) werden in Slack- und Teams-Kanäle gespiegelt." : "Alerts from monitoring (CVE / wallet / domain) will be mirrored to your Slack & Teams channels."}</p>
                 </div>
               </div>
 
               <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
                 <div className="flex items-center gap-2 mb-3">
                   <Bitcoin className="w-4 h-4 text-amber-400" />
-                  <p className="font-medium text-white text-sm">Referral Crypto Payout</p>
+                  <p className="font-medium text-white text-sm">{lang === "uk" ? "Крипто-виплата за реферали" : lang === "ru" ? "Крипто-выплата за рефералов" : lang === "es" ? "Pago cripto por referidos" : lang === "de" ? "Krypto-Auszahlung für Empfehlungen" : "Referral Crypto Payout"}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   <Select value={payoutCurrency} onValueChange={setPayoutCurrency}>
@@ -1070,7 +1070,7 @@ export default function Account() {
                     </SelectContent>
                   </Select>
                   <Input
-                    placeholder="Wallet address"
+                    placeholder={lang === "uk" ? "Адреса гаманця" : lang === "ru" ? "Адрес кошелька" : lang === "es" ? "Dirección de billetera" : lang === "de" ? "Wallet-Adresse" : "Wallet address"}
                     value={payoutAddress}
                     onChange={(e) => setPayoutAddress(e.target.value)}
                     data-testid="input-payout-address"
@@ -1082,10 +1082,10 @@ export default function Account() {
                     data-testid="button-save-payout"
                     className="md:col-span-3 bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30"
                   >
-                    Save Payout
+                    {lang === "uk" ? "Зберегти виплату" : lang === "ru" ? "Сохранить выплату" : lang === "es" ? "Guardar pago" : lang === "de" ? "Auszahlung speichern" : "Save Payout"}
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-2">Earn 30% of each referred subscription. Payouts processed monthly when balance ≥ $25 equivalent.</p>
+                <p className="text-[11px] text-muted-foreground mt-2">{lang === "uk" ? "Отримуйте 30% з кожної підписки реферала. Виплати щомісяця при балансі ≥ $25." : lang === "ru" ? "Зарабатывайте 30% с каждой подписки реферала. Выплаты ежемесячно при балансе ≥ $25." : lang === "es" ? "Gana el 30% de cada suscripción referida. Pagos mensuales cuando el saldo ≥ $25." : lang === "de" ? "Verdienen Sie 30% jedes geworbenen Abonnements. Auszahlungen monatlich ab $25 Guthaben." : "Earn 30% of each referred subscription. Payouts processed monthly when balance ≥ $25 equivalent."}</p>
               </div>
             </div>
           </motion.div>
@@ -1129,16 +1129,16 @@ export default function Account() {
                   const barColor = isExpired ? "bg-red-500" : daysRemaining <= 3 ? "bg-red-500" : daysRemaining <= 7 ? "bg-orange-500" : "bg-cyan-500";
 
                   const subLabels = {
-                    daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : "days left",
-                    expires: lang === "uk" ? "Закінчується" : lang === "ru" ? "Истекает" : "Expires",
-                    expired: lang === "uk" ? "Підписка закінчилась!" : lang === "ru" ? "Подписка истекла!" : "Subscription expired!",
-                    autoRenew: lang === "uk" ? "Авто-продовження" : lang === "ru" ? "Авто-продление" : "Auto-renew",
-                    on: lang === "uk" ? "увімкнено" : lang === "ru" ? "включено" : "on",
-                    off: lang === "uk" ? "вимкнено" : lang === "ru" ? "выключено" : "off",
-                    renew: lang === "uk" ? "Продовжити" : lang === "ru" ? "Продлить" : "Renew",
+                    daysLeft: lang === "uk" ? "днів залишилось" : lang === "ru" ? "дней осталось" : lang === "es" ? "días restantes" : lang === "de" ? "Tage übrig" : "days left",
+                    expires: lang === "uk" ? "Закінчується" : lang === "ru" ? "Истекает" : lang === "es" ? "Vence" : lang === "de" ? "Läuft ab" : "Expires",
+                    expired: lang === "uk" ? "Підписка закінчилась!" : lang === "ru" ? "Подписка истекла!" : lang === "es" ? "¡Suscripción vencida!" : lang === "de" ? "Abonnement abgelaufen!" : "Subscription expired!",
+                    autoRenew: lang === "uk" ? "Авто-продовження" : lang === "ru" ? "Авто-продление" : lang === "es" ? "Auto-renovación" : lang === "de" ? "Auto-Verlängerung" : "Auto-renew",
+                    on: lang === "uk" ? "увімкнено" : lang === "ru" ? "включено" : lang === "es" ? "activado" : lang === "de" ? "aktiviert" : "on",
+                    off: lang === "uk" ? "вимкнено" : lang === "ru" ? "выключено" : lang === "es" ? "desactivado" : lang === "de" ? "deaktiviert" : "off",
+                    renew: lang === "uk" ? "Продовжити" : lang === "ru" ? "Продлить" : lang === "es" ? "Renovar" : lang === "de" ? "Verlängern" : "Renew",
                   };
 
-                  const formattedDate = expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-US", {
+                  const formattedDate = expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-US", {
                     day: "numeric", month: "long", year: "numeric",
                   });
 

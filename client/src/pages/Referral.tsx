@@ -237,7 +237,7 @@ export default function Referral() {
   };
 
   return (
-    <PageLayout title="Referral" appMode={isStandalone}>
+    <PageLayout title={lang === "uk" ? "Реферали" : lang === "ru" ? "Рефералы" : lang === "es" ? "Referidos" : lang === "de" ? "Empfehlungen" : "Referral"} appMode={isStandalone}>
       <div className="relative flex-1 flex flex-col min-h-screen max-w-full overflow-hidden bg-[#0A0A0A]">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.08), transparent 65%)" }} />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />

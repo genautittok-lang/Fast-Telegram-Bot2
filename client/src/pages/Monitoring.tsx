@@ -434,7 +434,7 @@ export default function Monitoring() {
   const CurrentTypeIcon = currentTypeConfig.icon;
 
   return (
-    <PageLayout title="Monitoring" appMode={isStandalone}>
+    <PageLayout title={lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : lang === "es" ? "Monitoreo" : lang === "de" ? "Überwachung" : "Monitoring"} appMode={isStandalone}>
       <div className="min-h-screen bg-background">
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
