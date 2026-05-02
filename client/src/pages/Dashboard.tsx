@@ -1321,7 +1321,7 @@ Sources: ${result.sources.join(', ')}`;
         {showTour && <OnboardingTour onComplete={completeTour} />}
       </AnimatePresence>
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
-        <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full pb-28 lg:pb-8">
+        <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full pb-24 lg:pb-8">
           <div className="max-w-6xl mx-auto lg:space-y-6">
             <div className="px-4 pt-3 pb-2 lg:px-0 lg:pt-0 space-y-3">
               {user && (
@@ -2063,7 +2063,7 @@ Sources: ${result.sources.join(', ')}`;
                       <Button 
                         onClick={selectedType === "exif" ? () => exifFile && exifMutation.mutate(exifFile) : bulkMode ? handleBulkCheck : handleCheck} 
                         disabled={checkMutation.isPending || bulkCheckMutation.isPending || exifMutation.isPending || (selectedType === "exif" && !exifFile)}
-                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold ${selectedType === "exif" ? 'bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 hover:from-pink-500/90 hover:via-pink-400/90 hover:to-rose-400/90' : 'bg-gradient-to-r from-primary via-cyan-400 to-cyan-400 hover:from-primary/90 hover:via-cyan-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-cyan-400/80 active:to-cyan-400/80'} text-black rounded-xl shadow-[0_0_20px_rgba(34,197,94,0.25)] active:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode && selectedType !== "exif" ? 'animate-subtle-pulse ring-pulse' : ''}`}
+                        className={`h-11 lg:h-14 px-5 lg:px-8 text-sm lg:text-lg font-semibold ${selectedType === "exif" ? 'bg-gradient-to-r from-pink-500 via-pink-400 to-rose-400 hover:from-pink-500/90 hover:via-pink-400/90 hover:to-rose-400/90' : 'bg-gradient-to-r from-primary via-cyan-400 to-cyan-400 hover:from-primary/90 hover:via-cyan-400/90 hover:to-cyan-400/90 active:from-primary/80 active:via-cyan-400/80 active:to-cyan-400/80'} text-black rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.25)] active:shadow-[0_0_30px_rgba(34,211,238,0.4)] transition-all duration-300 w-full touch-manipulation relative overflow-hidden btn-3d-press ${!inputValue.trim() && !bulkMode && selectedType !== "exif" ? 'animate-subtle-pulse ring-pulse' : ''}`}
                         data-testid="button-perform-check"
                       >
                         {exifMutation.isPending ? (
@@ -2193,7 +2193,7 @@ Sources: ${result.sources.join(', ')}`;
                   className="space-y-3 lg:space-y-6"
                 >
                   <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic result-card-3d" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
-                    <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
+                    <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
                     <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/[0.09]">
                       <div className="flex items-center gap-3">
@@ -2234,7 +2234,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Database className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                         {t('dashboard.scan')}
                       </div>
-                      <p className="font-mono text-xs lg:text-xl break-all text-primary leading-relaxed">{result.target}</p>
+                      <p className="font-mono text-xs sm:text-base lg:text-xl break-all text-primary leading-relaxed">{result.target}</p>
                     </motion.div>
 
                     <div className="relative mb-3 lg:mb-6">
@@ -2301,7 +2301,7 @@ Sources: ${result.sources.join(', ')}`;
                       if (_isFree) return null;
                       return (
                       <motion.div 
-                        className="mb-3 lg:mb-6 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(34,197,94,0.08)]"
+                        className="mb-3 lg:mb-6 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-primary/10 via-cyan-500/5 to-transparent border border-primary/30 backdrop-blur-xl shadow-[0_8px_32px_rgba(34,211,238,0.10)]"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.4 }}
@@ -2341,7 +2341,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Terminal className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
                         {t('dashboard.technicalDetails') || 'Technical Details'}
                       </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
                         {Object.entries(result.details).map(([key, value], idx) => (
                           <motion.div 
                             key={key}
@@ -2372,7 +2372,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                         <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
                       </div>
-                      <div className="flex gap-1.5 sm:gap-2 w-full flex-wrap">
+                      <div className="flex gap-1.5 sm:gap-2 w-full flex-wrap lg:flex-nowrap">
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
                           <Button 
                             variant="outline" 

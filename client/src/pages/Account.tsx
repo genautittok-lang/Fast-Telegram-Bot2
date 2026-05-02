@@ -102,7 +102,7 @@ function TierBadge({ tier }: { tier: string }) {
   const config = {
     FREE: { 
       icon: Zap, 
-      className: "bg-zinc-900 text-zinc-300 border-zinc-600",
+      className: "bg-[#0D0D10] text-zinc-300 border-white/[0.09]",
       glow: ""
     },
     PRO: { 
@@ -466,9 +466,9 @@ export default function Account() {
   return (
     <PageLayout title={lang === "uk" ? "Акаунт" : lang === "ru" ? "Аккаунт" : lang === "es" ? "Cuenta" : lang === "de" ? "Konto" : "Account"} appMode={isStandalone}>
       <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0A0A0A]">
-        <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
+        <div className="p-3 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
-            className="relative p-5 sm:p-6 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/[0.12] overflow-hidden shadow-[0_0_48px_-12px_rgba(34,211,238,0.08)]"
+            className="relative p-4 sm:p-6 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/[0.12] overflow-hidden shadow-[0_0_48px_-12px_rgba(34,211,238,0.08)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -537,7 +537,7 @@ export default function Account() {
                     <BarChart3 className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.totalChecks')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
+                  <p className="text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
 
                 <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
@@ -545,7 +545,7 @@ export default function Account() {
                     <Activity className="w-3.5 h-3.5 text-emerald-400" />
                     <span>{t('account.activeMonitors')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
+                  <p className="text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
 
                 <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
@@ -553,7 +553,7 @@ export default function Account() {
                     <Users className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.referrals')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
+                  <p className="text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
 
                 <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
@@ -591,7 +591,7 @@ export default function Account() {
             {isDataLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-zinc-600/30">
+                  <div key={i} className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.09]">
                     <div className="flex items-center gap-3 mb-3">
                       <Skeleton className="w-5 h-5 rounded" />
                       <Skeleton className="h-4 w-24" />
@@ -603,7 +603,7 @@ export default function Account() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
-                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-orange-500/10 via-zinc-900/50 to-transparent border border-orange-500/20">
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <Target className="w-4 h-4 lg:w-5 lg:h-5 text-orange-400 flex-shrink-0" />
@@ -623,7 +623,7 @@ export default function Account() {
                   </p>
                 </div>
                 
-                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-red-500/10 via-zinc-900/50 to-transparent border border-red-500/20">
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-transparent border border-red-500/20">
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
@@ -643,7 +643,7 @@ export default function Account() {
                   </p>
                 </div>
                 
-                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 via-zinc-900/50 to-transparent border border-yellow-500/20">
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-transparent border border-yellow-500/20">
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <Flame className="w-4 h-4 lg:w-5 lg:h-5 text-yellow-400 flex-shrink-0" />
@@ -663,7 +663,7 @@ export default function Account() {
                   </p>
                 </div>
                 
-                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 via-zinc-900/50 to-transparent border border-purple-500/20">
+                <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
                       <Crown className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
@@ -741,7 +741,7 @@ export default function Account() {
               </div>
               <span className="text-xs lg:text-sm text-muted-foreground">{t('account.activityLast30Days')}</span>
             </div>
-            <div className="grid grid-cols-10 gap-1 lg:gap-1.5" data-testid="activity-heatmap">
+            <div className="grid grid-cols-10 gap-[3px] sm:gap-1 lg:gap-1.5" data-testid="activity-heatmap">
               {heatmapData.map((day, idx) => {
                 const intensity = day.count === 0 ? 0 : day.count <= 1 ? 1 : day.count <= 3 ? 2 : day.count <= 5 ? 3 : 4;
                 const colors = [
@@ -871,7 +871,7 @@ export default function Account() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-gradient-to-br from-amber-500/10 via-zinc-900/50 to-transparent border border-amber-500/20">
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <BellRing className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -887,7 +887,7 @@ export default function Account() {
                 </div>
               </div>
               
-              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
+              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
                 <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
                   <Key className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
                   <div className="min-w-0">
@@ -1104,7 +1104,7 @@ export default function Account() {
             </div>
             
             <div className="space-y-3 lg:space-y-4">
-              <div className="flex flex-col gap-3 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-indigo-500/10 via-zinc-900/50 to-transparent border border-indigo-500/20">
+              <div className="flex flex-col gap-3 p-3 lg:p-5 rounded-xl bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20">
                 <div>
                   <div className="flex items-center gap-2 lg:gap-3 mb-1 lg:mb-2 flex-wrap">
                     <p className="font-medium text-white text-sm lg:text-base">{t('account.currentPlan')}</p>
@@ -1244,7 +1244,7 @@ export default function Account() {
                 </div>
               </div>
 
-              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 via-zinc-900/50 to-transparent border border-cyan-500/20">
+              <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
                 <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <ShieldCheck className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
@@ -1253,7 +1253,7 @@ export default function Account() {
                       <p className="text-xs lg:text-sm text-muted-foreground">{t('account.twoFactorDesc')}</p>
                     </div>
                   </div>
-                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-zinc-600/50 text-zinc-400 border-zinc-600/50'}`}>
+                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-white/[0.06] text-white/40 border-white/[0.09]'}`}>
                     {user?.totpEnabled ? t('account.twoFactorEnabled') : t('account.twoFactorDisabled')}
                   </Badge>
                 </div>

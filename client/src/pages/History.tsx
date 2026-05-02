@@ -472,14 +472,14 @@ export default function History() {
           <div className="absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />
         </div>
 
-        <main className="max-w-6xl mx-auto px-3 py-4 sm:px-4 sm:py-6 relative z-10 space-y-3 sm:space-y-6">
+        <main className="max-w-6xl mx-auto px-3 py-3 sm:px-4 sm:py-5 lg:py-6 relative z-10 space-y-3 sm:space-y-5">
         <ScanInsights langProp={lang} />
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4"
         >
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.totalChecks')}</span>
@@ -487,7 +487,7 @@ export default function History() {
             <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.total}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.thisWeekChecks')}</span>
@@ -495,7 +495,7 @@ export default function History() {
             <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.thisWeek}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-rose-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-rose-400/30 hover:shadow-[0_0_20px_-6px_rgba(251,113,133,0.15)]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" />
               <span>{t('history.criticalRisks')}</span>
@@ -503,7 +503,7 @@ export default function History() {
             <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.critical}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.pdfDownloaded')}</span>
@@ -725,8 +725,8 @@ export default function History() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                          <p className="font-mono text-[11px] sm:text-sm font-medium truncate max-w-[120px] sm:max-w-none">{report.target}</p>
-                          <Badge variant="outline" className="text-[9px] sm:text-[10px] uppercase tracking-wider opacity-60 hidden sm:inline-flex">
+                          <p className="font-mono text-[11px] sm:text-sm font-medium truncate max-w-[140px] xs:max-w-[160px] sm:max-w-none">{report.target}</p>
+                          <Badge variant="outline" className="text-[9px] sm:text-[10px] uppercase tracking-wider opacity-60">
                             {report.type}
                           </Badge>
                         </div>
@@ -743,7 +743,7 @@ export default function History() {
                           <span className="font-semibold">{report.riskScore}</span>
                         </Badge>
                         
-                        <div className="flex items-center gap-0.5 sm:gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                           <Button
                             variant="ghost"
                             size="icon"

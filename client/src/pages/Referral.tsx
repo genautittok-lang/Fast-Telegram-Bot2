@@ -238,11 +238,11 @@ export default function Referral() {
 
   return (
     <PageLayout title={lang === "uk" ? "Реферали" : lang === "ru" ? "Рефералы" : lang === "es" ? "Referidos" : lang === "de" ? "Empfehlungen" : "Referral"} appMode={isStandalone}>
-      <div className="relative flex-1 flex flex-col min-h-screen max-w-full overflow-hidden bg-[#0A0A0A]">
+      <div className="relative flex-1 flex flex-col min-h-screen max-w-full overflow-hidden bg-[#0A0A0A] overflow-x-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.08), transparent 65%)" }} />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />
-        <main className="relative flex-1 p-4 lg:p-10 overflow-auto max-w-full pb-28 lg:pb-12">
-          <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
+        <main className="relative flex-1 p-3 sm:p-5 lg:p-10 overflow-auto max-w-full pb-24 lg:pb-12">
+          <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.04] px-3 py-1 text-[12px] text-zinc-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -354,7 +354,7 @@ export default function Referral() {
               </div>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-4 lg:gap-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-3 sm:gap-4 lg:gap-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Gift className="w-4 h-4 text-cyan-300" />
@@ -367,7 +367,7 @@ export default function Referral() {
                   </div>
                   <button
                     onClick={copyCode}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-4 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200"
+                    className="inline-flex h-12 min-h-[44px] items-center justify-center gap-2 rounded-xl bg-white px-4 text-[13px] font-medium text-black transition-colors hover:bg-zinc-200 active:scale-[0.97] touch-manipulation"
                     data-testid="button-copy-code"
                   >
                     {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -409,19 +409,19 @@ export default function Referral() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-white/[0.09] bg-[#0D0D10] p-4">
+              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-white/[0.09] bg-[#0D0D10] p-3 sm:p-4">
                 <img src={qrUrl} alt="Referral QR" width={160} height={160} className="rounded-md" data-testid="img-ref-qr" />
                 <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">scan to invite</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <UserPlus className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t('referral.totalReferrals')}</span>
                 </div>
-                <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono">
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums">
                   {statsLoading ? "—" : referralStats?.referralCount || 0}
                 </p>
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.referralsLabel')}</p>
@@ -432,7 +432,7 @@ export default function Referral() {
                   <Wallet className="w-3.5 h-3.5 text-amber-300" />
                   <span>{t('referral.totalBonus')}</span>
                 </div>
-                <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono">
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums">
                   +{statsLoading ? "—" : referralStats?.totalEarned || 0}
                 </p>
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.earnedRequests')}</p>
@@ -443,7 +443,7 @@ export default function Referral() {
                   <Gift className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t('referral.pendingBonusLabel')}</span>
                 </div>
-                <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono">
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums">
                   +{statsLoading ? "—" : referralStats?.pendingBonus || 0}
                 </p>
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.bonus')}</p>
@@ -459,7 +459,7 @@ export default function Referral() {
                 <span className="text-[11px] font-mono text-zinc-600">L{getCurrentTierLevel()} / L4</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                 {referralTiers.map((tier, idx) => {
                   const currentLevel = getCurrentTierLevel();
                   const isActive = tier.level === currentLevel;
@@ -594,7 +594,7 @@ export default function Referral() {
                   {leaderboard.items.slice(0, 10).map((row) => (
                     <div
                       key={row.rank}
-                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-[#0D0D10] border border-white/[0.09]"
+                      className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#0D0D10] border border-white/[0.09]"
                       data-testid={`row-leaderboard-${row.rank}`}
                     >
                       <div className="flex items-center gap-3 min-w-0">

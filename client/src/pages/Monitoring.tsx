@@ -205,13 +205,13 @@ function StatCard({
     >
       <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl blur-xl -z-10"
         style={{ background: `linear-gradient(135deg, ${gradient})` }} />
-      <div className="relative p-2 sm:p-4 rounded-xl bg-[#0E0E12] border border-white/[0.09] hover:border-white/[0.18] hover:shadow-[0_0_20px_-4px_rgba(0,0,0,0.5)] transition-all duration-300">
+      <div className="relative p-3 sm:p-4 rounded-xl bg-[#0E0E12] border border-white/[0.09] hover:border-cyan-400/25 hover:shadow-[0_0_24px_-4px_rgba(34,211,238,0.12)] transition-all duration-300">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0`}>
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <p className="text-lg sm:text-2xl font-bold font-display truncate">{value}</p>
+            <p className="text-xl sm:text-2xl font-bold font-display truncate tabular-nums">{value}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{label}</p>
           </div>
         </div>
@@ -281,14 +281,13 @@ function MonitorCard({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20, scale: 0.95 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="group relative"
+      className="group relative touch-manipulation"
     >
       <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-gradient-to-b ${config.gradient}`} />
       <div className={`relative ml-1 p-2 sm:p-4 rounded-r-xl rounded-l-none bg-gradient-to-r ${config.bgGradient} border border-white/[0.08] hover:border-white/[0.14] transition-all duration-300 hover:translate-x-1 hover:shadow-lg hover:shadow-black/20`}>
         <div className="flex items-center gap-2 sm:gap-4">
           <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${config.iconBg} flex items-center justify-center border border-white/[0.09] shrink-0`}>
-            <TypeIcon className={`w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r ${config.gradient} bg-clip-text`} style={{ color: 'transparent', WebkitBackgroundClip: 'text', backgroundImage: `linear-gradient(135deg, var(--tw-gradient-stops))` }} />
-            <TypeIcon className={`w-5 h-5 sm:w-6 sm:h-6 absolute opacity-80`} style={{ color: config.gradient.includes('blue') ? '#3b82f6' : config.gradient.includes('orange') ? '#f97316' : config.gradient.includes('purple') ? '#a855f7' : config.gradient.includes('green') ? '#22c55e' : config.gradient.includes('indigo') ? '#6366f1' : '#ef4444' }} />
+            <TypeIcon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: config.gradient.includes('blue') ? '#38bdf8' : config.gradient.includes('orange') ? '#fb923c' : config.gradient.includes('purple') ? '#c084fc' : config.gradient.includes('green') ? '#4ade80' : config.gradient.includes('indigo') ? '#818cf8' : '#f87171' }} />
           </div>
           
           <div className="flex-1 min-w-0">
@@ -441,7 +440,7 @@ export default function Monitoring() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-3xl" />
         </div>
 
-        <main className="max-w-6xl mx-auto px-4 py-6 relative z-10 space-y-6">
+        <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative z-10 space-y-4 sm:space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
           <StatCard
             icon={Eye}
@@ -603,8 +602,8 @@ export default function Monitoring() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <div className="relative p-[1px] rounded-2xl bg-gradient-to-r from-primary/50 via-primary/20 to-primary/50">
-            <div className="rounded-2xl bg-background p-3 sm:p-5">
+          <div className="relative p-[1px] rounded-2xl bg-gradient-to-r from-cyan-500/30 via-cyan-500/10 to-cyan-500/30">
+            <div className="rounded-2xl bg-[#0E0E12] p-3 sm:p-5">
               <Collapsible open={faqOpen} onOpenChange={setFaqOpen}>
                 <CollapsibleTrigger className="w-full">
                   <div className="flex items-center justify-between">
