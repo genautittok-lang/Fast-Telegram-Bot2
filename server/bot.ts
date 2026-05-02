@@ -656,6 +656,16 @@ ${t(lang, "startWelcome.selectLang")}`;
       if (minutes < 60) return `${minutes} мин назад`;
       if (hours < 24) return `${hours} ч назад`;
       return `${days} дн назад`;
+    } else if (lang === "es") {
+      if (minutes < 1) return "hace un momento";
+      if (minutes < 60) return `hace ${minutes} min`;
+      if (hours < 24) return `hace ${hours} h`;
+      return `hace ${days} días`;
+    } else if (lang === "de") {
+      if (minutes < 1) return "gerade eben";
+      if (minutes < 60) return `vor ${minutes} Min.`;
+      if (hours < 24) return `vor ${hours} Std.`;
+      return `vor ${days} Tagen`;
     } else {
       if (minutes < 1) return "just now";
       if (minutes < 60) return `${minutes}m ago`;
