@@ -238,11 +238,11 @@ export default function Referral() {
 
   return (
     <PageLayout title={lang === "uk" ? "Реферали" : lang === "ru" ? "Рефералы" : lang === "es" ? "Referidos" : lang === "de" ? "Empfehlungen" : "Referral"} appMode={isStandalone}>
-      <div className="relative flex-1 flex flex-col min-h-screen max-w-full overflow-hidden bg-[#0A0A0A] overflow-x-hidden">
+      <div className="relative flex-1 flex flex-col min-h-screen max-w-full bg-[#09090E] overflow-x-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.08), transparent 65%)" }} />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />
-        <main className="relative flex-1 p-3 sm:p-5 lg:p-10 overflow-auto max-w-full pb-24 lg:pb-12">
-          <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
+        <main className="relative flex-1 p-3 sm:p-4 lg:p-8 overflow-auto max-w-full pb-28 lg:pb-12">
+          <div className="max-w-4xl mx-auto space-y-3 sm:space-y-5 lg:space-y-7">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.04] px-3 py-1 text-[12px] text-zinc-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -339,7 +339,7 @@ export default function Referral() {
                             <Button
                               type="submit"
                               disabled={partnershipMutation.isPending || !partnerForm.name || !partnerForm.phone || !partnerForm.email || !partnerForm.method || !partnerForm.volume}
-                              className="w-full bg-white text-black hover:bg-zinc-200 border-0"
+                              className="h-11 w-full bg-white text-black hover:bg-zinc-200 border-0 font-medium touch-manipulation"
                               data-testid="button-partner-submit"
                             >
                               <Send className="w-4 h-4 mr-2" />
@@ -354,7 +354,7 @@ export default function Referral() {
               </div>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-3 sm:gap-4 lg:gap-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] lg:grid-cols-[1fr_200px] gap-3 sm:gap-4 lg:gap-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Gift className="w-4 h-4 text-cyan-300" />
@@ -378,10 +378,10 @@ export default function Referral() {
                 <div>
                   <p className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">{t('referral.referralLink')}</p>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 rounded-lg border border-white/[0.09] bg-[#0D0D10] px-3 py-2 font-mono text-[12px] text-zinc-300 truncate">
+                    <div className="flex-1 rounded-lg border border-white/[0.09] bg-[#0D0D10] px-3 py-2.5 font-mono text-[11px] sm:text-[12px] text-zinc-300 truncate min-w-0">
                       {referralLink}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 flex-wrap">
                       <button
                         onClick={copyLink}
                         className="grid h-10 w-10 place-items-center rounded-lg border border-white/[0.09] text-zinc-400 transition-colors hover:border-white/[0.20] hover:text-white touch-manipulation"
@@ -410,13 +410,13 @@ export default function Referral() {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-white/[0.09] bg-[#0D0D10] p-3 sm:p-4">
-                <img src={qrUrl} alt="Referral QR" width={160} height={160} className="rounded-md" data-testid="img-ref-qr" />
+                <img src={qrUrl} alt="Referral QR" width={140} height={140} className="rounded-md w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px]" data-testid="img-ref-qr" />
                 <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">scan to invite</p>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-2.5 sm:p-3.5 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <UserPlus className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t('referral.totalReferrals')}</span>
@@ -427,7 +427,7 @@ export default function Referral() {
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.referralsLabel')}</p>
               </div>
 
-              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-2.5 sm:p-3.5 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <Wallet className="w-3.5 h-3.5 text-amber-300" />
                   <span>{t('referral.totalBonus')}</span>
@@ -438,7 +438,7 @@ export default function Referral() {
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.earnedRequests')}</p>
               </div>
 
-              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-2.5 sm:p-3.5 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <Gift className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t('referral.pendingBonusLabel')}</span>
@@ -450,8 +450,8 @@ export default function Referral() {
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
-              <div className="flex items-center justify-between mb-4">
+            <div className="p-3 sm:p-4 lg:p-5 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-cyan-300" />
                   <h2 className="text-[12px] uppercase tracking-wider text-zinc-500">{t('referral.rewardLevels')}</h2>
@@ -494,7 +494,7 @@ export default function Referral() {
                           </div>
                         </div>
                       )}
-                      <div className="w-9 h-9 rounded-lg border border-white/[0.09] bg-white/[0.04] flex items-center justify-center mb-3">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-white/[0.09] bg-white/[0.04] flex items-center justify-center mb-2 sm:mb-3">
                         <tier.icon className={`w-4.5 h-4.5 ${isActive || isCompleted ? tier.iconColor : "text-zinc-500"}`} />
                       </div>
                       <h3 className={`text-[14px] font-semibold tracking-tight mb-1 ${isActive || isCompleted ? "text-white" : "text-zinc-300"}`}>
@@ -512,8 +512,8 @@ export default function Referral() {
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
-              <div className="flex items-center justify-between mb-4">
+            <div className="p-3 sm:p-4 lg:p-5 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-cyan-300" />
                   <h2 className="text-[12px] uppercase tracking-wider text-zinc-500">{t('referral.invitedUsers')}</h2>
@@ -532,7 +532,7 @@ export default function Referral() {
                   {uniqueUsers.map((refUser, idx) => (
                     <motion.div
                       key={refUser.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D10] border border-white/[0.09] hover:border-white/[0.20] transition-colors"
+                      className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-[#0D0D10] border border-white/[0.09] hover:border-white/[0.20] transition-colors gap-2"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05, duration: 0.2 }}
@@ -579,13 +579,13 @@ export default function Referral() {
               )}
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0E0E12] to-[#0E0E12]">
+            <div className="p-3 sm:p-4 lg:p-5 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0E0E12] to-[#0E0E12]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-center">
                   <Trophy className="w-5 h-5 text-amber-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-white">Monthly Leaderboard</h3>
+                  <h3 className="font-semibold text-base sm:text-lg text-white">Monthly Leaderboard</h3>
                   <p className="text-[11px] text-zinc-500">Top 10 referrers this month win 1-month PRO subscription. Updated hourly.</p>
                 </div>
               </div>
@@ -617,7 +617,7 @@ export default function Referral() {
               )}
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0E0E12] to-[#0E0E12]">
+            <div className="p-3 sm:p-4 lg:p-5 rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0E0E12] to-[#0E0E12]">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl border border-amber-500/30 bg-amber-500/10 flex items-center justify-center flex-shrink-0">
                   <Bitcoin className="w-5 h-5 text-amber-300" />
@@ -632,13 +632,13 @@ export default function Referral() {
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
+            <div className="p-3 sm:p-4 lg:p-5 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-center flex-shrink-0">
                   <Gift className="w-5 h-5 text-cyan-300" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-2">{t('referral.howItWorksTitle')}</h3>
+                  <h3 className="font-semibold text-base sm:text-lg mb-2">{t('referral.howItWorksTitle')}</h3>
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <div className="flex items-start gap-2">
                       <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">

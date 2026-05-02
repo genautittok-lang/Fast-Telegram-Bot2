@@ -1617,9 +1617,7 @@ Sources: ${result.sources.join(', ')}`;
 
             {/* Scan Insights with charts - shown for all authenticated users */}
             {user && (
-              <div className="hidden md:block">
-                <ScanInsights />
-              </div>
+              <ScanInsights />
             )}
 
             {/* Quick Actions Widget - hidden on mobile */}
@@ -1628,7 +1626,7 @@ Sources: ${result.sources.join(', ')}`;
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="hidden md:block p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
+                className="p-3 sm:p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
               >
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <div className="flex items-center gap-2">
@@ -1659,7 +1657,7 @@ Sources: ${result.sources.join(', ')}`;
                     <span className="text-xs text-muted-foreground ml-2">{t('common.loading')}</span>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 lg:gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:gap-3 min-w-0">
                     {recentReports.slice(0, 5).map((report, idx) => {
                       const riskConfig = getRiskConfig(report.riskLevel);
                       const RiskIcon = riskConfig.icon;
@@ -1724,7 +1722,7 @@ Sources: ${result.sources.join(', ')}`;
             <div className="space-y-3 lg:space-y-6">
               {/* Mobile: horizontal scroll strip */}
               <div className="lg:hidden">
-                <div className="flex overflow-x-auto gap-2 px-4 pb-2 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="flex overflow-x-auto gap-1.5 px-3 pb-2 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {checkTypes.map((type) => {
                     const isSelected = selectedType === type.id;
                     return (
@@ -1738,14 +1736,14 @@ Sources: ${result.sources.join(', ')}`;
                           setGeointRegion(null);
                           setGeointData(null);
                         }}
-                        className={`relative flex flex-col items-center gap-1 min-w-[68px] py-2.5 px-1 rounded-2xl touch-manipulation active:scale-[0.92] transition-transform duration-150 select-none ${
+                        className={`relative flex flex-col items-center gap-1 min-w-[64px] py-2.5 px-1 rounded-2xl touch-manipulation active:scale-[0.92] transition-transform duration-150 select-none ${
                           isSelected
                             ? 'bg-white/[0.06]'
                             : 'bg-transparent'
                         }`}
                         data-testid={`button-check-type-${type.id}`}
                       >
-                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors duration-150 ${
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-150 ${
                           isSelected
                             ? `bg-gradient-to-br ${type.gradient} border ${type.borderColor.split(' ')[0]} shadow-lg`
                             : 'bg-[#1a1a24] border border-white/[0.08]'
@@ -1844,8 +1842,8 @@ Sources: ${result.sources.join(', ')}`;
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-display font-semibold text-sm lg:text-lg truncate">{selectedCheck?.label}</h3>
-                        <p className="text-[10px] lg:text-sm text-muted-foreground">{selectedCheck?.shortDescription}</p>
+                        <h3 className="font-display font-semibold text-sm sm:text-base lg:text-lg truncate">{selectedCheck?.label}</h3>
+                        <p className="text-[10px] sm:text-xs lg:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">{selectedCheck?.shortDescription}</p>
                       </div>
                     </motion.div>
                   </AnimatePresence>
@@ -1866,7 +1864,7 @@ Sources: ${result.sources.join(', ')}`;
                         <p className="text-[10px] lg:text-xs text-muted-foreground/80 mb-3 leading-relaxed">
                           {selectedCheck.description}
                         </p>
-                        <div className="grid grid-cols-2 gap-1.5 lg:gap-2">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-1.5 lg:gap-2">
                           {selectedCheck.services.map((service, idx) => (
                             <motion.div
                               key={service.name}
@@ -1919,7 +1917,7 @@ Sources: ${result.sources.join(', ')}`;
                           value={bulkInput}
                           onChange={(e) => setBulkInput(e.target.value)}
                           placeholder={`${t('dashboard.bulkPlaceholder')}\n${selectedCheck?.placeholder || ''}\n${selectedCheck?.placeholder || ''}`}
-                          className="min-h-[110px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-[#0A0A0F]/80 border-white/[0.09] focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
+                          className="min-h-[90px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-[#0A0A0F]/80 border-white/[0.09] focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
                           data-testid="textarea-bulk-input"
                         />
                         <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
@@ -1950,7 +1948,7 @@ Sources: ${result.sources.join(', ')}`;
                             if (file) setExifFile(file);
                           }}
                         />
-                        <div className="flex flex-col items-center justify-center py-6 lg:py-8 gap-2 cursor-pointer">
+                        <div className="flex flex-col items-center justify-center py-5 lg:py-8 gap-2 cursor-pointer">
                           {exifFile ? (
                             <>
                               <div className="w-16 h-16 rounded-lg bg-pink-500/20 flex items-center justify-center">
@@ -1980,7 +1978,7 @@ Sources: ${result.sources.join(', ')}`;
                             <span className="text-sm text-muted-foreground">{lang === "uk" ? "Завантаження..." : lang === "ru" ? "Загрузка..." : lang === "es" ? "Cargando..." : lang === "de" ? "Laden..." : "Loading..."}</span>
                           </div>
                         ) : !geointRegion ? (
-                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                             {geointRegions.map((region) => (
                               <button
                                 key={region.id}
@@ -2136,7 +2134,7 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-[#09090E]/80 via-[#0D0D10]/60 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden glass-deep"
+                  className="p-3 sm:p-4 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-[#09090E]/80 via-[#0D0D10]/60 to-transparent backdrop-blur-2xl space-y-3 lg:space-y-4 relative overflow-hidden glass-deep"
                 >
                   <div className="absolute inset-0 overflow-hidden scan-beam">
                     <motion.div
@@ -2192,7 +2190,7 @@ Sources: ${result.sources.join(', ')}`;
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="space-y-3 lg:space-y-6"
                 >
-                  <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic result-card-3d" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
+                  <div className="relative p-3 sm:p-4 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic result-card-3d" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
                     <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
                     <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/[0.09]">
@@ -2234,7 +2232,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Database className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                         {t('dashboard.scan')}
                       </div>
-                      <p className="font-mono text-xs sm:text-base lg:text-xl break-all text-primary leading-relaxed">{result.target}</p>
+                      <p className="font-mono text-xs sm:text-sm lg:text-xl break-all text-primary leading-relaxed font-medium">{result.target}</p>
                     </motion.div>
 
                     <div className="relative mb-3 lg:mb-6">
@@ -2242,7 +2240,7 @@ Sources: ${result.sources.join(', ')}`;
                         <AlertTriangle className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-500" />
                         {t('dashboard.findings')} ({result.findings.length})
                       </h4>
-                      <div className="space-y-1.5 lg:space-y-2 max-h-[200px] sm:max-h-[300px] lg:max-h-none overflow-y-auto pr-1">
+                      <div className="space-y-1.5 lg:space-y-2 max-h-[240px] sm:max-h-[320px] lg:max-h-none overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
                         {result.findings.map((finding, idx) => {
                           const isCritical = finding.includes("CRITICAL") || finding.includes("КРИТИЧНО");
                           const isWarning = finding.includes("WARNING") || finding.includes("УВАГА");
@@ -2341,7 +2339,7 @@ Sources: ${result.sources.join(', ')}`;
                         <Terminal className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
                         {t('dashboard.technicalDetails') || 'Technical Details'}
                       </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 lg:gap-3">
                         {Object.entries(result.details).map(([key, value], idx) => (
                           <motion.div 
                             key={key}
@@ -2368,7 +2366,7 @@ Sources: ${result.sources.join(', ')}`;
                     </div>
 
                     <div className="relative flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/[0.09]">
-                      <div className="flex items-center gap-1.5 text-[9px] lg:text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1.5 text-[9px] lg:text-xs text-muted-foreground flex-wrap">
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                         <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
                       </div>
@@ -2377,7 +2375,7 @@ Sources: ${result.sources.join(', ')}`;
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-primary/30 text-primary touch-manipulation"
+                            className="w-full h-10 sm:h-9 rounded-xl text-[10px] sm:text-xs lg:text-sm border-primary/30 text-primary touch-manipulation"
                             onClick={async () => {
                               if (!result) return;
                               try {
@@ -2422,7 +2420,7 @@ Sources: ${result.sources.join(', ')}`;
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-cyan-500/30 text-cyan-400 touch-manipulation" 
+                            className="w-full h-10 sm:h-9 rounded-xl text-[10px] sm:text-xs lg:text-sm border-cyan-500/30 text-cyan-400 touch-manipulation" 
                             onClick={copyResultsToClipboard}
                             data-testid="button-copy-results"
                           >
@@ -2435,7 +2433,7 @@ Sources: ${result.sources.join(', ')}`;
                           </Button>
                         </motion.div>
                         <motion.div whileTap={{ scale: 0.97 }} className="flex-1 min-w-0">
-                          <Button variant="outline" size="sm" className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-primary/30 text-primary touch-manipulation" data-testid="button-add-to-monitor">
+                          <Button variant="outline" size="sm" className="w-full h-10 sm:h-9 rounded-xl text-[10px] sm:text-xs lg:text-sm border-primary/30 text-primary touch-manipulation" data-testid="button-add-to-monitor">
                             <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 mr-1 sm:mr-1.5 flex-shrink-0" />
                             <span className="truncate">{t('dashboard.addToMonitor')}</span>
                           </Button>
@@ -2444,7 +2442,7 @@ Sources: ${result.sources.join(', ')}`;
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className={`w-full rounded-xl text-[10px] sm:text-xs lg:text-sm touch-manipulation ${
+                            className={`w-full h-10 sm:h-9 rounded-xl text-[10px] sm:text-xs lg:text-sm touch-manipulation ${
                               isCurrentTargetFavorited 
                                 ? "border-yellow-500/50 text-yellow-400" 
                                 : "border-yellow-500/30 text-yellow-500/70"
@@ -2469,7 +2467,7 @@ Sources: ${result.sources.join(', ')}`;
                             <Button
                               variant="outline"
                               size="sm"
-                              className="w-full rounded-xl text-[10px] sm:text-xs lg:text-sm border-blue-500/30 text-blue-400 touch-manipulation"
+                              className="w-full h-10 sm:h-9 rounded-xl text-[10px] sm:text-xs lg:text-sm border-blue-500/30 text-blue-400 touch-manipulation"
                               onClick={async () => {
                                 if (!result) return;
                                 const shareText = `DARKSHARE Security Report\nTarget: ${result.target}\nType: ${result.type}\nRisk: ${result.riskLevel.toUpperCase()} (${result.riskScore}/100)\n\nFindings:\n${result.findings.slice(0, 5).map(f => `- ${f}`).join('\n')}`;
@@ -2504,13 +2502,13 @@ Sources: ${result.sources.join(', ')}`;
             </AnimatePresence>
 
             {result && selectedType === "domain" && result.target && (
-              <div className="mt-3 lg:mt-6">
+              <div className="mt-3 lg:mt-5">
                 <DomainOsintCard domain={result.target} lang={lang as any} autoRun={true} />
               </div>
             )}
 
             {result && selectedType === "phone" && result.details && (
-              <div className="mt-3 lg:mt-6">
+              <div className="mt-3 lg:mt-5">
                 <PhoneOsintCard
                   data={result.details}
                   findings={result.findings}

@@ -466,9 +466,9 @@ export default function Account() {
   return (
     <PageLayout title={lang === "uk" ? "Акаунт" : lang === "ru" ? "Аккаунт" : lang === "es" ? "Cuenta" : lang === "de" ? "Konto" : "Account"} appMode={isStandalone}>
       <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0A0A0A]">
-        <div className="p-3 sm:p-5 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8 max-w-6xl mx-auto">
+        <div className="p-3 sm:p-5 lg:p-8 space-y-4 sm:space-y-5 lg:space-y-8 max-w-6xl mx-auto overflow-x-hidden">
           <motion.div 
-            className="relative p-4 sm:p-6 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/[0.12] overflow-hidden shadow-[0_0_48px_-12px_rgba(34,211,238,0.08)]"
+            className="relative p-3 sm:p-5 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/[0.12] overflow-hidden shadow-[0_0_48px_-12px_rgba(34,211,238,0.08)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -482,7 +482,7 @@ export default function Account() {
             />
 
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-              <Avatar className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border border-white/[0.09] shrink-0">
+              <Avatar className="w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border border-white/[0.09] shrink-0">
                 <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
                 <AvatarFallback className="bg-white/[0.06] text-cyan-300 text-2xl lg:text-3xl font-semibold">
                   {user?.username?.slice(0, 2).toUpperCase() || "U"}
@@ -491,7 +491,7 @@ export default function Account() {
 
               <div className="flex-1 min-w-0 space-y-2 lg:space-y-3 w-full">
                 <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white truncate leading-tight" data-testid="text-username">
+                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white truncate leading-tight" data-testid="text-username">
                     @{user?.username || "anonymous"}
                   </h1>
                   <TierBadge tier={userTier} />
@@ -576,7 +576,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-5 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -687,7 +687,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-3 sm:p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep hover:border-cyan-500/20 transition-colors"
+            className="p-3 sm:p-4 lg:p-5 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep hover:border-cyan-500/20 transition-colors"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
@@ -704,7 +704,7 @@ export default function Account() {
                 {securityLevel.level}
               </Badge>
             </div>
-            <div className="flex items-center gap-3 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
               <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br ${securityLevel.color} flex items-center justify-center shadow-lg`}>
                 <Shield className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
               </div>
@@ -741,7 +741,7 @@ export default function Account() {
               </div>
               <span className="text-xs lg:text-sm text-muted-foreground">{t('account.activityLast30Days')}</span>
             </div>
-            <div className="grid grid-cols-10 gap-1 lg:gap-1.5" data-testid="activity-heatmap">
+            <div className="overflow-x-auto -mx-1 px-1"><div className="grid grid-cols-10 gap-1 lg:gap-1.5 min-w-[280px]" data-testid="activity-heatmap">
               {heatmapData.map((day, idx) => {
                 const intensity = day.count === 0 ? 0 : day.count <= 1 ? 1 : day.count <= 3 ? 2 : day.count <= 5 ? 3 : 4;
                 const colors = [
@@ -763,7 +763,7 @@ export default function Account() {
                   </div>
                 );
               })}
-            </div>
+            </div></div>
             <div className="flex items-center justify-end gap-1.5 mt-3">
               <span className="text-[10px] lg:text-xs text-muted-foreground mr-1">{t('account.noActivity')}</span>
               <div className="w-3 h-3 rounded-sm bg-white/[0.08] border border-white/[0.08]" />
@@ -775,7 +775,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-5 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -797,7 +797,7 @@ export default function Account() {
                   </div>
                 </div>
                 <Select value={language} onValueChange={handleLanguageChange}>
-                  <SelectTrigger className="w-full lg:w-[180px] bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-language">
+                  <SelectTrigger className="h-11 w-full lg:w-[220px] bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-language">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -811,7 +811,7 @@ export default function Account() {
               </div>
               
               <div className="space-y-2 lg:space-y-3">
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -826,7 +826,7 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -841,7 +841,7 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -856,7 +856,7 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -871,7 +871,7 @@ export default function Account() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 min-h-[56px]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <BellRing className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -948,7 +948,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-5 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
@@ -978,7 +978,7 @@ export default function Account() {
                     onChange={(e) => setCompanyName(e.target.value)}
                     disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                     data-testid="input-company-name"
-                    className="h-10 bg-[#0D0D10] border-white/[0.09] text-sm"
+                    className="h-11 bg-[#0D0D10] border-white/[0.09] text-sm"
                   />
                   <Input
                     placeholder="https://your-cdn.com/logo.png"
@@ -986,7 +986,7 @@ export default function Account() {
                     onChange={(e) => setCompanyLogoUrl(e.target.value)}
                     disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                     data-testid="input-company-logo"
-                    className="h-10 bg-[#0D0D10] border-white/[0.09] text-sm"
+                    className="h-11 bg-[#0D0D10] border-white/[0.09] text-sm"
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -1009,7 +1009,7 @@ export default function Account() {
                     onClick={() => saveBranding({ companyName, companyLogoUrl, brandColor })}
                     disabled={savingBranding || (userTier !== "ENTERPRISE" && userTier !== "GROUPS")}
                     data-testid="button-save-branding"
-                    className="bg-violet-500/20 border border-violet-500/40 text-violet-200 hover:bg-violet-500/30"
+                    className="h-11 w-full sm:w-auto bg-violet-500/20 border border-violet-500/40 text-violet-200 hover:bg-violet-500/30 touch-manipulation"
                   >
                     {lang === "uk" ? "Зберегти бренд" : lang === "ru" ? "Сохранить бренд" : lang === "es" ? "Guardar marca" : lang === "de" ? "Branding speichern" : "Save Branding"}
                   </Button>
@@ -1043,7 +1043,7 @@ export default function Account() {
                     onClick={() => saveBranding({ slackWebhookUrl, teamsWebhookUrl })}
                     disabled={savingBranding}
                     data-testid="button-save-webhooks"
-                    className="bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 hover:bg-cyan-500/30"
+                    className="h-11 w-full sm:w-auto bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 hover:bg-cyan-500/30 touch-manipulation"
                   >
                     {lang === "uk" ? "Зберегти вебхуки" : lang === "ru" ? "Сохранить вебхуки" : lang === "es" ? "Guardar webhooks" : lang === "de" ? "Webhooks speichern" : "Save Webhooks"}
                   </Button>
@@ -1058,7 +1058,7 @@ export default function Account() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <Select value={payoutCurrency} onValueChange={setPayoutCurrency}>
-                    <SelectTrigger className="bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-payout-currency">
+                    <SelectTrigger className="h-11 bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-payout-currency">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1080,7 +1080,7 @@ export default function Account() {
                     onClick={() => saveBranding({ payoutAddress, payoutCurrency })}
                     disabled={savingBranding}
                     data-testid="button-save-payout"
-                    className="sm:col-span-3 bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30"
+                    className="h-11 sm:col-span-3 w-full bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30 touch-manipulation"
                   >
                     {lang === "uk" ? "Зберегти виплату" : lang === "ru" ? "Сохранить выплату" : lang === "es" ? "Guardar pago" : lang === "de" ? "Auszahlung speichern" : "Save Payout"}
                   </Button>
@@ -1091,7 +1091,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-5 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -1177,7 +1177,7 @@ export default function Account() {
                 {userTier === "FREE" && (
                   <Link href="/pricing">
                     <Button 
-                      className="w-full lg:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-sm"
+                      className="h-11 w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-sm touch-manipulation"
                       data-testid="button-upgrade"
                     >
                       <Crown className="w-3 h-3 lg:w-4 lg:h-4 mr-1.5 lg:mr-2" />
@@ -1207,7 +1207,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-5 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
@@ -1220,7 +1220,7 @@ export default function Account() {
             </div>
             
             <div className="space-y-2 lg:space-y-4">
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+              <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                   <div className="min-w-0">
@@ -1234,7 +1234,7 @@ export default function Account() {
                 </Badge>
               </div>
               
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+              <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                   <div className="min-w-0">
@@ -1263,7 +1263,7 @@ export default function Account() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                       <Button
                         variant="ghost"
-                        className="w-full mt-2 text-cyan-400"
+                        className="h-11 w-full mt-2 text-cyan-400 touch-manipulation"
                         onClick={startTwoFASetup}
                         disabled={twoFALoading}
                         data-testid="button-2fa-enable"
@@ -1327,7 +1327,7 @@ export default function Account() {
                             <Button
                               onClick={verifyTwoFA}
                               disabled={twoFACode.length !== 6 || twoFALoading}
-                              className="flex-1 bg-cyan-600"
+                              className="flex-1 h-10 bg-cyan-600"
                               data-testid="button-2fa-verify"
                             >
                               {twoFALoading ? (
@@ -1455,6 +1455,7 @@ export default function Account() {
                             size="icon"
                             variant="ghost"
                             onClick={() => deleteSession(session.id)}
+                            className="w-9 h-9 touch-manipulation"
                             data-testid={`button-delete-session-${session.id}`}
                           >
                             <Trash2 className="w-3.5 h-3.5 text-red-400" />
@@ -1466,7 +1467,7 @@ export default function Account() {
                   {sessionsData && sessionsData.filter(s => !s.current).length > 0 && (
                     <Button
                       variant="ghost"
-                      className="w-full mt-2 text-red-400 hover:text-red-300"
+                      className="w-full h-10 mt-2 text-red-400 hover:text-red-300 touch-manipulation"
                       onClick={deleteAllOtherSessions}
                       data-testid="button-delete-all-sessions"
                     >
@@ -1480,7 +1481,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-5 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
@@ -1493,17 +1494,17 @@ export default function Account() {
             </div>
 
             <div className="space-y-2 lg:space-y-3">
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+              <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.appVersion')}</p>
                 </div>
                 <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs lg:text-sm px-2 py-0.5" data-testid="text-app-version">
-                  v4.4
+                  v4.7
                 </Badge>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+              <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <HardDrive className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400 flex-shrink-0" />
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.cacheSize')}</p>
@@ -1513,7 +1514,7 @@ export default function Account() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
+              <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-[#0D0D10] border border-white/[0.08] min-h-[56px]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Wifi className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.lastSync')}</p>

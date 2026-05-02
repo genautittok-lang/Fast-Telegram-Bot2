@@ -456,7 +456,7 @@ export default function History() {
         {compareLabel}
       </Button>
       <Link href="/dashboard">
-        <Button size="sm" variant="outline" className="gap-1.5 text-[10px] h-7 px-2" data-testid="button-new-check">
+        <Button size="sm" variant="outline" className="gap-1.5 text-[10px] h-8 px-2.5 touch-manipulation" data-testid="button-new-check">
           <Sparkles className="w-3.5 h-3.5" />
           {t('dashboard.newCheck')}
         </Button>
@@ -466,7 +466,7 @@ export default function History() {
 
   return (
     <PageLayout title={lang === "uk" ? "Історія" : lang === "ru" ? "История" : lang === "es" ? "Historial" : lang === "de" ? "Verlauf" : "History"} appMode={isStandalone} headerActions={headerActions}>
-      <div className="min-h-screen bg-[#0A0A0A] relative overflow-x-hidden">
+      <div className="min-h-screen bg-[#09090E] relative overflow-hidden">
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute inset-x-0 top-0 h-[480px]" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(34,211,238,0.07), transparent 65%)" }} />
           <div className="absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />
@@ -479,7 +479,7 @@ export default function History() {
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4"
         >
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all duration-200 hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)] hover:bg-[#111116]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.totalChecks')}</span>
@@ -487,7 +487,7 @@ export default function History() {
             <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.total}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all duration-200 hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)] hover:bg-[#111116]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.thisWeekChecks')}</span>
@@ -495,7 +495,7 @@ export default function History() {
             <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.thisWeek}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-rose-400/30 hover:shadow-[0_0_20px_-6px_rgba(251,113,133,0.15)]">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all duration-200 hover:border-rose-400/30 hover:shadow-[0_0_20px_-6px_rgba(251,113,133,0.18)] hover:bg-[#111116]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" />
               <span>{t('history.criticalRisks')}</span>
@@ -503,7 +503,7 @@ export default function History() {
             <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.critical}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all duration-200 hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)] hover:bg-[#111116]">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.pdfDownloaded')}</span>
@@ -517,7 +517,7 @@ export default function History() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="flex flex-wrap items-center gap-2"
+            className="flex flex-wrap items-center gap-1.5"
             data-testid="risk-distribution-summary"
           >
             <span className="text-xs text-muted-foreground mr-1">{lang === "uk" ? "Розподіл ризиків" : lang === "ru" ? "Распределение рисков" : lang === "es" ? "Distribución de riesgos" : lang === "de" ? "Risikoverteilung" : "Risk Distribution"}:</span>
@@ -552,7 +552,7 @@ export default function History() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-3 sm:space-y-4"
+          className="space-y-2 sm:space-y-3"
         >
           <div className="flex flex-col gap-2 sm:gap-3">
             <div className="relative w-full sm:max-w-md">
@@ -816,7 +816,7 @@ export default function History() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-10 sm:py-16 px-4"
+              className="text-center py-8 sm:py-14 px-4"
             >
               <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/[0.06] flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <Search className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
@@ -848,7 +848,7 @@ export default function History() {
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6"
+                className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 will-change-transform"
               >
                 <div className="absolute inset-0 bg-cyan-500/10 rounded-xl sm:rounded-2xl blur-xl" />
                 <div className="relative w-full h-full rounded-xl sm:rounded-2xl border border-white/[0.09] bg-[#0E0E12] flex items-center justify-center">
@@ -896,7 +896,7 @@ export default function History() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+              className="fixed bottom-24 sm:bottom-6 left-1/2 -translate-x-1/2 z-50"
             >
               <div className="px-4 py-2 rounded-full bg-primary/90 text-primary-foreground text-xs sm:text-sm font-medium backdrop-blur-sm shadow-lg flex items-center gap-2">
                 <GitCompareArrows className="w-4 h-4" />
@@ -915,8 +915,8 @@ export default function History() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               data-testid="compare-panel"
             >
-              <Card className="p-4 sm:p-6 bg-white/[0.04] backdrop-blur-sm border-white/[0.09]">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <Card className="p-3 sm:p-5 bg-[#0E0E12] backdrop-blur-sm border-white/[0.09]">
+                <div className="flex items-center justify-between mb-3 sm:mb-5 flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <GitCompareArrows className="w-5 h-5 text-primary" />
                     <h3 className="text-sm sm:text-base font-display font-bold">{compareTitle}</h3>
@@ -949,7 +949,7 @@ export default function History() {
                         initial={{ opacity: 0, x: i === 0 ? -20 : 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="space-y-3 sm:space-y-4"
+                        className="space-y-2 sm:space-y-3"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <div className={`w-8 h-8 rounded-lg ${typeChip} flex items-center justify-center`}>

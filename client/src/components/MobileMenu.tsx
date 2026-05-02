@@ -153,7 +153,7 @@ export function MobileMenu({
               className="absolute top-full right-0 mt-2 flex flex-col items-end z-50 pointer-events-none"
             >
               <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-primary mr-3" />
-              <div className="bg-primary text-black text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-[0_0_15px_rgba(34,197,94,0.4)]">
+              <div className="bg-primary text-black text-[11px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap shadow-[0_0_15px_rgba(34,211,238,0.4)]">
                 Menu
               </div>
             </motion.div>
@@ -181,7 +181,7 @@ export function MobileMenu({
             <div className="flex flex-col h-full w-full overflow-y-auto">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-background sticky top-0 z-10">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.3)]">
                     <Shield className="w-5 h-5 text-black" />
                   </div>
                   <div>
@@ -265,7 +265,7 @@ export function MobileMenu({
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#2AABEE]/10 border border-[#2AABEE]/20 active:bg-[#2AABEE]/20"
+                    className="flex items-center gap-3 px-3 py-3.5 rounded-xl bg-[#2AABEE]/10 border border-[#2AABEE]/20 active:bg-[#2AABEE]/20 min-h-[52px] touch-manipulation"
                     data-testid="link-mobile-telegram"
                   >
                     <div className="w-9 h-9 rounded-lg bg-[#2AABEE]/20 flex items-center justify-center flex-shrink-0">
@@ -281,12 +281,12 @@ export function MobileMenu({
 
                 <div className="mt-4 pt-3 border-t border-border/30 space-y-0.5">
                   <Link href="/support">
-                    <span className="flex items-center gap-3 px-3 py-2.5 text-muted-foreground cursor-pointer rounded-lg active:bg-white/5" data-testid="link-mobile-support-footer">
+                    <span className="flex items-center gap-3 px-3 py-3 text-muted-foreground cursor-pointer rounded-lg active:bg-white/5 min-h-[44px]" data-testid="link-mobile-support-footer">
                       <MessageSquare className="w-4 h-4" />
                       <span className="text-xs">{t('footer.contact')}</span>
                     </span>
                   </Link>
-                  <a href="mailto:darkshare.store@gmail.com" className="flex items-center gap-3 px-3 py-2.5 text-muted-foreground rounded-lg active:bg-white/5" data-testid="link-mobile-email">
+                  <a href="mailto:darkshare.store@gmail.com" className="flex items-center gap-3 px-3 py-3 text-muted-foreground rounded-lg active:bg-white/5 min-h-[44px]" data-testid="link-mobile-email">
                     <Mail className="w-4 h-4" />
                     <span className="text-xs">darkshare.store@gmail.com</span>
                   </a>
@@ -301,7 +301,7 @@ export function MobileMenu({
                       setIsOpen(false);
                       onLogout();
                     }}
-                    className="w-full justify-center text-red-400 border border-red-500/20"
+                    className="w-full h-11 justify-center text-red-400 border border-red-500/20 touch-manipulation"
                     data-testid="button-mobile-logout"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
@@ -312,7 +312,7 @@ export function MobileMenu({
 
               <div className="px-4 py-3 border-t border-border/10">
                 <p className="text-[10px] text-center text-muted-foreground/50">
-                  DARKSHARE v4.4 - OSINT Security Platform
+                  DARKSHARE v4.7 · OSINT Security Platform
                 </p>
               </div>
             </div>

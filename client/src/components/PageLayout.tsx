@@ -493,10 +493,10 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
 
   if (appMode) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden max-w-full">
+      <div className="min-h-screen bg-[#09090E] flex overflow-hidden max-w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="lg:hidden flex items-center justify-between px-3 py-2 bg-[#0e0e14]/95 backdrop-blur-2xl sticky top-0 z-40 border-b border-white/[0.07]">
+          <div className="lg:hidden flex items-center justify-between px-3 py-3 bg-[#0e0e14]/95 backdrop-blur-2xl sticky top-0 z-40 border-b border-white/[0.07] min-h-[52px]">
             <div className="flex items-center gap-2">
               <Link href="/">
                 <button className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] active:bg-white/[0.08] transition-colors" data-testid="button-back-to-site">
@@ -519,7 +519,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
               <LanguageSwitcher variant="minimal" />
             </div>
           </div>
-          <main ref={mainScrollRef} className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0a0a0f]">
+          <main ref={mainScrollRef} className="flex-1 overflow-y-auto pb-32 lg:pb-0 bg-[#09090E]">
             <PullToRefresh scrollRef={mainScrollRef} />
             {children}
           </main>
@@ -529,10 +529,10 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
   }
 
   return (
-    <div className="min-h-screen bg-background flex overflow-hidden max-w-full">
+    <div className="min-h-screen bg-[#09090E] flex overflow-hidden max-w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lg:hidden flex items-center justify-between px-3 py-2.5 border-b border-white/[0.08] bg-[#09090E]/92 backdrop-blur-xl sticky top-0 z-40">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-[#09090E]/92 backdrop-blur-xl sticky top-0 z-40 min-h-[52px]">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.30)]">
               <Shield className="w-3.5 h-3.5 text-black" />
@@ -545,7 +545,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
             <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} isAdmin={isAdmin} />
           </div>
         </div>
-        <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
+        <main className="flex-1 overflow-y-auto pb-28 lg:pb-0">
           {children}
         </main>
       </div>

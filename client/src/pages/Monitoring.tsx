@@ -434,14 +434,14 @@ export default function Monitoring() {
 
   return (
     <PageLayout title={lang === "uk" ? "Моніторинг" : lang === "ru" ? "Мониторинг" : lang === "es" ? "Monitoreo" : lang === "de" ? "Überwachung" : "Monitoring"} appMode={isStandalone}>
-      <div className="min-h-screen bg-[#0A0A0A]">
+      <div className="min-h-screen bg-[#09090E]">
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px]" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-primary/10 via-primary/5 to-transparent blur-3xl" />
         </div>
 
-        <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative z-10 space-y-4 sm:space-y-6">
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+        <main className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-5 lg:py-6 relative z-10 space-y-3 sm:space-y-5 lg:space-y-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-0">
           <StatCard
             icon={Eye}
             label={t('monitoring.totalMonitors')}
@@ -479,10 +479,10 @@ export default function Monitoring() {
             </div>
             
             <div className="flex flex-col gap-1.5 sm:gap-2.5">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                 <Select value={newType} onValueChange={setNewType}>
                   <SelectTrigger 
-                    className={`w-full sm:w-44 bg-white/[0.06] border-white/[0.09] focus:border-white/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300 text-sm`}
+                    className={`h-11 w-full sm:w-44 bg-white/[0.06] border-white/[0.09] focus:border-white/30 focus:ring-2 focus:ring-primary/20 transition-all duration-300 text-sm`}
                     data-testid="select-monitor-type"
                   >
                     <SelectValue placeholder={t('monitoring.selectType')} />
@@ -529,7 +529,7 @@ export default function Monitoring() {
               <Button 
                 onClick={handleCreate} 
                 disabled={createMutation.isPending}
-                className="w-full sm:w-auto bg-cyan-500 text-black hover:bg-cyan-400 border-0 font-medium"
+                className="h-11 w-full sm:w-auto bg-cyan-500 text-black hover:bg-cyan-400 border-0 font-medium touch-manipulation"
                 data-testid="button-create-monitor"
               >
                 {createMutation.isPending ? (
@@ -550,7 +550,7 @@ export default function Monitoring() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
             <h2 className="font-display font-semibold text-sm sm:text-base flex items-center gap-2">
               <Eye className="w-4 h-4 text-primary" />
               {t('monitoring.activeMonitors')}
@@ -627,7 +627,7 @@ export default function Monitoring() {
                 
                 <CollapsibleContent>
                   <div className="mt-4 pt-4 border-t border-white/[0.08] space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       <div className="p-3 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                         <div className="flex items-center gap-2 mb-2">
                           <Clock className="w-4 h-4 text-blue-400" />
