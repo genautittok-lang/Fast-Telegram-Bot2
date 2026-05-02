@@ -184,7 +184,7 @@ function TierBadge({ tier }: { tier: string }) {
   const config = {
     FREE: { 
       icon: Zap, 
-      className: "bg-zinc-800 text-zinc-300 border-zinc-700",
+      className: "bg-[#0D0D10] text-zinc-300 border-white/[0.09]",
       glow: ""
     },
     PRO: { 
@@ -259,7 +259,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
 
   return (
     <div
-      className="rounded-2xl border border-white/10 bg-[#0E0E12] p-5 lg:p-6"
+      className="rounded-2xl border border-white/[0.09] bg-[#0E0E12] p-5 lg:p-6"
       data-testid="widget-status-bar"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -277,7 +277,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
         <div className="flex items-center gap-2">
           <TierBadge tier={tier} />
           {streakDays > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] text-zinc-300">
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.09] bg-white/[0.04] px-2 py-0.5 text-[11px] text-zinc-300">
               <Flame className="h-3 w-3 text-amber-300" />
               <span className="font-medium">{streakDays}d</span>
             </span>
@@ -302,7 +302,7 @@ function AppHeroCard({ user, streakDays, checksLeft, maxChecks, tier }: { user: 
         )}
       </div>
 
-      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/5">
+      <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-white/[0.07]">
         <div
           className={`h-full transition-all duration-700 ${lowOnChecks ? "bg-rose-400" : "bg-cyan-400"}`}
           style={{ width: `${pct}%` }}
@@ -588,7 +588,7 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
                   exit={{ opacity: 0, x: 20, scale: 0.8 }}
                   transition={{ delay: idx * 0.05 }}
                 >
-                  <span className="text-[10px] font-medium text-white/80 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md whitespace-nowrap">
+                  <span className="text-[10px] font-medium text-white/80 bg-[#0A0A0F]/80 backdrop-blur-sm px-2 py-1 rounded-md whitespace-nowrap">
                     {action.label}
                   </span>
                   <motion.button
@@ -612,7 +612,7 @@ function FloatingQuickAction({ onNewScan, onShowShortcuts }: { onNewScan: () => 
       </AnimatePresence>
 
       <motion.button
-        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,197,94,0.35)] relative`}
+        className={`w-12 h-12 rounded-full bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_4px_20px_rgba(34,211,238,0.40)] relative`}
         onClick={() => {
           triggerHaptic();
           setIsExpanded(!isExpanded);
@@ -663,7 +663,7 @@ function ScanProgressSteps({ lang }: { lang: string }) {
           <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
             idx < activeStep ? 'bg-primary/20 border border-primary/40' :
             idx === activeStep ? 'bg-primary/10 border border-primary/30' :
-            'bg-white/5 border border-white/10'
+            'bg-white/[0.06] border border-white/[0.09]'
           }`}>
             {idx < activeStep ? (
               <Check className="w-3 h-3 text-primary" />
@@ -792,7 +792,7 @@ function SecurityTipRotator({ lang }: { lang: string }) {
       </div>
       <div className="flex gap-1 mt-2 justify-center">
         {tips.map((_, i) => (
-          <div key={i} className={`h-0.5 rounded-full transition-all duration-500 ${i === tipIndex ? 'w-4 bg-primary' : 'w-1.5 bg-white/10'}`} />
+          <div key={i} className={`h-0.5 rounded-full transition-all duration-500 ${i === tipIndex ? 'w-4 bg-primary' : 'w-1.5 bg-white/[0.09]'}`} />
         ))}
       </div>
     </motion.div>
@@ -1347,7 +1347,7 @@ Sources: ${result.sources.join(', ')}`;
             <div className="hidden lg:block relative">
               <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
               <motion.div 
-                className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-br from-black/60 via-black/40 to-transparent border border-white/10 backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.3)]"
+                className="flex items-center justify-between p-6 rounded-2xl bg-[#0E0E12]/80 border border-white/[0.09] backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.40)]"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
@@ -1365,12 +1365,12 @@ Sources: ${result.sources.join(', ')}`;
                   <motion.div 
                     className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-500/10 to-transparent border border-green-500/20 backdrop-blur-sm"
                     animate={{ 
-                      boxShadow: ["0 0 15px rgba(34,197,94,0.1)", "0 0 25px rgba(34,197,94,0.2)", "0 0 15px rgba(34,197,94,0.1)"]
+                      boxShadow: ["0 0 15px rgba(34,211,238,0.10)", "0 0 25px rgba(34,211,238,0.20)", "0 0 15px rgba(34,211,238,0.10)"]
                     }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Radio className="w-4 h-4 text-green-400 animate-pulse" />
-                    <span className="text-sm font-medium text-green-400">{t('dashboard.systemActive')}</span>
+                    <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
+                    <span className="text-sm font-medium text-cyan-400">{t('dashboard.systemActive')}</span>
                   </motion.div>
                 </div>
               </motion.div>
@@ -1401,7 +1401,7 @@ Sources: ${result.sources.join(', ')}`;
                         {maxLimit >= 9999 ? '∞' : `${left}/${maxLimit}`}
                       </span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
                       <motion.div
                         className={`h-full rounded-full ${isZero ? 'bg-red-500' : isLow ? 'bg-orange-500' : 'bg-cyan-500'}`}
                         initial={{ width: 0 }}
@@ -1484,7 +1484,7 @@ Sources: ${result.sources.join(', ')}`;
                         </span>
                       </div>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-1">
+                    <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden mb-1">
                       <motion.div
                         className={`h-full rounded-full ${barColor}`}
                         initial={{ width: 0 }}
@@ -1534,7 +1534,7 @@ Sources: ${result.sources.join(', ')}`;
                   const hasApiAccess = paidTiers.includes((user?.tier || "FREE").toUpperCase());
                   return (
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 text-[10px] lg:text-xs font-mono bg-black/40 border border-white/5 rounded-lg p-2 truncate text-indigo-300" data-testid="text-api-key">
+                      <code className="flex-1 text-[10px] lg:text-xs font-mono bg-[#0D0D10] border border-white/[0.09] rounded-lg p-2 truncate text-indigo-300" data-testid="text-api-key">
                         {hasApiAccess ? `dk_${'\u2022'.repeat(24)}` : (lang === "uk" ? "Перейдіть на PRO" : lang === "ru" ? "Перейдите на PRO" : lang === "es" ? "Actualizar a PRO" : lang === "de" ? "Upgrade auf PRO" : "Upgrade to PRO")}
                       </code>
                       {hasApiAccess && (
@@ -1675,7 +1675,7 @@ Sources: ${result.sources.join(', ')}`;
                           className={`relative p-3 lg:p-4 rounded-xl ${riskConfig.bg} ${riskConfig.border} border backdrop-blur-sm group hover:border-white/30 transition-all duration-300`}
                         >
                           <div className="flex items-start gap-2 mb-2">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${checkType?.iconColor ? checkType.iconColor.replace('text-', 'bg-').replace('400', '500/20') : 'bg-white/10'}`}>
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${checkType?.iconColor ? checkType.iconColor.replace('text-', 'bg-').replace('400', '500/20') : 'bg-white/[0.09]'}`}>
                               <TypeIcon className={`w-3.5 h-3.5 ${checkType?.iconColor || 'text-white'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1704,7 +1704,7 @@ Sources: ${result.sources.join(', ')}`;
                             variant="ghost"
                             onClick={() => handleRepeatCheck(report)}
                             disabled={checkMutation.isPending}
-                            className="absolute top-2 right-2 w-7 h-7 lg:w-8 lg:h-8 p-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 hover:bg-white/20 border border-white/10"
+                            className="absolute top-2 right-2 w-7 h-7 lg:w-8 lg:h-8 p-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity bg-white/[0.09] hover:bg-white/20 border border-white/[0.09]"
                             data-testid={`button-repeat-check-${report.id}`}
                           >
                             {checkMutation.isPending ? (
@@ -1748,7 +1748,7 @@ Sources: ${result.sources.join(', ')}`;
                         <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors duration-150 ${
                           isSelected
                             ? `bg-gradient-to-br ${type.gradient} border ${type.borderColor.split(' ')[0]} shadow-lg`
-                            : 'bg-[#1a1a24] border border-white/[0.06]'
+                            : 'bg-[#1a1a24] border border-white/[0.08]'
                         }`}>
                           <type.icon className={`w-5 h-5 transition-colors duration-150 ${isSelected ? type.iconColor : 'text-zinc-500'}`} />
                         </div>
@@ -1787,7 +1787,7 @@ Sources: ${result.sources.join(', ')}`;
                       className={`relative flex flex-col items-center justify-center gap-3 p-5 rounded-xl touch-manipulation min-h-[110px] border group cursor-pointer hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300 ease-out ${
                         isSelected
                           ? `bg-gradient-to-b ${type.gradient} ${type.borderColor.split(' ')[0]} ring-1 ring-white/10 shadow-lg ${type.glowColor} btn-3d btn-3d-selected ${type.btn3d}`
-                          : 'glass-card hover:border-white/15 hover:bg-white/[0.03]'
+                          : 'glass-card hover:border-white/[0.14] hover:bg-white/[0.04]'
                       }`}
                       data-testid={`button-check-type-desktop-${type.id}`}
                       title={type.shortDescription}
@@ -1795,8 +1795,8 @@ Sources: ${result.sources.join(', ')}`;
                       <div
                         className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all duration-300 ${
                           isSelected
-                            ? `${type.iconColor} bg-white/10 border border-white/15 scale-110`
-                            : 'text-muted-foreground bg-white/[0.04] border border-white/[0.06] group-hover:bg-white/[0.07] group-hover:border-white/10 group-hover:scale-110'
+                            ? `${type.iconColor} bg-white/[0.09] border border-white/[0.14] scale-110`
+                            : 'text-muted-foreground bg-white/[0.04] border border-white/[0.08] group-hover:bg-white/[0.07] group-hover:border-white/[0.09] group-hover:scale-110'
                         }`}
                       >
                         <type.icon className="w-5 h-5" />
@@ -1839,7 +1839,7 @@ Sources: ${result.sources.join(', ')}`;
                       transition={{ duration: 0.2 }}
                     >
                       {selectedCheck && (
-                        <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-sm`}>
+                        <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center bg-white/[0.09] backdrop-blur-sm`}>
                           <selectedCheck.icon className={`w-4 h-4 lg:w-5 lg:h-5 ${selectedCheck.iconColor}`} />
                         </div>
                       )}
@@ -1858,7 +1858,7 @@ Sources: ${result.sources.join(', ')}`;
                       transition={{ duration: 0.3 }}
                       className="mb-3 lg:mb-4"
                     >
-                      <div className="p-3 lg:p-4 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
+                      <div className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.09] backdrop-blur-sm">
                         <div className="flex items-center gap-2 mb-2.5">
                           <Info className="w-3.5 h-3.5 text-muted-foreground" />
                           <span className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('dashboard.whatIsAnalyzed')}</span>
@@ -1873,7 +1873,7 @@ Sources: ${result.sources.join(', ')}`;
                               initial={{ opacity: 0, y: 5 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: idx * 0.05, duration: 0.2 }}
-                              className="flex items-start gap-2 p-2 lg:p-2.5 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors"
+                              className="flex items-start gap-2 p-2 lg:p-2.5 rounded-lg bg-white/[0.06] border border-white/[0.08] hover:border-white/[0.09] transition-colors"
                             >
                               <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center flex-shrink-0 ${selectedCheck.iconColor.replace('text-', 'bg-').replace('400', '500/20')}`}>
                                 <service.icon className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${selectedCheck.iconColor}`} />
@@ -1919,7 +1919,7 @@ Sources: ${result.sources.join(', ')}`;
                           value={bulkInput}
                           onChange={(e) => setBulkInput(e.target.value)}
                           placeholder={`${t('dashboard.bulkPlaceholder')}\n${selectedCheck?.placeholder || ''}\n${selectedCheck?.placeholder || ''}`}
-                          className="min-h-[120px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
+                          className="min-h-[120px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-[#0A0A0F]/80 border-white/[0.09] focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
                           data-testid="textarea-bulk-input"
                         />
                         <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
@@ -1928,7 +1928,7 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                     ) : selectedType === "exif" ? (
                       <div
-                        className={`relative w-full rounded-xl border-2 border-dashed transition-all duration-200 ${exifDragging ? 'border-pink-400 bg-pink-500/10' : 'border-white/10 bg-black/40 hover:border-pink-400/50'} ${inputShake ? 'animate-shake' : ''}`}
+                        className={`relative w-full rounded-xl border-2 border-dashed transition-all duration-200 ${exifDragging ? 'border-pink-400 bg-pink-500/10' : 'border-white/[0.09] bg-[#0D0D10] hover:border-pink-400/50'} ${inputShake ? 'animate-shake' : ''}`}
                         onDragOver={(e) => { e.preventDefault(); setExifDragging(true); }}
                         onDragLeave={() => setExifDragging(false)}
                         onDrop={(e) => {
@@ -1986,7 +1986,7 @@ Sources: ${result.sources.join(', ')}`;
                                 key={region.id}
                                 onClick={() => loadGeointRegion(region.id)}
                                 disabled={geointLoading}
-                                className={`p-3 rounded-xl bg-gradient-to-br ${region.color} border border-white/10 hover:border-teal-400/50 transition-all text-center`}
+                                className={`p-3 rounded-xl bg-gradient-to-br ${region.color} border border-white/[0.09] hover:border-teal-400/50 transition-all text-center`}
                                 data-testid={`button-geoint-${region.id}`}
                               >
                                 <div className="text-2xl mb-1">{region.emoji}</div>
@@ -2027,7 +2027,7 @@ Sources: ${result.sources.join(', ')}`;
                           value={inputValue}
                           onChange={(e) => setInputValue(e.target.value)}
                           placeholder={selectedCheck?.placeholder}
-                          className="h-11 lg:h-14 pl-9 lg:pl-12 pr-3 lg:pr-4 text-sm lg:text-lg font-mono bg-black/60 border-white/10 focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full max-w-full touch-manipulation"
+                          className="h-11 lg:h-14 pl-9 lg:pl-12 pr-3 lg:pr-4 text-sm lg:text-lg font-mono bg-[#0A0A0F]/80 border-white/[0.09] focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full max-w-full touch-manipulation"
                           onKeyDown={(e) => e.key === "Enter" && handleCheck()}
                           data-testid="input-check-value"
                         />
@@ -2136,7 +2136,7 @@ Sources: ${result.sources.join(', ')}`;
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden glass-deep"
+                  className="p-3.5 lg:p-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-[#09090E]/80 via-[#0D0D10]/60 to-transparent backdrop-blur-2xl space-y-4 relative overflow-hidden glass-deep"
                 >
                   <div className="absolute inset-0 overflow-hidden scan-beam">
                     <motion.div
@@ -2195,7 +2195,7 @@ Sources: ${result.sources.join(', ')}`;
                   <div className="relative p-3.5 lg:p-8 rounded-2xl backdrop-blur-2xl shadow-[0_0_40px_rgba(0,0,0,0.3)] holographic result-card-3d" style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }}>
                     <div className="absolute inset-0 rounded-2xl border border-transparent" style={{ background: "linear-gradient(135deg, rgba(34,197,94,0.2), rgba(6,182,212,0.15), rgba(168,85,247,0.1)) border-box", WebkitMask: "linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)", WebkitMaskComposite: "xor", maskComposite: "exclude", padding: "1px", borderRadius: "1rem" }} />
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5 pointer-events-none" />
-                    <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/10">
+                    <div className="relative flex flex-col gap-3 mb-4 lg:mb-6 pb-4 lg:pb-6 border-b border-white/[0.09]">
                       <div className="flex items-center gap-3">
                         <motion.div 
                           className={`w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center ${
@@ -2225,7 +2225,7 @@ Sources: ${result.sources.join(', ')}`;
                     </div>
 
                     <motion.div 
-                      className="relative p-3 lg:p-4 rounded-xl bg-white/5 border border-white/10 mb-3 lg:mb-6"
+                      className="relative p-3 lg:p-4 rounded-xl bg-white/[0.06] border border-white/[0.09] mb-3 lg:mb-6"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1, duration: 0.3 }}
@@ -2348,7 +2348,7 @@ Sources: ${result.sources.join(', ')}`;
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.15 + idx * 0.03, duration: 0.3 }}
-                            className="p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-white/5 border border-white/5 hover:bg-white/[0.07] hover:border-white/10 active:border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
+                            className="p-2.5 lg:p-4 rounded-lg lg:rounded-xl bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.07] hover:border-white/[0.09] active:border-white/20 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
                           >
                             <p className="text-[9px] lg:text-xs text-muted-foreground capitalize mb-0.5 lg:mb-1 truncate">
                               {key.replace(/([A-Z])/g, ' $1').trim()}
@@ -2367,7 +2367,7 @@ Sources: ${result.sources.join(', ')}`;
                       </div>
                     </div>
 
-                    <div className="relative flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/10">
+                    <div className="relative flex flex-col gap-2.5 lg:gap-4 pt-3 lg:pt-6 border-t border-white/[0.09]">
                       <div className="flex items-center gap-1.5 text-[9px] lg:text-xs text-muted-foreground">
                         <Database className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                         <span className="truncate">{t('dashboard.sources')}: {result.sources.join(", ")}</span>
@@ -2537,7 +2537,7 @@ Sources: ${result.sources.join(', ')}`;
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
-                className="p-3 lg:p-4 rounded-xl border border-white/10 bg-gradient-to-br from-black/50 via-black/30 to-transparent backdrop-blur-xl"
+                className="p-3 lg:p-4 rounded-xl border border-white/[0.09] bg-gradient-to-br from-black/50 via-black/30 to-transparent backdrop-blur-xl"
                 data-testid="section-favorites"
               >
                 <div className="flex items-center gap-2 mb-2.5">
@@ -2552,7 +2552,7 @@ Sources: ${result.sources.join(', ')}`;
                     {userFavorites.map((fav) => {
                       const typeStyle = checkTypeStyles.find(s => s.id === fav.checkType);
                       const TypeIcon = typeStyle?.icon || Globe;
-                      const colorClass = favTypeColorMap[fav.checkType] || "bg-white/10 border-white/20 text-white/70";
+                      const colorClass = favTypeColorMap[fav.checkType] || "bg-white/[0.09] border-white/20 text-white/70";
                       return (
                         <motion.div
                           key={fav.id}
@@ -2598,7 +2598,7 @@ Sources: ${result.sources.join(', ')}`;
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="space-y-3 lg:space-y-4"
               >
-                <div className="p-3.5 lg:p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl">
+                <div className="p-3.5 lg:p-6 rounded-2xl border border-white/[0.09] bg-gradient-to-br from-black/70 via-black/50 to-transparent backdrop-blur-2xl">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <List className="w-5 h-5 text-primary" />
@@ -2625,7 +2625,7 @@ Sources: ${result.sources.join(', ')}`;
                           className={`p-3 lg:p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
                             isSelected
                               ? `${riskConfig.border} ${riskConfig.bg} ring-1 ring-white/20`
-                              : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                              : 'border-white/[0.09] bg-white/[0.06] hover:border-white/20 hover:bg-white/[0.09]'
                           }`}
                           data-testid={`bulk-result-${idx}`}
                         >
@@ -2663,7 +2663,7 @@ Sources: ${result.sources.join(', ')}`;
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="mt-3 pt-3 border-t border-white/10"
+                                className="mt-3 pt-3 border-t border-white/[0.09]"
                               >
                                 {bulkResult.error ? (
                                   <p className="text-xs text-red-400">{bulkResult.error}</p>
@@ -2695,7 +2695,7 @@ Sources: ${result.sources.join(', ')}`;
                     })}
                   </div>
                   
-                  <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/[0.09]">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <CheckCircle2 className="w-4 h-4 text-green-400" />
                       <span>{bulkResults.filter(r => r.riskLevel === 'low').length} {t('dashboard.riskLevels.low')}</span>
@@ -2766,7 +2766,7 @@ Sources: ${result.sources.join(', ')}`;
                   value={breachEmail}
                   onChange={(e) => setBreachEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && checkBreach()}
-                  className="bg-white/5 border-white/10 focus:border-red-500/50 text-sm flex-1"
+                  className="bg-white/[0.06] border-white/[0.09] focus:border-red-500/50 text-sm flex-1"
                   data-testid="input-breach-email"
                 />
                 <Button
@@ -2824,7 +2824,7 @@ Sources: ${result.sources.join(', ')}`;
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="p-3 rounded-xl bg-white/5 border border-white/10"
+                            className="p-3 rounded-xl bg-white/[0.06] border border-white/[0.09]"
                             data-testid={`breach-item-${idx}`}
                           >
                             <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -2870,7 +2870,7 @@ Sources: ${result.sources.join(', ')}`;
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 100, scale: 0.9 }}
                 transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl shadow-black/50"
+                className="relative overflow-hidden rounded-2xl border border-white/[0.09] bg-[#09090E]/95 backdrop-blur-xl shadow-2xl shadow-black/60"
                 data-testid={`banner-ad-${banner.id}`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${banner.bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent'} opacity-40`} />
@@ -2878,14 +2878,14 @@ Sources: ${result.sources.join(', ')}`;
 
                 <button
                   onClick={() => dismissBanner(banner.id)}
-                  className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-all hover:rotate-90 duration-300"
+                  className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-white/[0.09] hover:bg-white/25 flex items-center justify-center transition-all hover:rotate-90 duration-300"
                   data-testid={`button-dismiss-banner-${banner.id}`}
                 >
                   <X className="w-3.5 h-3.5 text-white/70" />
                 </button>
 
                 <div className="absolute top-2.5 left-2.5 z-20">
-                  <Badge className="text-[8px] px-1.5 py-0 bg-white/10 border-white/10 text-white/50 uppercase tracking-wider font-normal backdrop-blur-sm">
+                  <Badge className="text-[8px] px-1.5 py-0 bg-white/[0.09] border-white/[0.09] text-white/50 uppercase tracking-wider font-normal backdrop-blur-sm">
                     AD
                   </Badge>
                 </div>
@@ -2943,7 +2943,7 @@ Sources: ${result.sources.join(', ')}`;
       </div>
 
       <Dialog open={showProfile} onOpenChange={setShowProfile}>
-        <DialogContent className="bg-black/95 border-cyan-500/30 backdrop-blur-xl max-w-md">
+        <DialogContent className="bg-[#09090E]/98 border-cyan-500/30 backdrop-blur-xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <User className="w-5 h-5 text-cyan-400" />
@@ -2995,7 +2995,7 @@ Sources: ${result.sources.join(', ')}`;
       </Dialog>
 
       <Dialog open={showSubscription} onOpenChange={setShowSubscription}>
-        <DialogContent className="bg-black/95 border-primary/30 backdrop-blur-xl max-w-md">
+        <DialogContent className="bg-[#09090E]/98 border-primary/30 backdrop-blur-xl max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <Crown className="w-5 h-5 text-primary" />
@@ -3010,7 +3010,7 @@ Sources: ${result.sources.join(', ')}`;
             <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30">
               <div className="text-xs text-muted-foreground mb-2">{t('dashboard.paymentAddress')}</div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs font-mono text-primary bg-black/50 p-2 rounded-lg break-all select-all">
+                <code className="flex-1 text-xs font-mono text-primary bg-[#0A0A0F]/90 p-2 rounded-lg break-all select-all">
                   {TRC20_ADDRESS}
                 </code>
                 <Button
@@ -3035,7 +3035,7 @@ Sources: ${result.sources.join(', ')}`;
                 placeholder={t('dashboard.txHashPlaceholder')}
                 value={txHash}
                 onChange={(e) => setTxHash(e.target.value)}
-                className="bg-black/50 border-white/10 focus:border-primary/50"
+                className="bg-[#0A0A0F]/90 border-white/[0.09] focus:border-primary/50"
                 data-testid="input-tx-hash"
               />
             </div>
@@ -3076,7 +3076,7 @@ Sources: ${result.sources.join(', ')}`;
               </Button>
             </div>
 
-            <div className="pt-2 border-t border-white/10">
+            <div className="pt-2 border-t border-white/[0.09]">
               <p className="text-xs text-muted-foreground text-center">
                 {t('dashboard.requestWillBeSent')}
               </p>
@@ -3086,7 +3086,7 @@ Sources: ${result.sources.join(', ')}`;
       </Dialog>
 
       <Dialog open={showShortcuts} onOpenChange={setShowShortcuts}>
-        <DialogContent className="bg-black/95 border-primary/30 backdrop-blur-xl max-w-sm">
+        <DialogContent className="bg-[#09090E]/98 border-primary/30 backdrop-blur-xl max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl font-display flex items-center gap-2">
               <Keyboard className="w-5 h-5 text-primary" />
@@ -3101,7 +3101,7 @@ Sources: ${result.sources.join(', ')}`;
             {shortcuts.map((shortcut, index) => (
               <div 
                 key={index} 
-                className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10"
+                className="flex items-center justify-between p-3 rounded-lg bg-white/[0.06] border border-white/[0.09]"
               >
                 <span className="text-sm text-muted-foreground">{shortcut.description}</span>
                 <div className="flex items-center gap-1">
@@ -3110,7 +3110,7 @@ Sources: ${result.sources.join(', ')}`;
                       {key === "-" ? (
                         <span className="text-muted-foreground mx-1">-</span>
                       ) : (
-                        <kbd className="px-2 py-1 text-xs font-mono bg-black/50 border border-white/20 rounded text-primary">
+                        <kbd className="px-2 py-1 text-xs font-mono bg-[#0A0A0F]/90 border border-white/20 rounded text-primary">
                           {key === "Ctrl" && navigator.platform.includes("Mac") ? "⌘" : key}
                         </kbd>
                       )}
@@ -3121,9 +3121,9 @@ Sources: ${result.sources.join(', ')}`;
             ))}
           </div>
           
-          <div className="mt-4 pt-3 border-t border-white/10">
+          <div className="mt-4 pt-3 border-t border-white/[0.09]">
             <p className="text-xs text-muted-foreground text-center">
-              {t('dashboard.keyboardShortcuts')} <kbd className="px-1.5 py-0.5 text-xs bg-black/50 border border-white/20 rounded">?</kbd>
+              {t('dashboard.keyboardShortcuts')} <kbd className="px-1.5 py-0.5 text-xs bg-[#0A0A0F]/90 border border-white/20 rounded">?</kbd>
             </p>
           </div>
         </DialogContent>

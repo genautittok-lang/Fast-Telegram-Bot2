@@ -102,7 +102,7 @@ function TierBadge({ tier }: { tier: string }) {
   const config = {
     FREE: { 
       icon: Zap, 
-      className: "bg-zinc-800 text-zinc-300 border-zinc-700",
+      className: "bg-zinc-900 text-zinc-300 border-zinc-600",
       glow: ""
     },
     PRO: { 
@@ -129,7 +129,7 @@ function TierBadge({ tier }: { tier: string }) {
 
 function StatCardSkeleton() {
   return (
-    <div className="p-5 rounded-xl bg-gradient-to-br from-zinc-800/50 via-zinc-900 to-zinc-950 border border-zinc-700/50">
+    <div className="p-5 rounded-xl bg-[#0E0E12] border border-white/[0.09]">
       <div className="flex items-center gap-3 mb-3">
         <Skeleton className="w-10 h-10 rounded-lg" />
         <Skeleton className="h-4 w-24" />
@@ -468,7 +468,7 @@ export default function Account() {
       <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0A0A0A]">
         <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-6xl mx-auto">
           <motion.div 
-            className="relative p-5 sm:p-6 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/10 overflow-hidden"
+            className="relative p-5 sm:p-6 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/[0.12] overflow-hidden shadow-[0_0_48px_-12px_rgba(34,211,238,0.08)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -482,9 +482,9 @@ export default function Account() {
             />
 
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-              <Avatar className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border border-white/10 shrink-0">
+              <Avatar className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border border-white/[0.09] shrink-0">
                 <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
-                <AvatarFallback className="bg-white/5 text-cyan-300 text-2xl lg:text-3xl font-semibold">
+                <AvatarFallback className="bg-white/[0.06] text-cyan-300 text-2xl lg:text-3xl font-semibold">
                   {user?.username?.slice(0, 2).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
@@ -532,7 +532,7 @@ export default function Account() {
               </>
             ) : (
               <>
-                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
                   <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                     <BarChart3 className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.totalChecks')}</span>
@@ -540,7 +540,7 @@ export default function Account() {
                   <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
                   <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                     <Activity className="w-3.5 h-3.5 text-emerald-400" />
                     <span>{t('account.activeMonitors')}</span>
@@ -548,7 +548,7 @@ export default function Account() {
                   <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
                   <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                     <Users className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.referrals')}</span>
@@ -556,7 +556,7 @@ export default function Account() {
                   <p className="text-2xl lg:text-3xl font-semibold tracking-tight text-white font-mono" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
                   <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                     <TrendingUp className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.top')}</span>
@@ -565,7 +565,7 @@ export default function Account() {
                     {stats.mostUsedTypes.length === 0 ? (
                       <span className="text-[12px] text-zinc-500 font-mono">—</span>
                     ) : stats.mostUsedTypes.map((type, idx) => (
-                      <span key={idx} className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
+                      <span key={idx} className="inline-flex items-center rounded-full border border-white/[0.09] bg-white/[0.04] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
                         {type}
                       </span>
                     ))}
@@ -576,7 +576,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -591,7 +591,7 @@ export default function Account() {
             {isDataLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-zinc-700/30">
+                  <div key={i} className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-zinc-600/30">
                     <div className="flex items-center gap-3 mb-3">
                       <Skeleton className="w-5 h-5 rounded" />
                       <Skeleton className="h-4 w-24" />
@@ -687,7 +687,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
@@ -704,7 +704,7 @@ export default function Account() {
                 {securityLevel.level}
               </Badge>
             </div>
-            <div className="flex items-center gap-3 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+            <div className="flex items-center gap-3 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
               <div className={`w-14 h-14 lg:w-16 lg:h-16 rounded-xl bg-gradient-to-br ${securityLevel.color} flex items-center justify-center shadow-lg`}>
                 <Shield className="w-7 h-7 lg:w-8 lg:h-8 text-white" />
               </div>
@@ -720,14 +720,14 @@ export default function Account() {
                 </p>
                 <Progress
                   value={Math.min(100, reports.length >= 100 ? 100 : reports.length >= 50 ? (reports.length / 100) * 100 : reports.length >= 10 ? (reports.length / 50) * 100 : (reports.length / 10) * 100)}
-                  className="h-1.5 mt-2 bg-zinc-800"
+                  className="h-1.5 mt-2 bg-white/[0.08]"
                 />
               </div>
             </div>
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.27 }}
@@ -745,7 +745,7 @@ export default function Account() {
               {heatmapData.map((day, idx) => {
                 const intensity = day.count === 0 ? 0 : day.count <= 1 ? 1 : day.count <= 3 ? 2 : day.count <= 5 ? 3 : 4;
                 const colors = [
-                  "bg-zinc-800/60",
+                  "bg-white/[0.08]",
                   "bg-green-900/60",
                   "bg-green-700/60",
                   "bg-green-500/60",
@@ -754,10 +754,10 @@ export default function Account() {
                 return (
                   <div
                     key={idx}
-                    className={`aspect-square rounded-sm ${colors[intensity]} border border-white/5 relative group`}
+                    className={`aspect-square rounded-sm ${colors[intensity]} border border-white/[0.08] relative group`}
                     data-testid={`heatmap-cell-${idx}`}
                   >
-                    <div className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-[10px] text-white whitespace-nowrap z-50">
+                    <div className="invisible group-hover:visible absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-[#0E0E12] border border-white/[0.18] text-[10px] text-white whitespace-nowrap z-50">
                       {day.date}: {day.count} {t('account.scans')}
                     </div>
                   </div>
@@ -766,16 +766,16 @@ export default function Account() {
             </div>
             <div className="flex items-center justify-end gap-1.5 mt-3">
               <span className="text-[10px] lg:text-xs text-muted-foreground mr-1">{t('account.noActivity')}</span>
-              <div className="w-3 h-3 rounded-sm bg-zinc-800/60 border border-white/5" />
-              <div className="w-3 h-3 rounded-sm bg-green-900/60 border border-white/5" />
-              <div className="w-3 h-3 rounded-sm bg-green-700/60 border border-white/5" />
-              <div className="w-3 h-3 rounded-sm bg-green-500/60 border border-white/5" />
-              <div className="w-3 h-3 rounded-sm bg-green-400/80 border border-white/5" />
+              <div className="w-3 h-3 rounded-sm bg-white/[0.08] border border-white/[0.08]" />
+              <div className="w-3 h-3 rounded-sm bg-green-900/60 border border-white/[0.08]" />
+              <div className="w-3 h-3 rounded-sm bg-green-700/60 border border-white/[0.08]" />
+              <div className="w-3 h-3 rounded-sm bg-green-500/60 border border-white/[0.08]" />
+              <div className="w-3 h-3 rounded-sm bg-green-400/80 border border-white/[0.08]" />
             </div>
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -788,7 +788,7 @@ export default function Account() {
             </div>
             
             <div className="space-y-3 lg:space-y-6">
-              <div className="flex flex-col gap-3 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="flex flex-col gap-3 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 lg:gap-3">
                   <Globe className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                   <div className="min-w-0">
@@ -797,7 +797,7 @@ export default function Account() {
                   </div>
                 </div>
                 <Select value={language} onValueChange={handleLanguageChange}>
-                  <SelectTrigger className="w-full lg:w-[180px] bg-zinc-800 border-zinc-700 text-sm" data-testid="select-language">
+                  <SelectTrigger className="w-full lg:w-[180px] bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-language">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -811,7 +811,7 @@ export default function Account() {
               </div>
               
               <div className="space-y-2 lg:space-y-3">
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -826,7 +826,7 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -841,7 +841,7 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <ShieldAlert className="w-4 h-4 lg:w-5 lg:h-5 text-red-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -856,7 +856,7 @@ export default function Account() {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+                <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                     <div className="min-w-0">
@@ -896,7 +896,7 @@ export default function Account() {
                   </div>
                 </div>
                 {userTier === "FREE" ? (
-                  <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800/50 text-xs lg:text-sm text-muted-foreground border border-zinc-700">
+                  <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-[#0D0D10] text-xs lg:text-sm text-muted-foreground border border-white/[0.09]">
                     <Lock className="w-3 h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                     <span className="truncate">{t('account.upgradeForApi')}</span>
                   </div>
@@ -908,7 +908,7 @@ export default function Account() {
                     </div>
                     <p className="text-xs text-muted-foreground">{t('account.apiKeyDesc')}</p>
                     <div className="flex items-center gap-2">
-                      <div className="flex-1 flex items-center gap-1.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-zinc-800 text-xs lg:text-sm text-cyan-400 border border-zinc-700 font-mono truncate" data-testid="text-api-key">
+                      <div className="flex-1 flex items-center gap-1.5 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg bg-[#0D0D10] text-xs lg:text-sm text-cyan-400 border border-white/[0.09] font-mono truncate" data-testid="text-api-key">
                         {apiKeyData?.masked || `dk_${"•".repeat(16)}`}
                       </div>
                       <Button
@@ -948,7 +948,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
@@ -964,7 +964,7 @@ export default function Account() {
             </div>
 
             <div className="space-y-4">
-              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 mb-3">
                   <Palette className="w-4 h-4 text-violet-400" />
                   <p className="font-medium text-white text-sm">{lang === "uk" ? "PDF White-label" : lang === "ru" ? "PDF White-label" : lang === "es" ? "PDF White-label" : lang === "de" ? "PDF White-label" : "PDF White-label"}</p>
@@ -978,7 +978,7 @@ export default function Account() {
                     onChange={(e) => setCompanyName(e.target.value)}
                     disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                     data-testid="input-company-name"
-                    className="bg-zinc-800 border-zinc-700 text-sm"
+                    className="bg-[#0D0D10] border-white/[0.09] text-sm"
                   />
                   <Input
                     placeholder="https://your-cdn.com/logo.png"
@@ -986,7 +986,7 @@ export default function Account() {
                     onChange={(e) => setCompanyLogoUrl(e.target.value)}
                     disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                     data-testid="input-company-logo"
-                    className="bg-zinc-800 border-zinc-700 text-sm"
+                    className="bg-[#0D0D10] border-white/[0.09] text-sm"
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -995,14 +995,14 @@ export default function Account() {
                       onChange={(e) => setBrandColor(e.target.value)}
                       disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                       data-testid="input-brand-color"
-                      className="h-9 w-12 rounded border border-zinc-700 bg-zinc-800 cursor-pointer disabled:opacity-50"
+                      className="h-9 w-12 rounded border border-white/[0.12] bg-[#0D0D10] cursor-pointer disabled:opacity-50"
                     />
                     <Input
                       placeholder="#a78bfa"
                       value={brandColor}
                       onChange={(e) => setBrandColor(e.target.value)}
                       disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
-                      className="bg-zinc-800 border-zinc-700 text-sm font-mono"
+                      className="bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                     />
                   </div>
                   <Button
@@ -1019,7 +1019,7 @@ export default function Account() {
                 )}
               </div>
 
-              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 mb-3">
                   <Webhook className="w-4 h-4 text-cyan-400" />
                   <p className="font-medium text-white text-sm">{lang === "uk" ? "Вебхуки моніторингу" : lang === "ru" ? "Вебхуки мониторинга" : lang === "es" ? "Webhooks de monitoreo" : lang === "de" ? "Monitoring-Webhooks" : "Monitoring Webhooks"}</p>
@@ -1030,14 +1030,14 @@ export default function Account() {
                     value={slackWebhookUrl}
                     onChange={(e) => setSlackWebhookUrl(e.target.value)}
                     data-testid="input-slack-webhook"
-                    className="bg-zinc-800 border-zinc-700 text-sm font-mono"
+                    className="bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                   />
                   <Input
                     placeholder="https://outlook.webhook.office.com/webhook/..."
                     value={teamsWebhookUrl}
                     onChange={(e) => setTeamsWebhookUrl(e.target.value)}
                     data-testid="input-teams-webhook"
-                    className="bg-zinc-800 border-zinc-700 text-sm font-mono"
+                    className="bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                   />
                   <Button
                     onClick={() => saveBranding({ slackWebhookUrl, teamsWebhookUrl })}
@@ -1051,14 +1051,14 @@ export default function Account() {
                 </div>
               </div>
 
-              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 mb-3">
                   <Bitcoin className="w-4 h-4 text-amber-400" />
                   <p className="font-medium text-white text-sm">{lang === "uk" ? "Крипто-виплата за реферали" : lang === "ru" ? "Крипто-выплата за рефералов" : lang === "es" ? "Pago cripto por referidos" : lang === "de" ? "Krypto-Auszahlung für Empfehlungen" : "Referral Crypto Payout"}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   <Select value={payoutCurrency} onValueChange={setPayoutCurrency}>
-                    <SelectTrigger className="bg-zinc-800 border-zinc-700 text-sm" data-testid="select-payout-currency">
+                    <SelectTrigger className="bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-payout-currency">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1074,7 +1074,7 @@ export default function Account() {
                     value={payoutAddress}
                     onChange={(e) => setPayoutAddress(e.target.value)}
                     data-testid="input-payout-address"
-                    className="md:col-span-2 bg-zinc-800 border-zinc-700 text-sm font-mono"
+                    className="md:col-span-2 bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                   />
                   <Button
                     onClick={() => saveBranding({ payoutAddress, payoutCurrency })}
@@ -1091,7 +1091,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -1156,7 +1156,7 @@ export default function Account() {
                           {isExpired ? "0" : daysRemaining} {subLabels.daysLeft}
                         </span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
                         <div className={`h-full rounded-full ${barColor} transition-all duration-500`} style={{ width: `${progressPct}%` }} />
                       </div>
                       <div className="flex items-center justify-between gap-2">
@@ -1188,7 +1188,7 @@ export default function Account() {
                 )}
               </div>
               
-              <div className="p-3 lg:p-5 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="p-3 lg:p-5 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.requests')}</p>
                   <span className="text-xs lg:text-sm font-mono text-muted-foreground" data-testid="text-requests-usage">
@@ -1197,7 +1197,7 @@ export default function Account() {
                 </div>
                 <Progress 
                   value={(requestsUsed.used / requestsUsed.total) * 100} 
-                  className="h-2 lg:h-3 bg-zinc-800"
+                  className="h-2 lg:h-3 bg-white/[0.08]"
                 />
                 <p className="text-xs lg:text-sm text-muted-foreground mt-1.5 lg:mt-2" data-testid="text-requests-left">
                   {t('account.remaining')} {requestsUsed.left}
@@ -1207,7 +1207,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div 
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
@@ -1220,7 +1220,7 @@ export default function Account() {
             </div>
             
             <div className="space-y-2 lg:space-y-4">
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Smartphone className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                   <div className="min-w-0">
@@ -1234,7 +1234,7 @@ export default function Account() {
                 </Badge>
               </div>
               
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400 flex-shrink-0" />
                   <div className="min-w-0">
@@ -1253,7 +1253,7 @@ export default function Account() {
                       <p className="text-xs lg:text-sm text-muted-foreground">{t('account.twoFactorDesc')}</p>
                     </div>
                   </div>
-                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-zinc-700/50 text-zinc-400 border-zinc-600/50'}`}>
+                  <Badge className={`text-xs lg:text-sm px-2 py-0.5 flex-shrink-0 ${user?.totpEnabled ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' : 'bg-zinc-600/50 text-zinc-400 border-zinc-600/50'}`}>
                     {user?.totpEnabled ? t('account.twoFactorEnabled') : t('account.twoFactorDisabled')}
                   </Badge>
                 </div>
@@ -1283,7 +1283,7 @@ export default function Account() {
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-3 mt-3"
                     >
-                      <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-zinc-900/80 border border-white/5">
+                      <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-[#0D0D10] border border-white/[0.09]">
                         <p className="text-xs text-muted-foreground text-center">{t('account.twoFactorScanQR')}</p>
                         {qrImageUrl && (
                           <div className="p-2 rounded-lg bg-white">
@@ -1293,7 +1293,7 @@ export default function Account() {
                         <div className="w-full">
                           <p className="text-xs text-muted-foreground mb-1">{t('account.twoFactorManualKey')}</p>
                           <div className="flex items-center gap-2">
-                            <code className="flex-1 text-xs font-mono text-cyan-400 bg-zinc-800 px-2 py-1.5 rounded border border-zinc-700 break-all" data-testid="text-2fa-secret">
+                            <code className="flex-1 text-xs font-mono text-cyan-400 bg-[#0D0D10] px-2 py-1.5 rounded border border-white/[0.09] break-all" data-testid="text-2fa-secret">
                               {twoFASetupData.secret}
                             </code>
                             <Button
@@ -1320,7 +1320,7 @@ export default function Account() {
                             value={twoFACode}
                             onChange={(e) => setTwoFACode(e.target.value.replace(/\D/g, ""))}
                             onKeyDown={(e) => e.key === "Enter" && verifyTwoFA()}
-                            className="text-center text-lg font-mono tracking-[0.4em] bg-zinc-800 border-zinc-700"
+                            className="text-center text-lg font-mono tracking-[0.4em] bg-[#0D0D10] border-white/[0.09]"
                             data-testid="input-2fa-setup-code"
                           />
                           <div className="flex gap-2">
@@ -1331,7 +1331,7 @@ export default function Account() {
                               data-testid="button-2fa-verify"
                             >
                               {twoFALoading ? (
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="w-4 h-4 border-2 border-white/[0.28] border-t-white rounded-full animate-spin" />
                               ) : (
                                 <>
                                   <Check className="w-3.5 h-3.5 mr-1.5" />
@@ -1389,7 +1389,7 @@ export default function Account() {
                         value={twoFADisableCode}
                         onChange={(e) => setTwoFADisableCode(e.target.value.replace(/\D/g, ""))}
                         onKeyDown={(e) => e.key === "Enter" && disableTwoFA()}
-                        className="text-center text-lg font-mono tracking-[0.4em] bg-zinc-800 border-zinc-700"
+                        className="text-center text-lg font-mono tracking-[0.4em] bg-[#0D0D10] border-white/[0.09]"
                         data-testid="input-2fa-disable-code"
                       />
                       <div className="flex gap-2">
@@ -1401,7 +1401,7 @@ export default function Account() {
                           data-testid="button-2fa-disable-confirm"
                         >
                           {twoFALoading ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-white/[0.28] border-t-white rounded-full animate-spin" />
                           ) : t('account.twoFactorDisable')}
                         </Button>
                         <Button
@@ -1421,7 +1421,7 @@ export default function Account() {
                 </AnimatePresence>
               </div>
               
-              <div className="p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                     <Monitor className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400 flex-shrink-0" />
@@ -1430,7 +1430,7 @@ export default function Account() {
                 </div>
                 <div className="space-y-2 mt-2">
                   {sessionsData?.map((session) => (
-                    <div key={session.id} className="flex items-center justify-between gap-2 p-2 lg:p-3 rounded-lg bg-zinc-800/50 border border-white/5" data-testid={`session-item-${session.id}`}>
+                    <div key={session.id} className="flex items-center justify-between gap-2 p-2 lg:p-3 rounded-lg bg-[#0D0D10] border border-white/[0.08]" data-testid={`session-item-${session.id}`}>
                       <div className="flex items-center gap-2 min-w-0">
                         {session.device?.includes("Mobile") ? (
                           <Smartphone className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
@@ -1480,7 +1480,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/10 glass-deep"
+            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
@@ -1493,7 +1493,7 @@ export default function Account() {
             </div>
 
             <div className="space-y-2 lg:space-y-3">
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400 flex-shrink-0" />
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.appVersion')}</p>
@@ -1503,7 +1503,7 @@ export default function Account() {
                 </Badge>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <HardDrive className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400 flex-shrink-0" />
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.cacheSize')}</p>
@@ -1513,7 +1513,7 @@ export default function Account() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-zinc-900/50 border border-white/5">
+              <div className="flex items-center justify-between gap-2 p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                 <div className="flex items-center gap-2 lg:gap-3 min-w-0">
                   <Wifi className="w-4 h-4 lg:w-5 lg:h-5 text-green-400 flex-shrink-0" />
                   <p className="font-medium text-white text-sm lg:text-base">{t('account.lastSync')}</p>

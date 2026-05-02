@@ -96,13 +96,13 @@ const typeGradients: Record<string, string> = {
   url: "border border-rose-500/20 bg-rose-500/5 text-rose-300",
   bot: "border border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
   cve: "border border-rose-500/20 bg-rose-500/5 text-rose-300",
-  hash: "border border-white/10 bg-white/[0.03] text-zinc-300",
+  hash: "border border-white/[0.09] bg-white/[0.04] text-zinc-300",
   username: "border border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
   card: "border border-amber-500/20 bg-amber-500/5 text-amber-300",
   password: "border border-rose-500/20 bg-rose-500/5 text-rose-300",
   dns: "border border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
   ssl: "border border-emerald-500/20 bg-emerald-500/5 text-emerald-300",
-  mac: "border border-white/10 bg-white/[0.03] text-zinc-300",
+  mac: "border border-white/[0.09] bg-white/[0.04] text-zinc-300",
   exif: "border border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
   geoint: "border border-cyan-500/20 bg-cyan-500/5 text-cyan-300",
 };
@@ -167,7 +167,7 @@ export default function History() {
   });
 
   const riskFilters = [
-    { id: "all", label: t('history.all'), color: "bg-white/10 hover:bg-white/20" },
+    { id: "all", label: t('history.all'), color: "bg-white/[0.09] hover:bg-white/20" },
     { id: "low", label: t('dashboard.riskLevels.low'), color: "bg-green-500/20 text-green-400 hover:bg-green-500/30" },
     { id: "medium", label: t('dashboard.riskLevels.medium'), color: "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30" },
     { id: "high", label: t('dashboard.riskLevels.high'), color: "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30" },
@@ -479,7 +479,7 @@ export default function History() {
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3"
         >
-          <div className="p-3 sm:p-4 rounded-xl border border-white/10 bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.totalChecks')}</span>
@@ -487,7 +487,7 @@ export default function History() {
             <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.total}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/10 bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.thisWeekChecks')}</span>
@@ -495,7 +495,7 @@ export default function History() {
             <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.thisWeek}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/10 bg-[#0E0E12] transition-colors hover:border-rose-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-rose-400/30">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" />
               <span>{t('history.criticalRisks')}</span>
@@ -503,7 +503,7 @@ export default function History() {
             <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.critical}</p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-xl border border-white/10 bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
+          <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-colors hover:border-cyan-400/30">
             <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">
               <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.pdfDownloaded')}</span>
@@ -561,7 +561,7 @@ export default function History() {
                 placeholder={t('history.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
+                className="pl-10 bg-white/[0.06] border-white/[0.09] focus:border-primary/50 text-sm"
                 data-testid="input-search"
               />
             </div>
@@ -575,7 +575,7 @@ export default function History() {
                   onClick={() => setDateFilter(filter.id)}
                   className={`text-[11px] sm:text-xs px-2 sm:px-3 h-7 sm:h-8 whitespace-nowrap flex-shrink-0 ${
                     dateFilter === filter.id 
-                      ? "bg-white/10 text-foreground" 
+                      ? "bg-white/[0.09] text-foreground" 
                       : "text-muted-foreground"
                   }`}
                   data-testid={`button-date-${filter.id}`}
@@ -596,7 +596,7 @@ export default function History() {
                 className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                   riskFilter === filter.id 
                     ? `${filter.color} ring-1 ring-white/20` 
-                    : "bg-white/5 text-muted-foreground hover:bg-white/10"
+                    : "bg-white/[0.06] text-muted-foreground hover:bg-white/[0.09]"
                 }`}
                 data-testid={`button-filter-${filter.id}`}
               >
@@ -685,7 +685,7 @@ export default function History() {
             <AnimatePresence mode="popLayout">
               {filteredReports.map((report, idx) => {
                 const TypeIcon = typeIcons[report.type] || Globe;
-                const typeChip = typeGradients[report.type] || "border border-white/10 bg-white/[0.03] text-zinc-300";
+                const typeChip = typeGradients[report.type] || "border border-white/[0.09] bg-white/[0.04] text-zinc-300";
                 const riskConfig = getRiskConfig(report.riskLevel);
                 const RiskIcon = riskConfig.icon;
                 
@@ -698,7 +698,7 @@ export default function History() {
                     transition={{ delay: idx * 0.03 }}
                     whileHover={{ y: -2 }}
                     onClick={() => toggleReportSelect(report)}
-                    className={`group relative p-2 sm:p-4 rounded-xl bg-white/[0.03] backdrop-blur-sm border border-white/10 
+                    className={`group relative p-2 sm:p-4 rounded-xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.09] 
                       hover:bg-white/[0.06] hover:border-white/20 hover:shadow-lg hover:${riskConfig.glow}
                       transition-all duration-300 cursor-pointer border-l-2 ${riskConfig.border}
                       ${compareMode && selectedReports.find((r: any) => r.id === report.id) ? "ring-2 ring-primary border-primary/50 bg-primary/5" : ""}`}
@@ -818,7 +818,7 @@ export default function History() {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-10 sm:py-16 px-4"
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white/[0.06] flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <Search className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
               </div>
               <p className="text-base sm:text-lg font-medium mb-1">{t('history.nothingFound')}</p>
@@ -851,7 +851,7 @@ export default function History() {
                 className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6"
               >
                 <div className="absolute inset-0 bg-cyan-500/10 rounded-xl sm:rounded-2xl blur-xl" />
-                <div className="relative w-full h-full rounded-xl sm:rounded-2xl border border-white/10 bg-[#0E0E12] flex items-center justify-center">
+                <div className="relative w-full h-full rounded-xl sm:rounded-2xl border border-white/[0.09] bg-[#0E0E12] flex items-center justify-center">
                   <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-300" />
                 </div>
               </motion.div>
@@ -915,7 +915,7 @@ export default function History() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               data-testid="compare-panel"
             >
-              <Card className="p-4 sm:p-6 bg-white/[0.03] backdrop-blur-sm border-white/10">
+              <Card className="p-4 sm:p-6 bg-white/[0.04] backdrop-blur-sm border-white/[0.09]">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div className="flex items-center gap-2">
                     <GitCompareArrows className="w-5 h-5 text-primary" />
@@ -939,7 +939,7 @@ export default function History() {
                 <div className="grid grid-cols-2 gap-3 sm:gap-6">
                   {selectedReports.map((report: any, i: number) => {
                     const TypeIcon = typeIcons[report.type] || Globe;
-                    const typeChip = typeGradients[report.type] || "border border-white/10 bg-white/[0.03] text-zinc-300";
+                    const typeChip = typeGradients[report.type] || "border border-white/[0.09] bg-white/[0.04] text-zinc-300";
                     const riskConfig = getRiskConfig(report.riskLevel);
                     const RiskIcon = riskConfig.icon;
 
@@ -974,7 +974,7 @@ export default function History() {
                         <div>
                           <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">{compareRiskScoreLabel}</p>
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 sm:h-3 rounded-full bg-white/10 overflow-hidden">
+                            <div className="flex-1 h-2 sm:h-3 rounded-full bg-white/[0.09] overflow-hidden">
                               <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${report.riskScore}%` }}
@@ -1003,7 +1003,7 @@ export default function History() {
                   })}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-center">
+                <div className="mt-4 pt-4 border-t border-white/[0.09] flex items-center justify-center">
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="font-mono truncate max-w-[100px] sm:max-w-none">{selectedReports[0]?.target}</span>
                     <Badge variant="outline" className="text-[10px]">{compareVsLabel}</Badge>

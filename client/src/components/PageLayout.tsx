@@ -392,7 +392,7 @@ function AppSplashLogin() {
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="text-center text-2xl tracking-[0.5em] font-mono h-14 bg-white/[0.04] border-white/10 rounded-2xl"
+                  className="text-center text-2xl tracking-[0.5em] font-mono h-14 bg-white/[0.04] border-white/[0.09] rounded-2xl"
                   data-testid="input-app-2fa-code"
                 />
                 <Button
@@ -413,7 +413,7 @@ function AppSplashLogin() {
                 <a href="/api/login" className="block w-full" data-testid="app-button-google-login">
                   <Button
                     variant="outline"
-                    className="w-full h-14 text-base font-medium border-white/10 bg-white/[0.04] hover:bg-white/[0.08] gap-3 rounded-2xl"
+                    className="w-full h-14 text-base font-medium border-white/[0.09] bg-white/[0.04] hover:bg-white/[0.08] gap-3 rounded-2xl"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -496,10 +496,10 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
       <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden max-w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="lg:hidden flex items-center justify-between px-3 py-2 bg-[#0e0e14]/95 backdrop-blur-2xl sticky top-0 z-40 border-b border-white/[0.04]">
+          <div className="lg:hidden flex items-center justify-between px-3 py-2 bg-[#0e0e14]/95 backdrop-blur-2xl sticky top-0 z-40 border-b border-white/[0.07]">
             <div className="flex items-center gap-2">
               <Link href="/">
-                <button className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] active:bg-white/[0.08] transition-colors" data-testid="button-back-to-site">
+                <button className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] active:bg-white/[0.08] transition-colors" data-testid="button-back-to-site">
                   <Globe className="w-3 h-3 text-zinc-400" />
                   <span className="text-[10px] font-medium text-zinc-400">{t("mobile.home") || "Site"}</span>
                 </button>
@@ -532,7 +532,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
     <div className="min-h-screen bg-background flex overflow-hidden max-w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/50 backdrop-blur-xl sticky top-0 z-40">
+        <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/[0.08] bg-[#09090E]/92 backdrop-blur-xl sticky top-0 z-40">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
               <Shield className="w-4 h-4 text-black" />

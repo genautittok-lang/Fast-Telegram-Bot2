@@ -56,7 +56,7 @@ function TierBadge({ tier }: { tier: string }) {
   const config = {
     FREE: { 
       icon: Zap, 
-      className: "bg-zinc-800 text-zinc-300 border-zinc-700",
+      className: "bg-[#0D0D10] text-zinc-300 border-white/[0.09]",
       glow: ""
     },
     PRO: { 
@@ -244,7 +244,7 @@ export default function Referral() {
         <main className="relative flex-1 p-4 lg:p-10 overflow-auto max-w-full pb-28 lg:pb-12">
           <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.04] px-3 py-1 text-[12px] text-zinc-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 {lang === "uk" ? "Рефералка · +5 перевірок за друга · топ отримує PRO безплатно" : lang === "ru" ? "Рефералка · +5 проверок за друга · топ получает PRO бесплатно" : lang === "es" ? "Referidos · +5 verificaciones por amigo · el top obtiene PRO gratis" : lang === "de" ? "Empfehlungen · +5 Prüfungen pro Freund · Top bekommt PRO gratis" : "Referral · +5 checks per friend · top get free PRO"}
               </div>
@@ -260,7 +260,7 @@ export default function Referral() {
               transition={{ duration: 0.5, delay: 0.05 }}
             >
               <div
-                className="rounded-2xl border border-white/10 bg-[#0E0E12] cursor-pointer transition-colors hover:border-amber-400/30"
+                className="rounded-2xl border border-white/[0.09] bg-[#0E0E12] cursor-pointer transition-colors hover:border-amber-400/40 hover:shadow-[0_0_28px_-4px_rgba(251,191,36,0.20)]"
                 data-testid="button-partner-toggle"
               >
                 <button
@@ -296,21 +296,21 @@ export default function Referral() {
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 lg:px-5 lg:pb-5 pt-0">
-                        <div className="border-t border-white/10 pt-4">
+                        <div className="border-t border-white/[0.09] pt-4">
                           <form onSubmit={handlePartnerSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <Input
                                 placeholder={t('referral.reversh.name')}
                                 value={partnerForm.name}
                                 onChange={(e) => setPartnerForm(prev => ({ ...prev, name: e.target.value }))}
-                                className="bg-black/30 border-white/10"
+                                className="bg-[#0D0D10] border-white/[0.09]"
                                 data-testid="input-partner-name"
                               />
                               <Input
                                 placeholder={t('referral.reversh.phone')}
                                 value={partnerForm.phone}
                                 onChange={(e) => setPartnerForm(prev => ({ ...prev, phone: e.target.value }))}
-                                className="bg-black/30 border-white/10"
+                                className="bg-[#0D0D10] border-white/[0.09]"
                                 data-testid="input-partner-phone"
                               />
                             </div>
@@ -319,21 +319,21 @@ export default function Referral() {
                               placeholder={t('referral.reversh.email')}
                               value={partnerForm.email}
                               onChange={(e) => setPartnerForm(prev => ({ ...prev, email: e.target.value }))}
-                              className="bg-black/30 border-white/10"
+                              className="bg-[#0D0D10] border-white/[0.09]"
                               data-testid="input-partner-email"
                             />
                             <Textarea
                               placeholder={t('referral.reversh.method')}
                               value={partnerForm.method}
                               onChange={(e) => setPartnerForm(prev => ({ ...prev, method: e.target.value }))}
-                              className="bg-black/30 border-white/10 min-h-[80px]"
+                              className="bg-[#0D0D10] border-white/[0.09] min-h-[80px]"
                               data-testid="input-partner-method"
                             />
                             <Input
                               placeholder={t('referral.reversh.volume')}
                               value={partnerForm.volume}
                               onChange={(e) => setPartnerForm(prev => ({ ...prev, volume: e.target.value }))}
-                              className="bg-black/30 border-white/10"
+                              className="bg-[#0D0D10] border-white/[0.09]"
                               data-testid="input-partner-volume"
                             />
                             <Button
@@ -354,7 +354,7 @@ export default function Referral() {
               </div>
             </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-4 lg:gap-6 rounded-2xl border border-white/10 bg-[#0E0E12] p-4 lg:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_240px] gap-4 lg:gap-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Gift className="w-4 h-4 text-cyan-300" />
@@ -362,7 +362,7 @@ export default function Referral() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 font-mono text-lg lg:text-xl text-cyan-300 tracking-wider text-center sm:text-left" data-testid="text-ref-code-display">
+                  <div className="flex-1 rounded-xl border border-white/[0.09] bg-[#0D0D10] px-4 py-3 font-mono text-lg lg:text-xl text-cyan-300 tracking-wider text-center sm:text-left" data-testid="text-ref-code-display">
                     {referralCode}
                   </div>
                   <button
@@ -378,13 +378,13 @@ export default function Referral() {
                 <div>
                   <p className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">{t('referral.referralLink')}</p>
                   <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2 font-mono text-[12px] text-zinc-300 truncate">
+                    <div className="flex-1 rounded-lg border border-white/[0.09] bg-[#0D0D10] px-3 py-2 font-mono text-[12px] text-zinc-300 truncate">
                       {referralLink}
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={copyLink}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 text-zinc-400 transition-colors hover:border-white/20 hover:text-white"
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.09] text-zinc-400 transition-colors hover:border-white/[0.20] hover:text-white"
                         data-testid="button-copy-link"
                         title="Copy"
                       >
@@ -392,14 +392,14 @@ export default function Referral() {
                       </button>
                       <button
                         onClick={shareToTelegram}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/20 hover:text-white"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/[0.20] hover:text-white"
                         data-testid="button-share-telegram"
                       >
                         <SiTelegram className="w-3.5 h-3.5 text-cyan-300" /> Telegram
                       </button>
                       <button
                         onClick={shareToX}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/20 hover:text-white"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/[0.20] hover:text-white"
                         data-testid="button-share-x"
                       >
                         <Share2 className="w-3.5 h-3.5" /> X
@@ -409,14 +409,14 @@ export default function Referral() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/30 p-4">
+              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-white/[0.09] bg-[#0D0D10] p-4">
                 <img src={qrUrl} alt="Referral QR" width={160} height={160} className="rounded-md" data-testid="img-ref-qr" />
                 <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">scan to invite</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <UserPlus className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t('referral.totalReferrals')}</span>
@@ -427,7 +427,7 @@ export default function Referral() {
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.referralsLabel')}</p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <Wallet className="w-3.5 h-3.5 text-amber-300" />
                   <span>{t('referral.totalBonus')}</span>
@@ -438,7 +438,7 @@ export default function Referral() {
                 <p className="text-[11px] text-zinc-500 mt-1">{t('referral.earnedRequests')}</p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
+              <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-colors hover:border-cyan-400/30">
                 <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
                   <Gift className="w-3.5 h-3.5 text-cyan-300" />
                   <span>{t('referral.pendingBonusLabel')}</span>
@@ -450,7 +450,7 @@ export default function Referral() {
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">
+            <div className="p-4 lg:p-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-cyan-300" />
@@ -470,10 +470,10 @@ export default function Referral() {
                       key={tier.level}
                       className={`relative p-4 rounded-xl border transition-colors ${
                         isActive
-                          ? "border-cyan-400/40 bg-black/40"
+                          ? "border-cyan-400/40 bg-[#0E0E12]/80 shadow-[0_0_24px_-4px_rgba(34,211,238,0.22)]"
                           : isCompleted
-                            ? "border-emerald-400/30 bg-black/30"
-                            : "border-white/10 bg-black/30 hover:border-white/20"
+                            ? "border-emerald-400/30 bg-[#0D0D10]"
+                            : "border-white/[0.09] bg-[#0D0D10] hover:border-white/[0.20]"
                       }`}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -494,7 +494,7 @@ export default function Referral() {
                           </div>
                         </div>
                       )}
-                      <div className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.03] flex items-center justify-center mb-3">
+                      <div className="w-9 h-9 rounded-lg border border-white/[0.09] bg-white/[0.04] flex items-center justify-center mb-3">
                         <tier.icon className={`w-4.5 h-4.5 ${isActive || isCompleted ? tier.iconColor : "text-zinc-500"}`} />
                       </div>
                       <h3 className={`text-[14px] font-semibold tracking-tight mb-1 ${isActive || isCompleted ? "text-white" : "text-zinc-300"}`}>
@@ -512,13 +512,13 @@ export default function Referral() {
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">
+            <div className="p-4 lg:p-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-cyan-300" />
                   <h2 className="text-[12px] uppercase tracking-wider text-zinc-500">{t('referral.invitedUsers')}</h2>
                 </div>
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
+                <span className="inline-flex items-center rounded-full border border-white/[0.09] bg-white/[0.04] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
                   {uniqueUsers?.length || 0}
                 </span>
               </div>
@@ -532,13 +532,13 @@ export default function Referral() {
                   {uniqueUsers.map((refUser, idx) => (
                     <motion.div
                       key={refUser.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-black/30 border border-white/10 hover:border-white/20 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl bg-[#0D0D10] border border-white/[0.09] hover:border-white/[0.20] transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05, duration: 0.2 }}
                     >
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8 border border-white/10">
+                        <Avatar className="w-8 h-8 border border-white/[0.09]">
                           <AvatarFallback className="bg-cyan-500/10 text-cyan-300 text-xs font-mono">
                             {refUser.username?.slice(0, 2).toUpperCase() || "U"}
                           </AvatarFallback>
@@ -568,7 +568,7 @@ export default function Referral() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-14 h-14 rounded-xl border border-white/10 bg-white/[0.03] flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 rounded-xl border border-white/[0.09] bg-white/[0.04] flex items-center justify-center mb-4">
                     <UserPlus className="w-6 h-6 text-zinc-500" />
                   </div>
                   <p className="text-zinc-300 mb-2">{t('referral.noReferrals')}</p>
@@ -594,7 +594,7 @@ export default function Referral() {
                   {leaderboard.items.slice(0, 10).map((row) => (
                     <div
                       key={row.rank}
-                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-black/40 border border-white/5"
+                      className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-[#0D0D10] border border-white/[0.09]"
                       data-testid={`row-leaderboard-${row.rank}`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -602,7 +602,7 @@ export default function Referral() {
                           row.rank === 1 ? "bg-amber-500/20 border border-amber-400/30 text-amber-200" :
                           row.rank === 2 ? "bg-zinc-300/10 border border-zinc-300/20 text-zinc-200" :
                           row.rank === 3 ? "bg-orange-500/15 border border-orange-400/25 text-orange-200" :
-                          "bg-white/5 border border-white/10 text-zinc-400"
+                          "bg-white/[0.06] border border-white/[0.09] text-zinc-400"
                         }`}>
                           {row.rank <= 3 ? <Medal className="w-3.5 h-3.5" /> : row.rank}
                         </div>
@@ -632,7 +632,7 @@ export default function Referral() {
               </div>
             </div>
 
-            <div className="p-4 lg:p-6 rounded-2xl border border-white/10 bg-[#0E0E12]">
+            <div className="p-4 lg:p-6 rounded-2xl border border-white/[0.09] bg-[#0E0E12]">
               <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-center flex-shrink-0">
                   <Gift className="w-5 h-5 text-cyan-300" />

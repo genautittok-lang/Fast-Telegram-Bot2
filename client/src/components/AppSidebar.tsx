@@ -60,13 +60,13 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-[280px] min-w-[280px] border-r border-white/5 bg-black/50 backdrop-blur-2xl">
-      <div className="p-6 border-b border-white/5 relative overflow-hidden">
+    <aside className="hidden lg:flex flex-col w-[280px] min-w-[280px] border-r border-white/[0.08] bg-[#09090E]/92 backdrop-blur-2xl">
+      <div className="p-6 border-b border-white/[0.08] relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-cyan-500/5" />
         <Link href="/">
           <div className="relative flex items-center gap-3 group cursor-pointer">
             <motion.div
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_0_25px_rgba(34,197,94,0.4)] group-hover:shadow-[0_0_35px_rgba(34,197,94,0.6)] transition-all duration-500"
+              className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center shadow-[0_0_24px_rgba(34,211,238,0.45)] group-hover:shadow-[0_0_32px_rgba(34,211,238,0.60)] transition-all duration-500"
               whileHover={{ scale: 1.05, rotate: 5 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
             >
@@ -88,8 +88,8 @@ export function AppSidebar() {
               <motion.button
                 className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                   isActive
-                    ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(34,197,94,0.15)]"
-                    : "text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent"
+                    ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent text-primary border border-primary/30 shadow-[0_0_20px_rgba(34,211,238,0.18)]"
+                    : "text-muted-foreground hover:text-white hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08]"
                 }`}
                 whileHover={{ x: isActive ? 0 : 4 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -99,7 +99,7 @@ export function AppSidebar() {
                 <span>{t(item.labelKey)}</span>
                 {isActive && (
                   <motion.div
-                    className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,197,94,0.6)]"
+                    className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(34,211,238,0.65)]"
                     layoutId="activeNav"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
@@ -135,7 +135,7 @@ export function AppSidebar() {
         )}
       </nav>
 
-      <div className="px-4 py-3 border-t border-white/5">
+      <div className="px-4 py-3 border-t border-white/[0.08]">
         <div className="space-y-1">
           <Link href="/terms">
             <span className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors rounded-lg cursor-pointer" data-testid="link-sidebar-terms">
@@ -162,7 +162,7 @@ export function AppSidebar() {
         </div>
       </div>
 
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/[0.08]">
         <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-red-400 hover:bg-red-500/10" onClick={handleLogout} data-testid="button-sidebar-logout">
           <LogOut className="w-5 h-5" />
           {t('auth.logout')}
