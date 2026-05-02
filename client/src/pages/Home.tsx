@@ -117,6 +117,7 @@ function stripEmoji(s: string) {
 
 /* ─────────── TopBar ─────────── */
 function TopBar() {
+  const { t } = useTranslation();
   return (
     <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0A0A0A]/90 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/70">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
