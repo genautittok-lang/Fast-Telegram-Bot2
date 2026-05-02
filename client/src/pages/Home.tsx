@@ -650,28 +650,28 @@ function TrustedAggregators() {
   const { lang } = useTranslation();
   const sources = [
     "HIBP", "Shodan", "VirusTotal", "AbuseIPDB", "GreyNoise",
-    "Censys", "MaxMind", "IPQualityScore", "URLhaus", "Etherscan",
-    "WHOIS", "PhishTank",
+    "Censys", "MaxMind", "URLhaus", "Etherscan", "WHOIS", "PhishTank", "Mailcheck",
   ];
-  const aggregatingLabel = lang === "uk" ? "Агрегуємо сигнали з" : lang === "ru" ? "Агрегируем сигналы из" : lang === "es" ? "Agregando señales de" : lang === "de" ? "Signale aggregiert von" : "Aggregating signal from";
-  const moreLabel = lang === "uk" ? `+ ${OSINT_SOURCES.length - sources.length} більше` : lang === "ru" ? `+ ${OSINT_SOURCES.length - sources.length} ещё` : lang === "es" ? `+ ${OSINT_SOURCES.length - sources.length} más` : lang === "de" ? `+ ${OSINT_SOURCES.length - sources.length} weitere` : `+ ${OSINT_SOURCES.length - sources.length} more`;
+  const label = lang === "uk" ? "Агрегуємо сигнали з провідних джерел" : lang === "ru" ? "Агрегируем сигналы из ведущих источников" : lang === "es" ? "Señales de fuentes líderes" : lang === "de" ? "Signale von führenden Quellen" : "Aggregating signal from leading sources";
+  const moreCount = OSINT_SOURCES.length - sources.length;
+  const moreLabel = lang === "uk" ? `+${moreCount} інших` : lang === "ru" ? `+${moreCount} других` : lang === "es" ? `+${moreCount} más` : lang === "de" ? `+${moreCount} weitere` : `+${moreCount} more`;
   return (
-    <section className="border-t border-white/5 bg-[#08080A]">
-      <div className="mx-auto max-w-6xl px-5 py-10">
-        <div className="text-center text-[11px] uppercase tracking-[0.2em] text-zinc-600">
-          {aggregatingLabel}
-        </div>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[13px] font-mono">
+    <section className="border-t border-white/[0.06] bg-[#07070A]">
+      <div className="mx-auto max-w-6xl px-5 py-8">
+        <p className="mb-5 text-center text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">{label}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {sources.map((s) => (
             <span
               key={s}
-              className="text-zinc-500 transition-colors hover:text-zinc-200"
+              className="inline-flex items-center rounded-md border border-white/[0.07] bg-white/[0.03] px-3 py-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:border-white/15 hover:text-zinc-200"
               data-testid={`text-aggregator-${s}`}
             >
               {s}
             </span>
           ))}
-          <span className="text-zinc-700">{moreLabel}</span>
+          <span className="inline-flex items-center rounded-md border border-cyan-400/[0.12] bg-cyan-500/[0.04] px-3 py-1.5 font-mono text-[12px] text-cyan-400/70">
+            {moreLabel}
+          </span>
         </div>
       </div>
     </section>
@@ -681,184 +681,155 @@ function TrustedAggregators() {
 /* ─────────── What we check ─────────── */
 function WhatWeCheck() {
   const { lang } = useTranslation();
-  const items: { Icon: typeof Mail; title: string; desc: string }[] = [
-    { Icon: Mail,       title: "Email",     desc: lang === "uk" ? "Витоки, зливи" : lang === "ru" ? "Утечки, сливы" : lang === "es" ? "Filtraciones" : lang === "de" ? "Leaks" : "Leaks, breaches" },
-    { Icon: Phone,      title: "Phone",     desc: lang === "uk" ? "Спам, шахрайство" : lang === "ru" ? "Спам, мошенники" : lang === "es" ? "Spam, fraude" : lang === "de" ? "Spam, Betrug" : "Spam, fraud" },
-    { Icon: AtSign,     title: "Username",  desc: lang === "uk" ? "Профілі, сайти" : lang === "ru" ? "Профили, сайты" : lang === "es" ? "Perfiles, sitios" : lang === "de" ? "Profile, Seiten" : "Profiles, sites" },
-    { Icon: Wallet,     title: "Wallet",    desc: lang === "uk" ? "Крипто-ризик" : lang === "ru" ? "Крипто-риск" : lang === "es" ? "Riesgo cripto" : lang === "de" ? "Krypto-Risiko" : "Crypto risk" },
-    { Icon: Globe,      title: "Domain",    desc: lang === "uk" ? "DNS, SSL, rep." : lang === "ru" ? "DNS, SSL, rep." : lang === "es" ? "DNS, SSL, rep." : lang === "de" ? "DNS, SSL, Rep." : "DNS, SSL, rep." },
-    { Icon: Network,    title: "IP",        desc: lang === "uk" ? "Геолокація, VPN" : lang === "ru" ? "Геолокация, VPN" : lang === "es" ? "Geoloc., VPN" : lang === "de" ? "Geoloc., VPN" : "Geoloc., VPN" },
-    { Icon: Hash,       title: "Hash",      desc: lang === "uk" ? "Ідентифікація" : lang === "ru" ? "Идентификация" : lang === "es" ? "Identificación" : lang === "de" ? "Identifikation" : "Identification" },
-    { Icon: Bug,        title: "CVE",       desc: lang === "uk" ? "Вразливості" : lang === "ru" ? "Уязвимости" : lang === "es" ? "Vulnerabilidades" : lang === "de" ? "Schwachstellen" : "Vulnerabilities" },
-    { Icon: CreditCard, title: "Card BIN",  desc: lang === "uk" ? "Перевірка банку" : lang === "ru" ? "Проверка банка" : lang === "es" ? "Verificación bco." : lang === "de" ? "Bank-Check" : "Bank validation" },
-    { Icon: KeyRound,   title: "Password",  desc: lang === "uk" ? "Злом, pwned" : lang === "ru" ? "Взлом, pwned" : lang === "es" ? "Brecha, pwned" : lang === "de" ? "Gehackt, pwned" : "Pwned, hashes" },
-    { Icon: Shield,     title: "SSL",       desc: lang === "uk" ? "Сертифікати" : lang === "ru" ? "Сертификаты" : lang === "es" ? "Certificados" : lang === "de" ? "Zertifikate" : "Certificates" },
-    { Icon: Bot,        title: "Bot",       desc: lang === "uk" ? "TG-перевірка" : lang === "ru" ? "TG-проверка" : lang === "es" ? "Verif. TG" : lang === "de" ? "TG-Check" : "Telegram check" },
+  const items: { Icon: typeof Mail; title: string; desc: string; color: string }[] = [
+    { Icon: Mail,       title: "Email",     color: "text-rose-300 bg-rose-500/10 ring-rose-500/20",    desc: lang === "uk" ? "Витоки та зливи" : lang === "ru" ? "Утечки и сливы" : lang === "es" ? "Filtraciones" : lang === "de" ? "Leaks & Breaches" : "Leaks & breaches" },
+    { Icon: Phone,      title: "Phone",     color: "text-amber-300 bg-amber-500/10 ring-amber-500/20",  desc: lang === "uk" ? "Спам, шахрайство" : lang === "ru" ? "Спам, мошенники" : lang === "es" ? "Spam, fraude" : lang === "de" ? "Spam, Betrug" : "Spam & fraud flags" },
+    { Icon: AtSign,     title: "Username",  color: "text-purple-300 bg-purple-500/10 ring-purple-500/20", desc: lang === "uk" ? "Профілі в мережі" : lang === "ru" ? "Профили в сети" : lang === "es" ? "Perfiles en red" : lang === "de" ? "Online-Profile" : "Cross-platform profiles" },
+    { Icon: Wallet,     title: "Wallet",    color: "text-cyan-300 bg-cyan-500/10 ring-cyan-500/20",    desc: lang === "uk" ? "Блокчейн-ризик" : lang === "ru" ? "Блокчейн-риск" : lang === "es" ? "Riesgo cripto" : lang === "de" ? "Krypto-Risiko" : "Blockchain risk score" },
+    { Icon: Globe,      title: "Domain",    color: "text-emerald-300 bg-emerald-500/10 ring-emerald-500/20", desc: lang === "uk" ? "DNS, SSL, репут." : lang === "ru" ? "DNS, SSL, репут." : lang === "es" ? "DNS, SSL, reput." : lang === "de" ? "DNS, SSL, Rep." : "DNS, SSL & reputation" },
+    { Icon: Network,    title: "IP",        color: "text-blue-300 bg-blue-500/10 ring-blue-500/20",    desc: lang === "uk" ? "Геолокація, загрози" : lang === "ru" ? "Геолокация, угрозы" : lang === "es" ? "Geoloc. & amenazas" : lang === "de" ? "Geoloc. & Bedrohungen" : "Geoloc. & threat feeds" },
+    { Icon: Hash,       title: "File Hash", color: "text-zinc-300 bg-zinc-500/10 ring-zinc-500/20",    desc: lang === "uk" ? "Шкідливий код" : lang === "ru" ? "Вредоносный код" : lang === "es" ? "Malware" : lang === "de" ? "Malware" : "Malware identification" },
+    { Icon: Bug,        title: "CVE",       color: "text-orange-300 bg-orange-500/10 ring-orange-500/20", desc: lang === "uk" ? "Вразливості CVE" : lang === "ru" ? "Уязвимости CVE" : lang === "es" ? "Vulnerabilidades" : lang === "de" ? "Schwachstellen" : "CVE vulnerability lookup" },
+    { Icon: CreditCard, title: "Card BIN",  color: "text-pink-300 bg-pink-500/10 ring-pink-500/20",   desc: lang === "uk" ? "Перевірка банку" : lang === "ru" ? "Проверка банка" : lang === "es" ? "Verif. bancaria" : lang === "de" ? "Bank-Check" : "Bank & BIN validation" },
+    { Icon: KeyRound,   title: "Password",  color: "text-red-300 bg-red-500/10 ring-red-500/20",      desc: lang === "uk" ? "Злом, pwned" : lang === "ru" ? "Взлом, pwned" : lang === "es" ? "Brecha, pwned" : lang === "de" ? "Gehackt, pwned" : "Pwned hash check" },
+    { Icon: Shield,     title: "SSL / TLS", color: "text-teal-300 bg-teal-500/10 ring-teal-500/20",   desc: lang === "uk" ? "Сертифікати" : lang === "ru" ? "Сертификаты" : lang === "es" ? "Certificados" : lang === "de" ? "Zertifikate" : "Certificate analysis" },
+    { Icon: Wifi,       title: "VPN / Proxy", color: "text-indigo-300 bg-indigo-500/10 ring-indigo-500/20", desc: lang === "uk" ? "Виявлення VPN" : lang === "ru" ? "Обнаружение VPN" : lang === "es" ? "Detección VPN" : lang === "de" ? "VPN-Erkennung" : "VPN / proxy detection" },
   ];
   const sectionLabel = lang === "uk" ? "Що перевіряємо" : lang === "ru" ? "Что проверяем" : lang === "es" ? "Qué analizamos" : lang === "de" ? "Was wir prüfen" : "What we scan";
-  const headline = lang === "uk" ? "12 типів перевірок · одне поле вводу" : lang === "ru" ? "12 типов проверок · одно поле ввода" : lang === "es" ? "12 tipos de análisis · un campo" : lang === "de" ? "12 Prüftypen · ein Eingabefeld" : "12 scan types · one input field";
+  const headline = lang === "uk" ? "12 типів перевірок · одне поле вводу" : lang === "ru" ? "12 типов проверок · одно поле ввода" : lang === "es" ? "12 tipos de análisis · un campo" : lang === "de" ? "12 Prüftypen · ein Eingabefeld" : "12 scan types · one input";
+  const sub = lang === "uk" ? "Введіть будь-який ідентифікатор — DarkShare автоматично визначить тип і запустить потрібний модуль." : lang === "ru" ? "Введите любой идентификатор — DarkShare автоматически определит тип и запустит нужный модуль." : lang === "es" ? "Introduce cualquier identificador — DarkShare detectará el tipo y ejecutará el módulo correcto." : lang === "de" ? "Geben Sie einen Bezeichner ein — DarkShare erkennt den Typ und startet das richtige Modul." : "Enter any identifier — DarkShare auto-detects the type and runs the right module.";
   return (
-    <section className="border-t border-white/5">
-      <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
-            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              {headline}
-            </h2>
+    <section className="border-t border-white/[0.06]">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+        <div className="mb-10 max-w-xl">
+          <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/90">
+            {sectionLabel}
           </div>
+          <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
+          <p className="mt-3 text-[14px] leading-relaxed text-zinc-500">{sub}</p>
         </div>
 
-        {/* Mobile: 2-col card grid */}
-        <div className="grid grid-cols-2 gap-2 sm:hidden">
-          {items.map(({ Icon, title, desc }) => (
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+          {items.map(({ Icon, title, desc, color }) => (
             <div
               key={title}
-              className="flex items-center gap-3 rounded-xl border border-white/8 bg-[#0E0E12] px-3 py-3"
+              className="group flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-white/[0.13] hover:bg-[#111116]"
               data-testid={`chip-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
             >
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-cyan-500/[0.08] ring-1 ring-cyan-400/20">
-                <Icon className="h-3.5 w-3.5 text-cyan-300" />
+              <div className={`grid h-9 w-9 place-items-center rounded-lg ring-1 ${color}`}>
+                <Icon className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <div className="text-[12.5px] font-medium text-white">{title}</div>
-                <div className="truncate text-[10.5px] text-zinc-500">{desc}</div>
+              <div>
+                <div className="text-[13px] font-semibold text-white">{title}</div>
+                <div className="mt-0.5 text-[11.5px] leading-snug text-zinc-500">{desc}</div>
               </div>
             </div>
           ))}
         </div>
-
-        {/* Desktop: horizontal inline strip */}
-        <div className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-3 px-2 sm:flex">
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent mb-2" />
-          {items.map(({ Icon, title }, i) => (
-            <span
-              key={title}
-              className="inline-flex items-center gap-1.5 text-[12.5px] text-zinc-400 transition-colors hover:text-white"
-            >
-              <Icon className="h-3.5 w-3.5 text-cyan-300/80" />
-              <span>{title}</span>
-              {i < items.length - 1 && <span className="ml-3 text-zinc-700">·</span>}
-            </span>
-          ))}
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent mt-2" />
-        </div>
       </div>
     </section>
   );
 }
 
-/* ─────────── How it works (minimal line) ─────────── */
+/* ─────────── How it works ─────────── */
 function HowItWorks() {
   const { lang } = useTranslation();
   const sectionLabel = lang === "uk" ? "Як це працює" : lang === "ru" ? "Как это работает" : lang === "es" ? "Cómo funciona" : lang === "de" ? "Wie es funktioniert" : "How it works";
-  const headline = lang === "uk" ? "Три кроки · 10 секунд · без реєстрації" : lang === "ru" ? "Три шага · 10 секунд · без регистрации" : lang === "es" ? "Tres pasos · 10 segundos · sin registro" : lang === "de" ? "Drei Schritte · 10 Sekunden · ohne Registrierung" : "Three steps · 10 seconds · no signup";
-  const stepLabels = lang === "uk"
-    ? ["Введи", `Скануємо ${OSINT_SOURCES.length}+ джерел`, "Отримай звіт"]
-    : lang === "ru"
-    ? ["Введи", `Сканируем ${OSINT_SOURCES.length}+ источников`, "Получи отчёт"]
-    : lang === "es"
-    ? ["Ingresa", `Analizamos ${OSINT_SOURCES.length}+ fuentes`, "Obtén el informe"]
-    : lang === "de"
-    ? ["Eingabe", `Wir prüfen ${OSINT_SOURCES.length}+ Quellen`, "Bericht erhalten"]
-    : ["Enter target", `We scan ${OSINT_SOURCES.length}+ sources`, "Get your report"];
-  const steps = [
-    { n: "01", t: stepLabels[0] },
-    { n: "02", t: stepLabels[1] },
-    { n: "03", t: stepLabels[2] },
+  const headline = lang === "uk" ? "Три кроки — і звіт у вас" : lang === "ru" ? "Три шага — и отчёт у вас" : lang === "es" ? "Tres pasos, resultado inmediato" : lang === "de" ? "Drei Schritte, sofortiges Ergebnis" : "Three steps · instant results";
+  type Step = { n: string; title: string; desc: string; icon: typeof Search };
+  const steps: Step[] = lang === "uk" ? [
+    { n: "01", icon: Search,       title: "Введи ідентифікатор", desc: "Email, телефон, username, гаманець, домен або IP — одне поле без реєстрації" },
+    { n: "02", icon: Zap,          title: "Паралельне сканування", desc: `Одночасно опитуємо ${OSINT_SOURCES.length}+ OSINT-джерел, threat-фідів та баз витоків` },
+    { n: "03", icon: CheckCircle2, title: "Отримай звіт", desc: "AI-підсумок, оцінка ризику 0–100, конкретні знахідки та рекомендації" },
+  ] : lang === "ru" ? [
+    { n: "01", icon: Search,       title: "Введи идентификатор", desc: "Email, телефон, username, кошелёк, домен или IP — одно поле, без регистрации" },
+    { n: "02", icon: Zap,          title: "Параллельное сканирование", desc: `Одновременно опрашиваем ${OSINT_SOURCES.length}+ OSINT-источников, threat-фидов и баз утечек` },
+    { n: "03", icon: CheckCircle2, title: "Получи отчёт", desc: "AI-резюме, оценка риска 0–100, конкретные находки и рекомендации" },
+  ] : lang === "es" ? [
+    { n: "01", icon: Search,       title: "Introduce el objetivo", desc: "Email, teléfono, usuario, wallet, dominio o IP — sin registro" },
+    { n: "02", icon: Zap,          title: "Escaneo en paralelo", desc: `Consultamos ${OSINT_SOURCES.length}+ fuentes OSINT, feeds de amenazas y bases de filtraciones` },
+    { n: "03", icon: CheckCircle2, title: "Obtén el informe", desc: "Resumen IA, puntuación 0–100, hallazgos concretos y recomendaciones" },
+  ] : lang === "de" ? [
+    { n: "01", icon: Search,       title: "Ziel eingeben", desc: "E-Mail, Telefon, Benutzername, Wallet, Domain oder IP — ohne Registrierung" },
+    { n: "02", icon: Zap,          title: "Paralleles Scanning", desc: `Gleichzeitige Abfrage von ${OSINT_SOURCES.length}+ OSINT-Quellen, Threat-Feeds und Leak-DBs` },
+    { n: "03", icon: CheckCircle2, title: "Bericht erhalten", desc: "KI-Zusammenfassung, Risikobewertung 0–100, konkrete Funde und Empfehlungen" },
+  ] : [
+    { n: "01", icon: Search,       title: "Enter any identifier", desc: "Email, phone, username, wallet, domain or IP — no signup required" },
+    { n: "02", icon: Zap,          title: "Parallel scan", desc: `We simultaneously query ${OSINT_SOURCES.length}+ OSINT sources, threat feeds & leak databases` },
+    { n: "03", icon: CheckCircle2, title: "Get your report", desc: "AI summary, 0–100 risk score, specific findings and actionable recommendations" },
   ];
   return (
-    <section id="how" className="border-t border-white/5">
-      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
-            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              {headline}
-            </h2>
+    <section id="how" className="border-t border-white/[0.06] bg-[#07070A]">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+        <div className="mb-10 text-center">
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+            {sectionLabel}
           </div>
+          <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
         </div>
-        {/* Mobile: vertical stacked steps; sm+: single horizontal line */}
-        <div className="rounded-xl border border-white/10 bg-[#0A0A0C] px-5 py-5">
-          <div className="flex flex-col gap-3 sm:hidden">
-            {steps.map((s) => (
-              <div key={s.n} className="flex items-center gap-3" data-testid={`step-${s.n}`}>
-                <span className="font-mono text-[11px] text-cyan-300/70">{s.n}</span>
-                <span className="text-[13.5px] text-white">{s.t}</span>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {steps.map(({ n, icon: Icon, title, desc }) => (
+            <div key={n} className="relative rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6" data-testid={`step-${n}`}>
+              <div className="mb-4 flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-400/20 bg-cyan-500/[0.08]">
+                  <Icon className="h-5 w-5 text-cyan-300" />
+                </div>
+                <span className="font-mono text-[11px] font-bold tracking-widest text-zinc-600">{n}</span>
               </div>
-            ))}
-          </div>
-          <div className="hidden flex-wrap items-center justify-center gap-x-2 gap-y-3 sm:flex">
-            {steps.map((s, i) => (
-              <span key={s.n} className="inline-flex items-center gap-3">
-                <span className="font-mono text-[11px] text-cyan-300/70">{s.n}</span>
-                <span className="text-[13.5px] text-white">{s.t}</span>
-                {i < steps.length - 1 && <span className="mx-3 text-zinc-700">→</span>}
-              </span>
-            ))}
-          </div>
+              <div className="text-[15px] font-semibold text-white">{title}</div>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500">{desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-/* ─────────── Sources (minimal strip) ─────────── */
+/* ─────────── Sources ─────────── */
 function Sources() {
   const { lang } = useTranslation();
   const cats: OsintCategory[] = ["leaks", "email", "phone", "ip", "domain", "wallet", "username", "threat", "darkweb", "social"];
   const sectionLabel = lang === "uk" ? "Джерела" : lang === "ru" ? "Источники" : lang === "es" ? "Fuentes" : lang === "de" ? "Quellen" : "Sources";
-  const headline = lang === "uk" ? `${OSINT_SOURCES.length}+ відкритих OSINT-джерел · ${cats.length} категорій` : lang === "ru" ? `${OSINT_SOURCES.length}+ открытых OSINT-источников · ${cats.length} категорий` : lang === "es" ? `${OSINT_SOURCES.length}+ fuentes OSINT abiertas · ${cats.length} categorías` : lang === "de" ? `${OSINT_SOURCES.length}+ offene OSINT-Quellen · ${cats.length} Kategorien` : `${OSINT_SOURCES.length}+ open OSINT sources · ${cats.length} categories`;
-  const fullListLabel = lang === "uk" ? "повний список →" : lang === "ru" ? "полный список →" : lang === "es" ? "lista completa →" : lang === "de" ? "vollständige Liste →" : "full list →";
+  const headline = lang === "uk" ? `${OSINT_SOURCES.length}+ перевірених OSINT-джерел` : lang === "ru" ? `${OSINT_SOURCES.length}+ проверенных OSINT-источников` : lang === "es" ? `${OSINT_SOURCES.length}+ fuentes OSINT verificadas` : lang === "de" ? `${OSINT_SOURCES.length}+ geprüfte OSINT-Quellen` : `${OSINT_SOURCES.length}+ verified OSINT sources`;
+  const sub = lang === "uk" ? "Кожне джерело перевіряється вручну — жодних фейкових API." : lang === "ru" ? "Каждый источник проверяется вручную — никаких фейковых API." : lang === "es" ? "Cada fuente se verifica manualmente — sin APIs falsas." : lang === "de" ? "Jede Quelle wird manuell geprüft — keine gefälschten APIs." : "Every source is manually vetted — no fake APIs.";
+  const fullListLabel = lang === "uk" ? "Повний список →" : lang === "ru" ? "Полный список →" : lang === "es" ? "Lista completa →" : lang === "de" ? "Vollständige Liste →" : "Full source list →";
+  const catIconMap: Record<OsintCategory, typeof Mail> = {
+    leaks: Shield, email: Mail, phone: Phone, ip: Network, domain: Globe,
+    wallet: Wallet, username: AtSign, threat: Bug, darkweb: Eye, social: Users,
+  };
   return (
-    <section id="sources" className="border-t border-white/5 bg-[#08080A]">
-      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <section id="sources" className="border-t border-white/[0.06] bg-[#07070A]">
+      <div className="mx-auto max-w-6xl px-5 py-16">
+        <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
-            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              {headline}
-            </h2>
+            <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+              {sectionLabel}
+            </div>
+            <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
+            <p className="mt-2 text-[13px] text-zinc-500">{sub}</p>
           </div>
           <Link href="/trust">
-            <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-sources-all">
+            <span className="cursor-pointer whitespace-nowrap text-[13px] text-zinc-400 transition-colors hover:text-white" data-testid="link-sources-all">
               {fullListLabel}
             </span>
           </Link>
         </div>
-
-        <div className="relative">
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-          {/* Mobile: 2-col tidy grid; sm+: single inline strip */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 px-2 py-4 text-[12.5px] sm:hidden">
-            {cats.map((cat) => {
-              const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
-              const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
-              return (
-                <span key={cat} className="inline-flex items-baseline justify-between gap-2">
-                  <span className="text-white">{label}</span>
-                  <span className="font-mono text-[11px] text-zinc-600">{count}</span>
-                </span>
-              );
-            })}
-          </div>
-
-          <div className="hidden flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 py-4 text-[12.5px] sm:flex">
-            {cats.map((cat, i) => {
-              const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
-              const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
-              return (
-                <span key={cat} className="inline-flex items-center gap-2 text-zinc-400">
-                  <span className="text-white">{label}</span>
-                  <span className="font-mono text-[11px] text-zinc-600">{count}</span>
-                  {i < cats.length - 1 && <span className="ml-2 text-zinc-700">·</span>}
-                </span>
-              );
-            })}
-          </div>
-
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {cats.map((cat) => {
+            const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
+            const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
+            const Icon = catIconMap[cat];
+            return (
+              <div key={cat} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] px-4 py-3 transition-colors hover:border-white/[0.14]">
+                <Icon className="h-3.5 w-3.5 shrink-0 text-zinc-600" />
+                <div className="min-w-0">
+                  <div className="truncate text-[12.5px] font-medium text-white">{label}</div>
+                  <div className="font-mono text-[11px] text-zinc-600">{count} src</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -869,79 +840,132 @@ function Sources() {
 function PricingTeaser() {
   const { lang } = useTranslation();
   const sectionLabel = lang === "uk" ? "Ціни" : lang === "ru" ? "Цены" : lang === "es" ? "Precios" : lang === "de" ? "Preise" : "Pricing";
-  const headline = lang === "uk" ? "Прозорі тарифи · без прихованих платежів" : lang === "ru" ? "Прозрачные тарифы · без скрытых платежей" : lang === "es" ? "Precios transparentes · sin cargos ocultos" : lang === "de" ? "Transparente Tarife · keine versteckten Gebühren" : "Transparent pricing · no hidden fees";
-  const allPlansLabel = lang === "uk" ? "всі тарифи →" : lang === "ru" ? "все тарифы →" : lang === "es" ? "todos los planes →" : lang === "de" ? "alle Pläne →" : "all plans →";
-  const perReport = lang === "uk" ? "за звіт" : lang === "ru" ? "за отчёт" : lang === "es" ? "por informe" : lang === "de" ? "pro Bericht" : "per report";
+  const headline = lang === "uk" ? "Починайте безплатно — платіть коли потрібно більше" : lang === "ru" ? "Начните бесплатно — платите когда нужно больше" : lang === "es" ? "Empieza gratis, paga cuando necesites más" : lang === "de" ? "Kostenlos starten, zahlen wenn Sie mehr brauchen" : "Start free · pay when you need more";
   const perMonth = lang === "uk" ? "/міс" : lang === "ru" ? "/мес" : lang === "es" ? "/mes" : lang === "de" ? "/Mo" : "/mo";
+  const perReport = lang === "uk" ? "за звіт" : lang === "ru" ? "за отчёт" : lang === "es" ? "por informe" : lang === "de" ? "pro Bericht" : "per report";
+  const mostPopular = lang === "uk" ? "Найпопулярніший" : lang === "ru" ? "Популярный" : lang === "es" ? "Más popular" : lang === "de" ? "Beliebtester" : "Most popular";
+  const seeAll = lang === "uk" ? "Переглянути всі тарифи →" : lang === "ru" ? "Смотреть все тарифы →" : lang === "es" ? "Ver todos los planes →" : lang === "de" ? "Alle Pläne ansehen →" : "See all plans →";
+  const promoNote = lang === "uk" ? "Код DARKNEU → −50% на перший місяць PRO" : lang === "ru" ? "Код DARKNEU → −50% на первый месяц PRO" : lang === "es" ? "Código DARKNEU → −50% primer mes PRO" : lang === "de" ? "Code DARKNEU → −50% erster PRO-Monat" : "Code DARKNEU → −50% off first PRO month";
+
+  type Plan = { name: string; price: string; note: string; href: string; testId: string; hot?: boolean; badge?: string; features: string[] };
+  const plans: Plan[] = [
+    {
+      name: "Free",
+      price: "$0",
+      note: lang === "uk" ? "назавжди" : lang === "ru" ? "навсегда" : lang === "es" ? "siempre" : lang === "de" ? "für immer" : "forever",
+      href: "/login",
+      testId: "link-price-free",
+      features: [
+        lang === "uk" ? "3 сканування / день" : lang === "ru" ? "3 сканирования / день" : lang === "es" ? "3 escaneos / día" : lang === "de" ? "3 Scans / Tag" : "3 scans / day",
+        lang === "uk" ? "Базові результати" : lang === "ru" ? "Базовые результаты" : lang === "es" ? "Resultados básicos" : lang === "de" ? "Basisergebnisse" : "Basic results",
+        lang === "uk" ? "Без реєстрації" : lang === "ru" ? "Без регистрации" : lang === "es" ? "Sin registro" : lang === "de" ? "Ohne Anmeldung" : "No signup required",
+      ],
+    },
+    {
+      name: "Single",
+      price: "$3",
+      note: perReport,
+      href: "/pricing?single=1",
+      testId: "link-price-single",
+      features: [
+        lang === "uk" ? "Один повний звіт" : lang === "ru" ? "Один полный отчёт" : lang === "es" ? "Un informe completo" : lang === "de" ? "Ein vollständiger Bericht" : "One full report",
+        lang === "uk" ? "Усі знахідки + PDF" : lang === "ru" ? "Все находки + PDF" : lang === "es" ? "Todos los hallazgos + PDF" : lang === "de" ? "Alle Funde + PDF" : "All findings + PDF",
+        lang === "uk" ? "Без підписки" : lang === "ru" ? "Без подписки" : lang === "es" ? "Sin suscripción" : lang === "de" ? "Kein Abo" : "No subscription",
+      ],
+    },
+    {
+      name: "PRO",
+      price: "$9",
+      note: perMonth,
+      href: "/pricing?plan=PRO&code=DARKNEU",
+      testId: "link-price-pro",
+      hot: true,
+      badge: mostPopular,
+      features: [
+        lang === "uk" ? "Необмежені сканування" : lang === "ru" ? "Безлимитные сканирования" : lang === "es" ? "Escaneos ilimitados" : lang === "de" ? "Unbegrenzte Scans" : "Unlimited scans",
+        lang === "uk" ? "Моніторинг + API" : lang === "ru" ? "Мониторинг + API" : lang === "es" ? "Monitoreo + API" : lang === "de" ? "Monitoring + API" : "Monitoring + API",
+        lang === "uk" ? "WireGuard VPN (3 пристрої)" : lang === "ru" ? "WireGuard VPN (3 устройства)" : lang === "es" ? "VPN WireGuard (3 disp.)" : lang === "de" ? "WireGuard VPN (3 Geräte)" : "WireGuard VPN (3 devices)",
+      ],
+    },
+    {
+      name: "Enterprise",
+      price: "$29",
+      note: perMonth,
+      href: "/pricing?plan=ENTERPRISE",
+      testId: "link-price-enterprise",
+      features: [
+        lang === "uk" ? "Bulk API (100/запит)" : lang === "ru" ? "Bulk API (100/запрос)" : lang === "es" ? "Bulk API (100/req)" : lang === "de" ? "Bulk-API (100/Req.)" : "Bulk API (100/req)",
+        lang === "uk" ? "VPN 10 пристроїв" : lang === "ru" ? "VPN 10 устройств" : lang === "es" ? "VPN 10 dispositivos" : lang === "de" ? "VPN 10 Geräte" : "VPN 10 devices",
+        lang === "uk" ? "Брендований PDF" : lang === "ru" ? "Брендированный PDF" : lang === "es" ? "PDF con marca propia" : lang === "de" ? "Gebrandetes PDF" : "White-label PDF",
+      ],
+    },
+  ];
+
   return (
-    <section className="border-t border-white/5">
-      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <section className="border-t border-white/[0.06]">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
+        <div className="mb-10 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
-            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              {headline}
-            </h2>
+            <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/90">
+              {sectionLabel}
+            </div>
+            <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
           </div>
           <Link href="/pricing">
-            <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-pricing-all">
-              {allPlansLabel}
+            <span className="cursor-pointer text-[13px] text-zinc-400 transition-colors hover:text-white" data-testid="link-pricing-all">
+              {seeAll}
             </span>
           </Link>
         </div>
 
-        {(() => {
-          const plans = [
-            { name: "Single", price: "$3", note: perReport, href: "/pricing?single=1", testId: "link-price-single" },
-            { name: "PRO", price: "$9", note: perMonth, href: "/pricing?plan=PRO&code=DARKNEU", testId: "link-price-pro", hot: true },
-            { name: "ENTERPRISE", price: "$29", note: perMonth, href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
-            { name: "GROUPS", price: "$49", note: perMonth, href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
-          ];
-          return (
-            <div className="relative">
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-              {/* Mobile: 2x2 grid of plan tiles; sm+: single inline strip */}
-              <div className="grid grid-cols-2 gap-2 px-2 py-4 sm:hidden">
-                {plans.map((p) => (
-                  <Link key={p.name} href={p.href}>
-                    <span
-                      className={`flex cursor-pointer flex-col items-start gap-0.5 rounded-lg border px-3 py-2.5 transition-colors ${
-                        p.hot
-                          ? "border-cyan-400/40 bg-cyan-400/[0.04] hover:border-cyan-300"
-                          : "border-white/10 bg-[#0A0A0C] hover:border-white/20"
-                      }`}
-                      data-testid={p.testId}
-                    >
-                      <span className={`text-[11px] uppercase tracking-wider ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>{p.name}</span>
-                      <span className="flex items-baseline gap-1">
-                        <span className="text-[18px] font-semibold text-white">{p.price}</span>
-                        <span className="text-[11px] text-zinc-500">{p.note}</span>
-                      </span>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="hidden flex-wrap items-center justify-center gap-x-6 gap-y-3 px-2 py-5 text-[13px] sm:flex">
-                {plans.map((p, i, arr) => (
-                  <span key={p.name} className="inline-flex items-center gap-3">
-                    <Link href={p.href}>
-                      <span className="inline-flex cursor-pointer items-baseline gap-1.5 hover:opacity-90">
-                        <span className={`text-[12px] uppercase tracking-wider ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>{p.name}</span>
-                        <span className="text-[18px] font-semibold text-white">{p.price}</span>
-                        <span className="text-[11.5px] text-zinc-500">{p.note}</span>
-                      </span>
-                    </Link>
-                    {i < arr.length - 1 && <span className="text-zinc-700">·</span>}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {plans.map((p) => (
+            <Link key={p.name} href={p.href}>
+              <span
+                className={`relative flex h-full cursor-pointer flex-col gap-5 rounded-2xl border p-5 transition-all ${
+                  p.hot
+                    ? "border-cyan-400/40 bg-gradient-to-b from-cyan-500/[0.08] to-[#0D0D10] shadow-[0_0_40px_-12px_rgba(34,211,238,0.2)] hover:border-cyan-400/60"
+                    : "border-white/[0.08] bg-[#0D0D10] hover:border-white/[0.18] hover:bg-[#111116]"
+                }`}
+                data-testid={p.testId}
+              >
+                {p.badge && (
+                  <span className="absolute -top-px left-4 inline-flex items-center rounded-b-lg bg-cyan-400 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">
+                    {p.badge}
                   </span>
-                ))}
-              </div>
+                )}
+                <div>
+                  <div className={`mb-1 text-[11px] font-semibold uppercase tracking-widest ${p.hot ? "text-cyan-300" : "text-zinc-400"}`}>
+                    {p.name}
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[28px] font-bold text-white">{p.price}</span>
+                    <span className="text-[12px] text-zinc-500">{p.note}</span>
+                  </div>
+                </div>
+                <ul className="flex-1 space-y-2">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[12.5px] text-zinc-400">
+                      <Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${p.hot ? "text-cyan-400" : "text-zinc-600"}`} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <span className={`inline-flex h-9 w-full items-center justify-center rounded-xl text-[12.5px] font-semibold transition-colors ${
+                  p.hot
+                    ? "bg-cyan-400 text-black hover:bg-cyan-300"
+                    : "border border-white/15 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                }`}>
+                  {p.hot ? (lang === "uk" ? "Вибрати PRO" : lang === "ru" ? "Выбрать PRO" : lang === "es" ? "Elegir PRO" : lang === "de" ? "PRO wählen" : "Get PRO") : (lang === "uk" ? "Почати" : lang === "ru" ? "Начать" : lang === "es" ? "Empezar" : lang === "de" ? "Starten" : "Get started")}
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
 
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            </div>
-          );
-        })()}
+        <p className="mt-5 text-center text-[12px] text-cyan-400/70">
+          <span className="font-mono font-bold">DARKNEU</span> → {promoNote}
+        </p>
       </div>
     </section>
   );
@@ -951,29 +975,33 @@ function PricingTeaser() {
 function TrustStrip({ stats }: { stats: SiteStats | null }) {
   const { lang } = useTranslation();
   const L = {
-    sources: lang === "uk" ? "Джерел" : lang === "ru" ? "Источников" : lang === "es" ? "Fuentes" : lang === "de" ? "Quellen" : "Sources",
-    leakDB: lang === "uk" ? "Бази витоків" : lang === "ru" ? "Базы утечек" : lang === "es" ? "Bases de filtraciones" : lang === "de" ? "Leak-Datenbanken" : "Leak databases",
-    today: lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : lang === "es" ? "Escaneos hoy" : lang === "de" ? "Scans heute" : "Scans today",
-    risk: lang === "uk" ? "Рівень ризику" : lang === "ru" ? "Уровень риска" : lang === "es" ? "Nivel de riesgo" : lang === "de" ? "Risikolevel" : "Risk level",
+    sources: lang === "uk" ? "OSINT-джерел" : lang === "ru" ? "OSINT-источников" : lang === "es" ? "Fuentes OSINT" : lang === "de" ? "OSINT-Quellen" : "OSINT sources",
+    leakDB:  lang === "uk" ? "Баз витоків" : lang === "ru" ? "Баз утечек" : lang === "es" ? "Bases de filtraciones" : lang === "de" ? "Leak-Datenbanken" : "Leak databases",
+    today:   lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : lang === "es" ? "Escaneos hoy" : lang === "de" ? "Scans heute" : "Scans today",
+    uptime:  lang === "uk" ? "Доступність" : lang === "ru" ? "Аптайм" : lang === "es" ? "Disponibilidad" : lang === "de" ? "Verfügbarkeit" : "Uptime",
+    users:   lang === "uk" ? "Активних користувачів" : lang === "ru" ? "Активных пользователей" : lang === "es" ? "Usuarios activos" : lang === "de" ? "Aktive Nutzer" : "Active users",
+    risk:    lang === "uk" ? "AI-оцінка ризику" : lang === "ru" ? "AI-оценка риска" : lang === "es" ? "Puntuación IA" : lang === "de" ? "KI-Risikobewertung" : "AI risk score",
   };
   const items = [
     { icon: Database, label: L.sources, value: `${OSINT_SOURCES.length}+` },
-    { icon: Shield,   label: L.leakDB, value: "14" },
-    { icon: Activity, label: L.today, value: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—" },
-    { icon: Eye,      label: L.risk, value: "0–100" },
+    { icon: Shield,   label: L.leakDB,  value: "14" },
+    { icon: Users,    label: L.users,   value: "2,800+" },
+    { icon: Activity, label: L.today,   value: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—" },
+    { icon: Eye,      label: L.risk,    value: "0–100" },
+    { icon: Zap,      label: L.uptime,  value: "99.9%" },
   ];
   return (
-    <section className="border-t border-white/5 bg-[#08080A]">
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/5 sm:grid-cols-4">
-        {items.map(({ icon: Icon, label, value }) => (
-          <div key={label} className="flex items-center gap-3 bg-[#0A0A0C] px-5 py-5">
-            <Icon className="h-4 w-4 text-cyan-300/70" />
-            <div>
-              <div className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</div>
-              <div className="text-[16px] font-semibold text-white" data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}>{value}</div>
+    <section className="border-t border-white/[0.06] bg-[#07070A]">
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6">
+        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] sm:grid-cols-6">
+          {items.map(({ icon: Icon, label, value }) => (
+            <div key={label} className="flex flex-col items-center gap-1 bg-[#09090C] px-4 py-5 text-center">
+              <Icon className="h-4 w-4 text-cyan-300/60" />
+              <div className="text-[17px] font-bold text-white" data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}>{value}</div>
+              <div className="text-[10px] text-zinc-600">{label}</div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1251,46 +1279,56 @@ function SocialProofSection() {
 function LiveActivity() {
   const { lang } = useTranslation();
   const riskLabels = {
-    HIGH: lang === "uk" ? "ВИСОК. РИЗИК" : lang === "ru" ? "ВЫСОК. РИСК" : lang === "es" ? "RIESGO ALTO" : lang === "de" ? "HOHES RISIKO" : "HIGH RISK",
-    MEDIUM: lang === "uk" ? "СЕРЕДНІЙ" : lang === "ru" ? "СРЕДНИЙ" : lang === "es" ? "MEDIO" : lang === "de" ? "MITTEL" : "MEDIUM",
-    LOW: lang === "uk" ? "НИЗЬКИЙ" : lang === "ru" ? "НИЗКИЙ" : lang === "es" ? "BAJO" : lang === "de" ? "NIEDRIG" : "LOW",
-    CRITICAL: lang === "uk" ? "КРИТИЧНИЙ" : lang === "ru" ? "КРИТИЧНЫЙ" : lang === "es" ? "CRÍTICO" : lang === "de" ? "KRITISCH" : "CRITICAL",
+    HIGH:     lang === "uk" ? "ВИСОКИЙ" : lang === "ru" ? "ВЫСОКИЙ" : lang === "es" ? "ALTO"    : lang === "de" ? "HOCH"     : "HIGH",
+    MEDIUM:   lang === "uk" ? "СЕРЕДНІЙ": lang === "ru" ? "СРЕДНИЙ" : lang === "es" ? "MEDIO"   : lang === "de" ? "MITTEL"   : "MEDIUM",
+    LOW:      lang === "uk" ? "НИЗЬКИЙ" : lang === "ru" ? "НИЗКИЙ"  : lang === "es" ? "BAJO"    : lang === "de" ? "NIEDRIG"  : "LOW",
+    CRITICAL: lang === "uk" ? "КРИТИЧНИЙ":lang === "ru" ? "КРИТИЧ." : lang === "es" ? "CRÍTICO" : lang === "de" ? "KRITISCH" : "CRITICAL",
   };
-  const activities = [
-    { type: "email", target: "j***n@gmail.com", result: riskLabels.HIGH, score: 74, color: "rose" },
-    { type: "ip", target: "91.108.4.***", result: riskLabels.MEDIUM, score: 45, color: "amber" },
-    { type: "wallet", target: "0x742d...c4aB", result: riskLabels.LOW, score: 12, color: "emerald" },
-    { type: "domain", target: "fake-shop.net", result: riskLabels.CRITICAL, score: 89, color: "rose" },
-    { type: "phone", target: "+38067***4521", result: riskLabels.HIGH, score: 67, color: "rose" },
+  type Activity = { Icon: typeof Mail; target: string; label: string; score: number; cls: string; bar: string; ago: number };
+  const activities: Activity[] = [
+    { Icon: Mail,    target: "j***n@gmail.com",  label: riskLabels.HIGH,     score: 74, cls: "text-rose-400",    bar: "bg-rose-500",    ago: 2  },
+    { Icon: Network, target: "91.108.4.***",      label: riskLabels.MEDIUM,   score: 45, cls: "text-amber-400",   bar: "bg-amber-500",   ago: 5  },
+    { Icon: Wallet,  target: "0x742d...c4aB",     label: riskLabels.LOW,      score: 12, cls: "text-emerald-400", bar: "bg-emerald-500", ago: 8  },
+    { Icon: Globe,   target: "fake-shop.net",     label: riskLabels.CRITICAL, score: 89, cls: "text-rose-400",    bar: "bg-rose-500",    ago: 11 },
+    { Icon: Phone,   target: "+38067***4521",     label: riskLabels.HIGH,     score: 67, cls: "text-rose-400",    bar: "bg-rose-500",    ago: 14 },
+    { Icon: AtSign,  target: "user_d4rk_***",     label: riskLabels.MEDIUM,   score: 38, cls: "text-amber-400",   bar: "bg-amber-500",   ago: 17 },
   ];
-  const agoUnit = lang === "uk" ? "хв тому" : lang === "ru" ? "мин назад" : lang === "es" ? "min atrás" : lang === "de" ? "Vor Min." : "min ago";
-  const agoLabels = [2, 5, 8, 11, 14].map(n => `${n} ${agoUnit}`);
+  const agoUnit = lang === "uk" ? "хв" : lang === "ru" ? "мин" : lang === "es" ? "min" : lang === "de" ? "Min." : "min";
   const liveLabel = lang === "uk" ? "Поточні сканування" : lang === "ru" ? "Текущие сканирования" : lang === "es" ? "Escaneos en vivo" : lang === "de" ? "Live-Scans" : "Live scans";
+  const riskLabel = lang === "uk" ? "Ризик" : lang === "ru" ? "Риск" : lang === "es" ? "Riesgo" : lang === "de" ? "Risiko" : "Risk";
 
   return (
-    <section className="border-t border-white/5 bg-[#08080A]">
+    <section className="border-t border-white/[0.06]">
       <div className="mx-auto max-w-6xl px-5 py-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">{liveLabel}</span>
-          </div>
-          <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/20 to-transparent" />
+        <div className="mb-5 flex items-center gap-3">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">{liveLabel}</span>
+          <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/15 to-transparent" />
         </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {activities.map((a, i) => (
-            <div key={i} className="flex sm:flex-col items-center sm:items-start justify-between gap-2 rounded-lg border border-white/5 bg-[#0A0A0C] px-3 py-2.5" data-testid={`card-live-${i}`}>
-              <div>
-                <span className="text-[11.5px] font-mono text-zinc-400">{a.target}</span>
+            <div
+              key={i}
+              className="flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-[#0D0D10] px-3 py-3"
+              data-testid={`card-live-${i}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <a.Icon className="h-3.5 w-3.5 text-zinc-600 shrink-0" />
+                <span className="text-[10px] text-zinc-700">{a.ago} {agoUnit}</span>
               </div>
-              <div className="flex sm:flex-col items-center sm:items-start gap-2">
-                <span className={`text-[10.5px] font-bold tracking-wide ${a.color === "rose" ? "text-rose-400" : a.color === "amber" ? "text-amber-400" : "text-emerald-400"}`}>
-                  {a.result} · {a.score}
-                </span>
-                <span className="text-[10px] text-zinc-600">{agoLabels[i]}</span>
+              <span className="font-mono text-[11px] text-zinc-400 truncate">{a.target}</span>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <span className={`text-[10px] font-bold tracking-wide ${a.cls}`}>{a.label}</span>
+                  <span className="text-[10px] font-mono text-zinc-500">{a.score}</span>
+                </div>
+                <div className="h-0.5 w-full rounded-full bg-white/5">
+                  <div className={`h-0.5 rounded-full ${a.bar}`} style={{ width: `${a.score}%` }} />
+                </div>
+                <div className="mt-0.5 text-[9px] text-zinc-700">{riskLabel} / 100</div>
               </div>
             </div>
           ))}
@@ -1303,32 +1341,45 @@ function LiveActivity() {
 /* ─────────── CTA bottom ─────────── */
 function CTABottom() {
   const { lang } = useTranslation();
-  const headline = lang === "uk" ? "Дізнайся, що про тебе відомо в інтернеті." : lang === "ru" ? "Узнай, что о тебе известно в интернете." : lang === "es" ? "Descubre qué saben de ti en internet." : lang === "de" ? "Finde heraus, was das Internet über dich weiß." : "Find out what the internet knows about you.";
+  const headline = lang === "uk" ? "Дізнайся, що про тебе знає інтернет." : lang === "ru" ? "Узнай, что интернет знает о тебе." : lang === "es" ? "Descubre qué sabe internet sobre ti." : lang === "de" ? "Finde heraus, was das Internet über dich weiß." : "Find out what the internet knows about you.";
   const sub = lang === "uk" ? "Перша перевірка — безплатно. Без реєстрації, без email, без зобов'язань." : lang === "ru" ? "Первая проверка — бесплатно. Без регистрации, без email, без обязательств." : lang === "es" ? "Primera verificación gratis. Sin registro, sin email, sin compromisos." : lang === "de" ? "Erste Prüfung kostenlos. Ohne Registrierung, ohne E-Mail, ohne Verpflichtung." : "First scan is free. No signup, no email, no commitment.";
-  const scanNow = lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : lang === "es" ? "Escanear ahora" : lang === "de" ? "Jetzt prüfen" : "Scan now";
-  const allPlans = lang === "uk" ? "Всі тарифи" : lang === "ru" ? "Все тарифы" : lang === "es" ? "Ver precios" : lang === "de" ? "Alle Pläne" : "All plans";
+  const scanNow = lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : lang === "es" ? "Escanear ahora" : lang === "de" ? "Jetzt prüfen" : "Scan now →";
+  const allPlans = lang === "uk" ? "Переглянути тарифи" : lang === "ru" ? "Смотреть тарифы" : lang === "es" ? "Ver precios" : lang === "de" ? "Alle Pläne" : "View pricing";
+  const promoCode = lang === "uk" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на перший місяць PRO</> : lang === "ru" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на первый месяц PRO</> : lang === "es" ? <>Código <span className="font-mono font-bold">DARKNEU</span> → −50% en tu primer mes PRO</> : lang === "de" ? <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% auf den ersten PRO-Monat</> : <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% off your first PRO month</>;
   return (
-    <section className="border-t border-white/5 bg-[#08080A]">
-      <div className="mx-auto max-w-3xl px-5 py-20 text-center sm:py-24">
-        <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">
-          {headline}
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-[14px] text-zinc-400">
-          {sub}
-        </p>
-        <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a href="#top" className="w-full sm:w-auto inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-[13.5px] font-medium text-black hover:bg-zinc-200" data-testid="link-cta-check">
-            {scanNow}
-          </a>
-          <Link href="/pricing?code=DARKNEU">
-            <span className="w-full sm:w-auto inline-flex h-11 cursor-pointer items-center justify-center rounded-lg border border-white/15 px-5 text-[13.5px] font-medium text-white hover:bg-white/5" data-testid="link-cta-pricing">
-              {allPlans}
-            </span>
-          </Link>
+    <section className="border-t border-white/[0.06]">
+      <div className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-[400px] w-[600px] rounded-full bg-cyan-500/[0.05] blur-[120px]" />
         </div>
-        <p className="mt-5 text-[12px] text-cyan-400/70">
-          {lang === "uk" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на перший місяць PRO</> : lang === "ru" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на первый месяц PRO</> : lang === "es" ? <>Código <span className="font-mono font-bold">DARKNEU</span> → −50% en tu primer mes PRO</> : lang === "de" ? <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% auf den ersten PRO-Monat</> : <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% off your first PRO month</>}
-        </p>
+        <div className="relative mx-auto max-w-2xl text-center">
+          <h2 className="text-[30px] font-semibold tracking-tight text-white sm:text-[40px] sm:leading-[1.1]">
+            {headline}
+          </h2>
+          <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500">
+            {sub}
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href="#top"
+              className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-cyan-400 px-6 text-[14px] font-semibold text-black shadow-[0_0_32px_-6px_rgba(34,211,238,0.5)] transition-all hover:bg-cyan-300 active:scale-[0.98] sm:w-auto"
+              data-testid="link-cta-check"
+            >
+              {scanNow}
+            </a>
+            <Link href="/pricing?code=DARKNEU">
+              <span
+                className="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] px-6 text-[14px] font-medium text-white transition-colors hover:bg-white/[0.08] sm:w-auto"
+                data-testid="link-cta-pricing"
+              >
+                {allPlans}
+              </span>
+            </Link>
+          </div>
+          <p className="mt-5 text-[12px] text-cyan-400/70">
+            {promoCode}
+          </p>
+        </div>
       </div>
     </section>
   );
