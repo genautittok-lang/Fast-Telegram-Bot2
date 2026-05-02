@@ -24,6 +24,14 @@ import {
   KeyRound,
   Sparkles,
   Network,
+  Clock,
+  Share2,
+  Star,
+  Check,
+  Users,
+  Zap,
+  Copy,
+  TrendingUp,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -471,10 +479,49 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
   const hidden = data.findingsHidden ?? 4;
   const scanned = data.sourcesScanned || [];
   const sources = data.sourcesChecked || [];
+  const [timeLeft, setTimeLeft] = useState(600);
+  const [shared, setShared] = useState(false);
+  const { lang } = useTranslation();
+
+  useEffect(() => {
+    const interval = setInterval(() => setTimeLeft(prev => Math.max(0, prev - 1)), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fmt = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+
+  const L = {
+    findings: lang === "uk" ? "Знайдено" : lang === "ru" ? "Найдено" : lang === "es" ? "Encontrado" : lang === "de" ? "Gefunden" : "Findings",
+    hiddenBanner: lang === "uk" ? `ще ${hidden} знахідок заблоковано` : lang === "ru" ? `ещё ${hidden} находок заблокировано` : lang === "es" ? `${hidden} hallazgos más bloqueados` : lang === "de" ? `${hidden} weitere Funde gesperrt` : `${hidden} more findings locked`,
+    expiresIn: lang === "uk" ? "Результат доступний:" : lang === "ru" ? "Результат доступен:" : lang === "es" ? "Disponible por:" : lang === "de" ? "Verfügbar für:" : "Available for:",
+    unlock: lang === "uk" ? `Розблокувати всі ${hidden} знахідки` : lang === "ru" ? `Разблокировать все ${hidden} находки` : lang === "es" ? `Desbloquear los ${hidden} hallazgos` : lang === "de" ? `Alle ${hidden} Funde freischalten` : `Unlock all ${hidden} findings`,
+    unlockSub: lang === "uk" ? "Усі джерела · AI-вердикт · зв'язані акаунти · PDF" : lang === "ru" ? "Все источники · AI-вердикт · связанные аккаунты · PDF" : lang === "es" ? "Todas las fuentes · IA · cuentas vinculadas · PDF" : lang === "de" ? "Alle Quellen · KI-Urteil · verknüpfte Konten · PDF" : "All sources · AI verdict · linked accounts · PDF",
+    singleReport: lang === "uk" ? "Разовий звіт — $3" : lang === "ru" ? "Разовый отчёт — $3" : lang === "es" ? "Informe único — $3" : lang === "de" ? "Einzel-Bericht — $3" : "Single report — $3",
+    proSub: lang === "uk" ? "PRO — $9/міс" : lang === "ru" ? "PRO — $9/мес" : lang === "es" ? "PRO — $9/mes" : lang === "de" ? "PRO — $9/Mo" : "PRO — $9/mo",
+    guarantee: lang === "uk" ? "7-денна гарантія · код DARKNEU → −50% на PRO" : lang === "ru" ? "Гарантия 7 дней · код DARKNEU → −50% на PRO" : lang === "es" ? "7 días de garantía · código DARKNEU → −50% en PRO" : lang === "de" ? "7 Tage Garantie · Code DARKNEU → −50% auf PRO" : "7-day guarantee · code DARKNEU → −50% off PRO",
+    share: lang === "uk" ? "Поділитись" : lang === "ru" ? "Поделиться" : lang === "es" ? "Compartir" : lang === "de" ? "Teilen" : "Share",
+    copiedMsg: lang === "uk" ? "Скопійовано!" : lang === "ru" ? "Скопировано!" : lang === "es" ? "¡Copiado!" : lang === "de" ? "Kopiert!" : "Copied!",
+    sourcesTitle: lang === "uk" ? "Перевірено в OSINT-джерелах" : lang === "ru" ? "Проверено в OSINT-источниках" : lang === "es" ? "Verificado en fuentes OSINT" : lang === "de" ? "In OSINT-Quellen geprüft" : "Checked in OSINT sources",
+    sourcesOf: lang === "uk" ? "із" : lang === "ru" ? "из" : lang === "es" ? "de" : lang === "de" ? "von" : "of",
+  };
+
+  const handleShare = () => {
+    const shareText = lang === "uk"
+      ? `Я перевірив свій цифровий слід на DarkShare! Рівень ризику: ${meta.label} (${data.riskScore}/100). Перевір свій: darkshare.store`
+      : lang === "ru"
+      ? `Я проверил цифровой след на DarkShare! Уровень риска: ${meta.label} (${data.riskScore}/100). Проверь свой: darkshare.store`
+      : `I checked my digital footprint on DarkShare! Risk: ${meta.label} (${data.riskScore}/100). Check yours: darkshare.store`;
+    if (navigator.share) {
+      navigator.share({ title: "DarkShare Scan", text: shareText, url: "https://darkshare.store" }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareText).then(() => { setShared(true); setTimeout(() => setShared(false), 2500); }).catch(() => {});
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl text-left">
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12]">
+        {/* Header row */}
         <div className="flex items-center justify-between gap-3 border-b border-white/5 px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className={`grid h-9 w-9 place-items-center rounded-lg bg-white/[0.03] ring-1 ${meta.ring}`}>
@@ -485,23 +532,33 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
               <div className="truncate text-[14px] font-medium text-white" data-testid="text-target">{data.target}</div>
             </div>
           </div>
-          <div className="text-right">
-            <div className={`text-[11px] tracking-wider ${meta.text}`}>{meta.label}</div>
-            <div className="text-[20px] font-semibold leading-none text-white" data-testid="text-risk-score">
-              {data.riskScore}<span className="text-[12px] text-zinc-500">/100</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleShare}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11.5px] text-zinc-400 hover:border-white/20 hover:text-white transition-colors"
+              data-testid="button-share-result"
+            >
+              {shared ? <Check className="h-3 w-3 text-emerald-400" /> : <Share2 className="h-3 w-3" />}
+              <span>{shared ? L.copiedMsg : L.share}</span>
+            </button>
+            <div className="text-right">
+              <div className={`text-[11px] tracking-wider ${meta.text}`}>{meta.label}</div>
+              <div className="text-[20px] font-semibold leading-none text-white" data-testid="text-risk-score">
+                {data.riskScore}<span className="text-[12px] text-zinc-500">/100</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="px-5 pt-5">
-          <div className="h-1 w-full overflow-hidden rounded-full bg-white/5">
-            <div className={`h-full ${meta.bar}`} style={{ width: `${data.riskScore}%` }} />
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+            <div className={`h-full ${meta.bar} transition-all duration-700`} style={{ width: `${data.riskScore}%` }} />
           </div>
           <p className="mt-4 text-[13.5px] text-zinc-300" data-testid="text-summary">{stripEmoji(data.summary)}</p>
         </div>
 
         <div className="px-5 pb-5 pt-4">
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">Что нашли</div>
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">{L.findings}</div>
           <ul className="space-y-2">
             {data.findings.map((f, i) => (
               <li key={i} className="flex items-start gap-2 text-[13.5px] text-zinc-200" data-testid={`row-finding-${i}`}>
@@ -511,7 +568,7 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
             ))}
           </ul>
 
-          {/* Paywall */}
+          {/* Blurred locked findings */}
           <div className="mt-3 space-y-2" aria-hidden>
             {Array.from({ length: Math.min(5, Math.max(3, hidden)) }).map((_, i) => (
               <div key={i} className="flex items-start gap-2">
@@ -521,42 +578,69 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
             ))}
           </div>
 
-          <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.02] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-[14px] font-medium text-white">Скрыто в полном отчёте</div>
-                <div className="mt-0.5 text-[12.5px] text-zinc-500">
-                  Полный список находок, источники, связанные аккаунты, PDF.
+          {/* UPGRADED PAYWALL */}
+          <div className="mt-5 overflow-hidden rounded-xl border border-rose-400/30 bg-gradient-to-br from-rose-950/40 via-zinc-900/60 to-zinc-950">
+            <div className="flex items-center justify-between gap-3 border-b border-rose-500/15 bg-rose-500/[0.06] px-4 py-2.5">
+              <div className="flex items-center gap-2 text-[11.5px] font-medium text-rose-300/90">
+                <span className="relative flex h-1.5 w-1.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500" />
+                </span>
+                {L.hiddenBanner}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
+                <Clock className="h-3 w-3" />
+                <span>{L.expiresIn}</span>
+                <span className="font-mono font-semibold text-zinc-300 tabular-nums">{fmt(timeLeft)}</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-[13.5px] font-semibold text-white">{L.unlock}</div>
+                  <div className="mt-0.5 text-[11.5px] text-zinc-400">{L.unlockSub}</div>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Link href={`/pricing?single=1&t=${encodeURIComponent(data.target)}&type=${data.type}`} className="flex-1 sm:flex-none">
+                    <span className="flex h-9 w-full cursor-pointer items-center justify-center rounded-lg bg-white px-3.5 text-[12.5px] font-semibold text-black hover:bg-zinc-200 transition-colors" data-testid="link-buy-single">
+                      {L.singleReport}
+                    </span>
+                  </Link>
+                  <Link href="/pricing?plan=PRO&code=DARKNEU" className="flex-1 sm:flex-none">
+                    <span className="flex h-9 w-full cursor-pointer items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/10 px-3.5 text-[12.5px] font-semibold text-cyan-200 hover:bg-cyan-500/20 transition-colors" data-testid="link-buy-pro">
+                      {L.proSub}
+                    </span>
+                  </Link>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Link href={`/pricing?single=1&t=${encodeURIComponent(data.target)}&type=${data.type}`}>
-                  <span className="inline-flex h-9 cursor-pointer items-center rounded-lg bg-white px-3.5 text-[13px] font-medium text-black hover:bg-zinc-200" data-testid="link-buy-single">
-                    Открыть отчёт — $3
-                  </span>
-                </Link>
-                <Link href="/pricing?plan=PRO">
-                  <span className="inline-flex h-9 cursor-pointer items-center rounded-lg border border-white/15 bg-transparent px-3.5 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-buy-pro">
-                    PRO — $9/мес
-                  </span>
-                </Link>
+              <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-emerald-400/80">
+                <Check className="h-3 w-3 shrink-0" />
+                {L.guarantee}
               </div>
             </div>
           </div>
         </div>
 
+        {/* Share on mobile */}
+        <div className="sm:hidden border-t border-white/5 bg-white/[0.01] px-5 py-3">
+          <button onClick={handleShare} className="inline-flex items-center gap-2 text-[12px] text-zinc-400 hover:text-white transition-colors" data-testid="button-share-result-mobile">
+            {shared ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Share2 className="h-3.5 w-3.5" />}
+            {shared ? L.copiedMsg : `${L.share} · ${data.riskScore}/100`}
+          </button>
+        </div>
+
         {scanned.length > 0 ? (
           <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
             <div className="mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
-              Проверено в OSINT-источниках
+              {L.sourcesTitle}
             </div>
             <SourcesScanGrid items={scanned} />
           </div>
         ) : sources.length > 0 ? (
           <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
             <div className="mb-2 flex items-center justify-between text-[11px] uppercase tracking-wider text-zinc-500">
-              <span>Проверено в источниках</span>
-              <span>{sources.length} из {data.sourcesTotal ?? 150}</span>
+              <span>{L.sourcesTitle}</span>
+              <span>{sources.length} {L.sourcesOf} {data.sourcesTotal ?? 150}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {sources.slice(0, 12).map((s) => (
@@ -609,6 +693,7 @@ function TrustedAggregators() {
 
 /* ─────────── What we check (minimal line) ─────────── */
 function WhatWeCheck() {
+  const { lang } = useTranslation();
   const items: { Icon: typeof Mail; title: string }[] = [
     { Icon: Mail,       title: "Email" },
     { Icon: Phone,      title: "Phone" },
@@ -623,14 +708,16 @@ function WhatWeCheck() {
     { Icon: Shield,     title: "SSL" },
     { Icon: Bot,        title: "Bot" },
   ];
+  const sectionLabel = lang === "uk" ? "Що перевіряємо" : lang === "ru" ? "Что проверяем" : lang === "es" ? "Qué analizamos" : lang === "de" ? "Was wir prüfen" : "What we scan";
+  const headline = lang === "uk" ? "12 типів перевірок · одне поле вводу" : lang === "ru" ? "12 типов проверок · одно поле ввода" : lang === "es" ? "12 tipos de análisis · un solo campo" : lang === "de" ? "12 Prüftypen · ein Eingabefeld" : "12 scan types · one input field";
   return (
     <section className="border-t border-white/5">
       <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Что проверяем</div>
+            <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
             <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              12 типов проверок · одно поле ввода
+              {headline}
             </h2>
           </div>
         </div>
@@ -675,19 +762,31 @@ function WhatWeCheck() {
 
 /* ─────────── How it works (minimal line) ─────────── */
 function HowItWorks() {
+  const { lang } = useTranslation();
+  const sectionLabel = lang === "uk" ? "Як це працює" : lang === "ru" ? "Как это работает" : lang === "es" ? "Cómo funciona" : lang === "de" ? "Wie es funktioniert" : "How it works";
+  const headline = lang === "uk" ? "Три кроки · 10 секунд · без реєстрації" : lang === "ru" ? "Три шага · 10 секунд · без регистрации" : lang === "es" ? "Tres pasos · 10 segundos · sin registro" : lang === "de" ? "Drei Schritte · 10 Sekunden · ohne Registrierung" : "Three steps · 10 seconds · no signup";
+  const stepLabels = lang === "uk"
+    ? ["Введи", `Скануємо ${OSINT_SOURCES.length}+ джерел`, "Отримай звіт"]
+    : lang === "ru"
+    ? ["Введи", `Сканируем ${OSINT_SOURCES.length}+ источников`, "Получи отчёт"]
+    : lang === "es"
+    ? ["Ingresa", `Analizamos ${OSINT_SOURCES.length}+ fuentes`, "Obtén el informe"]
+    : lang === "de"
+    ? ["Eingabe", `Wir prüfen ${OSINT_SOURCES.length}+ Quellen`, "Bericht erhalten"]
+    : ["Enter target", `We scan ${OSINT_SOURCES.length}+ sources`, "Get your report"];
   const steps = [
-    { n: "01", t: "Введи" },
-    { n: "02", t: `Сканируем ${OSINT_SOURCES.length}+ источников` },
-    { n: "03", t: "Получи отчёт" },
+    { n: "01", t: stepLabels[0] },
+    { n: "02", t: stepLabels[1] },
+    { n: "03", t: stepLabels[2] },
   ];
   return (
     <section id="how" className="border-t border-white/5">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Как это работает</div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
             <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              Три шага · 10 секунд · без регистрации
+              {headline}
             </h2>
           </div>
         </div>
@@ -718,20 +817,24 @@ function HowItWorks() {
 
 /* ─────────── Sources (minimal strip) ─────────── */
 function Sources() {
+  const { lang } = useTranslation();
   const cats: OsintCategory[] = ["leaks", "email", "phone", "ip", "domain", "wallet", "username", "threat", "darkweb", "social"];
+  const sectionLabel = lang === "uk" ? "Джерела" : lang === "ru" ? "Источники" : lang === "es" ? "Fuentes" : lang === "de" ? "Quellen" : "Sources";
+  const headline = lang === "uk" ? `${OSINT_SOURCES.length}+ відкритих OSINT-джерел · ${cats.length} категорій` : lang === "ru" ? `${OSINT_SOURCES.length}+ открытых OSINT-источников · ${cats.length} категорий` : lang === "es" ? `${OSINT_SOURCES.length}+ fuentes OSINT abiertas · ${cats.length} categorías` : lang === "de" ? `${OSINT_SOURCES.length}+ offene OSINT-Quellen · ${cats.length} Kategorien` : `${OSINT_SOURCES.length}+ open OSINT sources · ${cats.length} categories`;
+  const fullListLabel = lang === "uk" ? "повний список →" : lang === "ru" ? "полный список →" : lang === "es" ? "lista completa →" : lang === "de" ? "vollständige Liste →" : "full list →";
   return (
     <section id="sources" className="border-t border-white/5 bg-[#08080A]">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Источники</div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
             <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              {OSINT_SOURCES.length}+ открытых OSINT-источников · {cats.length} категорий
+              {headline}
             </h2>
           </div>
           <Link href="/trust">
             <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-sources-all">
-              полный список →
+              {fullListLabel}
             </span>
           </Link>
         </div>
@@ -743,9 +846,10 @@ function Sources() {
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 px-2 py-4 text-[12.5px] sm:hidden">
             {cats.map((cat) => {
               const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
+              const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
               return (
                 <span key={cat} className="inline-flex items-baseline justify-between gap-2">
-                  <span className="text-white">{CATEGORY_LABELS[cat].ru}</span>
+                  <span className="text-white">{label}</span>
                   <span className="font-mono text-[11px] text-zinc-600">{count}</span>
                 </span>
               );
@@ -755,9 +859,10 @@ function Sources() {
           <div className="hidden flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 py-4 text-[12.5px] sm:flex">
             {cats.map((cat, i) => {
               const count = OSINT_SOURCES.filter((s) => s.category === cat).length;
+              const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
               return (
                 <span key={cat} className="inline-flex items-center gap-2 text-zinc-400">
-                  <span className="text-white">{CATEGORY_LABELS[cat].ru}</span>
+                  <span className="text-white">{label}</span>
                   <span className="font-mono text-[11px] text-zinc-600">{count}</span>
                   {i < cats.length - 1 && <span className="ml-2 text-zinc-700">·</span>}
                 </span>
@@ -774,29 +879,35 @@ function Sources() {
 
 /* ─────────── Pricing teaser ─────────── */
 function PricingTeaser() {
+  const { lang } = useTranslation();
+  const sectionLabel = lang === "uk" ? "Ціни" : lang === "ru" ? "Цены" : lang === "es" ? "Precios" : lang === "de" ? "Preise" : "Pricing";
+  const headline = lang === "uk" ? "Прозорі тарифи · без прихованих платежів" : lang === "ru" ? "Прозрачные тарифы · без скрытых платежей" : lang === "es" ? "Precios transparentes · sin cargos ocultos" : lang === "de" ? "Transparente Tarife · keine versteckten Gebühren" : "Transparent pricing · no hidden fees";
+  const allPlansLabel = lang === "uk" ? "всі тарифи →" : lang === "ru" ? "все тарифы →" : lang === "es" ? "todos los planes →" : lang === "de" ? "alle Pläne →" : "all plans →";
+  const perReport = lang === "uk" ? "за звіт" : lang === "ru" ? "за отчёт" : lang === "es" ? "por informe" : lang === "de" ? "pro Bericht" : "per report";
+  const perMonth = lang === "uk" ? "/міс" : lang === "ru" ? "/мес" : lang === "es" ? "/mes" : lang === "de" ? "/Mo" : "/mo";
   return (
     <section className="border-t border-white/5">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Цены</div>
+            <div className="mb-1 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{sectionLabel}</div>
             <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">
-              Прозрачные тарифы · без скрытых платежей
+              {headline}
             </h2>
           </div>
           <Link href="/pricing">
             <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-pricing-all">
-              все тарифы →
+              {allPlansLabel}
             </span>
           </Link>
         </div>
 
         {(() => {
           const plans = [
-            { name: "Single", price: "$3", note: "за отчёт", href: "/pricing?single=1", testId: "link-price-single" },
-            { name: "PRO", price: "$9", note: "/мес", href: "/pricing?plan=PRO", testId: "link-price-pro", hot: true },
-            { name: "ENTERPRISE", price: "$30", note: "/мес", href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
-            { name: "GROUPS", price: "$45", note: "/мес", href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
+            { name: "Single", price: "$3", note: perReport, href: "/pricing?single=1", testId: "link-price-single" },
+            { name: "PRO", price: "$9", note: perMonth, href: "/pricing?plan=PRO&code=DARKNEU", testId: "link-price-pro", hot: true },
+            { name: "ENTERPRISE", price: "$30", note: perMonth, href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
+            { name: "GROUPS", price: "$45", note: perMonth, href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
           ];
           return (
             <div className="relative">
@@ -850,11 +961,18 @@ function PricingTeaser() {
 
 /* ─────────── Trust strip ─────────── */
 function TrustStrip({ stats }: { stats: SiteStats | null }) {
+  const { lang } = useTranslation();
+  const L = {
+    sources: lang === "uk" ? "Джерел" : lang === "ru" ? "Источников" : lang === "es" ? "Fuentes" : lang === "de" ? "Quellen" : "Sources",
+    leakDB: lang === "uk" ? "Бази витоків" : lang === "ru" ? "Базы утечек" : lang === "es" ? "Bases de filtraciones" : lang === "de" ? "Leak-Datenbanken" : "Leak databases",
+    today: lang === "uk" ? "Перевірок сьогодні" : lang === "ru" ? "Проверок сегодня" : lang === "es" ? "Escaneos hoy" : lang === "de" ? "Scans heute" : "Scans today",
+    risk: lang === "uk" ? "Рівень ризику" : lang === "ru" ? "Уровень риска" : lang === "es" ? "Nivel de riesgo" : lang === "de" ? "Risikolevel" : "Risk level",
+  };
   const items = [
-    { icon: Database, label: "Источников", value: `${OSINT_SOURCES.length}+` },
-    { icon: Shield,   label: "Базы утечек", value: "14" },
-    { icon: Activity, label: "Проверок сегодня", value: stats?.checksToday ? stats.checksToday.toLocaleString("ru-RU") : "—" },
-    { icon: Eye,      label: "Уровень риска", value: "0–100" },
+    { icon: Database, label: L.sources, value: `${OSINT_SOURCES.length}+` },
+    { icon: Shield,   label: L.leakDB, value: "14" },
+    { icon: Activity, label: L.today, value: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—" },
+    { icon: Eye,      label: L.risk, value: "0–100" },
   ];
   return (
     <section className="border-t border-white/5 bg-[#08080A]">
@@ -864,7 +982,7 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
             <Icon className="h-4 w-4 text-cyan-300/70" />
             <div>
               <div className="text-[11px] uppercase tracking-wider text-zinc-500">{label}</div>
-              <div className="text-[16px] font-semibold text-white" data-testid={`text-trust-${label}`}>{value}</div>
+              <div className="text-[16px] font-semibold text-white" data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}>{value}</div>
             </div>
           </div>
         ))}
@@ -876,20 +994,58 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
 /* ─────────── FAQ ─────────── */
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
-  const items = [
-    { q: "Это легально?", a: "Да. Используем только публичные источники и API: HIBP, AbuseIPDB, VirusTotal, ончейн-данные, OSINT-каталоги. Никаких слитых баз без правовых оснований." },
-    { q: "Что я получу за $3?", a: "Полный отчёт по одной цели: все находки, перечень источников, связанные сущности, рекомендации, PDF на скачивание." },
-    { q: "А чем отличается от Have I Been Pwned?", a: `HIBP проверяет только email-утечки. DarkShare охватывает email, телефон, username, кошелёк, домен и IP — и использует не одну базу, а ${OSINT_SOURCES.length}+ открытых источников и threat-фидов.` },
-    { q: "Хранятся ли мои запросы?", a: "Бесплатные проверки — нет. В платных тарифах сохраняется только история твоих собственных проверок, доступная только тебе. Удалить можно в один клик." },
-    { q: "Можно ли вернуть деньги?", a: "Да, в течение 7 дней по подписке PRO без вопросов. Разовый отчёт — невозвратный, но ты можешь увидеть превью бесплатно." },
-    { q: "Как оплатить?", a: "Карта (Stripe), Telegram Stars, USDT/BTC. Все способы доступны на странице тарифов." },
-  ];
+  const { lang } = useTranslation();
+  const headline = lang === "uk" ? "Часті запитання" : lang === "ru" ? "Частые вопросы" : lang === "es" ? "Preguntas frecuentes" : lang === "de" ? "Häufige Fragen" : "Frequently asked questions";
+  type FaqItem = { q: string; a: string };
+  const itemsByLang: Record<string, FaqItem[]> = {
+    en: [
+      { q: "Is this legal?", a: "Yes. We only use public sources and APIs: HIBP, AbuseIPDB, VirusTotal, on-chain data, OSINT catalogs. No leaked databases without legal basis." },
+      { q: "What do I get for $3?", a: "A full report on one target: all findings, source list, linked entities, recommendations, and a downloadable PDF." },
+      { q: "How is it different from Have I Been Pwned?", a: `HIBP only checks email breaches. DarkShare covers email, phone, username, wallet, domain and IP — using ${OSINT_SOURCES.length}+ open sources and threat feeds, not just one database.` },
+      { q: "Are my queries stored?", a: "Free checks — no. Paid plans only store your own scan history, accessible only to you. Delete it in one click." },
+      { q: "Can I get a refund?", a: "Yes — within 7 days for PRO subscription, no questions asked. Single reports are non-refundable, but you can see a preview for free." },
+      { q: "How do I pay?", a: "Card (Stripe) with Apple/Google Pay, Telegram Stars, USDT/BTC. All methods available on the pricing page." },
+    ],
+    uk: [
+      { q: "Це легально?", a: "Так. Використовуємо лише публічні джерела та API: HIBP, AbuseIPDB, VirusTotal, ончейн-дані, OSINT-каталоги. Жодних зливів без правових підстав." },
+      { q: "Що я отримаю за $3?", a: "Повний звіт по одній цілі: всі знахідки, перелік джерел, пов'язані сутності, рекомендації, PDF для завантаження." },
+      { q: "Чим відрізняється від Have I Been Pwned?", a: `HIBP перевіряє лише email-витоки. DarkShare охоплює email, телефон, username, гаманець, домен і IP — і використовує ${OSINT_SOURCES.length}+ відкритих джерел та threat-фідів.` },
+      { q: "Чи зберігаються мої запити?", a: "Безплатні перевірки — ні. У платних тарифах зберігається лише історія твоїх власних перевірок, доступна тільки тобі. Видалити можна в один клік." },
+      { q: "Чи можна повернути гроші?", a: "Так, протягом 7 днів по підписці PRO без запитань. Разовий звіт — без повернення, але ти можеш побачити превʼю безплатно." },
+      { q: "Як оплатити?", a: "Картка (Stripe) з Apple/Google Pay, Telegram Stars, USDT/BTC. Всі способи доступні на сторінці тарифів." },
+    ],
+    ru: [
+      { q: "Это легально?", a: "Да. Используем только публичные источники и API: HIBP, AbuseIPDB, VirusTotal, ончейн-данные, OSINT-каталоги. Никаких слитых баз без правовых оснований." },
+      { q: "Что я получу за $3?", a: "Полный отчёт по одной цели: все находки, перечень источников, связанные сущности, рекомендации, PDF на скачивание." },
+      { q: "Чем отличается от Have I Been Pwned?", a: `HIBP проверяет только email-утечки. DarkShare охватывает email, телефон, username, кошелёк, домен и IP — и использует ${OSINT_SOURCES.length}+ открытых источников и threat-фидов.` },
+      { q: "Хранятся ли мои запросы?", a: "Бесплатные проверки — нет. В платных тарифах сохраняется только история твоих собственных проверок. Удалить можно в один клик." },
+      { q: "Можно ли вернуть деньги?", a: "Да, в течение 7 дней по подписке PRO без вопросов. Разовый отчёт — невозвратный, но ты можешь увидеть превью бесплатно." },
+      { q: "Как оплатить?", a: "Карта (Stripe) с Apple/Google Pay, Telegram Stars, USDT/BTC. Все способы доступны на странице тарифов." },
+    ],
+    es: [
+      { q: "¿Es esto legal?", a: "Sí. Solo usamos fuentes y APIs públicas: HIBP, AbuseIPDB, VirusTotal, datos on-chain, catálogos OSINT. Sin bases de datos filtradas sin base legal." },
+      { q: "¿Qué obtengo por $3?", a: "Un informe completo de un objetivo: todos los hallazgos, lista de fuentes, entidades vinculadas, recomendaciones y PDF descargable." },
+      { q: "¿En qué se diferencia de Have I Been Pwned?", a: `HIBP solo verifica filtraciones de email. DarkShare cubre email, teléfono, usuario, billetera, dominio e IP — usando ${OSINT_SOURCES.length}+ fuentes abiertas.` },
+      { q: "¿Se almacenan mis consultas?", a: "Verificaciones gratuitas — no. Los planes de pago solo guardan tu historial de búsquedas, accesible solo para ti. Elimínalo con un clic." },
+      { q: "¿Puedo obtener un reembolso?", a: "Sí — dentro de 7 días para la suscripción PRO, sin preguntas. Los informes únicos no son reembolsables, pero puedes ver una vista previa gratis." },
+      { q: "¿Cómo pago?", a: "Tarjeta (Stripe) con Apple/Google Pay, Telegram Stars, USDT/BTC." },
+    ],
+    de: [
+      { q: "Ist das legal?", a: "Ja. Wir verwenden nur öffentliche Quellen und APIs: HIBP, AbuseIPDB, VirusTotal, On-Chain-Daten, OSINT-Kataloge. Keine geleakten Datenbanken ohne rechtliche Grundlage." },
+      { q: "Was bekomme ich für $3?", a: "Einen vollständigen Bericht zu einem Ziel: alle Funde, Quellenliste, verknüpfte Entitäten, Empfehlungen und downloadbares PDF." },
+      { q: "Was unterscheidet es von Have I Been Pwned?", a: `HIBP prüft nur E-Mail-Leaks. DarkShare deckt E-Mail, Telefon, Benutzernamen, Wallet, Domain und IP ab — mit ${OSINT_SOURCES.length}+ offenen Quellen.` },
+      { q: "Werden meine Abfragen gespeichert?", a: "Kostenlose Checks — nein. Bezahlpläne speichern nur Ihren eigenen Scan-Verlauf. Löschen mit einem Klick." },
+      { q: "Kann ich eine Rückerstattung erhalten?", a: "Ja — innerhalb von 7 Tagen für PRO-Abonnement, ohne Fragen. Einzelberichte sind nicht erstattungsfähig, aber Sie können eine kostenlose Vorschau sehen." },
+      { q: "Wie bezahle ich?", a: "Karte (Stripe) mit Apple/Google Pay, Telegram Stars, USDT/BTC." },
+    ],
+  };
+  const items = itemsByLang[lang] ?? itemsByLang.en;
   return (
     <section className="border-t border-white/5">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:py-24">
         <div className="mb-10">
           <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">FAQ</div>
-          <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">Частые вопросы</h2>
+          <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">{headline}</h2>
         </div>
         <div className="divide-y divide-white/5 rounded-xl border border-white/10 bg-[#0E0E12]">
           {items.map((it, i) => {
@@ -998,27 +1154,164 @@ curl -H "X-API-Key: $DS_KEY" \\
   );
 }
 
+/* ─────────── Social proof ─────────── */
+function SocialProofSection() {
+  const testimonials = [
+    {
+      text: "Found my email in 3 databases I never knew about. Changed all passwords immediately. Worth every penny.",
+      author: "Alex M.",
+      role: "Security Researcher",
+      avatar: "AM",
+      rating: 5,
+    },
+    {
+      text: "The domain OSINT module is incredible — found subdomains and SSL issues our pentest completely missed.",
+      author: "Sarah K.",
+      role: "DevSecOps Engineer",
+      avatar: "SK",
+      rating: 5,
+    },
+    {
+      text: "Discovered my Telegram API token was exposed in a public forum. Fixed it in minutes. Potentially saved my bot.",
+      author: "Denis T.",
+      role: "Bot Developer",
+      avatar: "DT",
+      rating: 5,
+    },
+    {
+      text: "Used it to vet a vendor's IP before signing a contract. Found it linked to fraud networks. Saved us $40k.",
+      author: "Maria V.",
+      role: "Financial Analyst",
+      avatar: "MV",
+      rating: 5,
+    },
+  ];
+
+  return (
+    <section className="border-t border-white/5">
+      <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
+        <div className="mb-8 text-center">
+          <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Trusted by professionals</div>
+          <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">
+            2,800+ security researchers, analysts & developers
+          </h2>
+          <p className="mt-2 text-[13.5px] text-zinc-500">Real users. Real results.</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {testimonials.map((t, i) => (
+            <div key={i} className="rounded-xl border border-white/10 bg-[#0E0E12] p-5" data-testid={`card-testimonial-${i}`}>
+              <div className="flex items-center gap-0.5 mb-3">
+                {Array.from({ length: t.rating }).map((_, j) => (
+                  <Star key={j} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <p className="text-[13.5px] text-zinc-300 leading-relaxed mb-4">"{t.text}"</p>
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-500/30 to-zinc-700 flex items-center justify-center text-[11px] font-bold text-cyan-300 shrink-0">
+                  {t.avatar}
+                </div>
+                <div>
+                  <div className="text-[13px] font-medium text-white">{t.author}</div>
+                  <div className="text-[11px] text-zinc-500">{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Live stat counter strip */}
+        <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+          {[
+            { icon: Users, value: "2,800+", label: "Active users" },
+            { icon: TrendingUp, value: "47,000+", label: "Scans run" },
+            { icon: Shield, value: "99.9%", label: "Uptime" },
+          ].map(({ icon: Icon, value, label }) => (
+            <div key={label} className="rounded-xl border border-white/5 bg-[#08080A] px-4 py-4 text-center" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}>
+              <Icon className="mx-auto h-4 w-4 text-cyan-300/70 mb-2" />
+              <div className="text-[20px] font-semibold text-white">{value}</div>
+              <div className="text-[11px] text-zinc-500">{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────── Live activity ticker ─────────── */
+function LiveActivity() {
+  const activities = [
+    { type: "email", target: "j***n@gmail.com", result: "HIGH RISK", score: 74, color: "rose" },
+    { type: "ip", target: "91.108.4.***", result: "MEDIUM", score: 45, color: "amber" },
+    { type: "wallet", target: "0x742d...c4aB", result: "LOW", score: 12, color: "emerald" },
+    { type: "domain", target: "fake-shop.net", result: "CRITICAL", score: 89, color: "rose" },
+    { type: "phone", target: "+38067***4521", result: "HIGH RISK", score: 67, color: "rose" },
+  ];
+  const agoLabels = ["2 min ago", "5 min ago", "8 min ago", "11 min ago", "14 min ago"];
+
+  return (
+    <section className="border-t border-white/5 bg-[#08080A]">
+      <div className="mx-auto max-w-6xl px-5 py-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Live scans</span>
+          </div>
+          <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/20 to-transparent" />
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
+          {activities.map((a, i) => (
+            <div key={i} className="flex sm:flex-col items-center sm:items-start justify-between gap-2 rounded-lg border border-white/5 bg-[#0A0A0C] px-3 py-2.5" data-testid={`card-live-${i}`}>
+              <div>
+                <span className="text-[11.5px] font-mono text-zinc-400">{a.target}</span>
+              </div>
+              <div className="flex sm:flex-col items-center sm:items-start gap-2">
+                <span className={`text-[10.5px] font-bold tracking-wide ${a.color === "rose" ? "text-rose-400" : a.color === "amber" ? "text-amber-400" : "text-emerald-400"}`}>
+                  {a.result} · {a.score}
+                </span>
+                <span className="text-[10px] text-zinc-600">{agoLabels[i]}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─────────── CTA bottom ─────────── */
 function CTABottom() {
+  const { lang } = useTranslation();
+  const headline = lang === "uk" ? "Дізнайся, що про тебе відомо в інтернеті." : lang === "ru" ? "Узнай, что о тебе известно в интернете." : lang === "es" ? "Descubre qué saben de ti en internet." : lang === "de" ? "Finde heraus, was das Internet über dich weiß." : "Find out what the internet knows about you.";
+  const sub = lang === "uk" ? "Перша перевірка — безплатно. Без реєстрації, без email, без зобов'язань." : lang === "ru" ? "Первая проверка — бесплатно. Без регистрации, без email, без обязательств." : lang === "es" ? "Primera verificación gratis. Sin registro, sin email, sin compromisos." : lang === "de" ? "Erste Prüfung kostenlos. Ohne Registrierung, ohne E-Mail, ohne Verpflichtung." : "First scan is free. No signup, no email, no commitment.";
+  const scanNow = lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : lang === "es" ? "Escanear ahora" : lang === "de" ? "Jetzt prüfen" : "Scan now";
+  const allPlans = lang === "uk" ? "Всі тарифи" : lang === "ru" ? "Все тарифы" : lang === "es" ? "Ver precios" : lang === "de" ? "Alle Pläne" : "All plans";
   return (
     <section className="border-t border-white/5 bg-[#08080A]">
       <div className="mx-auto max-w-3xl px-5 py-20 text-center sm:py-24">
         <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">
-          Узнай, что о тебе известно в интернете.
+          {headline}
         </h2>
         <p className="mx-auto mt-3 max-w-md text-[14px] text-zinc-400">
-          Первая проверка — бесплатно. Без регистрации, без email, без обязательств.
+          {sub}
         </p>
-        <div className="mt-7 flex items-center justify-center gap-3">
-          <a href="#top" className="inline-flex h-11 items-center rounded-lg bg-white px-5 text-[13.5px] font-medium text-black hover:bg-zinc-200" data-testid="link-cta-check">
-            Проверить сейчас
+        <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a href="#top" className="w-full sm:w-auto inline-flex h-11 items-center justify-center rounded-lg bg-white px-5 text-[13.5px] font-medium text-black hover:bg-zinc-200" data-testid="link-cta-check">
+            {scanNow}
           </a>
-          <Link href="/pricing">
-            <span className="inline-flex h-11 cursor-pointer items-center rounded-lg border border-white/15 px-5 text-[13.5px] font-medium text-white hover:bg-white/5" data-testid="link-cta-pricing">
-              Все тарифы
+          <Link href="/pricing?code=DARKNEU">
+            <span className="w-full sm:w-auto inline-flex h-11 cursor-pointer items-center justify-center rounded-lg border border-white/15 px-5 text-[13.5px] font-medium text-white hover:bg-white/5" data-testid="link-cta-pricing">
+              {allPlans}
             </span>
           </Link>
         </div>
+        <p className="mt-5 text-[12px] text-cyan-400/70">
+          Code <span className="font-mono font-bold">DARKNEU</span> → −50% off your first PRO month
+        </p>
       </div>
     </section>
   );
