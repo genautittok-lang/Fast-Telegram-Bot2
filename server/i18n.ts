@@ -2,7 +2,7 @@ export type Language = "uk" | "en" | "ru" | "es" | "de";
 
 export const translations = {
   uk: {
-    welcome: `🌑 DARKSHARE v4.4
+    welcome: `🌑 DARKSHARE v4.7
 
 Ласкаво просимо, {username}!
 Твій ID: {tgId}
@@ -426,7 +426,7 @@ export const translations = {
       capCve: "🔓 CVE вразливості",
       capMore: "...та багато іншого!",
       selectLanguage: "👇 *Обери мову для початку:*",
-      regularTitle: "🌑 *DARKSHARE v4.4*",
+      regularTitle: "🌑 *DARKSHARE v4.7*",
       regularGreeting: "👋 *Привіт, {name}!*",
       yourId: "Твій ID:",
       platformDesc: "🛡️ *DARKSHARE* - професійна OSINT платформа для аналізу безпеки.",
@@ -552,7 +552,7 @@ export const translations = {
   },
   
   en: {
-    welcome: `🌑 DARKSHARE v4.4
+    welcome: `🌑 DARKSHARE v4.7
 
 Welcome, {username}!
 Your ID: {tgId}
@@ -976,7 +976,7 @@ Select a module for analysis:`,
       capCve: "🔓 CVE vulnerabilities",
       capMore: "...and much more!",
       selectLanguage: "👇 *Choose your language:*",
-      regularTitle: "🌑 *DARKSHARE v4.4*",
+      regularTitle: "🌑 *DARKSHARE v4.7*",
       regularGreeting: "👋 *Hello, {name}!*",
       yourId: "Your ID:",
       platformDesc: "🛡️ *DARKSHARE* - professional OSINT platform for security analysis.",
@@ -1102,7 +1102,7 @@ Select a module for analysis:`,
   },
   
   ru: {
-    welcome: `🌑 DARKSHARE v4.4
+    welcome: `🌑 DARKSHARE v4.7
 
 Добро пожаловать, {username}!
 Твой ID: {tgId}
@@ -1526,7 +1526,7 @@ Select a module for analysis:`,
       capCve: "🔓 CVE уязвимости",
       capMore: "...и многое другое!",
       selectLanguage: "👇 *Выбери язык:*",
-      regularTitle: "🌑 *DARKSHARE v4.4*",
+      regularTitle: "🌑 *DARKSHARE v4.7*",
       regularGreeting: "👋 *Привет, {name}!*",
       yourId: "Твой ID:",
       platformDesc: "🛡️ *DARKSHARE* - профессиональная OSINT платформа для анализа безопасности.",
@@ -1652,7 +1652,7 @@ Select a module for analysis:`,
   },
   
   es: {
-    welcome: `🌑 DARKSHARE v4.4
+    welcome: `🌑 DARKSHARE v4.7
 
 ¡Bienvenido, {username}!
 Tu ID: {tgId}
@@ -2076,7 +2076,7 @@ Selecciona un módulo para análisis:`,
       capCve: "🔓 Vulnerabilidades CVE",
       capMore: "...¡y mucho más!",
       selectLanguage: "👇 *Elige tu idioma:*",
-      regularTitle: "🌑 *DARKSHARE v4.4*",
+      regularTitle: "🌑 *DARKSHARE v4.7*",
       regularGreeting: "👋 *¡Hola, {name}!*",
       yourId: "Tu ID:",
       platformDesc: "🛡️ *DARKSHARE* - plataforma OSINT profesional para análisis de seguridad.",
@@ -2202,7 +2202,7 @@ Selecciona un módulo para análisis:`,
   },
   
   de: {
-    welcome: `🌑 DARKSHARE v4.4
+    welcome: `🌑 DARKSHARE v4.7
 
 Willkommen, {username}!
 Deine ID: {tgId}
@@ -2626,7 +2626,7 @@ Wähle ein Modul zur Analyse:`,
       capCve: "🔓 CVE-Schwachstellen",
       capMore: "...und vieles mehr!",
       selectLanguage: "👇 *Wähle deine Sprache:*",
-      regularTitle: "🌑 *DARKSHARE v4.4*",
+      regularTitle: "🌑 *DARKSHARE v4.7*",
       regularGreeting: "👋 *Hallo, {name}!*",
       yourId: "Deine ID:",
       platformDesc: "🛡️ *DARKSHARE* - professionelle OSINT-Plattform für Sicherheitsanalyse.",

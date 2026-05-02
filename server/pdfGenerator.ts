@@ -160,7 +160,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
       bufferPages: true,
       info: {
         Title: `DARKSHARE Intelligence Report - ${data.moduleType.toUpperCase()}`,
-        Author: "DARKSHARE v4.4",
+        Author: "DARKSHARE v4.7",
         Subject: `Risk Assessment: ${data.targetValue}`,
         Keywords: "risk, assessment, security, darkshare, osint, intelligence",
         CreationDate: data.timestamp,
@@ -202,7 +202,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.text("DARKSHARE", M, y);
     y += 45;
     doc.fillColor(C.textDim).fontSize(12).font("Helvetica");
-    doc.text("RISK INTELLIGENCE PLATFORM  ·  v4.4", M, y);
+    doc.text("RISK INTELLIGENCE PLATFORM  ·  v4.7", M, y);
     y += 35;
 
     drawLine(doc, M, y, M + CW, C.primaryMuted);
@@ -347,7 +347,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     doc.fillColor(C.textDark).fontSize(6).font("Helvetica");
     const footerText = data.branding?.companyName
       ? `CONFIDENTIAL  ·  ${sp(String(data.branding.companyName).slice(0, 40))} via DARKSHARE  ·  Page 1`
-      : "CONFIDENTIAL  ·  DARKSHARE v4.4 Risk Intelligence  ·  Page 1";
+      : "CONFIDENTIAL  ·  DARKSHARE v4.7 Risk Intelligence  ·  Page 1";
     doc.text(footerText, M, H - 20, { width: CW, align: "center" });
 
     // ═══════════════ PAGE 2: FINDINGS ═══════════════
@@ -654,7 +654,7 @@ export async function generateDetailedPDF(data: ReportData): Promise<Buffer> {
     const footY = H - 30;
     doc.rect(0, footY, W, 30).fill(C.surface);
     doc.fillColor(C.textDark).fontSize(6).font("Helvetica");
-    doc.text(`CONFIDENTIAL  ·  DARKSHARE v4.4 Risk Intelligence  ·  © ${new Date().getFullYear()} DARKSHARE International  ·  Generated: ${data.timestamp.toISOString()}`, M, footY + 10, { width: CW, align: "center" });
+    doc.text(`CONFIDENTIAL  ·  DARKSHARE v4.7 Risk Intelligence  ·  © ${new Date().getFullYear()} DARKSHARE International  ·  Generated: ${data.timestamp.toISOString()}`, M, footY + 10, { width: CW, align: "center" });
 
     doc.end();
   });

@@ -327,7 +327,7 @@ export default function Guide() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
             <BookOpen className="w-3 h-3 text-cyan-300" />
-            {L("Інструкція", "Инструкция", "Guide")} · v4.4 · {L("оновлено", "обновлено", "updated")} 2026
+            {L("Інструкція", "Инструкция", "Guide")} · v4.7 · {L("оновлено", "обновлено", "updated")} 2026
           </div>
           <h1 className="text-balance text-[28px] sm:text-[44px] lg:text-[52px] font-semibold leading-[1.05] tracking-tight text-white" data-testid="text-guide-title">
             DARKSHARE.<br />
