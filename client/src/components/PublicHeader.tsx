@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Shield, Bot, Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -7,9 +7,17 @@ import { useTranslation } from "@/lib/i18n";
 
 export function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [location] = useLocation();
   const { isAuthenticated } = useAuth();
   const { t, lang } = useTranslation();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const links = [
     { href: "/pricing",  label: t("nav.pricing") || "Pricing" },
@@ -30,7 +38,7 @@ export function PublicHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#09090B]/95 backdrop-blur-xl">
+      <header className={`sticky top-0 z-40 transition-all duration-300 ${scrolled ? "border-b border-white/[0.06] bg-[#09090B]/95 backdrop-blur-xl shadow-[0_1px_40px_rgba(0,0,0,0.4)]" : "border-b border-transparent bg-transparent backdrop-blur-none"}`}>
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-5">
 
           {/* ── Logo ── */}

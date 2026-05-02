@@ -355,21 +355,29 @@ function PricingContent() {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4 mb-6 sm:mb-8">
-          <span className={`text-sm ${!isYearly ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-            {t('pricing.monthly')}
-          </span>
-          <Switch
-            checked={isYearly}
-            onCheckedChange={setIsYearly}
-            data-testid="switch-billing-period"
-          />
-          <span className={`text-sm flex items-center gap-2 ${isYearly ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-            {t('pricing.yearly')}
-            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
-              -17%
-            </Badge>
-          </span>
+        <div className="flex items-center justify-center mb-6 sm:mb-8">
+          <div className="relative flex rounded-full border border-white/[0.08] bg-white/[0.03] p-1 gap-0.5" data-testid="billing-toggle">
+            <button
+              onClick={() => setIsYearly(false)}
+              className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 ${!isYearly ? "bg-white/[0.09] text-white shadow-inner ring-1 ring-white/[0.07]" : "text-zinc-500 hover:text-zinc-300"}`}
+              data-testid="toggle-monthly"
+            >
+              {t('pricing.monthly')}
+            </button>
+            <button
+              onClick={() => setIsYearly(true)}
+              className={`relative rounded-full px-5 py-2 text-sm font-medium transition-all duration-200 flex items-center gap-2 ${isYearly ? "bg-white/[0.09] text-white shadow-inner ring-1 ring-white/[0.07]" : "text-zinc-500 hover:text-zinc-300"}`}
+              data-testid="toggle-yearly"
+            >
+              {t('pricing.yearly')}
+              <span className="rounded-full bg-cyan-500/20 border border-cyan-500/30 px-1.5 py-0.5 text-[10px] font-bold text-cyan-400">-17%</span>
+            </button>
+          </div>
+          {isYearly && (
+            <span className="ml-3 text-[11px] text-zinc-500">
+              {lang === "uk" ? "= 2 міс. безплатно" : lang === "ru" ? "= 2 мес. бесплатно" : lang === "es" ? "= 2 meses gratis" : lang === "de" ? "= 2 Monate gratis" : "= 2 months free"}
+            </span>
+          )}
         </div>
 
         <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">

@@ -162,6 +162,16 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - JoinTeam and Chat fully multilingual including es/de.
 - No ternary chains missing es/de across any page or component (verified by grep sweep).
 
+## Batch 6 — UX Polish (May 2026)
+
+### Files changed:
+- **PublicHeader.tsx**: Added `useEffect` scroll listener (`scrollY > 8`). Header is now transparent at page top (`bg-transparent border-transparent backdrop-blur-none`) and transitions to `bg-[#09090B]/95 backdrop-blur-xl` with shadow on scroll — `duration-300` CSS transition.
+- **Home.tsx / Sources**: Applied `<CountUp raw={count} />` to each category source count so numbers count up on scroll-in (same CountUp component used by TrustStrip).
+- **Home.tsx / LiveActivity**: Added `useState(0)` + `setInterval(3000)` to auto-cycle a "newest scan" highlight — active card gets cyan border + subtle glow shadow, cycling every 3 seconds.
+- **Home.tsx / CTABottom**: Replaced `animate-pulse` gradient div with a `cta-ring-glow` CSS class using `border-rotate` keyframe — a sweeping 120° gradient highlight animating over 6s, more elegant than pulse.
+- **Pricing.tsx / billing toggle**: Replaced `<Switch>` component with a custom pill button pair — active option gets `bg-white/[0.09] ring-1` treatment; yearly option shows the `-17%` badge inline; animated reveal of "= 2 months free" label when yearly is selected.
+- **index.css**: Added `@keyframes border-rotate` + `.cta-ring-glow` utility class for the CTABottom animated ring.
+
 ## Trust, Community & White-Label
 
 - **`/trust`** (`client/src/pages/Trust.tsx`): public Trust Center. Compliance roadmap (GDPR/CCPA ready, SOC 2 Type II in progress Q4 ’26, ISO 27001 planned Q1 ’27, PCI DSS via Stripe, RFC 9116 security.txt), bug bounty $25–2 000, retention table, PGP fingerprint. No auth required.

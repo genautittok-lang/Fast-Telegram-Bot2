@@ -939,7 +939,7 @@ function Sources() {
                   <div className="grid h-7 w-7 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.03]">
                     <Icon className="h-3.5 w-3.5 text-zinc-500" />
                   </div>
-                  <span className="font-mono text-[18px] font-bold text-white">{count}</span>
+                  <span className="font-mono text-[18px] font-bold text-white"><CountUp raw={count} /></span>
                 </div>
                 <div>
                   <div className="text-[12.5px] font-medium text-zinc-200">{label}</div>
@@ -1564,6 +1564,11 @@ function SocialProofSection() {
 /* ─────────── Live activity ticker ─────────── */
 function LiveActivity() {
   const { lang } = useTranslation();
+  const [newest, setNewest] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setNewest((n) => (n + 1) % 6), 3000);
+    return () => clearInterval(t);
+  }, []);
   const riskLabels = {
     HIGH:     lang === "uk" ? "ВИСОКИЙ" : lang === "ru" ? "ВЫСОКИЙ" : lang === "es" ? "ALTO"    : lang === "de" ? "HOCH"     : "HIGH",
     MEDIUM:   lang === "uk" ? "СЕРЕДНІЙ": lang === "ru" ? "СРЕДНИЙ" : lang === "es" ? "MEDIO"   : lang === "de" ? "MITTEL"   : "MEDIUM",
@@ -1599,7 +1604,7 @@ function LiveActivity() {
           {activities.map((a, i) => (
             <div
               key={i}
-              className="flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-3.5"
+              className={`flex flex-col gap-3 rounded-xl border p-3.5 transition-all duration-500 ${i === newest ? "border-cyan-400/30 bg-[#0E1214] shadow-[0_0_16px_-4px_rgba(34,211,238,0.18)]" : "border-white/[0.07] bg-[#0D0D10]"}`}
               data-testid={`card-live-${i}`}
             >
               <div className="flex items-center justify-between gap-1">
@@ -1640,6 +1645,10 @@ function CTABottom() {
       <div className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="h-[500px] w-[800px] rounded-full bg-cyan-500/[0.07] blur-[140px]" />
+        </div>
+        {/* Animated ring */}
+        <div className="pointer-events-none absolute inset-x-4 inset-y-8 rounded-3xl border border-cyan-400/[0.07] sm:inset-x-10" aria-hidden>
+          <div className="cta-ring-glow absolute inset-0 rounded-3xl" />
         </div>
         <div className="relative mx-auto max-w-2xl text-center">
           {/* Stars row */}
