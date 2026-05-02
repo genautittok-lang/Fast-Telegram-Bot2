@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Lock, Bot, ArrowLeft, Sparkles, CheckCircle, Zap, Globe, AlertTriangle, TrendingUp, KeyRound } from "lucide-react";
+import { OSINT_SOURCES } from "@/data/osintSources";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,7 +158,7 @@ export default function Login() {
             </h2>
             
             <p className="text-lg text-muted-foreground mb-10 max-w-lg">
-              {t("landing.hero.description")}
+              {t("landing.hero.description", { N: String(OSINT_SOURCES.length) })}
             </p>
 
             <div className="space-y-4">

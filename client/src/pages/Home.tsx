@@ -128,7 +128,7 @@ function riskMeta(level: string) {
 }
 
 function stripEmoji(s: string) {
-  return s.replace(/^[^\w\d\sа-яА-ЯёЁїЇіІєЄґҐ]+\s*/u, "").trim();
+  return s.replace(/^[\uD800-\uDFFF\u2600-\u27BF\uFE00-\uFEFF]+\s*/, "").trim();
 }
 
 /* ─────────── TopBar ─────────── */

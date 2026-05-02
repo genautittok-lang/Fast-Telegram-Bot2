@@ -80,12 +80,12 @@ function PricingContent() {
         return;
       }
       toast({
-        title: lang === "uk" ? "Не вдалося створити оплату" : lang === "ru" ? "Не удалось создать оплату" : "Failed to start payment",
-        description: data.error || (lang === "uk" ? "Спробуйте інший спосіб" : lang === "ru" ? "Попробуйте другой способ" : "Try another method"),
+        title: lang === "uk" ? "Не вдалося створити оплату" : lang === "ru" ? "Не удалось создать оплату" : lang === "es" ? "Error al crear el pago" : lang === "de" ? "Zahlung fehlgeschlagen" : "Failed to start payment",
+        description: data.error || (lang === "uk" ? "Спробуйте інший спосіб" : lang === "ru" ? "Попробуйте другой способ" : lang === "es" ? "Intenta otro método" : lang === "de" ? "Versuche eine andere Methode" : "Try another method"),
         variant: "destructive",
       });
     } catch (e: any) {
-      toast({ title: "Network error", description: e?.message || "Try again", variant: "destructive" });
+      toast({ title: lang === "uk" ? "Помилка мережі" : lang === "ru" ? "Ошибка сети" : lang === "es" ? "Error de red" : lang === "de" ? "Netzwerkfehler" : "Network error", description: e?.message || (lang === "uk" ? "Спробуйте ще раз" : lang === "ru" ? "Попробуйте снова" : lang === "es" ? "Inténtalo de nuevo" : lang === "de" ? "Erneut versuchen" : "Try again"), variant: "destructive" });
     } finally {
       setAuditLoading(null);
     }
@@ -231,14 +231,14 @@ function PricingContent() {
       } else {
         toast({
           title: t('common.error'),
-          description: data.error || "Failed to create crypto payment",
+          description: data.error || (lang === "uk" ? "Не вдалося створити крипто-платіж" : lang === "ru" ? "Не удалось создать крипто-платёж" : lang === "es" ? "Error al crear pago crypto" : lang === "de" ? "Krypto-Zahlung fehlgeschlagen" : "Failed to create crypto payment"),
           variant: "destructive",
         });
       }
     } catch {
       toast({
         title: t('common.error'),
-        description: "Failed to connect to payment service",
+        description: lang === "uk" ? "Не вдалося підключитися до платіжного сервісу" : lang === "ru" ? "Не удалось подключиться к платёжному сервису" : lang === "es" ? "No se pudo conectar al servicio de pago" : lang === "de" ? "Verbindung zum Zahlungsdienst fehlgeschlagen" : "Failed to connect to payment service",
         variant: "destructive",
       });
     } finally {
@@ -1305,20 +1305,20 @@ function PricingContent() {
                                 } else if (response.status === 503) {
                                   toast({
                                     title: "Google Pay / Apple Pay",
-                                    description: data.error || "Payment service is being set up. Please try another payment method.",
+                                    description: data.error || (lang === "uk" ? "Сервіс оплати налаштовується. Спробуйте інший метод." : lang === "ru" ? "Сервис оплаты настраивается. Попробуйте другой способ." : lang === "es" ? "El servicio de pago está siendo configurado. Intenta otro método." : lang === "de" ? "Zahlungsdienst wird eingerichtet. Bitte anderen Weg versuchen." : "Payment service is being set up. Please try another payment method."),
                                     variant: "destructive",
                                   });
                                 } else {
                                   toast({
                                     title: t('common.error'),
-                                    description: data.error || "Failed to create payment invoice",
+                                    description: data.error || (lang === "uk" ? "Не вдалося створити рахунок" : lang === "ru" ? "Не удалось создать счёт" : lang === "es" ? "Error al crear factura" : lang === "de" ? "Rechnung konnte nicht erstellt werden" : "Failed to create payment invoice"),
                                     variant: "destructive",
                                   });
                                 }
                               } catch {
                                 toast({
                                   title: t('common.error'),
-                                  description: "Failed to connect to payment service",
+                                  description: lang === "uk" ? "Не вдалося підключитися до платіжного сервісу" : lang === "ru" ? "Не удалось подключиться к платёжному сервису" : lang === "es" ? "No se pudo conectar al servicio de pago" : lang === "de" ? "Verbindung zum Zahlungsdienst fehlgeschlagen" : "Failed to connect to payment service",
                                   variant: "destructive",
                                 });
                               }

@@ -355,7 +355,7 @@ export default function Monitoring() {
   const [faqOpen, setFaqOpen] = useState(false);
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   const { data: watches, isLoading } = useQuery<Watch[]>({
     queryKey: ["/api/watches"],
