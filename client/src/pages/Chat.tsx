@@ -944,15 +944,15 @@ export default function Chat() {
 
   return (
     <PageLayout title="Chat" appMode={isStandalone}>
-      <div className="flex-1 flex flex-col h-full lg:h-auto lg:min-h-screen max-w-full overflow-hidden relative pb-16 lg:pb-0">
+      <div className="flex flex-col max-w-full overflow-hidden relative pb-16 lg:pb-0" style={{ height: "calc(100dvh - 56px)", minHeight: 0 }}>
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(142_71%_45%/0.03)_0%,transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(200_80%_50%/0.02)_0%,transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,hsl(280_70%_50%/0.015)_0%,transparent_40%)]" />
         </div>
 
-        <div className="flex-1 p-3 lg:p-6 overflow-hidden flex flex-col relative z-10">
-          <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 overflow-hidden">
+        <div className="flex-1 p-3 lg:p-6 overflow-hidden flex flex-col relative z-10 min-h-0">
+          <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 overflow-hidden min-h-0">
 
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-3 lg:mb-4">
               <div
@@ -1084,9 +1084,9 @@ export default function Chat() {
             )}
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-              className="flex-1 flex flex-col overflow-hidden"
+              className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <Card className="flex-1 flex flex-col overflow-hidden bg-[#0a0a12]/80 backdrop-blur-xl border-white/[0.06] rounded-md shadow-2xl shadow-black/30">
+              <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-[#0a0a12]/80 backdrop-blur-xl border-white/[0.06] rounded-md shadow-2xl shadow-black/30">
 
                 <div className="px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02] flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">

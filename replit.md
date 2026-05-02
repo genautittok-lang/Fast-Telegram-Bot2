@@ -95,6 +95,13 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **Telegraph API**: For generating instruction pages.
 - **Plausible Analytics**: Privacy-friendly analytics on home page (script in `client/index.html`, CSP allowlists `plausible.io`).
 
+## Mobile UX & Landing Overhaul (v4.6 — May 2026 Session)
+
+### Files changed:
+- **Home.tsx**: Added burger/hamburger mobile menu to TopBar (drawer with backdrop, links + Bot + Sign In). Hero badge now has pulsing live dot + cyan border. Hero title highlight uses gradient `from-cyan-300 to-cyan-400`. Added inline trust-pill row below form (TLS / N+ sources / No signup / 7-day guarantee). WhatWeCheck section redesigned: mobile shows 2-col card grid with icon + title + desc; desktop keeps inline strip.
+- **VpnPage.tsx**: Added burger/hamburger mobile menu to local TopBar (same drawer pattern). Dashboard link hidden on mobile.
+- **Chat.tsx**: Fixed mobile scroll chain — outer wrapper now `height: calc(100dvh - 56px)` with `min-h-0` instead of `h-full lg:min-h-screen`; inner `flex-1 p-3` wrapper and `max-w-5xl` container both get `min-h-0`; Card and motion.div get `min-h-0`. Scroll container `flex-1 overflow-y-auto` now works on all screen sizes.
+
 ## i18n Polish (v4.5 — May 2026 Session)
 
 ### Files changed in this session:
