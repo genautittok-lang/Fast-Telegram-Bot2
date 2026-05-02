@@ -320,7 +320,7 @@ export default function VpnPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white antialiased">
-      <TopBar />
+      <PublicHeader />
       <Hero />
       <PromiseStrip />
       <VpnList />

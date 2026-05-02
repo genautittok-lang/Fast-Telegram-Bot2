@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useTransition, memo } from "react";
 import { Link } from "wouter";
 import {
   Search,
@@ -32,11 +32,10 @@ import {
   Zap,
   Copy,
   TrendingUp,
-  Menu,
-  X,
+  Wifi,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicHeader } from "@/components/PublicHeader";
 import { useTranslation } from "@/lib/i18n";
 import { OSINT_SOURCES, CATEGORY_LABELS, type OsintCategory } from "@/data/osintSources";
 import { SourcesScanGrid, type ScanItem } from "@/components/SourcesScanGrid";
@@ -133,124 +132,6 @@ function stripEmoji(s: string) {
   return s.replace(/^[\uD800-\uDFFF\u2600-\u27BF\uFE00-\uFEFF]+\s*/, "").trim();
 }
 
-/* ─────────── TopBar ─────────── */
-function TopBar() {
-  const { t, lang } = useTranslation();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const navLinks = [
-    { href: "/pricing", label: t('nav.pricing'), testId: "link-pricing" },
-    { href: "/api-docs", label: t('nav.apiDocs'), testId: "link-api" },
-    { href: "/guide", label: t('nav.guide'), testId: "link-guide" },
-    { href: "/vpn", label: t('nav.vpn'), testId: "link-vpn" },
-    { href: "/trust", label: "Trust", testId: "link-trust" },
-  ];
-
-  return (
-    <>
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0A0A0A]/90 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/70">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
-          <Link href="/">
-            <span className="flex cursor-pointer items-center gap-2" data-testid="link-logo">
-              <div className="grid h-7 w-7 place-items-center rounded-md bg-cyan-500/10 ring-1 ring-cyan-400/30">
-                <Shield className="h-3.5 w-3.5 text-cyan-300" />
-              </div>
-              <span className="text-[15px] font-semibold tracking-tight text-white">DarkShare</span>
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-6 text-[13px] text-zinc-400 md:flex">
-            {navLinks.map((l) => (
-              <Link key={l.href} href={l.href}>
-                <span className="cursor-pointer transition-colors hover:text-white" data-testid={l.testId}>{l.label}</span>
-              </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <LanguageSwitcher />
-            <a
-              href="https://t.me/darkshare_bot"
-              target="_blank"
-              rel="noopener"
-              className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-md border border-cyan-400/25 bg-cyan-500/10 px-2.5 text-[12.5px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/15 sm:h-9 sm:px-3 sm:text-[13px]"
-              data-testid="link-telegram-bot"
-              aria-label="Open DarkShare Telegram bot"
-            >
-              <Bot className="h-3.5 w-3.5" />
-              <span>Bot</span>
-            </a>
-            <Link href="/login">
-              <span className="hidden sm:inline-flex cursor-pointer rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[12.5px] font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.06] sm:border-0 sm:bg-transparent sm:px-3 sm:text-[13px] sm:hover:bg-white/5" data-testid="link-login">
-                {t('auth.signIn')}
-              </span>
-            </Link>
-            <Link href="/pricing">
-              <span className="cursor-pointer rounded-md bg-white px-2.5 py-1.5 text-[12.5px] font-medium text-black transition-colors hover:bg-zinc-200 sm:px-3 sm:text-[13px]" data-testid="link-pro">
-                PRO
-              </span>
-            </Link>
-            {/* Burger — mobile only */}
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="ml-1 grid h-9 w-9 place-items-center rounded-md border border-white/10 bg-white/[0.03] text-zinc-300 transition-colors hover:bg-white/[0.07] md:hidden"
-              aria-label="Toggle menu"
-              data-testid="button-mobile-menu"
-            >
-              {menuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile drawer */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMenuOpen(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <nav
-            className="absolute left-0 right-0 top-14 border-b border-white/10 bg-[#0A0A0A] px-5 py-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col gap-0.5">
-              {navLinks.map((l) => (
-                <Link key={l.href} href={l.href}>
-                  <span
-                    className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
-                    onClick={() => setMenuOpen(false)}
-                    data-testid={`mobile-${l.testId}`}
-                  >
-                    {l.label}
-                  </span>
-                </Link>
-              ))}
-              <div className="my-2 h-px bg-white/5" />
-              <a
-                href="https://t.me/darkshare_bot"
-                target="_blank"
-                rel="noopener"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-cyan-300 transition-colors hover:bg-cyan-500/[0.07]"
-                onClick={() => setMenuOpen(false)}
-                data-testid="mobile-link-telegram-bot"
-              >
-                <Bot className="h-4 w-4" />
-                Telegram Bot
-              </a>
-              <Link href="/login">
-                <span
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
-                  onClick={() => setMenuOpen(false)}
-                  data-testid="mobile-link-login"
-                >
-                  {t('auth.signIn')}
-                </span>
-              </Link>
-            </div>
-          </nav>
-        </div>
-      )}
-    </>
-  );
-}
 
 /* ─────────── Hero + Check ─────────── */
 function HeroCheck({ stats }: { stats: SiteStats | null }) {
@@ -258,6 +139,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<QuickCheckResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
   const detected = useMemo(() => detectType(value), [value]);
   const resultRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -308,8 +190,10 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
         setError(t('errors.parseResponse'));
         return;
       }
-      setResult(data as QuickCheckResponse);
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      startTransition(() => {
+        setResult(data as QuickCheckResponse);
+      });
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 120);
     } catch {
       setError(t('errors.networkError'));
     } finally {
@@ -574,7 +458,7 @@ function HeroDemoCard() {
 }
 
 /* ─────────── Result + Paywall ─────────── */
-function ResultCard({ data }: { data: QuickCheckResponse }) {
+const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse }) {
   const meta = riskMeta(data.riskLevel);
   const hidden = data.findingsHidden ?? 4;
   const scanned = data.sourcesScanned || [];
@@ -759,7 +643,7 @@ function ResultCard({ data }: { data: QuickCheckResponse }) {
       </div>
     </div>
   );
-}
+});
 
 /* ─────────── Trusted aggregators strip ─────────── */
 function TrustedAggregators() {
@@ -1517,7 +1401,7 @@ export default function Home() {
           ],
         }}
       />
-      <TopBar />
+      <PublicHeader />
       <HeroCheck stats={stats} />
       <TrustedAggregators />
       <LiveActivity />
