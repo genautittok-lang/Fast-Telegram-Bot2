@@ -1057,29 +1057,40 @@ function FAQ() {
   };
   const items = itemsByLang[lang] ?? itemsByLang.en;
   return (
-    <section className="border-t border-white/5">
+    <section className="border-t border-white/[0.06] bg-[#07070A]">
       <div className="mx-auto max-w-3xl px-5 py-20 sm:py-24">
-        <div className="mb-10">
-          <div className="mb-3 text-[12px] uppercase tracking-[0.18em] text-cyan-300/80">FAQ</div>
+        <div className="mb-12 text-center">
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+            FAQ
+          </div>
           <h2 className="text-[28px] font-semibold tracking-tight text-white sm:text-[34px]">{headline}</h2>
         </div>
-        <div className="divide-y divide-white/5 rounded-xl border border-white/10 bg-[#0E0E12]">
+        <div className="space-y-1">
           {items.map((it, i) => {
             const isOpen = open === i;
             return (
-              <button
+              <div
                 key={i}
-                type="button"
-                onClick={() => setOpen(isOpen ? null : i)}
-                className="block w-full px-5 py-4 text-left transition-colors hover:bg-white/[0.02]"
-                data-testid={`button-faq-${i}`}
+                className={`rounded-xl border transition-colors ${isOpen ? "border-white/[0.12] bg-[#0D0D10]" : "border-white/[0.06] bg-transparent hover:border-white/[0.10]"}`}
               >
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-[14.5px] font-medium text-white">{it.q}</span>
-                  <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                </div>
-                {isOpen && <p className="mt-3 text-[13.5px] leading-relaxed text-zinc-400">{it.a}</p>}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="flex w-full items-center gap-4 px-5 py-4 text-left"
+                  data-testid={`button-faq-${i}`}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/[0.04] text-[11px] font-mono text-zinc-600">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="flex-1 text-[14.5px] font-medium text-white">{it.q}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-zinc-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-cyan-400" : ""}`} />
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 pl-[3.25rem]">
+                    <p className="text-[13.5px] leading-relaxed text-zinc-400">{it.a}</p>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -1091,37 +1102,65 @@ function FAQ() {
 /* ─────────── Compliance / Trust badges ─────────── */
 function ComplianceBadges() {
   const { lang } = useTranslation();
-  const badges = [
-    { label: "GDPR", sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
-    { label: "CCPA", sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
-    { label: "SOC 2 Type II", sub: lang === "uk" ? "В процесі · Q4 ’26" : lang === "ru" ? "В процессе · Q4 ’26" : lang === "es" ? "En progreso · Q4 ’26" : lang === "de" ? "In Arbeit · Q4 ’26" : "In progress · Q4 ’26" },
-    { label: "ISO 27001", sub: lang === "uk" ? "Заплановано · Q1 ’27" : lang === "ru" ? "Запланировано · Q1 ’27" : lang === "es" ? "Planificado · Q1 ’27" : lang === "de" ? "Geplant · Q1 ’27" : "Planned · Q1 ’27" },
-    { label: "PCI DSS", sub: lang === "uk" ? "Через Stripe" : lang === "ru" ? "Через Stripe" : lang === "es" ? "Gestionado por Stripe" : lang === "de" ? "Stripe-verwaltet" : "Stripe-handled" },
-    { label: "RFC 9116", sub: lang === "uk" ? "security.txt опубліковано" : lang === "ru" ? "security.txt опубликован" : lang === "es" ? "security.txt publicado" : lang === "de" ? "security.txt veröffentlicht" : "security.txt published" },
+  type StatusKind = "ready" | "progress" | "planned";
+  const badges: { label: string; sub: string; status: StatusKind }[] = [
+    { label: "GDPR",      status: "ready",    sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
+    { label: "CCPA",      status: "ready",    sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
+    { label: "PCI DSS",   status: "ready",    sub: "Via Stripe" },
+    { label: "RFC 9116",  status: "ready",    sub: "security.txt ✓" },
+    { label: "SOC 2 II",  status: "progress", sub: lang === "uk" ? "В процесі · Q4 ’26" : lang === "ru" ? "В процессе · Q4 ’26" : lang === "es" ? "En progreso · Q4 ’26" : lang === "de" ? "In Arbeit · Q4 ’26" : "In progress · Q4 ’26" },
+    { label: "ISO 27001", status: "planned",  sub: lang === "uk" ? "Заплановано · Q1 ’27" : lang === "ru" ? "Запланировано · Q1 ’27" : lang === "es" ? "Planificado · Q1 ’27" : lang === "de" ? "Geplant · Q1 ’27" : "Planned · Q1 ’27" },
   ];
+  const statusCfg: Record<StatusKind, { dot: string; ring: string; bg: string; tag: string }> = {
+    ready:    { dot: "bg-emerald-400", ring: "ring-emerald-400/25", bg: "bg-emerald-500/[0.08]", tag: lang === "uk" ? "Активний" : lang === "ru" ? "Активен" : lang === "es" ? "Activo" : lang === "de" ? "Aktiv" : "Active" },
+    progress: { dot: "bg-amber-400",   ring: "ring-amber-400/25",   bg: "bg-amber-500/[0.06]",   tag: lang === "uk" ? "В процесі" : lang === "ru" ? "В процессе" : lang === "es" ? "En curso" : lang === "de" ? "Laufend" : "In progress" },
+    planned:  { dot: "bg-zinc-500",    ring: "ring-zinc-500/20",    bg: "bg-zinc-500/[0.05]",    tag: lang === "uk" ? "Заплановано" : lang === "ru" ? "Запланировано" : lang === "es" ? "Planificado" : lang === "de" ? "Geplant" : "Planned" },
+  };
   const sectionBadge = lang === "uk" ? "Відповідність та довіра" : lang === "ru" ? "Соответствие и доверие" : lang === "es" ? "Cumplimiento & confianza" : lang === "de" ? "Compliance & Vertrauen" : "Compliance & trust";
   const headline = lang === "uk" ? "Побудовано за корпоративними стандартами" : lang === "ru" ? "Создано по корпоративным стандартам" : lang === "es" ? "Construido según estándares empresariales" : lang === "de" ? "Gebaut nach Unternehmensstandards" : "Built to enterprise standards";
   const trustCenterLabel = lang === "uk" ? "Центр довіри →" : lang === "ru" ? "Центр доверия →" : lang === "es" ? "Centro de confianza →" : lang === "de" ? "Vertrauenszentrum →" : "Trust Center →";
   return (
-    <section className="border-t border-white/5 bg-[#08080A]">
-      <div className="mx-auto max-w-6xl px-5 py-12">
-        <div className="mb-6 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-end">
+    <section className="border-t border-white/[0.06] bg-[#07070A]">
+      <div className="mx-auto max-w-6xl px-5 py-14">
+        <div className="mb-8 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
           <div>
-            <div className="mb-1 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">{sectionBadge}</div>
-            <h2 className="text-[20px] font-semibold tracking-tight text-white sm:text-[22px]">{headline}</h2>
+            <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+              {sectionBadge}
+            </div>
+            <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">{headline}</h2>
           </div>
           <Link href="/trust">
-            <span className="cursor-pointer text-[12.5px] font-mono text-cyan-300/80 hover:text-cyan-200" data-testid="link-trust-center">
+            <span className="cursor-pointer text-[13px] text-zinc-400 transition-colors hover:text-white" data-testid="link-trust-center">
               {trustCenterLabel}
             </span>
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          {badges.map((b) => (
-            <div key={b.label} className="rounded-lg border border-white/10 bg-[#0E0E12] px-3 py-3" data-testid={`badge-compliance-${b.label.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}>
-              <div className="text-[12.5px] font-semibold text-white">{b.label}</div>
-              <div className="text-[10.5px] text-zinc-500">{b.sub}</div>
-            </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+          {badges.map((b) => {
+            const cfg = statusCfg[b.status];
+            return (
+              <div
+                key={b.label}
+                className="flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-white/[0.14]"
+                data-testid={`badge-compliance-${b.label.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}
+              >
+                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ring-1 ${cfg.ring} ${cfg.bg}`}>
+                  <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+                </div>
+                <div>
+                  <div className="text-[13px] font-semibold text-white">{b.label}</div>
+                  <div className="mt-0.5 text-[10.5px] leading-snug text-zinc-500">{b.sub}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5">
+          {(["ready", "progress", "planned"] as StatusKind[]).map((s) => (
+            <span key={s} className="inline-flex items-center gap-1.5 text-[11px] text-zinc-600">
+              <span className={`h-1.5 w-1.5 rounded-full ${statusCfg[s].dot}`} />
+              {statusCfg[s].tag}
+            </span>
           ))}
         </div>
       </div>
@@ -1141,12 +1180,12 @@ function CommunityCTA() {
     github: lang === "uk" ? "GitHub SDK" : lang === "ru" ? "GitHub SDK" : lang === "es" ? "SDK en GitHub" : lang === "de" ? "GitHub SDKs" : "GitHub SDKs",
   };
   return (
-    <section className="border-t border-white/5 bg-[#08080A]">
+    <section className="border-t border-white/[0.06]">
       <div className="mx-auto max-w-6xl px-5 py-16">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/[0.06] via-[#0E0E12] to-[#0E0E12] p-6 sm:p-10">
+        <div className="rounded-2xl border border-cyan-400/[0.15] bg-gradient-to-br from-cyan-500/[0.07] via-[#0D0D10] to-[#0A0A0D] p-6 shadow-[0_0_60px_-20px_rgba(34,211,238,0.15)] sm:p-10">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
             <div>
-              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">{L.badge}</div>
+              <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-500/[0.06] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300/80">{L.badge}</div>
               <h2 className="text-[24px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">
                 {L.headline}
               </h2>
@@ -1165,14 +1204,32 @@ function CommunityCTA() {
                 </a>
               </div>
             </div>
-            <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/60 p-4 font-mono text-[12px] leading-relaxed text-zinc-300">
-{`# 60-second integration
-curl -H "X-API-Key: $DS_KEY" \\
-  https://www.darkshare.store/api/check \\
-  -d '{"type":"ip","value":"1.1.1.1"}'
-
-# returns risk score, findings, sources`}
-            </pre>
+            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#050507]">
+              <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
+                <div className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+                </div>
+                <span className="font-mono text-[10px] text-zinc-600">darkshare.store/api/check</span>
+              </div>
+              <pre className="overflow-x-auto p-5 font-mono text-[12px] leading-relaxed">
+                <span className="text-zinc-500">{"# 60-second integration\n"}</span>
+                <span className="text-cyan-300">{"curl"}</span>
+                <span className="text-zinc-400">{" -H "}</span>
+                <span className="text-amber-300">{"\"X-API-Key: $DS_KEY\""}</span>
+                <span className="text-zinc-400">{" \\\n  "}</span>
+                <span className="text-emerald-300">{"https://darkshare.store/api/check"}</span>
+                <span className="text-zinc-400">{" \\\n  -d "}</span>
+                <span className="text-amber-300">{"'{\"type\":\"ip\",\"value\":\"1.1.1.1\"}'"}</span>
+                <span className="text-zinc-600">{"\n\n# response: risk_score · findings · sources"}</span>
+              </pre>
+              <div className="flex flex-wrap gap-2 border-t border-white/[0.05] px-5 py-3">
+                {["curl","Python","Node.js","Go"].map(l => (
+                  <span key={l} className="rounded-md border border-white/[0.07] bg-white/[0.03] px-2.5 py-1 font-mono text-[11px] text-zinc-500 hover:border-white/15 hover:text-zinc-300 cursor-pointer transition-colors">{l}</span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1227,28 +1284,36 @@ function SocialProofSection() {
     <section className="border-t border-white/5">
       <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
         <div className="mb-8 text-center">
-          <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{headerBadge}</div>
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">{headerBadge}</div>
           <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">
             {headerTitle}
           </h2>
           <p className="mt-2 text-[13.5px] text-zinc-500">{headerSub}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {testimonials.map((t, i) => (
-            <div key={i} className="rounded-xl border border-white/10 bg-[#0E0E12] p-5" data-testid={`card-testimonial-${i}`}>
-              <div className="flex items-center gap-0.5 mb-3">
+            <div
+              key={i}
+              className="flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6 transition-colors hover:border-white/[0.14]"
+              data-testid={`card-testimonial-${i}`}
+            >
+              <div className="flex items-center gap-0.5">
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  <Star key={j} className="h-3 w-3 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-[13.5px] text-zinc-300 leading-relaxed mb-4">"{t.text}"</p>
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-500/30 to-zinc-700 flex items-center justify-center text-[11px] font-bold text-cyan-300 shrink-0">
+              <p className="flex-1 text-[14px] leading-relaxed text-zinc-300">
+                <span className="mr-0.5 text-[18px] leading-none text-cyan-400/40">“</span>
+                {t.text}
+                <span className="ml-0.5 text-[18px] leading-none text-cyan-400/40">”</span>
+              </p>
+              <div className="flex items-center gap-3 border-t border-white/[0.05] pt-4">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500/40 via-zinc-700 to-zinc-800 text-[11px] font-bold text-cyan-200">
                   {t.avatar}
                 </div>
                 <div>
-                  <div className="text-[13px] font-medium text-white">{t.author}</div>
+                  <div className="text-[13px] font-semibold text-white">{t.author}</div>
                   <div className="text-[11px] text-zinc-500">{t.role}</div>
                 </div>
               </div>
@@ -1256,17 +1321,20 @@ function SocialProofSection() {
           ))}
         </div>
 
-        {/* Live stat counter strip */}
-        <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="mt-6 grid grid-cols-3 gap-2">
           {[
             { icon: Users, value: "2,800+", label: statLabels.users },
             { icon: TrendingUp, value: "47,000+", label: statLabels.scans },
             { icon: Shield, value: "99.9%", label: statLabels.uptime },
           ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className="rounded-xl border border-white/5 bg-[#08080A] px-4 py-4 text-center" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}>
-              <Icon className="mx-auto h-4 w-4 text-cyan-300/70 mb-2" />
-              <div className="text-[20px] font-semibold text-white">{value}</div>
-              <div className="text-[11px] text-zinc-500">{label}</div>
+            <div
+              key={label}
+              className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/[0.06] bg-[#0D0D10] px-3 py-5 text-center"
+              data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}
+            >
+              <Icon className="h-4 w-4 text-cyan-300/50" />
+              <div className="text-[22px] font-bold text-white">{value}</div>
+              <div className="text-[10.5px] text-zinc-600">{label}</div>
             </div>
           ))}
         </div>
