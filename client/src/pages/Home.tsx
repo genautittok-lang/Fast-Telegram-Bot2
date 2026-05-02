@@ -226,6 +226,19 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
         />
       </div>
 
+      {/* Subtle perspective grid */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-72 overflow-hidden opacity-[0.18]" aria-hidden>
+        <div
+          className="absolute inset-x-[-20%] bottom-[-10%] h-[200px]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(34,211,238,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.18) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            transform: "perspective(400px) rotateX(60deg)",
+            maskImage: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 90%)",
+            WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 90%)",
+          }}
+        />
+      </div>
       <div className="relative mx-auto max-w-6xl px-5 pt-10 pb-12 sm:pt-20 sm:pb-20 lg:pt-28">
         <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_minmax(0,440px)] lg:gap-16">
           {/* LEFT — copy + form */}
@@ -666,6 +679,36 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
   );
 });
 
+/* ─────────── Count-up animation component ─────────── */
+function CountUp({ raw, suffix = "" }: { raw: number; suffix?: string }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const done = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || done.current) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || done.current) return;
+      done.current = true;
+      const start = performance.now();
+      const dur = 1400;
+      const tick = (now: number) => {
+        const t = Math.min((now - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - t, 4);
+        setDisplay(Math.round(ease * raw));
+        if (t < 1) requestAnimationFrame(tick);
+        else setDisplay(raw);
+      };
+      requestAnimationFrame(tick);
+      obs.disconnect();
+    }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [raw]);
+  const fmt = display >= 1000 ? display.toLocaleString("en-US") : String(display);
+  return <span ref={ref}>{fmt}{suffix}</span>;
+}
+
 /* ─────────── Trusted aggregators strip ─────────── */
 function TrustedAggregators() {
   const { lang } = useTranslation();
@@ -764,9 +807,12 @@ function WhatWeCheck() {
               <div className={`grid h-9 w-9 place-items-center rounded-lg ring-1 ${color}`}>
                 <Icon className="h-4 w-4" />
               </div>
-              <div>
-                <div className="text-[13px] font-semibold text-white">{title}</div>
-                <div className="mt-0.5 text-[11.5px] leading-snug text-zinc-500">{desc}</div>
+              <div className="flex items-end justify-between gap-2">
+                <div>
+                  <div className="text-[13px] font-semibold text-white">{title}</div>
+                  <div className="mt-0.5 text-[11.5px] leading-snug text-zinc-500">{desc}</div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 translate-x-0 text-zinc-700 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
               </div>
             </div>
           ))}
@@ -1064,31 +1110,33 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
     users:   lang === "uk" ? "Активних користувачів" : lang === "ru" ? "Активных пользователей" : lang === "es" ? "Usuarios activos" : lang === "de" ? "Aktive Nutzer" : "Active users",
     risk:    lang === "uk" ? "AI-оцінка ризику" : lang === "ru" ? "AI-оценка риска" : lang === "es" ? "Puntuación IA" : lang === "de" ? "KI-Risikobewertung" : "AI risk score",
   };
-  const items = [
-    { icon: Database, label: L.sources, value: `${OSINT_SOURCES.length}+` },
-    { icon: Shield,   label: L.leakDB,  value: "14" },
-    { icon: Users,    label: L.users,   value: "2,800+" },
-    { icon: Activity, label: L.today,   value: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—" },
-    { icon: Eye,      label: L.risk,    value: "0–100" },
-    { icon: Zap,      label: L.uptime,  value: "99.9%" },
+  type StatItem = { icon: typeof Database; label: string; raw?: number; suffix?: string; static?: string };
+  const items: StatItem[] = [
+    { icon: Database, label: L.sources, raw: OSINT_SOURCES.length, suffix: "+" },
+    { icon: Shield,   label: L.leakDB,  raw: 14 },
+    { icon: Users,    label: L.users,   raw: 2800, suffix: "+" },
+    { icon: Activity, label: L.today,   static: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—" },
+    { icon: Eye,      label: L.risk,    static: "0–100" },
+    { icon: Zap,      label: L.uptime,  static: "99.9%" },
   ];
   return (
     <section className="border-t border-white/[0.06] bg-[#07070A]">
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
         <div className="grid grid-cols-3 sm:grid-cols-6">
-          {items.map(({ icon: Icon, label, value }, idx) => (
+          {items.map(({ icon: Icon, label, raw, suffix, static: staticVal }, idx) => (
             <div
               key={label}
               className={`group relative flex flex-col items-center gap-2 px-4 py-6 text-center transition-colors ${idx !== 0 ? "border-l border-white/[0.05]" : ""} hover:bg-white/[0.015]`}
             >
-              {/* Cyan accent top bar */}
               <div className="absolute top-0 left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
               <Icon className="h-3.5 w-3.5 text-cyan-300/50" />
               <div
                 className="text-[26px] font-bold leading-none tracking-tight text-white"
                 data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}
               >
-                {value}
+                {raw !== undefined
+                  ? <CountUp raw={raw} suffix={suffix ?? ""} />
+                  : staticVal}
               </div>
               <div className="text-[10px] leading-snug text-zinc-600">{label}</div>
             </div>
@@ -1280,6 +1328,8 @@ function ComplianceBadges() {
 /* ─────────── Community CTA ─────────── */
 function CommunityCTA() {
   const { lang } = useTranslation();
+  type TabKey = "curl" | "python" | "node" | "go";
+  const [tab, setTab] = useState<TabKey>("curl");
   const L = {
     badge: lang === "uk" ? "Відкрита спільнота" : lang === "ru" ? "Открытое сообщество" : lang === "es" ? "Comunidad abierta" : lang === "de" ? "Offene Community" : "Open community",
     headline: lang === "uk" ? "Будуй з нами. SDK, документація, threat-intel дайджест." : lang === "ru" ? "Строй с нами. SDK, документация, threat-intel дайджест." : lang === "es" ? "Construye con nosotros. SDK, docs, digest de inteligencia." : lang === "de" ? "Baue mit uns. SDKs, Docs, Threat-Intel-Digest." : "Build with us. SDKs, docs, threat-intel digest.",
@@ -1314,6 +1364,7 @@ function CommunityCTA() {
               </div>
             </div>
             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#050507]">
+              {/* Window chrome */}
               <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
                 <div className="flex gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
@@ -1322,20 +1373,71 @@ function CommunityCTA() {
                 </div>
                 <span className="font-mono text-[10px] text-zinc-600">darkshare.store/api/check</span>
               </div>
-              <pre className="overflow-x-auto p-5 font-mono text-[12px] leading-relaxed">
-                <span className="text-zinc-500">{"# 60-second integration\n"}</span>
-                <span className="text-cyan-300">{"curl"}</span>
-                <span className="text-zinc-400">{" -H "}</span>
-                <span className="text-amber-300">{"\"X-API-Key: $DS_KEY\""}</span>
-                <span className="text-zinc-400">{" \\\n  "}</span>
-                <span className="text-emerald-300">{"https://darkshare.store/api/check"}</span>
-                <span className="text-zinc-400">{" \\\n  -d "}</span>
-                <span className="text-amber-300">{"'{\"type\":\"ip\",\"value\":\"1.1.1.1\"}'"}</span>
-                <span className="text-zinc-600">{"\n\n# response: risk_score · findings · sources"}</span>
-              </pre>
-              <div className="flex flex-wrap gap-2 border-t border-white/[0.05] px-5 py-3">
-                {["curl","Python","Node.js","Go"].map(l => (
-                  <span key={l} className="rounded-md border border-white/[0.07] bg-white/[0.03] px-2.5 py-1 font-mono text-[11px] text-zinc-500 hover:border-white/15 hover:text-zinc-300 cursor-pointer transition-colors">{l}</span>
+              {/* Syntax-highlighted code per language */}
+              {/* Code snippets per language */}
+              {(() => {
+                const S = {
+                  curl: [
+                    {c:"zn5",t:"# 60-second integration\n"},
+                    {c:"cy3",t:"curl"},{c:"zn4",t:" -H "},{c:"amb",t:'\x22X-API-Key: $DS_KEY\x22'},{c:"zn4",t:" \\\n  "},
+                    {c:"em3",t:"https://darkshare.store/api/check"},{c:"zn4",t:" \\\n  -d "},
+                    {c:"amb",t:"'{\"type\":\"email\",\"value\":\"user@example.com\"}'"},
+                    {c:"zn6",t:"\n\n# \u2192 risk_score \u00b7 findings \u00b7 sources"},
+                  ],
+                  python: [
+                    {c:"pu4",t:"import"},{c:"zn3",t:" requests\n\n"},
+                    {c:"zn4",t:"resp = requests."},{c:"cy3",t:"post"},{c:"zn4",t:"(\n  "},
+                    {c:"amb",t:"\x22https://darkshare.store/api/check\x22"},{c:"zn4",t:",\n  headers={"},
+                    {c:"amb",t:"\x22X-API-Key\x22"},{c:"zn4",t:": DS_KEY},\n  json={"},
+                    {c:"amb",t:"\x22type\x22"},{c:"zn4",t:": "},{c:"amb",t:"\x22email\x22"},{c:"zn4",t:", "},
+                    {c:"amb",t:"\x22value\x22"},{c:"zn4",t:": "},{c:"amb",t:"\x22user@example.com\x22"},{c:"zn4",t:"}\n)\n"},
+                    {c:"zn6",t:"# data = resp.json()  # risk_score, findings"},
+                  ],
+                  node: [
+                    {c:"pu4",t:"const"},{c:"zn3",t:" res = "},{c:"pu4",t:"await"},{c:"cy3",t:" fetch"},
+                    {c:"zn4",t:"("},{c:"amb",t:"\x22https://darkshare.store/api/check\x22"},{c:"zn4",t:", {\n  method: "},
+                    {c:"amb",t:"\x22POST\x22"},{c:"zn4",t:",\n  headers: { "},{c:"amb",t:"\x22X-API-Key\x22"},
+                    {c:"zn4",t:": DS_KEY },\n  body: JSON.stringify({\n    type: "},
+                    {c:"amb",t:"\x22email\x22"},{c:"zn4",t:", value: "},{c:"amb",t:"\x22user@example.com\x22"},
+                    {c:"zn4",t:"\n  })\n});\n"},{c:"zn6",t:"// const data = await res.json();"},
+                  ],
+                  go: [
+                    {c:"zn4",t:"body := strings."},{c:"cy3",t:"NewReader"},{c:"zn4",t:"(`"},
+                    {c:"amb",t:"{\"type\":\"email\",\"value\":\"user@example.com\"}"},{c:"zn4",t:"`\n"},
+                    {c:"zn4",t:"req, _ := http."},{c:"cy3",t:"NewRequest"},
+                    {c:"zn4",t:"("},{c:"amb",t:"\x22POST\x22"},{c:"zn4",t:", url, body)\nreq.Header."},
+                    {c:"cy3",t:"Set"},{c:"zn4",t:"("},{c:"amb",t:"\x22X-API-Key\x22"},{c:"zn4",t:", DS_KEY)\n"},
+                    {c:"zn6",t:"// resp, _ := http.DefaultClient.Do(req)"},
+                  ],
+                } as const;
+                const colorMap: Record<string,string> = {
+                  cy3:"text-cyan-300", amb:"text-amber-300", em3:"text-emerald-300",
+                  pu4:"text-purple-400", zn3:"text-zinc-300", zn4:"text-zinc-400",
+                  zn5:"text-zinc-500", zn6:"text-zinc-600",
+                };
+                return (
+                  <pre className="min-h-[120px] overflow-x-auto p-5 font-mono text-[12px] leading-relaxed">
+                    {S[tab].map((seg, i) => (
+                      <span key={i} className={colorMap[seg.c]}>{seg.t}</span>
+                    ))}
+                  </pre>
+                );
+              })()}
+              {/* Language tabs */}
+              <div className="flex flex-wrap gap-1.5 border-t border-white/[0.05] px-5 py-3">
+                {(["curl","python","node","go"] as TabKey[]).map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setTab(l)}
+                    className={`rounded-md border px-2.5 py-1 font-mono text-[11px] transition-all ${
+                      tab === l
+                        ? "border-cyan-400/40 bg-cyan-500/[0.10] text-cyan-300"
+                        : "border-white/[0.07] bg-white/[0.03] text-zinc-500 hover:border-white/15 hover:text-zinc-300"
+                    }`}
+                  >
+                    {l === "node" ? "Node.js" : l}
+                  </button>
                 ))}
               </div>
             </div>
@@ -1404,18 +1506,17 @@ function SocialProofSection() {
           {testimonials.map((t, i) => (
             <div
               key={i}
-              className="flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6 transition-colors hover:border-white/[0.14]"
+              className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6 transition-all hover:border-white/[0.14] hover:bg-[#111116]"
               data-testid={`card-testimonial-${i}`}
             >
+              <span className="pointer-events-none absolute right-3 top-0 select-none font-serif text-[80px] leading-none text-white/[0.035]" aria-hidden>“</span>
               <div className="flex items-center gap-0.5">
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} className="h-3 w-3 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="flex-1 text-[14px] leading-relaxed text-zinc-300">
-                <span className="mr-0.5 text-[18px] leading-none text-cyan-400/40">“</span>
+              <p className="relative flex-1 text-[14px] leading-relaxed text-zinc-300">
                 {t.text}
-                <span className="ml-0.5 text-[18px] leading-none text-cyan-400/40">”</span>
               </p>
               <div className="flex items-center gap-3 border-t border-white/[0.05] pt-4">
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500/40 via-zinc-700 to-zinc-800 text-[11px] font-bold text-cyan-200">

@@ -126,6 +126,14 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **Hero**: scroll hint text with bouncing chevron for tablet breakpoint when no result shown.
 - **LiveActivity header**: `6 / 24h` count pill next to the section label.
 
+**Batch 5 — animations & interactivity:**
+- **CountUp component**: new `CountUp({ raw, suffix })` component with `IntersectionObserver` + `requestAnimationFrame` easeOutQuart; animates from 0 → target when section scrolls into viewport.
+- **TrustStrip**: items now split into `raw`+`suffix` (animated) vs `static` (plain text); "OSINT sources", "Leak databases", "Active users" all count up on scroll; "0–100", "99.9%", "—" remain static.
+- **CommunityCTA code block**: fully interactive language switcher — `useState<TabKey>` drives rendering of curl/Python/Node.js/Go snippets with per-language syntax highlighting (cyan/amber/emerald/purple color tokens); active tab has cyan-tinted border; tabs are real `<button>` elements.
+- **Hero background**: subtle perspective grid overlay — cyan grid lines at 48px, `rotateX(60deg)`, fade-out mask toward top; `opacity-[0.18]`, pointer-events-none.
+- **WhatWeCheck cards**: arrow icon `ArrowRight` appears on hover with `translate-x-0.5` slide-in and opacity transition.
+- **Testimonial cards**: large decorative `"` watermark (80px serif, 3.5% opacity) in top-right corner; `overflow-hidden`, subtle `hover:bg-[#111116]` tint.
+
 ## Mobile UX & Landing Overhaul (v4.6 — May 2026 Session)
 
 ### Files changed:
