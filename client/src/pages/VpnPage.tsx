@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "wouter";
 import {
   Shield,
@@ -13,11 +13,9 @@ import {
   Apple,
   Download,
   Info,
-  Menu,
-  X,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicHeader } from "@/components/PublicHeader";
 import { OSINT_SOURCES } from "@/data/osintSources";
 
 interface VpnEntry {
@@ -116,88 +114,6 @@ const SIGNUP_LABEL: Record<VpnEntry["signup"], string> = {
   account: "Account required",
 };
 
-function TopBar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/guide", label: "Guide" },
-    { href: "/trust", label: "Trust" },
-  ];
-
-  return (
-    <>
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0A0A0A]/90 backdrop-blur supports-[backdrop-filter]:bg-[#0A0A0A]/70">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/">
-            <span className="inline-flex cursor-pointer items-center gap-2 text-white">
-              <span className="grid h-7 w-7 place-items-center rounded-md border border-cyan-500/20 bg-cyan-500/[0.08]">
-                <Shield className="h-3.5 w-3.5 text-cyan-300" />
-              </span>
-              <span className="text-[15px] font-semibold tracking-tight">DarkShare</span>
-            </span>
-          </Link>
-          <nav className="hidden items-center gap-6 text-[13.5px] text-zinc-300 md:flex">
-            {navLinks.map((l) => (
-              <Link key={l.href} href={l.href}>
-                <span className="cursor-pointer transition-colors hover:text-white">{l.label}</span>
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <Link href="/dashboard">
-              <span className="hidden sm:inline-flex h-8 cursor-pointer items-center rounded-lg border border-white/15 bg-transparent px-3 text-[12.5px] font-medium text-white hover:bg-white/5">
-                Dashboard
-              </span>
-            </Link>
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="grid h-9 w-9 place-items-center rounded-md border border-white/10 bg-white/[0.03] text-zinc-300 transition-colors hover:bg-white/[0.07] md:hidden"
-              aria-label="Toggle menu"
-              data-testid="button-vpn-mobile-menu"
-            >
-              {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {menuOpen && (
-        <div className="fixed inset-0 z-30 md:hidden" onClick={() => setMenuOpen(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <nav
-            className="absolute left-0 right-0 top-14 border-b border-white/10 bg-[#0A0A0A] px-5 py-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex flex-col gap-0.5">
-              {navLinks.map((l) => (
-                <Link key={l.href} href={l.href}>
-                  <span
-                    className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {l.label}
-                  </span>
-                </Link>
-              ))}
-              <div className="my-2 h-px bg-white/5" />
-              <Link href="/dashboard">
-                <span
-                  className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-zinc-300 transition-colors hover:bg-white/[0.05] hover:text-white"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </span>
-              </Link>
-            </div>
-          </nav>
-        </div>
-      )}
-    </>
-  );
-}
 
 function Hero() {
   return (
