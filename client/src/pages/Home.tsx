@@ -95,8 +95,16 @@ function detectType(value: string): CheckType | null {
   return null;
 }
 
-function typeLabel(type: CheckType): string {
-  return { email: "Email", phone: "Телефон", username: "Username", wallet: "Кошелёк", domain: "Домен", ip: "IP" }[type];
+function typeLabel(type: CheckType, lang: string): string {
+  const labels: Record<string, Record<string, string>> = {
+    email:    { uk: "Email",     ru: "Email",     es: "Email",    de: "Email",      en: "Email" },
+    phone:    { uk: "Телефон",   ru: "Телефон",   es: "Teléfono", de: "Telefon",    en: "Phone" },
+    username: { uk: "Username",  ru: "Username",  es: "Usuario",  de: "Nutzername", en: "Username" },
+    wallet:   { uk: "Гаманець",  ru: "Кошелёк",  es: "Cartera",  de: "Wallet",     en: "Wallet" },
+    domain:   { uk: "Домен",     ru: "Домен",     es: "Dominio",  de: "Domain",     en: "Domain" },
+    ip:       { uk: "IP",        ru: "IP",        es: "IP",       de: "IP",         en: "IP" },
+  };
+  return labels[type]?.[lang] ?? labels[type]?.en ?? type;
 }
 
 function typeIcon(type: CheckType, cls = "h-4 w-4") {
@@ -185,7 +193,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   const resultRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLg, setIsLg] = useState(false);
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -311,24 +319,24 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                   className="absolute right-1.5 top-1.5 inline-flex h-11 items-center gap-1.5 rounded-lg bg-cyan-400 px-3.5 text-[13.5px] font-semibold text-black shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)] transition-all hover:bg-cyan-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:px-4"
                   data-testid="button-check"
                 >
-                  {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Scanning</> : <>Scan <ArrowRight className="h-4 w-4" /></>}
+                  {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> {lang === "uk" ? "Сканую" : lang === "ru" ? "Сканирую" : lang === "es" ? "Escaneando" : lang === "de" ? "Scanne" : "Scanning"}</> : <>{lang === "uk" ? "Сканувати" : lang === "ru" ? "Сканировать" : lang === "es" ? "Escanear" : lang === "de" ? "Scannen" : "Scan"} <ArrowRight className="h-4 w-4" /></>}
                 </button>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-zinc-500">
                 {detected ? (
                   <span className="inline-flex items-center gap-1.5 text-cyan-300/90" data-testid="text-detected">
-                    {typeIcon(detected, "h-3 w-3")} detected: {typeLabel(detected)}
+                    {typeIcon(detected, "h-3 w-3")} detected: {typeLabel(detected, lang)}
                   </span>
                 ) : (
-                  <span>3 anonymous scans / day · no signup</span>
+                  <span>{lang === "uk" ? "3 анонімних сканування / день · без реєстрації" : lang === "ru" ? "3 анонимных сканирования / день · без регистрации" : lang === "es" ? "3 escaneos anónimos / día · sin registro" : lang === "de" ? "3 anonyme Scans / Tag · ohne Anmeldung" : "3 anonymous scans / day · no signup"}</span>
                 )}
                 <span className="text-zinc-700">·</span>
-                <span>TLS encrypted · zero query logs</span>
+                <span>{lang === "uk" ? "TLS шифрування · нуль логів запитів" : lang === "ru" ? "TLS шифрование · ноль логов запросов" : lang === "es" ? "Cifrado TLS · cero registros de consultas" : lang === "de" ? "TLS-Verschlüsselung · keine Protokollierung" : "TLS encrypted · zero query logs"}</span>
                 {stats && stats.checksToday > 0 ? (
                   <>
                     <span className="text-zinc-700">·</span>
-                    <span data-testid="text-stats-today">{stats.checksToday.toLocaleString("en-US")} scans today</span>
+                    <span data-testid="text-stats-today">{stats.checksToday.toLocaleString("en-US")} {lang === "uk" ? "сканувань сьогодні" : lang === "ru" ? "сканирований сегодня" : lang === "es" ? "escaneos hoy" : lang === "de" ? "Scans heute" : "scans today"}</span>
                   </>
                 ) : null}
               </div>
@@ -368,6 +376,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
 
 /* ─────────── Hero static product mockup ─────────── */
 function HeroDemoCard() {
+  const { lang } = useTranslation();
   return (
     <div className="relative">
       <div
@@ -397,7 +406,9 @@ function HeroDemoCard() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10.5px] font-medium tracking-wider text-rose-300">HIGH RISK</div>
+            <div className="text-[10.5px] font-medium tracking-wider text-rose-300">
+              {lang === "uk" ? "ВИСОКИЙ РИЗИК" : lang === "ru" ? "ВЫСОКИЙ РИСК" : lang === "es" ? "RIESGO ALTO" : lang === "de" ? "HOHES RISIKO" : "HIGH RISK"}
+            </div>
             <div className="text-[22px] font-semibold leading-none text-white">
               78<span className="text-[12px] text-zinc-500">/100</span>
             </div>
@@ -410,13 +421,15 @@ function HeroDemoCard() {
             <div className="h-full w-[78%] rounded-full bg-gradient-to-r from-amber-400 to-rose-400" />
           </div>
           <p className="mt-4 text-[13px] text-zinc-300">
-            Found in 4 confirmed leaks since 2019. Email is publicly indexed across 6 sites.
+            {lang === "uk" ? "Знайдено в 4 підтверджених зливах з 2019 р. Email публічно індексується на 6 сайтах." : lang === "ru" ? "Найдено в 4 подтверждённых утечках с 2019 г. Email публично индексируется на 6 сайтах." : lang === "es" ? "Encontrado en 4 filtraciones confirmadas desde 2019. Email indexado públicamente en 6 sitios." : lang === "de" ? "In 4 bestätigten Leaks seit 2019 gefunden. E-Mail ist auf 6 Seiten öffentlich indiziert." : "Found in 4 confirmed leaks since 2019. Email is publicly indexed across 6 sites."}
           </p>
         </div>
 
         {/* Findings */}
         <div className="px-5 pb-5 pt-4">
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">Findings</div>
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-zinc-500">
+            {lang === "uk" ? "Знахідки" : lang === "ru" ? "Находки" : lang === "es" ? "Hallazgos" : lang === "de" ? "Funde" : "Findings"}
+          </div>
           <ul className="space-y-2 text-[13px]">
             <li className="flex items-start gap-2">
               <span className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-rose-400" />
@@ -441,7 +454,7 @@ function HeroDemoCard() {
         <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
           <div className="mb-2 flex items-center justify-between text-[10.5px] uppercase tracking-wider text-zinc-500">
             <span>Sources scanned</span>
-            <span>73 applicable · {OSINT_SOURCES.length} total</span>
+            <span>73 applicable · {OSINT_SOURCES.length}</span>
           </div>
           <div className="flex flex-wrap gap-[5px]">
             {Array.from({ length: 73 }).map((_, i) => {
@@ -458,16 +471,17 @@ function HeroDemoCard() {
             })}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] text-zinc-500">
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-rose-400" /> hits 4</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-amber-400" /> warnings 8</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-emerald-400" /> clean 26</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-zinc-600" /> no data 35</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-rose-400" /> {lang === "uk" ? "збіги" : lang === "ru" ? "совпадения" : lang === "es" ? "coincidencias" : lang === "de" ? "Treffer" : "hits"} 4</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-amber-400" /> {lang === "uk" ? "попередження" : lang === "ru" ? "предупреждения" : lang === "es" ? "advertencias" : lang === "de" ? "Warnungen" : "warnings"} 8</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-emerald-400" /> {lang === "uk" ? "чисто" : lang === "ru" ? "чисто" : lang === "es" ? "limpio" : lang === "de" ? "sauber" : "clean"} 26</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-sm bg-zinc-600" /> {lang === "uk" ? "без даних" : lang === "ru" ? "нет данных" : lang === "es" ? "sin datos" : lang === "de" ? "keine Daten" : "no data"} 35</span>
           </div>
         </div>
       </div>
 
       <div className="mt-3 flex items-center justify-end gap-1.5 text-[10.5px] text-zinc-600">
-        <Sparkles className="h-3 w-3" /> Sample report · run yours above
+        <Sparkles className="h-3 w-3" />
+        {lang === "uk" ? "Зразок звіту · запусти свій вище" : lang === "ru" ? "Образец отчёта · запусти свой выше" : lang === "es" ? "Informe de muestra · ejecuta el tuyo arriba" : lang === "de" ? "Beispielbericht · starte deinen oben" : "Sample report · run yours above"}
       </div>
     </div>
   );
@@ -906,8 +920,8 @@ function PricingTeaser() {
           const plans = [
             { name: "Single", price: "$3", note: perReport, href: "/pricing?single=1", testId: "link-price-single" },
             { name: "PRO", price: "$9", note: perMonth, href: "/pricing?plan=PRO&code=DARKNEU", testId: "link-price-pro", hot: true },
-            { name: "ENTERPRISE", price: "$30", note: perMonth, href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
-            { name: "GROUPS", price: "$45", note: perMonth, href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
+            { name: "ENTERPRISE", price: "$29", note: perMonth, href: "/pricing?plan=ENTERPRISE", testId: "link-price-enterprise" },
+            { name: "GROUPS", price: "$49", note: perMonth, href: "/pricing?plan=GROUPS", testId: "link-price-groups" },
           ];
           return (
             <div className="relative">
@@ -1111,31 +1125,37 @@ function ComplianceBadges() {
 
 /* ─────────── Community CTA ─────────── */
 function CommunityCTA() {
+  const { lang } = useTranslation();
+  const L = {
+    badge: lang === "uk" ? "Відкрита спільнота" : lang === "ru" ? "Открытое сообщество" : lang === "es" ? "Comunidad abierta" : lang === "de" ? "Offene Community" : "Open community",
+    headline: lang === "uk" ? "Будуй з нами. SDK, документація, threat-intel дайджест." : lang === "ru" ? "Строй с нами. SDK, документация, threat-intel дайджест." : lang === "es" ? "Construye con nosotros. SDK, docs, digest de inteligencia." : lang === "de" ? "Baue mit uns. SDKs, Docs, Threat-Intel-Digest." : "Build with us. SDKs, docs, threat-intel digest.",
+    desc: lang === "uk" ? "REST API з прикладами для curl, Python, Node, Go. Telegram-канал з щоденними IoC, GitHub для SDK-контрибуцій." : lang === "ru" ? "REST API с примерами для curl, Python, Node, Go. Telegram-канал с ежедневными IoC, GitHub для SDK-контрибуций." : lang === "es" ? "API REST con ejemplos para curl, Python, Node, Go. Canal de Telegram con IoCs diarios y SDK en GitHub." : lang === "de" ? "REST API mit Beispielen für curl, Python, Node, Go. Telegram-Kanal mit täglichen IoCs, GitHub für SDK-Beiträge." : "REST API with examples for curl, Python, Node, Go. Open Telegram channel with daily IoCs, GitHub for SDK contributions.",
+    explore: lang === "uk" ? "Дослідити спільноту" : lang === "ru" ? "Исследовать сообщество" : lang === "es" ? "Explorar comunidad" : lang === "de" ? "Community erkunden" : "Explore community",
+    telegram: lang === "uk" ? "Telegram-канал" : lang === "ru" ? "Telegram-канал" : lang === "es" ? "Canal de Telegram" : lang === "de" ? "Telegram-Kanal" : "Telegram channel",
+    github: lang === "uk" ? "GitHub SDK" : lang === "ru" ? "GitHub SDK" : lang === "es" ? "SDK en GitHub" : lang === "de" ? "GitHub SDKs" : "GitHub SDKs",
+  };
   return (
     <section className="border-t border-white/5 bg-[#08080A]">
       <div className="mx-auto max-w-6xl px-5 py-16">
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/[0.06] via-[#0E0E12] to-[#0E0E12] p-6 sm:p-10">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
             <div>
-              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">Open community</div>
+              <div className="mb-2 text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">{L.badge}</div>
               <h2 className="text-[24px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">
-                Build with us. SDKs, docs, threat-intel digest.
+                {L.headline}
               </h2>
-              <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-zinc-400">
-                REST API with examples for curl, Python, Node, Go. Open Telegram channel with daily IoCs,
-                Discord for ops chatter, GitHub for SDK contributions.
-              </p>
+              <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-zinc-400">{L.desc}</p>
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <Link href="/community">
                   <span className="inline-flex h-10 cursor-pointer items-center rounded-lg bg-white px-4 text-[13px] font-medium text-black hover:bg-zinc-200" data-testid="link-community-explore">
-                    Explore community
+                    {L.explore}
                   </span>
                 </Link>
                 <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/15 px-4 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-community-telegram">
-                  Telegram channel
+                  {L.telegram}
                 </a>
                 <a href="https://github.com/darkshare" target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-lg border border-white/15 px-4 text-[13px] font-medium text-white hover:bg-white/5" data-testid="link-community-github">
-                  GitHub SDKs
+                  {L.github}
                 </a>
               </div>
             </div>
@@ -1156,46 +1176,56 @@ curl -H "X-API-Key: $DS_KEY" \\
 
 /* ─────────── Social proof ─────────── */
 function SocialProofSection() {
+  const { lang } = useTranslation();
   const testimonials = [
     {
       text: "Found my email in 3 databases I never knew about. Changed all passwords immediately. Worth every penny.",
       author: "Alex M.",
-      role: "Security Researcher",
+      role: lang === "uk" ? "Дослідник безпеки" : lang === "ru" ? "Исследователь безопасности" : lang === "es" ? "Investigador de seguridad" : lang === "de" ? "Sicherheitsforscher" : "Security Researcher",
       avatar: "AM",
       rating: 5,
     },
     {
       text: "The domain OSINT module is incredible — found subdomains and SSL issues our pentest completely missed.",
       author: "Sarah K.",
-      role: "DevSecOps Engineer",
+      role: lang === "uk" ? "DevSecOps Інженер" : lang === "ru" ? "DevSecOps-инженер" : lang === "es" ? "Ingeniera DevSecOps" : lang === "de" ? "DevSecOps-Ingenieur" : "DevSecOps Engineer",
       avatar: "SK",
       rating: 5,
     },
     {
       text: "Discovered my Telegram API token was exposed in a public forum. Fixed it in minutes. Potentially saved my bot.",
       author: "Denis T.",
-      role: "Bot Developer",
+      role: lang === "uk" ? "Розробник ботів" : lang === "ru" ? "Разработчик ботов" : lang === "es" ? "Desarrollador de bots" : lang === "de" ? "Bot-Entwickler" : "Bot Developer",
       avatar: "DT",
       rating: 5,
     },
     {
       text: "Used it to vet a vendor's IP before signing a contract. Found it linked to fraud networks. Saved us $40k.",
       author: "Maria V.",
-      role: "Financial Analyst",
+      role: lang === "uk" ? "Фінансовий аналітик" : lang === "ru" ? "Финансовый аналитик" : lang === "es" ? "Analista financiera" : lang === "de" ? "Finanzanalystin" : "Financial Analyst",
       avatar: "MV",
       rating: 5,
     },
   ];
 
+  const headerBadge = lang === "uk" ? "Довіряють професіонали" : lang === "ru" ? "Доверяют профессионалы" : lang === "es" ? "De confianza para profesionales" : lang === "de" ? "Von Profis vertraut" : "Trusted by professionals";
+  const headerTitle = lang === "uk" ? "2 800+ дослідників безпеки, аналітиків і розробників" : lang === "ru" ? "2 800+ исследователей безопасности, аналитиков и разработчиков" : lang === "es" ? "Más de 2.800 investigadores de seguridad, analistas y desarrolladores" : lang === "de" ? "2.800+ Sicherheitsforscher, Analysten & Entwickler" : "2,800+ security researchers, analysts & developers";
+  const headerSub = lang === "uk" ? "Реальні користувачі. Реальні результати." : lang === "ru" ? "Реальные пользователи. Реальные результаты." : lang === "es" ? "Usuarios reales. Resultados reales." : lang === "de" ? "Echte Nutzer. Echte Ergebnisse." : "Real users. Real results.";
+  const statLabels = {
+    users: lang === "uk" ? "Активних користувачів" : lang === "ru" ? "Активных пользователей" : lang === "es" ? "Usuarios activos" : lang === "de" ? "Aktive Nutzer" : "Active users",
+    scans: lang === "uk" ? "Сканувань виконано" : lang === "ru" ? "Сканирований выполнено" : lang === "es" ? "Escaneos realizados" : lang === "de" ? "Scans durchgeführt" : "Scans run",
+    uptime: lang === "uk" ? "Доступність" : lang === "ru" ? "Время работы" : lang === "es" ? "Tiempo activo" : lang === "de" ? "Verfügbarkeit" : "Uptime",
+  };
+
   return (
     <section className="border-t border-white/5">
       <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
         <div className="mb-8 text-center">
-          <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">Trusted by professionals</div>
+          <div className="mb-2 text-[11px] uppercase tracking-[0.2em] text-cyan-300/80">{headerBadge}</div>
           <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">
-            2,800+ security researchers, analysts & developers
+            {headerTitle}
           </h2>
-          <p className="mt-2 text-[13.5px] text-zinc-500">Real users. Real results.</p>
+          <p className="mt-2 text-[13.5px] text-zinc-500">{headerSub}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1223,9 +1253,9 @@ function SocialProofSection() {
         {/* Live stat counter strip */}
         <div className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
           {[
-            { icon: Users, value: "2,800+", label: "Active users" },
-            { icon: TrendingUp, value: "47,000+", label: "Scans run" },
-            { icon: Shield, value: "99.9%", label: "Uptime" },
+            { icon: Users, value: "2,800+", label: statLabels.users },
+            { icon: TrendingUp, value: "47,000+", label: statLabels.scans },
+            { icon: Shield, value: "99.9%", label: statLabels.uptime },
           ].map(({ icon: Icon, value, label }) => (
             <div key={label} className="rounded-xl border border-white/5 bg-[#08080A] px-4 py-4 text-center" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}>
               <Icon className="mx-auto h-4 w-4 text-cyan-300/70 mb-2" />
@@ -1241,14 +1271,23 @@ function SocialProofSection() {
 
 /* ─────────── Live activity ticker ─────────── */
 function LiveActivity() {
+  const { lang } = useTranslation();
+  const riskLabels = {
+    HIGH: lang === "uk" ? "ВИСОК. РИЗИК" : lang === "ru" ? "ВЫСОК. РИСК" : lang === "es" ? "RIESGO ALTO" : lang === "de" ? "HOHES RISIKO" : "HIGH RISK",
+    MEDIUM: lang === "uk" ? "СЕРЕДНІЙ" : lang === "ru" ? "СРЕДНИЙ" : lang === "es" ? "MEDIO" : lang === "de" ? "MITTEL" : "MEDIUM",
+    LOW: lang === "uk" ? "НИЗЬКИЙ" : lang === "ru" ? "НИЗКИЙ" : lang === "es" ? "BAJO" : lang === "de" ? "NIEDRIG" : "LOW",
+    CRITICAL: lang === "uk" ? "КРИТИЧНИЙ" : lang === "ru" ? "КРИТИЧНЫЙ" : lang === "es" ? "CRÍTICO" : lang === "de" ? "KRITISCH" : "CRITICAL",
+  };
   const activities = [
-    { type: "email", target: "j***n@gmail.com", result: "HIGH RISK", score: 74, color: "rose" },
-    { type: "ip", target: "91.108.4.***", result: "MEDIUM", score: 45, color: "amber" },
-    { type: "wallet", target: "0x742d...c4aB", result: "LOW", score: 12, color: "emerald" },
-    { type: "domain", target: "fake-shop.net", result: "CRITICAL", score: 89, color: "rose" },
-    { type: "phone", target: "+38067***4521", result: "HIGH RISK", score: 67, color: "rose" },
+    { type: "email", target: "j***n@gmail.com", result: riskLabels.HIGH, score: 74, color: "rose" },
+    { type: "ip", target: "91.108.4.***", result: riskLabels.MEDIUM, score: 45, color: "amber" },
+    { type: "wallet", target: "0x742d...c4aB", result: riskLabels.LOW, score: 12, color: "emerald" },
+    { type: "domain", target: "fake-shop.net", result: riskLabels.CRITICAL, score: 89, color: "rose" },
+    { type: "phone", target: "+38067***4521", result: riskLabels.HIGH, score: 67, color: "rose" },
   ];
-  const agoLabels = ["2 min ago", "5 min ago", "8 min ago", "11 min ago", "14 min ago"];
+  const agoUnit = lang === "uk" ? "хв тому" : lang === "ru" ? "мин назад" : lang === "es" ? "min atrás" : lang === "de" ? "Vor Min." : "min ago";
+  const agoLabels = [2, 5, 8, 11, 14].map(n => `${n} ${agoUnit}`);
+  const liveLabel = lang === "uk" ? "Поточні сканування" : lang === "ru" ? "Текущие сканирования" : lang === "es" ? "Escaneos en vivo" : lang === "de" ? "Live-Scans" : "Live scans";
 
   return (
     <section className="border-t border-white/5 bg-[#08080A]">
@@ -1259,7 +1298,7 @@ function LiveActivity() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">Live scans</span>
+            <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-500">{liveLabel}</span>
           </div>
           <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/20 to-transparent" />
         </div>
@@ -1310,7 +1349,7 @@ function CTABottom() {
           </Link>
         </div>
         <p className="mt-5 text-[12px] text-cyan-400/70">
-          Code <span className="font-mono font-bold">DARKNEU</span> → −50% off your first PRO month
+          {lang === "uk" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на перший місяць PRO</> : lang === "ru" ? <>Код <span className="font-mono font-bold">DARKNEU</span> → −50% на первый месяц PRO</> : lang === "es" ? <>Código <span className="font-mono font-bold">DARKNEU</span> → −50% en tu primer mes PRO</> : lang === "de" ? <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% auf den ersten PRO-Monat</> : <>Code <span className="font-mono font-bold">DARKNEU</span> → −50% off your first PRO month</>}
         </p>
       </div>
     </section>
@@ -1362,7 +1401,7 @@ export default function Home() {
               name: "Is there a free tier?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Yes. The FREE tier lets you run quick checks daily. PRO ($9/mo) unlocks unlimited scans, monitoring, PDF exports and the API. ENTERPRISE ($30/mo) and GROUPS ($45/mo) add bulk checks and team features.",
+                text: "Yes. The FREE tier lets you run quick checks daily. PRO ($9/mo) unlocks unlimited scans, monitoring, PDF exports and the API. ENTERPRISE ($29/mo) and GROUPS ($49/mo) add bulk checks and team features.",
               },
             },
             {
@@ -1387,9 +1426,11 @@ export default function Home() {
       <TopBar />
       <HeroCheck stats={stats} />
       <TrustedAggregators />
+      <LiveActivity />
       <WhatWeCheck />
       <HowItWorks />
       <Sources />
+      <SocialProofSection />
       <TrustStrip stats={stats} />
       <ComplianceBadges />
       <PricingTeaser />

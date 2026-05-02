@@ -211,15 +211,15 @@ export function pickSourcesForType(
   return Array.from(new Set(picks));
 }
 
-export const CATEGORY_LABELS: Record<OsintCategory, { ru: string; en: string }> = {
-  leaks: { ru: "Базы утечек", en: "Breach databases" },
-  email: { ru: "Email-разведка", en: "Email intelligence" },
-  phone: { ru: "Телефоны", en: "Phone lookup" },
-  ip: { ru: "IP-репутация", en: "IP reputation" },
-  domain: { ru: "Домены и URL", en: "Domain & URL" },
-  wallet: { ru: "Крипто-кошельки", en: "Crypto wallets" },
-  username: { ru: "Юзернеймы", en: "Username search" },
-  threat: { ru: "Threat intelligence", en: "Threat intelligence" },
-  darkweb: { ru: "Dark web", en: "Dark web" },
-  social: { ru: "Социальные сети", en: "Social networks" },
+export const CATEGORY_LABELS: Record<OsintCategory, { ru: string; en: string; uk: string; es: string; de: string }> = {
+  leaks:    { ru: "Базы утечек",        en: "Breach databases",    uk: "Бази витоків",        es: "Bases de filtraciones", de: "Leak-Datenbanken" },
+  email:    { ru: "Email-разведка",     en: "Email intelligence",  uk: "Email-розвідка",      es: "Inteligencia de email", de: "E-Mail-Analyse" },
+  phone:    { ru: "Телефоны",           en: "Phone lookup",        uk: "Телефони",            es: "Búsqueda telefónica",   de: "Telefonsuche" },
+  ip:       { ru: "IP-репутация",       en: "IP reputation",       uk: "IP-репутація",        es: "Reputación IP",         de: "IP-Reputation" },
+  domain:   { ru: "Домены и URL",       en: "Domain & URL",        uk: "Домени та URL",       es: "Dominio & URL",         de: "Domain & URL" },
+  wallet:   { ru: "Крипто-кошельки",   en: "Crypto wallets",      uk: "Криптогаманці",       es: "Carteras cripto",       de: "Krypto-Wallets" },
+  username: { ru: "Юзернеймы",         en: "Username search",     uk: "Юзернейми",           es: "Búsqueda de usuario",   de: "Nutzersuche" },
+  threat:   { ru: "Threat intelligence", en: "Threat intelligence", uk: "Аналіз загроз",      es: "Inteligencia de amenazas", de: "Bedrohungsanalyse" },
+  darkweb:  { ru: "Dark web",           en: "Dark web",            uk: "Дарквеб",             es: "Dark web",              de: "Dark Web" },
+  social:   { ru: "Социальные сети",   en: "Social networks",     uk: "Соціальні мережі",    es: "Redes sociales",        de: "Soziale Netzwerke" },
 };

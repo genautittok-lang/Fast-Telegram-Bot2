@@ -246,7 +246,7 @@ export default function Referral() {
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[12px] text-zinc-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Referral · +5 checks per friend · top get free PRO
+                {lang === "uk" ? "Рефералка · +5 перевірок за друга · топ отримує PRO безплатно" : lang === "ru" ? "Рефералка · +5 проверок за друга · топ получает PRO бесплатно" : lang === "es" ? "Referidos · +5 verificaciones por amigo · el top obtiene PRO gratis" : lang === "de" ? "Empfehlungen · +5 Prüfungen pro Freund · Top bekommt PRO gratis" : "Referral · +5 checks per friend · top get free PRO"}
               </div>
               <h1 className="text-balance text-[28px] sm:text-[40px] lg:text-[44px] font-semibold leading-[1.05] tracking-tight text-white" data-testid="text-referral-title">
                 {t('referral.title')}<br />
