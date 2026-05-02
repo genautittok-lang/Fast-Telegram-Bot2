@@ -306,14 +306,15 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
 
             {/* Inline trust pills */}
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              {[
-                lang === "uk" ? "✓ TLS шифрування" : lang === "ru" ? "✓ TLS шифрование" : lang === "es" ? "✓ TLS cifrado" : lang === "de" ? "✓ TLS-Verschlüsselung" : "✓ TLS encrypted",
-                lang === "uk" ? `✓ ${OSINT_SOURCES.length}+ джерел` : lang === "ru" ? `✓ ${OSINT_SOURCES.length}+ источников` : lang === "es" ? `✓ ${OSINT_SOURCES.length}+ fuentes` : lang === "de" ? `✓ ${OSINT_SOURCES.length}+ Quellen` : `✓ ${OSINT_SOURCES.length}+ sources`,
-                lang === "uk" ? "✓ Без реєстрації" : lang === "ru" ? "✓ Без регистрации" : lang === "es" ? "✓ Sin registro" : lang === "de" ? "✓ Ohne Anmeldung" : "✓ No signup",
-                lang === "uk" ? "✓ 7-дн. гарантія PRO" : lang === "ru" ? "✓ 7-дн. гарантия PRO" : lang === "es" ? "✓ 7 días garantía" : lang === "de" ? "✓ 7-Tage-Garantie" : "✓ 7-day guarantee",
-              ].map((pill) => (
-                <span key={pill} className="inline-flex items-center rounded-full border border-white/8 bg-white/[0.04] px-2.5 py-1 text-[11px] text-zinc-400">
-                  {pill}
+              {([
+                { icon: Lock,      label: lang === "uk" ? "TLS шифрування" : lang === "ru" ? "TLS шифрование" : lang === "es" ? "TLS cifrado" : lang === "de" ? "TLS-Verschlüsselung" : "TLS encrypted" },
+                { icon: Database,  label: lang === "uk" ? `${OSINT_SOURCES.length}+ джерел` : lang === "ru" ? `${OSINT_SOURCES.length}+ источников` : lang === "es" ? `${OSINT_SOURCES.length}+ fuentes` : lang === "de" ? `${OSINT_SOURCES.length}+ Quellen` : `${OSINT_SOURCES.length}+ sources` },
+                { icon: Eye,       label: lang === "uk" ? "Без реєстрації" : lang === "ru" ? "Без регистрации" : lang === "es" ? "Sin registro" : lang === "de" ? "Ohne Anmeldung" : "No signup" },
+                { icon: Shield,    label: lang === "uk" ? "7-дн. гарантія" : lang === "ru" ? "7 дней гарантия" : lang === "es" ? "7 días garantía" : lang === "de" ? "7-Tage-Garantie" : "7-day guarantee" },
+              ] as { icon: typeof Lock; label: string }[]).map(({ icon: Icon, label }) => (
+                <span key={label} className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1 text-[11px] text-zinc-400 transition-colors hover:border-white/[0.14] hover:text-zinc-200">
+                  <Icon className="h-2.5 w-2.5 text-zinc-600" />
+                  {label}
                 </span>
               ))}
             </div>
@@ -322,6 +323,16 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
             {!isLg && result && (
               <div ref={resultRef} className="mt-10">
                 <ResultCard data={result} />
+              </div>
+            )}
+
+            {/* Scroll hint */}
+            {!result && (
+              <div className="mt-10 hidden items-center gap-2 sm:flex lg:hidden">
+                <ChevronDown className="h-3.5 w-3.5 animate-bounce text-zinc-700" />
+                <span className="text-[11px] text-zinc-700">
+                  {lang === "uk" ? "Прокрутіть, щоб дізнатись більше" : lang === "ru" ? "Прокрутите вниз" : lang === "es" ? "Desplázate para más" : lang === "de" ? "Scrollen für mehr" : "Scroll to learn more"}
+                </span>
               </div>
             )}
           </div>
@@ -355,12 +366,21 @@ function HeroDemoCard() {
       />
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
         {/* Window chrome */}
-        <div className="flex items-center gap-1.5 border-b border-white/5 px-4 py-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-          <span className="ml-3 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.02] px-2 py-0.5 text-[10.5px] font-mono text-zinc-500">
-            <Lock className="h-3 w-3" /> darkshare.io / scan
+        <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+            <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+            <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
+            <span className="ml-2 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.02] px-2 py-0.5 text-[10.5px] font-mono text-zinc-500">
+              <Lock className="h-3 w-3" /> darkshare.io / scan
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-emerald-400">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            </span>
+            LIVE
           </span>
         </div>
 
@@ -586,7 +606,8 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Link href={`/pricing?single=1&t=${encodeURIComponent(data.target)}&type=${data.type}`} className="flex-1 sm:flex-none">
-                    <span className="flex h-9 w-full cursor-pointer items-center justify-center rounded-lg bg-white px-3.5 text-[12.5px] font-semibold text-black hover:bg-zinc-200 transition-colors" data-testid="link-buy-single">
+                    <span className="relative flex h-9 w-full cursor-pointer items-center justify-center rounded-lg bg-white px-3.5 text-[12.5px] font-semibold text-black hover:bg-zinc-200 transition-colors" data-testid="link-buy-single">
+                      <span className="absolute -inset-[3px] rounded-[10px] bg-white/20 animate-ping opacity-40 pointer-events-none" />
                       {L.singleReport}
                     </span>
                   </Link>
@@ -648,30 +669,54 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
 /* ─────────── Trusted aggregators strip ─────────── */
 function TrustedAggregators() {
   const { lang } = useTranslation();
-  const sources = [
-    "HIBP", "Shodan", "VirusTotal", "AbuseIPDB", "GreyNoise",
-    "Censys", "MaxMind", "URLhaus", "Etherscan", "WHOIS", "PhishTank", "Mailcheck",
-  ];
   const label = lang === "uk" ? "Агрегуємо сигнали з провідних джерел" : lang === "ru" ? "Агрегируем сигналы из ведущих источников" : lang === "es" ? "Señales de fuentes líderes" : lang === "de" ? "Signale von führenden Quellen" : "Aggregating signal from leading sources";
-  const moreCount = OSINT_SOURCES.length - sources.length;
+  const moreCount = OSINT_SOURCES.length - 12;
   const moreLabel = lang === "uk" ? `+${moreCount} інших` : lang === "ru" ? `+${moreCount} других` : lang === "es" ? `+${moreCount} más` : lang === "de" ? `+${moreCount} weitere` : `+${moreCount} more`;
+  type Group = { key: string; label: string; chips: string[] };
+  const groups: Group[] = [
+    {
+      key: "breach",
+      label: lang === "uk" ? "Витоки" : lang === "ru" ? "Утечки" : lang === "es" ? "Brechas" : lang === "de" ? "Leaks" : "Breach intel",
+      chips: ["HIBP", "PhishTank", "Mailcheck", "URLhaus"],
+    },
+    {
+      key: "threat",
+      label: lang === "uk" ? "Threat-фіди" : lang === "ru" ? "Threat-фиды" : lang === "es" ? "Threat feeds" : lang === "de" ? "Threat-Feeds" : "Threat feeds",
+      chips: ["VirusTotal", "AbuseIPDB", "GreyNoise"],
+    },
+    {
+      key: "osint",
+      label: "OSINT / Network",
+      chips: ["Shodan", "Censys", "MaxMind", "Etherscan", "WHOIS"],
+    },
+  ];
   return (
     <section className="border-t border-white/[0.06] bg-[#07070A]">
       <div className="mx-auto max-w-6xl px-5 py-8">
-        <p className="mb-5 text-center text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">{label}</p>
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {sources.map((s) => (
-            <span
-              key={s}
-              className="inline-flex items-center rounded-md border border-white/[0.07] bg-white/[0.03] px-3 py-1.5 font-mono text-[12px] text-zinc-500 transition-colors hover:border-white/15 hover:text-zinc-200"
-              data-testid={`text-aggregator-${s}`}
-            >
-              {s}
-            </span>
+        <p className="mb-6 text-center text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">{label}</p>
+        <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-center">
+          {groups.map((g) => (
+            <div key={g.key} className="flex flex-col items-center gap-2 sm:items-start">
+              <span className="text-[9.5px] font-semibold uppercase tracking-[0.2em] text-zinc-700">{g.label}</span>
+              <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                {g.chips.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center rounded-md border border-white/[0.07] bg-white/[0.03] px-2.5 py-1 font-mono text-[11.5px] text-zinc-500 transition-colors hover:border-white/[0.15] hover:text-zinc-200"
+                    data-testid={`text-aggregator-${s}`}
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
           ))}
-          <span className="inline-flex items-center rounded-md border border-cyan-400/[0.12] bg-cyan-500/[0.04] px-3 py-1.5 font-mono text-[12px] text-cyan-400/70">
-            {moreLabel}
-          </span>
+          <div className="flex flex-col items-center gap-2 sm:items-start">
+            <span className="text-[9.5px] font-semibold uppercase tracking-[0.2em] text-zinc-700">&nbsp;</span>
+            <span className="inline-flex items-center rounded-md border border-cyan-400/[0.12] bg-cyan-500/[0.04] px-2.5 py-1 font-mono text-[11.5px] text-cyan-400/60">
+              {moreLabel}
+            </span>
+          </div>
         </div>
       </div>
     </section>
@@ -726,6 +771,16 @@ function WhatWeCheck() {
             </div>
           ))}
         </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-8 flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-[#0D0D10] px-5 py-4">
+          <p className="text-[13px] text-zinc-400">
+            {lang === "uk" ? "Введіть email, IP, гаманець або username — DarkShare визначить тип автоматично." : lang === "ru" ? "Введите email, IP, кошелёк или username — DarkShare определит тип автоматически." : lang === "es" ? "Introduce email, IP, wallet o username — DarkShare detecta el tipo automáticamente." : lang === "de" ? "E-Mail, IP, Wallet oder Username eingeben — DarkShare erkennt den Typ." : "Enter an email, IP, wallet or username — DarkShare auto-detects the type."}
+          </p>
+          <a href="#top" className="shrink-0 inline-flex h-9 items-center gap-1.5 rounded-lg bg-white/[0.06] border border-white/[0.10] px-4 text-[12.5px] font-medium text-white hover:bg-white/[0.10] transition-colors">
+            {lang === "uk" ? "Сканувати" : lang === "ru" ? "Сканировать" : lang === "es" ? "Escanear" : lang === "de" ? "Scannen" : "Scan now"} <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -767,14 +822,23 @@ function HowItWorks() {
           </div>
           <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* Desktop connector line */}
+          <div className="pointer-events-none absolute inset-x-0 top-[42px] hidden sm:block" aria-hidden>
+            <div className="mx-auto flex max-w-[calc(100%-4rem)] items-center justify-between px-[calc(16.67%-20px)]">
+              <div className="h-px flex-1 border-t border-dashed border-white/[0.10]" />
+              <div className="mx-2 h-1.5 w-1.5 rotate-45 border-r border-t border-white/20" />
+              <div className="h-px flex-1 border-t border-dashed border-white/[0.10]" />
+              <div className="mx-2 h-1.5 w-1.5 rotate-45 border-r border-t border-white/20" />
+            </div>
+          </div>
           {steps.map(({ n, icon: Icon, title, desc }) => (
             <div key={n} className="relative rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6" data-testid={`step-${n}`}>
               <div className="mb-4 flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl border border-cyan-400/20 bg-cyan-500/[0.08]">
+                <div className="relative grid h-10 w-10 place-items-center rounded-xl border border-cyan-400/25 bg-cyan-500/[0.10] shadow-[0_0_16px_-4px_rgba(34,211,238,0.25)]">
                   <Icon className="h-5 w-5 text-cyan-300" />
                 </div>
-                <span className="font-mono text-[11px] font-bold tracking-widest text-zinc-600">{n}</span>
+                <span className="font-mono text-[13px] font-bold tracking-widest text-zinc-700">{n}</span>
               </div>
               <div className="text-[15px] font-semibold text-white">{title}</div>
               <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500">{desc}</p>
@@ -821,11 +885,19 @@ function Sources() {
             const label = (CATEGORY_LABELS[cat] as any)[lang] ?? CATEGORY_LABELS[cat].en ?? CATEGORY_LABELS[cat].ru;
             const Icon = catIconMap[cat];
             return (
-              <div key={cat} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] px-4 py-3 transition-colors hover:border-white/[0.14]">
-                <Icon className="h-3.5 w-3.5 shrink-0 text-zinc-600" />
-                <div className="min-w-0">
-                  <div className="truncate text-[12.5px] font-medium text-white">{label}</div>
-                  <div className="font-mono text-[11px] text-zinc-600">{count} src</div>
+              <div
+                key={cat}
+                className="flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-white/[0.14] hover:bg-[#111116]"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="grid h-7 w-7 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.03]">
+                    <Icon className="h-3.5 w-3.5 text-zinc-500" />
+                  </div>
+                  <span className="font-mono text-[18px] font-bold text-white">{count}</span>
+                </div>
+                <div>
+                  <div className="text-[12.5px] font-medium text-zinc-200">{label}</div>
+                  <div className="mt-0.5 font-mono text-[10px] text-zinc-600">{lang === "uk" ? "джерел" : lang === "ru" ? "источников" : lang === "es" ? "fuentes" : lang === "de" ? "Quellen" : "sources"}</div>
                 </div>
               </div>
             );
@@ -847,7 +919,24 @@ function PricingTeaser() {
   const seeAll = lang === "uk" ? "Переглянути всі тарифи →" : lang === "ru" ? "Смотреть все тарифы →" : lang === "es" ? "Ver todos los planes →" : lang === "de" ? "Alle Pläne ansehen →" : "See all plans →";
   const promoNote = lang === "uk" ? "Код DARKNEU → −50% на перший місяць PRO" : lang === "ru" ? "Код DARKNEU → −50% на первый месяц PRO" : lang === "es" ? "Código DARKNEU → −50% primer mes PRO" : lang === "de" ? "Code DARKNEU → −50% erster PRO-Monat" : "Code DARKNEU → −50% off first PRO month";
 
-  type Plan = { name: string; price: string; note: string; href: string; testId: string; hot?: boolean; badge?: string; features: string[] };
+  type PlanFeature = { text: string; included: boolean };
+  type Plan = { name: string; price: string; note: string; href: string; testId: string; hot?: boolean; badge?: string; features: PlanFeature[] };
+  const unlocked = (t: string): PlanFeature => ({ text: t, included: true });
+  const locked   = (t: string): PlanFeature => ({ text: t, included: false });
+
+  const f = {
+    scan3:    lang === "uk" ? "3 сканування / день" : lang === "ru" ? "3 сканирования / день" : lang === "es" ? "3 escaneos / día" : lang === "de" ? "3 Scans / Tag" : "3 scans / day",
+    scanUnl:  lang === "uk" ? "Необмежені сканування" : lang === "ru" ? "Безлимитные сканирования" : lang === "es" ? "Escaneos ilimitados" : lang === "de" ? "Unbegrenzte Scans" : "Unlimited scans",
+    basic:    lang === "uk" ? "Базові результати" : lang === "ru" ? "Базовые результаты" : lang === "es" ? "Resultados básicos" : lang === "de" ? "Basisergebnisse" : "Basic results",
+    full:     lang === "uk" ? "Повні результати + PDF" : lang === "ru" ? "Полные результаты + PDF" : lang === "es" ? "Resultados completos + PDF" : lang === "de" ? "Volle Ergebnisse + PDF" : "Full results + PDF",
+    monitor:  lang === "uk" ? "Моніторинг 24/7" : lang === "ru" ? "Мониторинг 24/7" : lang === "es" ? "Monitoreo 24/7" : lang === "de" ? "24/7-Monitoring" : "24/7 monitoring",
+    api:      lang === "uk" ? "REST API доступ" : lang === "ru" ? "Доступ REST API" : lang === "es" ? "Acceso REST API" : lang === "de" ? "REST-API-Zugang" : "REST API access",
+    vpn3:     lang === "uk" ? "VPN 3 пристрої" : lang === "ru" ? "VPN 3 устройства" : lang === "es" ? "VPN 3 dispositivos" : lang === "de" ? "VPN 3 Geräte" : "VPN 3 devices",
+    vpn10:    lang === "uk" ? "VPN 10 пристроїв" : lang === "ru" ? "VPN 10 устройств" : lang === "es" ? "VPN 10 dispositivos" : lang === "de" ? "VPN 10 Geräte" : "VPN 10 devices",
+    bulk:     lang === "uk" ? "Bulk API (100/запит)" : lang === "ru" ? "Bulk API (100/запрос)" : lang === "es" ? "Bulk API (100/req)" : lang === "de" ? "Bulk-API (100/Req.)" : "Bulk API (100/req)",
+    pdf:      lang === "uk" ? "Брендований PDF" : lang === "ru" ? "Брендированный PDF" : lang === "es" ? "PDF con marca" : lang === "de" ? "Gebrandetes PDF" : "White-label PDF",
+  };
+
   const plans: Plan[] = [
     {
       name: "Free",
@@ -855,11 +944,7 @@ function PricingTeaser() {
       note: lang === "uk" ? "назавжди" : lang === "ru" ? "навсегда" : lang === "es" ? "siempre" : lang === "de" ? "für immer" : "forever",
       href: "/login",
       testId: "link-price-free",
-      features: [
-        lang === "uk" ? "3 сканування / день" : lang === "ru" ? "3 сканирования / день" : lang === "es" ? "3 escaneos / día" : lang === "de" ? "3 Scans / Tag" : "3 scans / day",
-        lang === "uk" ? "Базові результати" : lang === "ru" ? "Базовые результаты" : lang === "es" ? "Resultados básicos" : lang === "de" ? "Basisergebnisse" : "Basic results",
-        lang === "uk" ? "Без реєстрації" : lang === "ru" ? "Без регистрации" : lang === "es" ? "Sin registro" : lang === "de" ? "Ohne Anmeldung" : "No signup required",
-      ],
+      features: [unlocked(f.scan3), unlocked(f.basic), locked(f.full), locked(f.monitor), locked(f.api)],
     },
     {
       name: "Single",
@@ -867,11 +952,7 @@ function PricingTeaser() {
       note: perReport,
       href: "/pricing?single=1",
       testId: "link-price-single",
-      features: [
-        lang === "uk" ? "Один повний звіт" : lang === "ru" ? "Один полный отчёт" : lang === "es" ? "Un informe completo" : lang === "de" ? "Ein vollständiger Bericht" : "One full report",
-        lang === "uk" ? "Усі знахідки + PDF" : lang === "ru" ? "Все находки + PDF" : lang === "es" ? "Todos los hallazgos + PDF" : lang === "de" ? "Alle Funde + PDF" : "All findings + PDF",
-        lang === "uk" ? "Без підписки" : lang === "ru" ? "Без подписки" : lang === "es" ? "Sin suscripción" : lang === "de" ? "Kein Abo" : "No subscription",
-      ],
+      features: [unlocked(f.scanUnl), unlocked(f.full), locked(f.monitor), locked(f.api), locked(f.vpn3)],
     },
     {
       name: "PRO",
@@ -881,11 +962,7 @@ function PricingTeaser() {
       testId: "link-price-pro",
       hot: true,
       badge: mostPopular,
-      features: [
-        lang === "uk" ? "Необмежені сканування" : lang === "ru" ? "Безлимитные сканирования" : lang === "es" ? "Escaneos ilimitados" : lang === "de" ? "Unbegrenzte Scans" : "Unlimited scans",
-        lang === "uk" ? "Моніторинг + API" : lang === "ru" ? "Мониторинг + API" : lang === "es" ? "Monitoreo + API" : lang === "de" ? "Monitoring + API" : "Monitoring + API",
-        lang === "uk" ? "WireGuard VPN (3 пристрої)" : lang === "ru" ? "WireGuard VPN (3 устройства)" : lang === "es" ? "VPN WireGuard (3 disp.)" : lang === "de" ? "WireGuard VPN (3 Geräte)" : "WireGuard VPN (3 devices)",
-      ],
+      features: [unlocked(f.scanUnl), unlocked(f.full), unlocked(f.monitor), unlocked(f.api), unlocked(f.vpn3)],
     },
     {
       name: "Enterprise",
@@ -893,11 +970,7 @@ function PricingTeaser() {
       note: perMonth,
       href: "/pricing?plan=ENTERPRISE",
       testId: "link-price-enterprise",
-      features: [
-        lang === "uk" ? "Bulk API (100/запит)" : lang === "ru" ? "Bulk API (100/запрос)" : lang === "es" ? "Bulk API (100/req)" : lang === "de" ? "Bulk-API (100/Req.)" : "Bulk API (100/req)",
-        lang === "uk" ? "VPN 10 пристроїв" : lang === "ru" ? "VPN 10 устройств" : lang === "es" ? "VPN 10 dispositivos" : lang === "de" ? "VPN 10 Geräte" : "VPN 10 devices",
-        lang === "uk" ? "Брендований PDF" : lang === "ru" ? "Брендированный PDF" : lang === "es" ? "PDF con marca propia" : lang === "de" ? "Gebrandetes PDF" : "White-label PDF",
-      ],
+      features: [unlocked(f.scanUnl), unlocked(f.full), unlocked(f.monitor), unlocked(f.bulk), unlocked(f.pdf)],
     },
   ];
 
@@ -944,10 +1017,13 @@ function PricingTeaser() {
                   </div>
                 </div>
                 <ul className="flex-1 space-y-2">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-[12.5px] text-zinc-400">
-                      <Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${p.hot ? "text-cyan-400" : "text-zinc-600"}`} />
-                      {f}
+                  {p.features.map((feat) => (
+                    <li key={feat.text} className={`flex items-start gap-2 text-[12px] ${feat.included ? "text-zinc-300" : "text-zinc-700"}`}>
+                      {feat.included
+                        ? <Check className={`mt-0.5 h-3 w-3 shrink-0 ${p.hot ? "text-cyan-400" : "text-zinc-500"}`} />
+                        : <span className="mt-0.5 h-3 w-3 shrink-0 text-[10px] leading-none text-zinc-700 select-none">✕</span>
+                      }
+                      {feat.text}
                     </li>
                   ))}
                 </ul>
@@ -963,9 +1039,15 @@ function PricingTeaser() {
           ))}
         </div>
 
-        <p className="mt-5 text-center text-[12px] text-cyan-400/70">
-          <span className="font-mono font-bold">DARKNEU</span> → {promoNote}
-        </p>
+        <div className="mt-6 flex justify-center">
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-cyan-400/[0.20] bg-cyan-500/[0.06] px-5 py-2 text-[12px] text-cyan-300/80">
+            <Sparkles className="h-3 w-3 text-cyan-400/60 shrink-0" />
+            <span>{lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código" : lang === "de" ? "Code" : "Promo code"}</span>
+            <span className="rounded bg-cyan-400/10 px-1.5 py-0.5 font-mono font-bold text-cyan-300">DARKNEU</span>
+            <span className="text-cyan-400/50">→</span>
+            <span>{promoNote}</span>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -992,13 +1074,23 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
   ];
   return (
     <section className="border-t border-white/[0.06] bg-[#07070A]">
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-6">
-        <div className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] sm:grid-cols-6">
-          {items.map(({ icon: Icon, label, value }) => (
-            <div key={label} className="flex flex-col items-center gap-1 bg-[#09090C] px-4 py-5 text-center">
-              <Icon className="h-4 w-4 text-cyan-300/60" />
-              <div className="text-[17px] font-bold text-white" data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}>{value}</div>
-              <div className="text-[10px] text-zinc-600">{label}</div>
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
+        <div className="grid grid-cols-3 sm:grid-cols-6">
+          {items.map(({ icon: Icon, label, value }, idx) => (
+            <div
+              key={label}
+              className={`group relative flex flex-col items-center gap-2 px-4 py-6 text-center transition-colors ${idx !== 0 ? "border-l border-white/[0.05]" : ""} hover:bg-white/[0.015]`}
+            >
+              {/* Cyan accent top bar */}
+              <div className="absolute top-0 left-1/2 h-[2px] w-10 -translate-x-1/2 rounded-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
+              <Icon className="h-3.5 w-3.5 text-cyan-300/50" />
+              <div
+                className="text-[26px] font-bold leading-none tracking-tight text-white"
+                data-testid={`text-trust-${label.replace(/\s+/g, "-").toLowerCase()}`}
+              >
+                {value}
+              </div>
+              <div className="text-[10px] leading-snug text-zinc-600">{label}</div>
             </div>
           ))}
         </div>
@@ -1093,6 +1185,23 @@ function FAQ() {
               </div>
             );
           })}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-10 flex flex-col items-center gap-3 text-center">
+          <p className="text-[13.5px] text-zinc-500">
+            {lang === "uk" ? "Залишилися питання?" : lang === "ru" ? "Остались вопросы?" : lang === "es" ? "¿Tienes más preguntas?" : lang === "de" ? "Noch Fragen?" : "Still have questions?"}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <a href="https://t.me/darkshare_channel" target="_blank" rel="noopener" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.04] px-4 text-[12.5px] text-zinc-300 hover:border-white/[0.18] hover:text-white transition-colors">
+              Telegram
+            </a>
+            <Link href="/pricing">
+              <span className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full bg-cyan-400 px-4 text-[12.5px] font-semibold text-black hover:bg-cyan-300 transition-colors">
+                {lang === "uk" ? "Переглянути тарифи" : lang === "ru" ? "Смотреть тарифы" : lang === "es" ? "Ver precios" : lang === "de" ? "Preise ansehen" : "View pricing"} →
+              </span>
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -1312,29 +1421,37 @@ function SocialProofSection() {
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500/40 via-zinc-700 to-zinc-800 text-[11px] font-bold text-cyan-200">
                   {t.avatar}
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-semibold text-white">{t.author}</div>
                   <div className="text-[11px] text-zinc-500">{t.role}</div>
                 </div>
+                <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-500/[0.07] px-2 py-0.5 text-[9.5px] font-medium text-emerald-400/70">
+                  <span className="h-1 w-1 rounded-full bg-emerald-400 inline-block" />
+                  {lang === "uk" ? "Перевірено" : lang === "ru" ? "Проверено" : lang === "es" ? "Verificado" : lang === "de" ? "Verifiziert" : "Verified"}
+                </span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2">
+        <div className="mt-6 flex flex-col divide-y divide-white/[0.04] overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0D0D10] sm:flex-row sm:divide-x sm:divide-y-0">
           {[
-            { icon: Users, value: "2,800+", label: statLabels.users },
-            { icon: TrendingUp, value: "47,000+", label: statLabels.scans },
-            { icon: Shield, value: "99.9%", label: statLabels.uptime },
+            { icon: Users,     value: "2,800+",  label: statLabels.users },
+            { icon: TrendingUp,value: "47,000+", label: statLabels.scans },
+            { icon: Shield,    value: "99.9%",   label: statLabels.uptime },
           ].map(({ icon: Icon, value, label }) => (
             <div
               key={label}
-              className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/[0.06] bg-[#0D0D10] px-3 py-5 text-center"
+              className="flex flex-1 items-center gap-4 px-6 py-5"
               data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}
             >
-              <Icon className="h-4 w-4 text-cyan-300/50" />
-              <div className="text-[22px] font-bold text-white">{value}</div>
-              <div className="text-[10.5px] text-zinc-600">{label}</div>
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/[0.07] bg-white/[0.03]">
+                <Icon className="h-4 w-4 text-cyan-300/60" />
+              </div>
+              <div>
+                <div className="text-[22px] font-bold leading-none text-white">{value}</div>
+                <div className="mt-1 text-[11px] text-zinc-600">{label}</div>
+              </div>
             </div>
           ))}
         </div>
@@ -1374,29 +1491,32 @@ function LiveActivity() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
           <span className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">{liveLabel}</span>
+          <span className="rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-0.5 font-mono text-[10px] text-zinc-600">6 / 24h</span>
           <div className="flex-1 h-px bg-gradient-to-r from-emerald-400/15 to-transparent" />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {activities.map((a, i) => (
             <div
               key={i}
-              className="flex flex-col gap-2.5 rounded-xl border border-white/[0.07] bg-[#0D0D10] px-3 py-3"
+              className="flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-3.5"
               data-testid={`card-live-${i}`}
             >
-              <div className="flex items-center justify-between gap-2">
-                <a.Icon className="h-3.5 w-3.5 text-zinc-600 shrink-0" />
-                <span className="text-[10px] text-zinc-700">{a.ago} {agoUnit}</span>
+              <div className="flex items-center justify-between gap-1">
+                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/[0.04]">
+                  <a.Icon className="h-3 w-3 text-zinc-500" />
+                </div>
+                <span className="font-mono text-[9.5px] text-zinc-700">{a.ago} {agoUnit}</span>
               </div>
-              <span className="font-mono text-[11px] text-zinc-400 truncate">{a.target}</span>
-              <div>
-                <div className="mb-1 flex items-center justify-between">
-                  <span className={`text-[10px] font-bold tracking-wide ${a.cls}`}>{a.label}</span>
-                  <span className="text-[10px] font-mono text-zinc-500">{a.score}</span>
+              <span className="font-mono text-[11px] leading-none text-zinc-300 truncate">{a.target}</span>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className={`text-[9.5px] font-bold tracking-wider ${a.cls}`}>{a.label}</span>
+                  <span className={`font-mono text-[11px] font-bold ${a.cls}`}>{a.score}</span>
                 </div>
-                <div className="h-0.5 w-full rounded-full bg-white/5">
-                  <div className={`h-0.5 rounded-full ${a.bar}`} style={{ width: `${a.score}%` }} />
+                <div className="h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                  <div className={`h-1 rounded-full ${a.bar} opacity-80`} style={{ width: `${a.score}%` }} />
                 </div>
-                <div className="mt-0.5 text-[9px] text-zinc-700">{riskLabel} / 100</div>
+                <div className="text-[9px] text-zinc-700">/ 100</div>
               </div>
             </div>
           ))}
@@ -1418,10 +1538,19 @@ function CTABottom() {
     <section className="border-t border-white/[0.06]">
       <div className="relative mx-auto max-w-6xl px-5 py-20 sm:py-28">
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[400px] w-[600px] rounded-full bg-cyan-500/[0.05] blur-[120px]" />
+          <div className="h-[500px] w-[800px] rounded-full bg-cyan-500/[0.07] blur-[140px]" />
         </div>
         <div className="relative mx-auto max-w-2xl text-center">
-          <h2 className="text-[30px] font-semibold tracking-tight text-white sm:text-[40px] sm:leading-[1.1]">
+          {/* Stars row */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5">
+            <span className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+              ))}
+            </span>
+            <span className="text-[12px] text-zinc-400">4.9 / 5 &middot; 2,800+ {lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "users"}</span>
+          </div>
+          <h2 className="text-[32px] font-semibold tracking-tight text-white sm:text-[46px] sm:leading-[1.05]">
             {headline}
           </h2>
           <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500">
@@ -1465,6 +1594,28 @@ export default function Home() {
       document.documentElement.style.removeProperty("background-color");
       document.body.style.backgroundColor = "";
     };
+  }, []);
+
+  // Scroll-triggered section fade-in
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>("#home-sections section");
+    if (!sections.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.06, rootMargin: "0px 0px -32px 0px" }
+    );
+    sections.forEach((s) => {
+      s.classList.add("section-fade");
+      observer.observe(s);
+    });
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -1522,18 +1673,20 @@ export default function Home() {
       />
       <PublicHeader />
       <HeroCheck stats={stats} />
-      <TrustedAggregators />
-      <LiveActivity />
-      <WhatWeCheck />
-      <HowItWorks />
-      <Sources />
-      <SocialProofSection />
-      <TrustStrip stats={stats} />
-      <ComplianceBadges />
-      <PricingTeaser />
-      <CommunityCTA />
-      <FAQ />
-      <CTABottom />
+      <div id="home-sections">
+        <TrustedAggregators />
+        <LiveActivity />
+        <WhatWeCheck />
+        <HowItWorks />
+        <Sources />
+        <SocialProofSection />
+        <TrustStrip stats={stats} />
+        <ComplianceBadges />
+        <PricingTeaser />
+        <CommunityCTA />
+        <FAQ />
+        <CTABottom />
+      </div>
       <Footer />
     </div>
   );

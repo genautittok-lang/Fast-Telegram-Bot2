@@ -95,6 +95,37 @@ The bot integrates Telegram Premium custom emojis for higher visual fidelity on 
 - **Telegraph API**: For generating instruction pages.
 - **Plausible Analytics**: Privacy-friendly analytics on home page (script in `client/index.html`, CSP allowlists `plausible.io`).
 
+## Landing Page Overhaul Batch (v4.7 — May 2026 Session)
+
+### All changes in `client/src/pages/Home.tsx` + `client/src/index.css`:
+
+**Batch 1 — 5 section redesigns:**
+- **TrustStrip**: bigger numbers (text-[26px]), cyan accent top bar per cell, vertical dividers, hover bg tint.
+- **CTABottom**: ⭐ 4.9/5 stars social proof row, larger headline (text-[46px] sm), stronger glow blob (800px/blur-140), secondary button.
+- **Sources**: category cards now show big count number top-right, icon in boxed square top-left, label + "sources" sub-label below.
+- **HowItWorks**: dashed connector line with diamond arrows between steps on desktop, icon glow ring.
+- **LiveActivity**: icon in rounded-md box, thicker h-1 risk bar, colored score number, "6/24h" pill in section header.
+
+**Batch 2 — 6 improvements:**
+- **TrustedAggregators**: 3 labeled category groups (Breach intel / Threat feeds / OSINT Network) instead of flat chip list.
+- **Hero trust pills**: replaced ✓ text with lucide icon + label pills (Lock, Database, Eye, Shield).
+- **PricingTeaser promo**: replaced plain `<p>` with styled pill banner (Sparkles icon + code highlight + description).
+- **WhatWeCheck**: added bottom "Scan now →" CTA bar linking back to top.
+- **ResultCard paywall**: `animate-ping` ring on "$3 single report" button to draw attention at the money moment.
+- **HeroDemoCard**: `LIVE` badge with pulsing green dot in window chrome top-right.
+
+**Batch 3 — scroll animations + PricingTeaser features:**
+- **CSS**: `.section-fade` + `.section-fade.in-view` scroll-triggered fade-up transition added to `index.css`.
+- **Home**: `IntersectionObserver` in `useEffect` auto-applies `section-fade`/`in-view` to all `section` elements inside `#home-sections` wrapper.
+- **PricingTeaser**: expanded from 3 to 5 features per plan; Free/Single show `✕` locked rows for monitor/API/VPN, Enterprise shows Bulk API + white-label PDF instead of VPN.
+
+**Batch 4 — final polish:**
+- **SocialProofSection stats**: replaced 3-card grid with unified horizontal bar (icon box + big number + label), responsive divide.
+- **Testimonial cards**: added "Verified" green pill badge next to each author.
+- **FAQ**: added "Still have questions?" CTA at bottom (Telegram link + View pricing button).
+- **Hero**: scroll hint text with bouncing chevron for tablet breakpoint when no result shown.
+- **LiveActivity header**: `6 / 24h` count pill next to the section label.
+
 ## Mobile UX & Landing Overhaul (v4.6 — May 2026 Session)
 
 ### Files changed:
