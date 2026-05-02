@@ -248,7 +248,7 @@ export default function Referral() {
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                 {lang === "uk" ? "Рефералка · +5 перевірок за друга · топ отримує PRO безплатно" : lang === "ru" ? "Рефералка · +5 проверок за друга · топ получает PRO бесплатно" : lang === "es" ? "Referidos · +5 verificaciones por amigo · el top obtiene PRO gratis" : lang === "de" ? "Empfehlungen · +5 Prüfungen pro Freund · Top bekommt PRO gratis" : "Referral · +5 checks per friend · top get free PRO"}
               </div>
-              <h1 className="text-balance text-[28px] sm:text-[40px] lg:text-[44px] font-semibold leading-[1.05] tracking-tight text-white" data-testid="text-referral-title">
+              <h1 className="text-balance text-[24px] sm:text-[36px] lg:text-[44px] font-semibold leading-[1.05] tracking-tight text-white" data-testid="text-referral-title">
                 {t('referral.title')}<br />
                 <span className="text-cyan-300">{t('referral.inviteFriendsDesc')}</span>
               </h1>
@@ -303,14 +303,14 @@ export default function Referral() {
                                 placeholder={t('referral.reversh.name')}
                                 value={partnerForm.name}
                                 onChange={(e) => setPartnerForm(prev => ({ ...prev, name: e.target.value }))}
-                                className="bg-[#0D0D10] border-white/[0.09]"
+                                className="h-11 bg-[#0D0D10] border-white/[0.09]"
                                 data-testid="input-partner-name"
                               />
                               <Input
                                 placeholder={t('referral.reversh.phone')}
                                 value={partnerForm.phone}
                                 onChange={(e) => setPartnerForm(prev => ({ ...prev, phone: e.target.value }))}
-                                className="bg-[#0D0D10] border-white/[0.09]"
+                                className="h-11 bg-[#0D0D10] border-white/[0.09]"
                                 data-testid="input-partner-phone"
                               />
                             </div>
@@ -319,7 +319,7 @@ export default function Referral() {
                               placeholder={t('referral.reversh.email')}
                               value={partnerForm.email}
                               onChange={(e) => setPartnerForm(prev => ({ ...prev, email: e.target.value }))}
-                              className="bg-[#0D0D10] border-white/[0.09]"
+                              className="h-11 bg-[#0D0D10] border-white/[0.09]"
                               data-testid="input-partner-email"
                             />
                             <Textarea
@@ -333,7 +333,7 @@ export default function Referral() {
                               placeholder={t('referral.reversh.volume')}
                               value={partnerForm.volume}
                               onChange={(e) => setPartnerForm(prev => ({ ...prev, volume: e.target.value }))}
-                              className="bg-[#0D0D10] border-white/[0.09]"
+                              className="h-11 bg-[#0D0D10] border-white/[0.09]"
                               data-testid="input-partner-volume"
                             />
                             <Button
@@ -362,7 +362,7 @@ export default function Referral() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1 rounded-xl border border-white/[0.09] bg-[#0D0D10] px-4 py-3 font-mono text-lg lg:text-xl text-cyan-300 tracking-wider text-center sm:text-left" data-testid="text-ref-code-display">
+                  <div className="flex-1 rounded-xl border border-white/[0.09] bg-[#0D0D10] px-4 py-3 font-mono text-xl lg:text-2xl text-cyan-300 tracking-[0.15em] text-center sm:text-left font-bold" data-testid="text-ref-code-display">
                     {referralCode}
                   </div>
                   <button
@@ -384,7 +384,7 @@ export default function Referral() {
                     <div className="flex gap-2">
                       <button
                         onClick={copyLink}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.09] text-zinc-400 transition-colors hover:border-white/[0.20] hover:text-white"
+                        className="grid h-10 w-10 place-items-center rounded-lg border border-white/[0.09] text-zinc-400 transition-colors hover:border-white/[0.20] hover:text-white touch-manipulation"
                         data-testid="button-copy-link"
                         title="Copy"
                       >
@@ -392,14 +392,14 @@ export default function Referral() {
                       </button>
                       <button
                         onClick={shareToTelegram}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/[0.20] hover:text-white"
+                        className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/[0.20] hover:text-white touch-manipulation"
                         data-testid="button-share-telegram"
                       >
                         <SiTelegram className="w-3.5 h-3.5 text-cyan-300" /> Telegram
                       </button>
                       <button
                         onClick={shareToX}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/[0.20] hover:text-white"
+                        className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-white/[0.09] bg-white/[0.04] px-3 text-[12px] text-zinc-200 transition-colors hover:border-white/[0.20] hover:text-white touch-manipulation"
                         data-testid="button-share-x"
                       >
                         <Share2 className="w-3.5 h-3.5" /> X
@@ -594,7 +594,7 @@ export default function Referral() {
                   {leaderboard.items.slice(0, 10).map((row) => (
                     <div
                       key={row.rank}
-                      className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#0D0D10] border border-white/[0.09]"
+                      className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#0D0D10] border border-white/[0.09] hover:border-white/[0.18] transition-colors"
                       data-testid={`row-leaderboard-${row.rank}`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
@@ -606,7 +606,7 @@ export default function Referral() {
                         }`}>
                           {row.rank <= 3 ? <Medal className="w-3.5 h-3.5" /> : row.rank}
                         </div>
-                        <span className="text-sm text-white/90 truncate font-mono">{row.username}</span>
+                        <span className="text-sm text-white/90 truncate font-mono max-w-[120px] sm:max-w-none">{row.username}</span>
                       </div>
                       <span className="text-sm font-mono text-cyan-300 flex-shrink-0">{row.count} ref</span>
                     </div>

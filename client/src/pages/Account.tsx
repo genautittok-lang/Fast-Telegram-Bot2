@@ -491,7 +491,7 @@ export default function Account() {
 
               <div className="flex-1 min-w-0 space-y-2 lg:space-y-3 w-full">
                 <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-white truncate" data-testid="text-username">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white truncate leading-tight" data-testid="text-username">
                     @{user?.username || "anonymous"}
                   </h1>
                   <TierBadge tier={userTier} />
@@ -532,32 +532,32 @@ export default function Account() {
               </>
             ) : (
               <>
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
+                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
                     <BarChart3 className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.totalChecks')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-total-checks">{stats.totalChecks}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
+                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
                     <Activity className="w-3.5 h-3.5 text-emerald-400" />
                     <span>{t('account.activeMonitors')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-active-monitors">{stats.activeMonitors}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
+                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
                     <Users className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.referrals')}</span>
                   </div>
-                  <p className="text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-referrals-count">{stats.referralsCount}</p>
+                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-3 text-[11px] uppercase tracking-wider text-zinc-500">
+                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
+                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
                     <TrendingUp className="w-3.5 h-3.5 text-cyan-300" />
                     <span>{t('account.top')}</span>
                   </div>
@@ -581,7 +581,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-5">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center">
                 <Award className="w-4 h-4 lg:w-5 lg:h-5 text-amber-400" />
               </div>
@@ -589,7 +589,7 @@ export default function Account() {
             </div>
             
             {isDataLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="p-3 lg:p-4 rounded-xl bg-[#0D0D10] border border-white/[0.09]">
                     <div className="flex items-center gap-3 mb-3">
@@ -602,7 +602,7 @@ export default function Account() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                 <div className="p-3 lg:p-4 rounded-xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20">
                   <div className="flex items-center justify-between gap-2 mb-2 lg:mb-3">
                     <div className="flex items-center gap-1.5 lg:gap-2 min-w-0">
@@ -687,7 +687,7 @@ export default function Account() {
           </motion.div>
 
           <motion.div
-            className="p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep"
+            className="p-3 sm:p-4 lg:p-6 rounded-2xl bg-[#0E0E12] border border-white/[0.09] glass-deep hover:border-cyan-500/20 transition-colors"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.25 }}
@@ -741,7 +741,7 @@ export default function Account() {
               </div>
               <span className="text-xs lg:text-sm text-muted-foreground">{t('account.activityLast30Days')}</span>
             </div>
-            <div className="grid grid-cols-10 gap-[3px] sm:gap-1 lg:gap-1.5" data-testid="activity-heatmap">
+            <div className="grid grid-cols-10 gap-1 lg:gap-1.5" data-testid="activity-heatmap">
               {heatmapData.map((day, idx) => {
                 const intensity = day.count === 0 ? 0 : day.count <= 1 ? 1 : day.count <= 3 ? 2 : day.count <= 5 ? 3 : 4;
                 const colors = [
@@ -780,7 +780,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-5">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-slate-500/20 to-zinc-500/10 flex items-center justify-center">
                 <Settings className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
               </div>
@@ -953,7 +953,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.35 }}
           >
-            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-5">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 flex items-center justify-center">
                 <Building2 className="w-4 h-4 lg:w-5 lg:h-5 text-violet-400" />
               </div>
@@ -970,7 +970,7 @@ export default function Account() {
                   <p className="font-medium text-white text-sm">{lang === "uk" ? "PDF White-label" : lang === "ru" ? "PDF White-label" : lang === "es" ? "PDF White-label" : lang === "de" ? "PDF White-label" : "PDF White-label"}</p>
                   <Badge variant="outline" className="text-[10px] border-violet-500/30 text-violet-300">ENTERPRISE / GROUPS</Badge>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Input
                     placeholder={lang === "uk" ? "Назва компанії (напр. Acme Corp)" : lang === "ru" ? "Название компании (напр. Acme Corp)" : lang === "es" ? "Nombre de empresa (ej. Acme Corp)" : lang === "de" ? "Firmenname (z.B. Acme Corp)" : "Company name (e.g. Acme Corp)"}
                     value={companyName}
@@ -978,7 +978,7 @@ export default function Account() {
                     onChange={(e) => setCompanyName(e.target.value)}
                     disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                     data-testid="input-company-name"
-                    className="bg-[#0D0D10] border-white/[0.09] text-sm"
+                    className="h-10 bg-[#0D0D10] border-white/[0.09] text-sm"
                   />
                   <Input
                     placeholder="https://your-cdn.com/logo.png"
@@ -986,7 +986,7 @@ export default function Account() {
                     onChange={(e) => setCompanyLogoUrl(e.target.value)}
                     disabled={userTier !== "ENTERPRISE" && userTier !== "GROUPS"}
                     data-testid="input-company-logo"
-                    className="bg-[#0D0D10] border-white/[0.09] text-sm"
+                    className="h-10 bg-[#0D0D10] border-white/[0.09] text-sm"
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -1030,14 +1030,14 @@ export default function Account() {
                     value={slackWebhookUrl}
                     onChange={(e) => setSlackWebhookUrl(e.target.value)}
                     data-testid="input-slack-webhook"
-                    className="bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
+                    className="h-10 bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                   />
                   <Input
                     placeholder="https://outlook.webhook.office.com/webhook/..."
                     value={teamsWebhookUrl}
                     onChange={(e) => setTeamsWebhookUrl(e.target.value)}
                     data-testid="input-teams-webhook"
-                    className="bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
+                    className="h-10 bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                   />
                   <Button
                     onClick={() => saveBranding({ slackWebhookUrl, teamsWebhookUrl })}
@@ -1056,7 +1056,7 @@ export default function Account() {
                   <Bitcoin className="w-4 h-4 text-amber-400" />
                   <p className="font-medium text-white text-sm">{lang === "uk" ? "Крипто-виплата за реферали" : lang === "ru" ? "Крипто-выплата за рефералов" : lang === "es" ? "Pago cripto por referidos" : lang === "de" ? "Krypto-Auszahlung für Empfehlungen" : "Referral Crypto Payout"}</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <Select value={payoutCurrency} onValueChange={setPayoutCurrency}>
                     <SelectTrigger className="bg-[#0D0D10] border-white/[0.09] text-sm" data-testid="select-payout-currency">
                       <SelectValue />
@@ -1074,13 +1074,13 @@ export default function Account() {
                     value={payoutAddress}
                     onChange={(e) => setPayoutAddress(e.target.value)}
                     data-testid="input-payout-address"
-                    className="md:col-span-2 bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
+                    className="h-10 sm:col-span-2 bg-[#0D0D10] border-white/[0.09] text-sm font-mono"
                   />
                   <Button
                     onClick={() => saveBranding({ payoutAddress, payoutCurrency })}
                     disabled={savingBranding}
                     data-testid="button-save-payout"
-                    className="md:col-span-3 bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30"
+                    className="sm:col-span-3 bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30"
                   >
                     {lang === "uk" ? "Зберегти виплату" : lang === "ru" ? "Сохранить выплату" : lang === "es" ? "Guardar pago" : lang === "de" ? "Auszahlung speichern" : "Save Payout"}
                   </Button>
@@ -1096,7 +1096,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-5">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-purple-500/10 flex items-center justify-center">
                 <CreditCard className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-400" />
               </div>
@@ -1212,7 +1212,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-5">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center">
                 <Lock className="w-4 h-4 lg:w-5 lg:h-5 text-red-400" />
               </div>
@@ -1485,7 +1485,7 @@ export default function Account() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
           >
-            <div className="flex items-center gap-2 lg:gap-3 mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-5">
               <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-slate-500/20 to-zinc-500/10 flex items-center justify-center">
                 <Info className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
               </div>

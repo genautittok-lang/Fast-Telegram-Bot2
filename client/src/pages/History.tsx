@@ -472,7 +472,7 @@ export default function History() {
           <div className="absolute inset-x-0 top-0 h-[640px] opacity-[0.16]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)", backgroundSize: "44px 44px", maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%)" }} />
         </div>
 
-        <main className="max-w-6xl mx-auto px-3 py-3 sm:px-4 sm:py-5 lg:py-6 relative z-10 space-y-3 sm:space-y-5">
+        <main className="max-w-6xl mx-auto px-3 py-3 sm:px-4 sm:py-5 lg:py-6 relative z-10 space-y-3 sm:space-y-4">
         <ScanInsights langProp={lang} />
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -484,7 +484,7 @@ export default function History() {
               <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.totalChecks')}</span>
             </div>
-            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.total}</p>
+            <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.total}</p>
           </div>
 
           <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
@@ -492,7 +492,7 @@ export default function History() {
               <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.thisWeekChecks')}</span>
             </div>
-            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.thisWeek}</p>
+            <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.thisWeek}</p>
           </div>
 
           <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-rose-400/30 hover:shadow-[0_0_20px_-6px_rgba(251,113,133,0.15)]">
@@ -500,7 +500,7 @@ export default function History() {
               <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-rose-400" />
               <span>{t('history.criticalRisks')}</span>
             </div>
-            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.critical}</p>
+            <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.critical}</p>
           </div>
 
           <div className="p-3 sm:p-4 rounded-xl border border-white/[0.09] bg-[#0E0E12] transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.18)]">
@@ -508,7 +508,7 @@ export default function History() {
               <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-300" />
               <span>{t('history.pdfDownloaded')}</span>
             </div>
-            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-white font-mono">{stats.downloads}</p>
+            <p className="text-xl sm:text-2xl font-bold tracking-tight text-white font-mono tabular-nums">{stats.downloads}</p>
           </div>
         </motion.div>
 
@@ -561,19 +561,19 @@ export default function History() {
                 placeholder={t('history.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/[0.06] border-white/[0.09] focus:border-primary/50 text-sm"
+                className="pl-10 h-11 sm:h-9 bg-white/[0.06] border-white/[0.09] focus:border-primary/50 text-sm"
                 data-testid="input-search"
               />
             </div>
             
-            <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-0">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-0">
               {dateFilters.map((filter) => (
                 <Button
                   key={filter.id}
                   variant="ghost"
                   size="sm"
                   onClick={() => setDateFilter(filter.id)}
-                  className={`text-[11px] sm:text-xs px-2 sm:px-3 h-7 sm:h-8 whitespace-nowrap flex-shrink-0 ${
+                  className={`text-[11px] sm:text-xs px-2 sm:px-3 h-8 whitespace-nowrap flex-shrink-0 touch-manipulation ${
                     dateFilter === filter.id 
                       ? "bg-white/[0.09] text-foreground" 
                       : "text-muted-foreground"
@@ -696,15 +696,15 @@ export default function History() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: idx * 0.03 }}
-                    whileHover={{ y: -2 }}
                     onClick={() => toggleReportSelect(report)}
-                    className={`group relative p-2 sm:p-4 rounded-xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.09] 
-                      hover:bg-white/[0.06] hover:border-white/20 hover:shadow-lg hover:${riskConfig.glow}
-                      transition-all duration-300 cursor-pointer border-l-2 ${riskConfig.border}
-                      ${compareMode && selectedReports.find((r: any) => r.id === report.id) ? "ring-2 ring-primary border-primary/50 bg-primary/5" : ""}`}
+                    className={`group relative p-2.5 sm:p-3.5 rounded-xl border border-white/[0.09] border-l-2 ${riskConfig.border}
+                      bg-[#0E0E12] hover:bg-[#111116] hover:border-white/[0.16]
+                      hover:shadow-[0_4px_24px_rgba(0,0,0,0.35)]
+                      transition-all duration-200 cursor-pointer
+                      ${compareMode && selectedReports.find((r: any) => r.id === report.id) ? "ring-1 ring-primary/50 border-primary/40 bg-primary/5" : ""}`}
                     data-testid={`report-item-${report.id}`}
                   >
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       {compareMode && (
                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                           selectedReports.find((r: any) => r.id === report.id)
@@ -718,7 +718,7 @@ export default function History() {
                       )}
                       <motion.div 
                         whileHover={{ scale: 1.05 }}
-                        className={`w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${typeChip} flex items-center justify-center flex-shrink-0`}
+                        className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl ${typeChip} flex items-center justify-center flex-shrink-0 shrink-0`}
                       >
                         <TypeIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                       </motion.div>
@@ -738,16 +738,16 @@ export default function History() {
                       </div>
 
                       <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                        <Badge className={`${riskConfig.bg} ${riskConfig.color} border-0 flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs`}>
+                        <Badge className={`${riskConfig.bg} ${riskConfig.color} border border-current/20 flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-semibold shrink-0`}>
                           <RiskIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                          <span className="font-semibold">{report.riskScore}</span>
+                          <span>{report.riskScore}</span>
                         </Badge>
                         
                         <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            className="h-9 w-9 sm:h-8 sm:w-8 touch-manipulation"
                             onClick={(e) => { e.stopPropagation(); handleCopyTarget(report); }}
                             data-testid={`button-copy-${report.id}`}
                           >
@@ -760,7 +760,7 @@ export default function History() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            className="hidden sm:flex h-8 w-8 touch-manipulation"
                             onClick={(e) => { e.stopPropagation(); handlePreview(report.id); }}
                             aria-label={lang === "uk" ? "Перегляд PDF" : lang === "ru" ? "Просмотр PDF" : lang === "es" ? "Vista previa PDF" : lang === "de" ? "PDF-Vorschau" : "Preview PDF"}
                             data-testid={`button-preview-${report.id}`}
@@ -770,7 +770,7 @@ export default function History() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            className="hidden sm:flex h-8 w-8 touch-manipulation"
                             onClick={(e) => { e.stopPropagation(); handleDownload(report.id); }}
                             aria-label={lang === "uk" ? "Завантажити PDF" : lang === "ru" ? "Скачать PDF" : lang === "es" ? "Descargar PDF" : lang === "de" ? "PDF herunterladen" : "Download PDF"}
                             data-testid={`button-download-${report.id}`}
@@ -780,7 +780,7 @@ export default function History() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 sm:h-8 sm:w-8"
+                            className="hidden sm:flex h-8 w-8 touch-manipulation"
                             onClick={(e) => { e.stopPropagation(); handleShareLink(report.id); }}
                             data-testid={`button-share-${report.id}`}
                           >
@@ -790,7 +790,7 @@ export default function History() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 sm:h-8 sm:w-8"
+                              className="hidden sm:flex h-8 w-8 touch-manipulation"
                               data-testid={`button-recheck-${report.id}`}
                             >
                               <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -799,7 +799,7 @@ export default function History() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive"
+                            className="h-9 w-9 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive touch-manipulation"
                             onClick={(e) => { e.stopPropagation(); handleDeleteReport(report.id); }}
                             data-testid={`button-delete-${report.id}`}
                           >

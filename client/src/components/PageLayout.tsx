@@ -297,7 +297,7 @@ function AppSplashLogin() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
             >
-              <h1 className="text-4xl font-black text-white tracking-tight" style={{ textShadow: "0 0 30px rgba(34,197,94,0.3)" }}>
+              <h1 className="text-4xl font-black text-white tracking-tight" style={{ textShadow: "0 0 30px rgba(34,211,238,0.35)" }}>
                 DARKSHARE
               </h1>
               <p className="text-[11px] text-cyan-400/80 font-mono mt-1.5 tracking-[0.25em] uppercase">
@@ -357,7 +357,7 @@ function AppSplashLogin() {
             <div className="flex flex-col items-center gap-3">
               <motion.div
                 className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-cyan-400 to-cyan-400 flex items-center justify-center"
-                style={{ boxShadow: "0 0 40px rgba(34,197,94,0.25)" }}
+                style={{ boxShadow: "0 0 40px rgba(34,211,238,0.25)" }}
               >
                 <Shield className="w-8 h-8 text-black" />
               </motion.div>
@@ -505,7 +505,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
                 </button>
               </Link>
               <div className="w-px h-4 bg-white/[0.06]" />
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(34,197,94,0.25)]">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_8px_rgba(34,211,238,0.30)]">
                 <Shield className="w-3 h-3 text-black" />
               </div>
               {title ? (
@@ -532,12 +532,12 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
     <div className="min-h-screen bg-background flex overflow-hidden max-w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lg:hidden flex items-center justify-between p-4 border-b border-white/[0.08] bg-[#09090E]/92 backdrop-blur-xl sticky top-0 z-40">
+        <div className="lg:hidden flex items-center justify-between px-3 py-2.5 border-b border-white/[0.08] bg-[#09090E]/92 backdrop-blur-xl sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-black" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.30)]">
+              <Shield className="w-3.5 h-3.5 text-black" />
             </div>
-            <span className="font-bold">DARKSHARE</span>
+            <span className="font-bold text-sm tracking-tight">DARKSHARE</span>
           </div>
           <div className="flex items-center gap-2">
             {headerActions}

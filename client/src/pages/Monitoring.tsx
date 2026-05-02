@@ -211,7 +211,7 @@ function StatCard({
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-bold font-display truncate tabular-nums">{value}</p>
+            <p className="text-lg sm:text-xl lg:text-2xl font-bold font-display truncate tabular-nums">{value}</p>
             <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{label}</p>
           </div>
         </div>
@@ -292,7 +292,7 @@ function MonitorCard({
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-              <p className="font-mono text-xs sm:text-sm truncate max-w-[140px] sm:max-w-none">{watch.value}</p>
+              <p className="font-mono text-xs sm:text-sm truncate max-w-[160px] sm:max-w-none">{watch.value}</p>
               <Badge variant="outline" className="text-[10px] px-1 sm:px-1.5 py-0 border-white/20 text-muted-foreground hidden sm:inline-flex">
                 {t(typeTranslationKeys[watch.objectType] || 'monitoring.typeIp')}
               </Badge>
@@ -441,7 +441,7 @@ export default function Monitoring() {
         </div>
 
         <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative z-10 space-y-4 sm:space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
           <StatCard
             icon={Eye}
             label={t('monitoring.totalMonitors')}
@@ -478,7 +478,7 @@ export default function Monitoring() {
               <h2 className="font-display font-semibold text-sm sm:text-base">{t('monitoring.addNewMonitor')}</h2>
             </div>
             
-            <div className="flex flex-col gap-2 sm:gap-3">
+            <div className="flex flex-col gap-1.5 sm:gap-2.5">
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Select value={newType} onValueChange={setNewType}>
                   <SelectTrigger 
@@ -507,7 +507,7 @@ export default function Monitoring() {
                     value={newValue}
                     onChange={(e) => setNewValue(e.target.value)}
                     placeholder={t('monitoring.addObjectPlaceholder')}
-                    className="bg-white/[0.06] border-white/[0.09] focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 pr-10 text-sm"
+                    className="h-11 bg-white/[0.06] border-white/[0.09] focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 pr-10 text-sm"
                     onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                     data-testid="input-monitor-value"
                   />
@@ -588,7 +588,7 @@ export default function Monitoring() {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-10 sm:py-16 rounded-2xl bg-[#0E0E12] border border-white/[0.09]"
             >
-              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl bg-white/[0.08] flex items-center justify-center">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-white/[0.09] flex items-center justify-center">
                 <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground/50" />
               </div>
               <p className="text-sm sm:text-base text-muted-foreground">{t('monitoring.noMonitors')}</p>
@@ -628,7 +628,7 @@ export default function Monitoring() {
                 <CollapsibleContent>
                   <div className="mt-4 pt-4 border-t border-white/[0.08] space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="p-3 rounded-xl bg-[#0E0E12] border border-white/[0.09]">
+                      <div className="p-3 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                         <div className="flex items-center gap-2 mb-2">
                           <Clock className="w-4 h-4 text-blue-400" />
                           <span className="text-sm font-medium">{t('monitoring.monitoring247')}</span>
@@ -638,7 +638,7 @@ export default function Monitoring() {
                         </p>
                       </div>
                       
-                      <div className="p-3 rounded-xl bg-[#0E0E12] border border-white/[0.09]">
+                      <div className="p-3 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                         <div className="flex items-center gap-2 mb-2">
                           <Bell className="w-4 h-4 text-amber-400" />
                           <span className="text-sm font-medium">{t('monitoring.instantAlerts')}</span>
@@ -648,7 +648,7 @@ export default function Monitoring() {
                         </p>
                       </div>
                       
-                      <div className="p-3 rounded-xl bg-[#0E0E12] border border-white/[0.09]">
+                      <div className="p-3 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                         <div className="flex items-center gap-2 mb-2">
                           <TrendingUp className="w-4 h-4 text-green-400" />
                           <span className="text-sm font-medium">{t('monitoring.riskTracking')}</span>
@@ -658,7 +658,7 @@ export default function Monitoring() {
                         </p>
                       </div>
                       
-                      <div className="p-3 rounded-xl bg-[#0E0E12] border border-white/[0.09]">
+                      <div className="p-3 rounded-xl bg-[#0D0D10] border border-white/[0.08]">
                         <div className="flex items-center gap-2 mb-2">
                           <Shield className="w-4 h-4 text-purple-400" />
                           <span className="text-sm font-medium">{t('monitoring.dataSecurity')}</span>

@@ -1323,7 +1323,7 @@ Sources: ${result.sources.join(', ')}`;
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
         <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full pb-24 lg:pb-8">
           <div className="max-w-6xl mx-auto lg:space-y-6">
-            <div className="px-4 pt-3 pb-2 lg:px-0 lg:pt-0 space-y-3">
+            <div className="px-3 pt-2 pb-1 lg:px-0 lg:pt-0 space-y-2.5">
               {user && (
                 <AppHeroCard
                   user={user}
@@ -1738,7 +1738,7 @@ Sources: ${result.sources.join(', ')}`;
                           setGeointRegion(null);
                           setGeointData(null);
                         }}
-                        className={`relative flex flex-col items-center gap-1.5 min-w-[4rem] py-2 px-1 rounded-2xl touch-manipulation active:scale-[0.92] transition-transform duration-150 ${
+                        className={`relative flex flex-col items-center gap-1 min-w-[68px] py-2.5 px-1 rounded-2xl touch-manipulation active:scale-[0.92] transition-transform duration-150 select-none ${
                           isSelected
                             ? 'bg-white/[0.06]'
                             : 'bg-transparent'
@@ -1823,7 +1823,7 @@ Sources: ${result.sources.join(', ')}`;
               </div>
 
               <motion.div
-                className="relative px-4 lg:px-0"
+                className="relative px-3 sm:px-2 lg:px-0"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -1873,7 +1873,7 @@ Sources: ${result.sources.join(', ')}`;
                               initial={{ opacity: 0, y: 5 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: idx * 0.05, duration: 0.2 }}
-                              className="flex items-start gap-2 p-2 lg:p-2.5 rounded-lg bg-white/[0.06] border border-white/[0.08] hover:border-white/[0.09] transition-colors"
+                              className="flex items-start gap-2 p-2 rounded-lg bg-white/[0.06] border border-white/[0.08] hover:border-white/[0.09] transition-colors"
                             >
                               <div className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md flex items-center justify-center flex-shrink-0 ${selectedCheck.iconColor.replace('text-', 'bg-').replace('400', '500/20')}`}>
                                 <service.icon className={`w-3 h-3 lg:w-3.5 lg:h-3.5 ${selectedCheck.iconColor}`} />
@@ -1919,7 +1919,7 @@ Sources: ${result.sources.join(', ')}`;
                           value={bulkInput}
                           onChange={(e) => setBulkInput(e.target.value)}
                           placeholder={`${t('dashboard.bulkPlaceholder')}\n${selectedCheck?.placeholder || ''}\n${selectedCheck?.placeholder || ''}`}
-                          className="min-h-[120px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-[#0A0A0F]/80 border-white/[0.09] focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
+                          className="min-h-[110px] lg:min-h-[160px] text-sm lg:text-base font-mono bg-[#0A0A0F]/80 border-white/[0.09] focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-xl placeholder:text-muted-foreground/50 w-full resize-none"
                           data-testid="textarea-bulk-input"
                         />
                         <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
