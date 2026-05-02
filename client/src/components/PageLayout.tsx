@@ -325,7 +325,7 @@ function AppSplashLogin() {
                   animate={{ opacity: [0.4, 0.8, 0.4] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  {splashPhase >= 2 ? "Initializing secure connection..." : "Loading modules..."}
+                  {splashPhase >= 2 ? (t("auth.initSecure") || "Initializing secure connection...") : (t("common.loading") || "Loading...")}
                 </motion.p>
               </motion.div>
             )}
@@ -501,7 +501,7 @@ export function PageLayout({ children, headerActions, title, appMode = false }: 
               <Link href="/">
                 <button className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] active:bg-white/[0.08] transition-colors" data-testid="button-back-to-site">
                   <Globe className="w-3 h-3 text-zinc-400" />
-                  <span className="text-[10px] font-medium text-zinc-400">Site</span>
+                  <span className="text-[10px] font-medium text-zinc-400">{t("mobile.home") || "Site"}</span>
                 </button>
               </Link>
               <div className="w-px h-4 bg-white/[0.06]" />

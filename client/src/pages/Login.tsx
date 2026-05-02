@@ -113,7 +113,7 @@ export default function Login() {
 
   const featuresList = [
     { icon: Shield, title: t("landing.features.protection"), desc: t("landing.features.realTimeAnalysis") },
-    { icon: Globe, title: t("landing.features.modules"), desc: "IP, Wallet, Email, Phone, Domain, URL, CVE, Hash, Username, Bot" },
+    { icon: Globe, title: t("landing.features.modules"), desc: t("landing.features.modulesDesc") || "IP, Wallet, Email, Phone, Domain, URL, CVE, Hash, Username, Bot" },
     { icon: Zap, title: t("landing.features.instant"), desc: t("landing.features.resultInSeconds") },
   ];
 
@@ -148,7 +148,7 @@ export default function Login() {
               </div>
               <div>
                 <h1 className="text-3xl font-display font-bold">DARKSHARE</h1>
-                <p className="text-sm text-muted-foreground">Risk Intelligence Platform</p>
+                <p className="text-sm text-muted-foreground">{t("auth.riskPlatform") || "Risk Intelligence Platform"}</p>
               </div>
             </div>
 

@@ -147,10 +147,10 @@ function TopBar() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-[13px] text-zinc-400 md:flex">
-          <Link href="/pricing"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-pricing">Pricing</span></Link>
-          <Link href="/api-docs"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-api">API</span></Link>
-          <Link href="/guide"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-guide">Guide</span></Link>
-          <Link href="/vpn"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-vpn">VPN</span></Link>
+          <Link href="/pricing"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-pricing">{t('nav.pricing')}</span></Link>
+          <Link href="/api-docs"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-api">{t('nav.apiDocs')}</span></Link>
+          <Link href="/guide"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-guide">{t('nav.guide')}</span></Link>
+          <Link href="/vpn"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-vpn">{t('nav.vpn')}</span></Link>
           <Link href="/trust"><span className="cursor-pointer transition-colors hover:text-white" data-testid="link-trust">Trust</span></Link>
         </nav>
 
@@ -326,7 +326,7 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-zinc-500">
                 {detected ? (
                   <span className="inline-flex items-center gap-1.5 text-cyan-300/90" data-testid="text-detected">
-                    {typeIcon(detected, "h-3 w-3")} detected: {typeLabel(detected, lang)}
+                    {typeIcon(detected, "h-3 w-3")} {lang === "uk" ? "виявлено" : lang === "ru" ? "определено" : lang === "es" ? "detectado" : lang === "de" ? "erkannt" : "detected"}: {typeLabel(detected, lang)}
                   </span>
                 ) : (
                   <span>{lang === "uk" ? "3 анонімних сканування / день · без реєстрації" : lang === "ru" ? "3 анонимных сканирования / день · без регистрации" : lang === "es" ? "3 escaneos anónimos / día · sin registro" : lang === "de" ? "3 anonyme Scans / Tag · ohne Anmeldung" : "3 anonymous scans / day · no signup"}</span>
@@ -453,8 +453,8 @@ function HeroDemoCard() {
         {/* Source dots */}
         <div className="border-t border-white/5 bg-white/[0.015] px-5 py-4">
           <div className="mb-2 flex items-center justify-between text-[10.5px] uppercase tracking-wider text-zinc-500">
-            <span>Sources scanned</span>
-            <span>73 applicable · {OSINT_SOURCES.length}</span>
+            <span>{lang === "uk" ? "Перевірено джерел" : lang === "ru" ? "Проверено источников" : lang === "es" ? "Fuentes verificadas" : lang === "de" ? "Geprüfte Quellen" : "Sources scanned"}</span>
+            <span>73 {lang === "uk" ? "застосовних" : lang === "ru" ? "применимых" : lang === "es" ? "aplicables" : lang === "de" ? "anwendbar" : "applicable"} · {OSINT_SOURCES.length}</span>
           </div>
           <div className="flex flex-wrap gap-[5px]">
             {Array.from({ length: 73 }).map((_, i) => {

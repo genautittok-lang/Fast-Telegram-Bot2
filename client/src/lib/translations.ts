@@ -48,8 +48,11 @@ export interface TranslationSchema {
     createAccount: string;
     loginTitle: string;
     loginSubtitle: string;
+    loginDescription: string;
     protectFrom: string;
     cyberThreats: string;
+    riskPlatform: string;
+    initSecure: string;
     loginSuccess: string;
     loginError: string;
     telegramFailed: string;
@@ -617,6 +620,7 @@ export interface TranslationSchema {
       title: string;
       protection: string;
       modules: string;
+      modulesDesc: string;
       instant: string;
       realTimeAnalysis: string;
       resultInSeconds: string;
@@ -944,6 +948,9 @@ export const translations: Record<Language, TranslationSchema> = {
       cyberThreats: "cyber threats",
       loginSuccess: "Login successful",
       loginError: "Login error",
+      loginDescription: "Sign in to access your security dashboard",
+      riskPlatform: "Risk Intelligence Platform",
+      initSecure: "Initializing secure connection...",
       telegramFailed: "Telegram authentication failed",
     },
     pricing: {
@@ -1509,6 +1516,7 @@ export const translations: Record<Language, TranslationSchema> = {
         title: "Features",
         protection: "Full Protection",
         modules: "10 Modules",
+        modulesDesc: "IP, Wallet, Email, Phone, Domain, URL, CVE, Hash, Username, Bot",
         instant: "Instant Check",
         realTimeAnalysis: "Real-time threat analysis",
         resultInSeconds: "Result in seconds",
@@ -1834,6 +1842,9 @@ export const translations: Record<Language, TranslationSchema> = {
       cyberThreats: "кіберзагроз",
       loginSuccess: "Вхід успішний",
       loginError: "Помилка входу",
+      loginDescription: "Увійдіть до панелі безпеки",
+      riskPlatform: "Платформа розвідки ризиків",
+      initSecure: "Ініціалізація захищеного з'єднання...",
       telegramFailed: "Помилка авторизації Telegram",
     },
     pricing: {
@@ -2399,6 +2410,7 @@ export const translations: Record<Language, TranslationSchema> = {
         title: "Можливості",
         protection: "Повний захист",
         modules: "10 модулів",
+        modulesDesc: "IP, Гаманець, Email, Телефон, Домен, URL, CVE, Хеш, Нікнейм, Бот",
         instant: "Миттєва перевірка",
         realTimeAnalysis: "Аналіз загроз у реальному часі",
         resultInSeconds: "Результат за секунди",
@@ -2724,6 +2736,9 @@ export const translations: Record<Language, TranslationSchema> = {
       cyberThreats: "киберугроз",
       loginSuccess: "Вход выполнен",
       loginError: "Ошибка входа",
+      loginDescription: "Войдите в панель безопасности",
+      riskPlatform: "Платформа разведки рисков",
+      initSecure: "Инициализация защищённого соединения...",
       telegramFailed: "Ошибка авторизации Telegram",
     },
     pricing: {
@@ -3289,6 +3304,7 @@ export const translations: Record<Language, TranslationSchema> = {
         title: "Возможности",
         protection: "Полная защита",
         modules: "10 модулей",
+        modulesDesc: "IP, Кошелёк, Email, Телефон, Домен, URL, CVE, Хеш, Ник, Бот",
         instant: "Мгновенная проверка",
         realTimeAnalysis: "Анализ угроз в реальном времени",
         resultInSeconds: "Результат за секунды",
@@ -3614,6 +3630,9 @@ export const translations: Record<Language, TranslationSchema> = {
       cyberThreats: "amenazas cibernéticas",
       loginSuccess: "Inicio de sesión exitoso",
       loginError: "Error de inicio de sesión",
+      loginDescription: "Inicia sesión para acceder a tu panel de seguridad",
+      riskPlatform: "Plataforma de inteligencia de riesgos",
+      initSecure: "Inicializando conexión segura...",
       telegramFailed: "Error de autenticación de Telegram",
     },
     pricing: {
@@ -4179,6 +4198,7 @@ export const translations: Record<Language, TranslationSchema> = {
         title: "Características",
         protection: "Protección completa",
         modules: "10 módulos",
+        modulesDesc: "IP, Cartera, Email, Teléfono, Dominio, URL, CVE, Hash, Usuario, Bot",
         instant: "Verificación instantánea",
         realTimeAnalysis: "Análisis de amenazas en tiempo real",
         resultInSeconds: "Resultado en segundos",
@@ -4504,6 +4524,9 @@ export const translations: Record<Language, TranslationSchema> = {
       cyberThreats: "Cyber-Bedrohungen",
       loginSuccess: "Anmeldung erfolgreich",
       loginError: "Anmeldefehler",
+      loginDescription: "Melden Sie sich für Ihr Sicherheits-Dashboard an",
+      riskPlatform: "Risikointelligenz-Plattform",
+      initSecure: "Sichere Verbindung wird hergestellt...",
       telegramFailed: "Telegram-Authentifizierung fehlgeschlagen",
     },
     pricing: {
@@ -5069,6 +5092,7 @@ export const translations: Record<Language, TranslationSchema> = {
         title: "Funktionen",
         protection: "Vollständiger Schutz",
         modules: "10 Module",
+        modulesDesc: "IP, Wallet, E-Mail, Telefon, Domain, URL, CVE, Hash, Nutzername, Bot",
         instant: "Sofortige Prüfung",
         realTimeAnalysis: "Echtzeit-Bedrohungsanalyse",
         resultInSeconds: "Ergebnis in Sekunden",
