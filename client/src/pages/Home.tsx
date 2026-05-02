@@ -144,6 +144,8 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   const resultRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLg, setIsLg] = useState(false);
+  const [phIdx, setPhIdx] = useState(0);
+  const [phVis, setPhVis] = useState(true);
   const { t, lang } = useTranslation();
 
   useEffect(() => {
@@ -152,6 +154,29 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // Cycling placeholder examples
+  const PH_EXAMPLES = ["john@example.com", "+1 555 000 1234", "satoshi_nakamoto", "0x742d...c4aB", "example.com", "91.108.4.0"];
+  useEffect(() => {
+    if (value) return;
+    const id = setInterval(() => {
+      setPhVis(false);
+      setTimeout(() => { setPhIdx(i => (i + 1) % PH_EXAMPLES.length); setPhVis(true); }, 350);
+    }, 2600);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  // Listen for ds:fill events from WhatWeCheck cards
+  useEffect(() => {
+    const fill = (e: Event) => {
+      const val = (e as CustomEvent<string>).detail;
+      setValue(val);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    };
+    window.addEventListener("ds:fill", fill);
+    return () => window.removeEventListener("ds:fill", fill);
   }, []);
 
   async function submit(e?: React.FormEvent) {
@@ -271,11 +296,20 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                 <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
                   {detected ? typeIcon(detected, "h-4 w-4 text-cyan-300") : <Search className="h-4 w-4" />}
                 </div>
+              {/* Animated cycling placeholder */}
+              {!value && (
+                <span
+                  className={`pointer-events-none absolute left-11 top-1/2 -translate-y-1/2 select-none font-mono text-[14px] text-zinc-500 transition-opacity duration-300 ${phVis ? "opacity-100" : "opacity-0"}`}
+                  aria-hidden
+                >
+                  {PH_EXAMPLES[phIdx]}
+                </span>
+              )}
                 <input
                   ref={inputRef}
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
-                  placeholder="email · phone · username · wallet · domain · IP"
+                  placeholder=""
                   className="h-14 w-full rounded-xl border border-white/10 bg-[#111114] pl-11 pr-36 text-[15px] text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-cyan-400/60"
                   autoComplete="off"
                   autoCorrect="off"
@@ -713,52 +747,42 @@ function CountUp({ raw, suffix = "" }: { raw: number; suffix?: string }) {
 function TrustedAggregators() {
   const { lang } = useTranslation();
   const label = lang === "uk" ? "Агрегуємо сигнали з провідних джерел" : lang === "ru" ? "Агрегируем сигналы из ведущих источников" : lang === "es" ? "Señales de fuentes líderes" : lang === "de" ? "Signale von führenden Quellen" : "Aggregating signal from leading sources";
-  const moreCount = OSINT_SOURCES.length - 12;
-  const moreLabel = lang === "uk" ? `+${moreCount} інших` : lang === "ru" ? `+${moreCount} других` : lang === "es" ? `+${moreCount} más` : lang === "de" ? `+${moreCount} weitere` : `+${moreCount} more`;
-  type Group = { key: string; label: string; chips: string[] };
-  const groups: Group[] = [
-    {
-      key: "breach",
-      label: lang === "uk" ? "Витоки" : lang === "ru" ? "Утечки" : lang === "es" ? "Brechas" : lang === "de" ? "Leaks" : "Breach intel",
-      chips: ["HIBP", "PhishTank", "Mailcheck", "URLhaus"],
-    },
-    {
-      key: "threat",
-      label: lang === "uk" ? "Threat-фіди" : lang === "ru" ? "Threat-фиды" : lang === "es" ? "Threat feeds" : lang === "de" ? "Threat-Feeds" : "Threat feeds",
-      chips: ["VirusTotal", "AbuseIPDB", "GreyNoise"],
-    },
-    {
-      key: "osint",
-      label: "OSINT / Network",
-      chips: ["Shodan", "Censys", "MaxMind", "Etherscan", "WHOIS"],
-    },
+  type Chip = { name: string; cat: string };
+  const CHIPS: Chip[] = [
+    { name: "HIBP",        cat: "breach"  }, { name: "PhishTank",  cat: "breach"  },
+    { name: "Mailcheck",   cat: "breach"  }, { name: "URLhaus",    cat: "breach"  },
+    { name: "VirusTotal",  cat: "threat"  }, { name: "AbuseIPDB",  cat: "threat"  },
+    { name: "GreyNoise",   cat: "threat"  }, { name: "ThreatFox",  cat: "threat"  },
+    { name: "Shodan",      cat: "osint"   }, { name: "Censys",     cat: "osint"   },
+    { name: "MaxMind",     cat: "osint"   }, { name: "Etherscan",  cat: "osint"   },
+    { name: "WHOIS",       cat: "osint"   }, { name: "MXToolbox",  cat: "osint"   },
+    { name: "SpyCloud",    cat: "breach"  }, { name: "LeakCheck",  cat: "breach"  },
+    { name: "Dehashed",    cat: "breach"  }, { name: "IntelX",     cat: "osint"   },
   ];
+  const catColor: Record<string, string> = {
+    breach: "border-rose-500/20 text-rose-300/60",
+    threat: "border-amber-500/20 text-amber-300/60",
+    osint:  "border-cyan-500/20 text-cyan-300/60",
+  };
+  const doubled = [...CHIPS, ...CHIPS];
   return (
-    <section className="border-t border-white/[0.06] bg-[#07070A]">
-      <div className="mx-auto max-w-6xl px-5 py-8">
-        <p className="mb-6 text-center text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">{label}</p>
-        <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-center">
-          {groups.map((g) => (
-            <div key={g.key} className="flex flex-col items-center gap-2 sm:items-start">
-              <span className="text-[9.5px] font-semibold uppercase tracking-[0.2em] text-zinc-700">{g.label}</span>
-              <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
-                {g.chips.map((s) => (
-                  <span
-                    key={s}
-                    className="inline-flex items-center rounded-md border border-white/[0.07] bg-white/[0.03] px-2.5 py-1 font-mono text-[11.5px] text-zinc-500 transition-colors hover:border-white/[0.15] hover:text-zinc-200"
-                    data-testid={`text-aggregator-${s}`}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-          <div className="flex flex-col items-center gap-2 sm:items-start">
-            <span className="text-[9.5px] font-semibold uppercase tracking-[0.2em] text-zinc-700">&nbsp;</span>
-            <span className="inline-flex items-center rounded-md border border-cyan-400/[0.12] bg-cyan-500/[0.04] px-2.5 py-1 font-mono text-[11.5px] text-cyan-400/60">
-              {moreLabel}
-            </span>
+    <section className="border-t border-white/[0.06] bg-[#07070A] overflow-hidden">
+      <div className="py-7">
+        <p className="mb-5 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-700">{label}</p>
+        <div className="relative">
+          {/* Fade masks */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-[#07070A] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-[#07070A] to-transparent" />
+          <div className="flex animate-marquee gap-2">
+            {doubled.map((chip, i) => (
+              <span
+                key={i}
+                className={`inline-flex shrink-0 items-center rounded-md border bg-white/[0.02] px-2.5 py-1 font-mono text-[11px] transition-colors hover:bg-white/[0.05] ${catColor[chip.cat]}`}
+                data-testid={i < CHIPS.length ? `text-aggregator-${chip.name}` : undefined}
+              >
+                {chip.name}
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -769,6 +793,26 @@ function TrustedAggregators() {
 /* ─────────── What we check ─────────── */
 function WhatWeCheck() {
   const { lang } = useTranslation();
+  const FILL_SAMPLES: Record<string, string> = {
+    "Email": "john@example.com",
+    "Phone": "+1 555 000 1234",
+    "Username": "satoshi_nakamoto",
+    "Wallet": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    "Domain": "example.com",
+    "IP": "91.108.4.0",
+    "File Hash": "e3b0c44298fc1c149afb",
+    "CVE": "CVE-2024-1234",
+    "Card BIN": "451236",
+    "Password": "hunter2",
+    "SSL / TLS": "example.com",
+    "VPN / Proxy": "91.108.4.0",
+  };
+  const fillInput = (title: string) => {
+    const sample = FILL_SAMPLES[title];
+    if (!sample) return;
+    window.dispatchEvent(new CustomEvent("ds:fill", { detail: sample }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const items: { Icon: typeof Mail; title: string; desc: string; color: string }[] = [
     { Icon: Mail,       title: "Email",     color: "text-rose-300 bg-rose-500/10 ring-rose-500/20",    desc: lang === "uk" ? "Витоки та зливи" : lang === "ru" ? "Утечки и сливы" : lang === "es" ? "Filtraciones" : lang === "de" ? "Leaks & Breaches" : "Leaks & breaches" },
     { Icon: Phone,      title: "Phone",     color: "text-amber-300 bg-amber-500/10 ring-amber-500/20",  desc: lang === "uk" ? "Спам, шахрайство" : lang === "ru" ? "Спам, мошенники" : lang === "es" ? "Spam, fraude" : lang === "de" ? "Spam, Betrug" : "Spam & fraud flags" },
@@ -801,7 +845,11 @@ function WhatWeCheck() {
           {items.map(({ Icon, title, desc, color }) => (
             <div
               key={title}
-              className="group flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-white/[0.13] hover:bg-[#111116]"
+              role="button"
+              tabIndex={0}
+              onClick={() => fillInput(title)}
+              onKeyDown={(e) => e.key === "Enter" && fillInput(title)}
+              className="group flex cursor-pointer flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-cyan-400/20 hover:bg-[#111116] active:scale-[0.98]"
               data-testid={`chip-check-${title.toLowerCase().replace(/\s+/g, '-')}`}
             >
               <div className={`grid h-9 w-9 place-items-center rounded-lg ring-1 ${color}`}>
@@ -812,7 +860,7 @@ function WhatWeCheck() {
                   <div className="text-[13px] font-semibold text-white">{title}</div>
                   <div className="mt-0.5 text-[11.5px] leading-snug text-zinc-500">{desc}</div>
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 shrink-0 translate-x-0 text-zinc-700 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 translate-x-0 text-cyan-400/60 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
               </div>
             </div>
           ))}
@@ -835,6 +883,11 @@ function WhatWeCheck() {
 /* ─────────── How it works ─────────── */
 function HowItWorks() {
   const { lang } = useTranslation();
+  const [activeStep, setActiveStep] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setActiveStep(s => (s + 1) % 3), 2800);
+    return () => clearInterval(id);
+  }, []);
   const sectionLabel = lang === "uk" ? "Як це працює" : lang === "ru" ? "Как это работает" : lang === "es" ? "Cómo funciona" : lang === "de" ? "Wie es funktioniert" : "How it works";
   const headline = lang === "uk" ? "Три кроки — і звіт у вас" : lang === "ru" ? "Три шага — и отчёт у вас" : lang === "es" ? "Tres pasos, resultado inmediato" : lang === "de" ? "Drei Schritte, sofortiges Ergebnis" : "Three steps · instant results";
   type Step = { n: string; title: string; desc: string; icon: typeof Search };
@@ -878,13 +931,13 @@ function HowItWorks() {
               <div className="mx-2 h-1.5 w-1.5 rotate-45 border-r border-t border-white/20" />
             </div>
           </div>
-          {steps.map(({ n, icon: Icon, title, desc }) => (
-            <div key={n} className="relative rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6" data-testid={`step-${n}`}>
+          {steps.map(({ n, icon: Icon, title, desc }, si) => (
+            <div key={n} className={`relative rounded-2xl border p-6 transition-all duration-500 ${si === activeStep ? "border-cyan-400/30 bg-[#0E1316] shadow-[0_0_28px_-8px_rgba(34,211,238,0.2)]" : "border-white/[0.07] bg-[#0D0D10]"}`} data-testid={`step-${n}`}>
               <div className="mb-4 flex items-center gap-3">
-                <div className="relative grid h-10 w-10 place-items-center rounded-xl border border-cyan-400/25 bg-cyan-500/[0.10] shadow-[0_0_16px_-4px_rgba(34,211,238,0.25)]">
+                <div className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-cyan-500/[0.10] transition-all duration-500 ${si === activeStep ? "border-cyan-400/50 shadow-[0_0_20px_-4px_rgba(34,211,238,0.5)]" : "border-cyan-400/25 shadow-[0_0_16px_-4px_rgba(34,211,238,0.25)]"}`}>
                   <Icon className="h-5 w-5 text-cyan-300" />
                 </div>
-                <span className="font-mono text-[13px] font-bold tracking-widest text-zinc-700">{n}</span>
+                <span className={`font-mono text-[13px] font-bold tracking-widest transition-colors duration-500 ${si === activeStep ? "text-cyan-400/60" : "text-zinc-700"}`}>{n}</span>
               </div>
               <div className="text-[15px] font-semibold text-white">{title}</div>
               <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-500">{desc}</p>
@@ -916,7 +969,10 @@ function Sources() {
             <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
               {sectionLabel}
             </div>
-            <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">{headline}</h2>
+            <h2 className="text-[24px] font-semibold tracking-tight text-white sm:text-[28px]">
+              <CountUp raw={OSINT_SOURCES.length} suffix="+" />{" "}
+              {lang === "uk" ? "перевірених OSINT-джерел" : lang === "ru" ? "проверенных OSINT-источников" : lang === "es" ? "fuentes OSINT verificadas" : lang === "de" ? "geprüfte OSINT-Quellen" : "verified OSINT sources"}
+            </h2>
             <p className="mt-2 text-[13px] text-zinc-500">{sub}</p>
           </div>
           <Link href="/trust">
@@ -1211,15 +1267,16 @@ function FAQ() {
             return (
               <div
                 key={i}
-                className={`rounded-xl border transition-colors ${isOpen ? "border-white/[0.12] bg-[#0D0D10]" : "border-white/[0.06] bg-transparent hover:border-white/[0.10]"}`}
+                className={`relative overflow-hidden rounded-xl border transition-all duration-200 ${isOpen ? "border-white/[0.12] bg-[#0D0D10]" : "border-white/[0.06] bg-transparent hover:border-white/[0.10]"}`}
               >
+                {isOpen && <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl bg-gradient-to-b from-cyan-400/60 via-cyan-400/30 to-transparent" />}
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="flex w-full items-center gap-4 px-5 py-4 text-left"
                   data-testid={`button-faq-${i}`}
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/[0.04] text-[11px] font-mono text-zinc-600">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-mono transition-colors ${isOpen ? "bg-cyan-500/[0.12] text-cyan-400/80" : "bg-white/[0.04] text-zinc-600"}`}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="flex-1 text-[14.5px] font-medium text-white">{it.q}</span>
@@ -1298,11 +1355,11 @@ function ComplianceBadges() {
             return (
               <div
                 key={b.label}
-                className="flex flex-col gap-3 rounded-xl border border-white/[0.07] bg-[#0D0D10] p-4 transition-all hover:border-white/[0.14]"
+                className={`flex flex-col gap-3 rounded-xl border bg-[#0D0D10] p-4 transition-all ${b.status === "ready" ? "border-white/[0.07] hover:border-emerald-400/20" : b.status === "progress" ? "border-white/[0.07] hover:border-amber-400/15" : "border-white/[0.07] hover:border-white/[0.14]"}`}
                 data-testid={`badge-compliance-${b.label.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`}
               >
                 <div className={`flex h-8 w-8 items-center justify-center rounded-lg ring-1 ${cfg.ring} ${cfg.bg}`}>
-                  <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+                  <span className={`h-2 w-2 rounded-full ${cfg.dot} ${b.status === "ready" ? "animate-pulse" : ""}`} />
                 </div>
                 <div>
                   <div className="text-[13px] font-semibold text-white">{b.label}</div>
@@ -1451,6 +1508,11 @@ function CommunityCTA() {
 /* ─────────── Social proof ─────────── */
 function SocialProofSection() {
   const { lang } = useTranslation();
+  const [activeIdx, setActiveIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setActiveIdx(i => (i + 1) % 4), 4000);
+    return () => clearInterval(id);
+  }, []);
   const testimonials = [
     {
       text: "Found my email in 3 databases I never knew about. Changed all passwords immediately. Worth every penny.",
@@ -1506,7 +1568,7 @@ function SocialProofSection() {
           {testimonials.map((t, i) => (
             <div
               key={i}
-              className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0D0D10] p-6 transition-all hover:border-white/[0.14] hover:bg-[#111116]"
+              className={`relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all duration-500 ${i === activeIdx ? "border-cyan-400/25 bg-[#0E1316] shadow-[0_0_24px_-6px_rgba(34,211,238,0.15)]" : "border-white/[0.07] bg-[#0D0D10] hover:border-white/[0.14] hover:bg-[#111116]"}`}
               data-testid={`card-testimonial-${i}`}
             >
               <span className="pointer-events-none absolute right-3 top-0 select-none font-serif text-[80px] leading-none text-white/[0.035]" aria-hidden>“</span>
@@ -1532,6 +1594,18 @@ function SocialProofSection() {
                 </span>
               </div>
             </div>
+          ))}
+        </div>
+
+        {/* Dot indicators */}
+        <div className="mt-4 flex items-center justify-center gap-1.5">
+          {[0,1,2,3].map(i => (
+            <button
+              key={i}
+              onClick={() => setActiveIdx(i)}
+              className={`rounded-full transition-all duration-300 ${i === activeIdx ? "w-5 h-1.5 bg-cyan-400" : "w-1.5 h-1.5 bg-white/20 hover:bg-white/40"}`}
+              aria-label={`Testimonial ${i + 1}`}
+            />
           ))}
         </div>
 
@@ -1629,6 +1703,27 @@ function LiveActivity() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ─────────── Scroll-to-top button ─────────── */
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 500);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  if (!visible) return null;
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="fixed bottom-6 right-5 z-50 grid h-10 w-10 place-items-center rounded-full border border-white/[0.12] bg-[#0D0D10]/90 text-white shadow-[0_4px_24px_rgba(0,0,0,0.4)] backdrop-blur-sm transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-4px_rgba(34,211,238,0.25)] active:scale-95"
+      aria-label="Back to top"
+      data-testid="button-scroll-top"
+    >
+      <ChevronDown className="h-4 w-4 rotate-180 text-zinc-400 group-hover:text-cyan-300" />
+    </button>
   );
 }
 
@@ -1797,6 +1892,7 @@ export default function Home() {
         <FAQ />
         <CTABottom />
       </div>
+      <ScrollToTop />
       <Footer />
     </div>
   );
