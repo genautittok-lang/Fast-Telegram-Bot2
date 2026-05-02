@@ -111,7 +111,7 @@ export function PublicHeader() {
                 </Link>
                 <Link href="/pricing">
                   <span
-                    className="relative inline-flex h-8 cursor-pointer items-center rounded-lg bg-cyan-400 px-3.5 text-[12.5px] font-semibold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_18px_-3px_rgba(34,211,238,0.70)] shadow-[0_0_14px_-3px_rgba(34,211,238,0.60)]"
+                    className="relative inline-flex h-8 cursor-pointer items-center rounded-lg bg-cyan-400 px-3.5 text-[12.5px] font-semibold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_20px_-3px_rgba(34,211,238,0.76)] shadow-[0_0_16px_-3px_rgba(34,211,238,0.65)]"
                     data-testid="link-header-pro"
                   >
                     <span className="pointer-events-none absolute -inset-0.5 animate-[ping_3.5s_cubic-bezier(0,0,0.2,1)_infinite] rounded-lg bg-cyan-400/30" />
