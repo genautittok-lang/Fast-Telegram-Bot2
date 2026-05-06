@@ -1702,13 +1702,6 @@ function CommunityCTA() {
 /* ─────────── Social proof ─────────── */
 function SocialProofSection() {
   const { lang } = useTranslation();
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [spHover, setSpHover] = useState(false);
-  useEffect(() => {
-    if (spHover) return;
-    const id = setInterval(() => setActiveIdx(i => (i + 1) % 4), 4000);
-    return () => clearInterval(id);
-  }, [spHover]);
   const testimonials = [
     {
       text: "Found my email in 3 databases I never knew about. Changed all passwords immediately. Worth every penny.",
@@ -1749,99 +1742,72 @@ function SocialProofSection() {
     uptime: lang === "uk" ? "Доступність" : lang === "ru" ? "Время работы" : lang === "es" ? "Tiempo activo" : lang === "de" ? "Verfügbarkeit" : "Uptime",
   };
 
+  const verifiedLabel = lang === "uk" ? "Перевірено" : lang === "ru" ? "Проверено" : lang === "es" ? "Verificado" : lang === "de" ? "Verifiziert" : "Verified";
+  const marqueeItems = [...testimonials, ...testimonials];
+
   return (
     <section className="border-t border-white/[0.09]">
-      <div className="mx-auto max-w-6xl px-5 py-14 sm:py-16">
-        <div className="mb-8 text-center">
-          <div className="mb-3 inline-flex items-center rounded-full border border-white/[0.12] bg-white/[0.05] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-200">{headerBadge}</div>
-          <h2 className="text-[22px] font-semibold tracking-tight text-white sm:text-[26px]">
-            {headerTitle}
-          </h2>
-          <p className="mt-2 text-[13.5px] text-zinc-300">{headerSub}</p>
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:py-14">
+        <div className="mb-6 flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <div className="mb-1.5 inline-flex items-center rounded-full border border-white/[0.12] bg-white/[0.05] px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-200">{headerBadge}</div>
+            <h2 className="text-[18px] font-semibold tracking-tight text-white sm:text-[20px]">
+              {headerTitle}
+            </h2>
+            <p className="mt-0.5 text-[12.5px] text-zinc-400">{headerSub}</p>
+          </div>
+          <div className="flex items-center gap-5 text-center">
+            <div>
+              <div className="text-[18px] font-bold leading-none text-white tabular-nums"><CountUp raw={2800} suffix="+" /></div>
+              <div className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">{statLabels.users}</div>
+            </div>
+            <div className="h-8 w-px bg-white/10" />
+            <div>
+              <div className="text-[18px] font-bold leading-none text-white tabular-nums"><CountUp raw={47000} suffix="+" /></div>
+              <div className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">{statLabels.scans}</div>
+            </div>
+            <div className="h-8 w-px bg-white/10" />
+            <div>
+              <div className="text-[18px] font-bold leading-none text-emerald-300 tabular-nums">99.9%</div>
+              <div className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">{statLabels.uptime}</div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" onMouseEnter={() => setSpHover(true)} onMouseLeave={() => setSpHover(false)}>
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className={`relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all duration-500 ${i === activeIdx ? "border-cyan-400/50 bg-[#0E1316] shadow-[0_0_52px_-3px_rgba(34,211,238,0.44)]" : "border-white/[0.09] bg-[#0D0D10] hover:border-white/[0.20] hover:bg-[#111116] hover:shadow-[0_0_18px_-5px_rgba(255,255,255,0.14)]"}`}
-              data-testid={`card-testimonial-${i}`}
-            >
-              <span className="pointer-events-none absolute right-3 top-0 select-none font-serif text-[80px] leading-none text-white/[0.045]" aria-hidden>“</span>
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="h-3 w-3 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="relative flex-1 text-[14px] leading-relaxed text-zinc-200">
-                {t.text}
-              </p>
-              <div className="flex items-center gap-3 border-t border-white/[0.09] pt-4">
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500/45 via-zinc-600 to-zinc-600 text-[11px] font-bold text-cyan-200">
+        <div
+          className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0D0D10]"
+          style={{
+            maskImage: "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%)",
+          }}
+        >
+          <div className="flex w-max animate-marquee gap-3 py-3 pr-3">
+            {marqueeItems.map((t, i) => (
+              <div
+                key={i}
+                className="inline-flex w-[360px] shrink-0 items-center gap-3 rounded-lg border border-white/[0.07] bg-[#101015] px-4 py-2.5"
+                data-testid={`card-testimonial-${i % testimonials.length}`}
+              >
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-500/45 via-zinc-700 to-zinc-700 text-[10px] font-bold text-cyan-200">
                   {t.avatar}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13px] font-semibold text-white">{t.author}</div>
-                  <div className="text-[11px] text-zinc-400">{t.role}</div>
+                  <p className="truncate text-[12.5px] text-zinc-200">"{t.text}"</p>
+                  <div className="mt-0.5 flex items-center gap-1.5 text-[10.5px] text-zinc-500">
+                    <span className="font-semibold text-zinc-300">{t.author}</span>
+                    <span>·</span>
+                    <span className="truncate">{t.role}</span>
+                    <span className="text-emerald-400/70">· {verifiedLabel}</span>
+                  </div>
                 </div>
-                <span className="shrink-0 inline-flex items-center gap-1 rounded-full border border-emerald-400/25 bg-emerald-500/[0.09] px-2 py-0.5 text-[9.5px] font-medium text-emerald-400/70">
-                  <span className="h-1 w-1 rounded-full bg-emerald-400 inline-block" />
-                  {lang === "uk" ? "Перевірено" : lang === "ru" ? "Проверено" : lang === "es" ? "Verificado" : lang === "de" ? "Verifiziert" : "Verified"}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Aggregate stats */}
-        <div className="mt-8 grid grid-cols-3 divide-x divide-white/[0.08] rounded-xl border border-white/[0.10] bg-[#0D0D10] px-2 py-5 shadow-[0_2px_14px_-3px_rgba(0,0,0,0.62)] ring-1 ring-white/[0.07]">
-          <div className="flex flex-col items-center gap-1 px-4 text-center">
-            <div className="text-[22px] font-bold tracking-tight text-white tabular-nums"><CountUp raw={2800} suffix="+" /></div>
-            <div className="text-[10px] text-zinc-400">{statLabels.users}</div>
-          </div>
-          <div className="flex flex-col items-center gap-1 px-4 text-center">
-            <div className="text-[22px] font-bold tracking-tight text-white tabular-nums"><CountUp raw={47000} suffix="+" /></div>
-            <div className="text-[10px] text-zinc-400">{statLabels.scans}</div>
-          </div>
-          <div className="flex flex-col items-center gap-1 px-4 text-center">
-            <div className="text-[22px] font-bold tracking-tight tabular-nums text-emerald-300">99.9%</div>
-            <div className="text-[10px] text-zinc-400">{statLabels.uptime}</div>
-          </div>
-        </div>
-        {/* Dot indicators */}
-        <div className="mt-4 flex items-center justify-center gap-1.5">
-          {[0,1,2,3].map(i => (
-            <button
-              key={i}
-              onClick={() => setActiveIdx(i)}
-              className={`rounded-full transition-all duration-300 ${i === activeIdx ? "w-6 h-2 bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.88)]" : "w-2 h-2 bg-white/20 hover:bg-white/40 hover:scale-110"}`}
-              aria-label={`Testimonial ${i + 1}`}
-            />
-          ))}
-        </div>
-
-        <div className="mt-6 flex flex-col divide-y divide-white/[0.06] overflow-hidden rounded-2xl border border-white/[0.10] bg-[#0D0D10] sm:flex-row sm:divide-x sm:divide-y-0">
-          {([
-            { icon: Users,      raw: 2800,  suffix: "+", value: null,    label: statLabels.users  },
-            { icon: TrendingUp, raw: 47000, suffix: "+", value: null,    label: statLabels.scans  },
-            { icon: Shield,     raw: null,  suffix: "",  value: "99.9%", label: statLabels.uptime },
-          ] as { icon: typeof Users; raw: number | null; suffix: string; value: string | null; label: string }[]).map(({ icon: Icon, raw, suffix, value, label }) => (
-            <div
-              key={label}
-              className="flex flex-1 items-center gap-4 px-6 py-5"
-              data-testid={`stat-${label.toLowerCase().replace(/\s+/g, "-")}`}
-            >
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/[0.09] bg-white/[0.04]">
-                <Icon className="h-4 w-4 text-cyan-300/60" />
-              </div>
-              <div>
-                <div className="text-[22px] font-bold leading-none text-white">
-                  {raw != null ? <CountUp raw={raw} suffix={suffix} /> : value}
+                <div className="hidden sm:flex shrink-0 items-center gap-0.5">
+                  {Array.from({ length: t.rating }).map((_, j) => (
+                    <Star key={j} className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                  ))}
                 </div>
-                <div className="mt-1 text-[11px] text-zinc-400">{label}</div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>

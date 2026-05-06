@@ -1754,8 +1754,15 @@
   animation: marquee 28s linear infinite;
   width: max-content;
 }
-.animate-marquee:hover {
+.animate-marquee:hover,
+.animate-marquee:focus-within {
   animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    transform: none !important;
+  }
 }
 
 /* ═══════════════════════════════════

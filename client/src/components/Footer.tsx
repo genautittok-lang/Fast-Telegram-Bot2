@@ -8,6 +8,11 @@ export function Footer() {
 
   const aupLabel = lang === "uk" ? "Правила використання" : lang === "ru" ? "Правила использования" : lang === "es" ? "Política de uso aceptable" : lang === "de" ? "Nutzungsrichtlinien" : "Acceptable Use Policy";
   const dataDelLabel = lang === "uk" ? "Видалення даних (GDPR)" : lang === "ru" ? "Удаление данных (GDPR)" : lang === "es" ? "Eliminación de datos (GDPR)" : lang === "de" ? "Datenlöschung (DSGVO)" : "GDPR / Data Deletion";
+  const cookieSettingsLabel = lang === "uk" ? "Налаштування cookie" : lang === "ru" ? "Настройки cookie" : lang === "es" ? "Configuración de cookies" : lang === "de" ? "Cookie-Einstellungen" : "Cookie settings";
+
+  const openCookieSettings = () => {
+    window.dispatchEvent(new CustomEvent("ds:open-cookie-settings"));
+  };
 
   return (
     <footer className="relative z-10 border-t border-white/[0.06]">
@@ -169,6 +174,14 @@ export function Footer() {
                 {t('footer.privacy')}
               </span>
             </Link>
+            <span className="text-white/10">|</span>
+            <button
+              onClick={openCookieSettings}
+              className="hover:text-cyan-400 transition-colors cursor-pointer"
+              data-testid="button-cookie-settings"
+            >
+              {cookieSettingsLabel}
+            </button>
             <span className="text-white/10">|</span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)] animate-pulse" />
