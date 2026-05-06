@@ -103,7 +103,7 @@ export function PublicHeader() {
               <>
                 <Link href="/login">
                   <span
-                    className="hidden sm:inline-flex h-8 cursor-pointer items-center rounded-lg px-3 text-[12.5px] text-zinc-400 transition-colors hover:text-white"
+                    className="inline-flex h-8 cursor-pointer items-center rounded-lg border border-white/[0.15] bg-white/[0.04] px-3 text-[12.5px] font-medium text-white transition-all hover:border-white/[0.30] hover:bg-white/[0.10]"
                     data-testid="link-header-signin"
                   >
                     {signInLabel}
@@ -111,7 +111,7 @@ export function PublicHeader() {
                 </Link>
                 <Link href="/pricing">
                   <span
-                    className="relative inline-flex h-8 cursor-pointer items-center rounded-lg bg-cyan-400 px-3.5 text-[12.5px] font-semibold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_20px_-3px_rgba(34,211,238,0.76)] shadow-[0_0_16px_-3px_rgba(34,211,238,0.65)]"
+                    className="relative hidden sm:inline-flex h-8 cursor-pointer items-center rounded-lg bg-cyan-400 px-3.5 text-[12.5px] font-semibold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_20px_-3px_rgba(34,211,238,0.76)] shadow-[0_0_16px_-3px_rgba(34,211,238,0.65)]"
                     data-testid="link-header-pro"
                   >
                     <span className="pointer-events-none absolute -inset-0.5 animate-[ping_3.5s_cubic-bezier(0,0,0.2,1)_infinite] rounded-lg bg-cyan-400/30" />

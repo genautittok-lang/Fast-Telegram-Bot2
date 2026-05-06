@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link } from "wouter";
 import {
   Shield,
@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/PublicHeader";
+import { AppSidebar } from "@/components/AppSidebar";
+import { MobileMenu } from "@/components/MobileMenu";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useAuth } from "@/lib/auth";
 import { OSINT_SOURCES } from "@/data/osintSources";
 
 interface VpnEntry {
@@ -319,14 +323,53 @@ export default function VpnPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white antialiased">
-      <PublicHeader />
+    <PublicAppShell>
       <Hero />
       <PromiseStrip />
       <VpnList />
       <HowToChoose />
       <CTABottom />
       <Footer />
+    </PublicAppShell>
+  );
+}
+
+function PublicAppShell({ children }: { children: ReactNode }) {
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-[#0A0A0A]" />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-white antialiased">
+        <PublicHeader />
+        {children}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-white antialiased flex overflow-hidden max-w-full">
+      <AppSidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-[#0A0A0A]/92 backdrop-blur-xl sticky top-0 z-40 min-h-[52px]">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.30)]">
+              <Shield className="w-3.5 h-3.5 text-black" />
+            </div>
+            <span className="font-bold text-sm tracking-tight">VPN</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="minimal" />
+            <MobileMenu isAuthenticated={true} username={user?.username} tier={user?.tier} onLogout={logout} />
+          </div>
+        </div>
+        <main className="flex-1 overflow-y-auto pb-28 lg:pb-0">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

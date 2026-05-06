@@ -1344,36 +1344,22 @@ Sources: ${result.sources.join(', ')}`;
               <SecurityTipRotator lang={lang} />
             </div>
 
-            <div className="hidden lg:block relative">
-              <div className="absolute inset-x-0 -bottom-4 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-              <motion.div 
-                className="flex items-center justify-between p-6 rounded-2xl bg-[#0E0E12]/80 border border-white/[0.09] backdrop-blur-xl shadow-[0_0_40px_rgba(0,0,0,0.40)]"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              >
+            <div className="hidden lg:flex items-center justify-between px-1">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                  <Scan className="w-5 h-5 text-primary" />
+                </div>
                 <div>
-                  <h1 className="text-3xl font-display font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-cyan-500/10 border border-primary/20">
-                      <Scan className="w-7 h-7 text-primary" />
-                    </div>
-                    <span className="bg-gradient-to-r from-white via-white to-primary/80 bg-clip-text text-transparent">{lang === "uk" ? "Сканер безпеки" : lang === "ru" ? "Сканер безопасности" : lang === "es" ? "Escáner de seguridad" : lang === "de" ? "Sicherheitsscanner" : "Security Scanner"}</span>
-                  </h1>
-                  <p className="text-muted-foreground mt-2 ml-14">{t('dashboard.selectTypeAndEnter')}</p>
+                  <h2 className="text-lg font-semibold tracking-tight text-white leading-tight">
+                    {lang === "uk" ? "Сканер безпеки" : lang === "ru" ? "Сканер безопасности" : lang === "es" ? "Escáner de seguridad" : lang === "de" ? "Sicherheitsscanner" : "Security Scanner"}
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.selectTypeAndEnter')}</p>
                 </div>
-                <div className="flex items-center gap-4">
-                  <motion.div 
-                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-500/10 to-transparent border border-green-500/20 backdrop-blur-sm"
-                    animate={{ 
-                      boxShadow: ["0 0 15px rgba(34,211,238,0.10)", "0 0 25px rgba(34,211,238,0.20)", "0 0 15px rgba(34,211,238,0.10)"]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <Radio className="w-4 h-4 text-cyan-400 animate-pulse" />
-                    <span className="text-sm font-medium text-cyan-400">{t('dashboard.systemActive')}</span>
-                  </motion.div>
-                </div>
-              </motion.div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/[0.08] border border-cyan-500/20">
+                <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                <span className="text-[11px] font-medium text-cyan-400 uppercase tracking-wider">{t('dashboard.systemActive')}</span>
+              </div>
             </div>
 
             {user && (() => {

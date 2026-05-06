@@ -310,13 +310,13 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
         <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_minmax(0,440px)] lg:gap-16">
           {/* LEFT — copy + form */}
           <div className="lg:pt-2">
-            <div className="inline-flex max-w-full items-center gap-2 truncate rounded-full border border-cyan-400/28 bg-cyan-500/[0.09] px-3 py-1.5 text-[11.5px] text-cyan-300/90 shadow-[0_0_14px_-4px_rgba(34,211,238,0.2)] sm:text-[12px]">
-              <span className="relative flex h-1.5 w-1.5 shrink-0">
+            <div className="inline-flex max-w-full items-start gap-2 rounded-2xl border border-cyan-400/28 bg-cyan-500/[0.09] px-3 py-1.5 text-[11.5px] leading-snug text-cyan-300/90 shadow-[0_0_14px_-4px_rgba(34,211,238,0.2)] sm:items-center sm:rounded-full sm:text-[12px]">
+              <span className="relative mt-1 flex h-1.5 w-1.5 shrink-0 sm:mt-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 drop-shadow-[0_0_4px_rgba(52,211,153,0.8)]" />
               </span>
               <span
-                className={`truncate transition-opacity duration-300 ${badgeVis ? "opacity-100" : "opacity-0"}`}
+                className={`min-w-0 transition-opacity duration-300 ${badgeVis ? "opacity-100" : "opacity-0"}`}
               >
                 {badgeMsgs[badgeIdx]}
               </span>
