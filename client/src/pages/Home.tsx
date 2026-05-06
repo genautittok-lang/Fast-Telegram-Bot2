@@ -75,6 +75,9 @@ interface SiteStats {
   totalUsers: number;
   totalReports: number;
   checksToday: number;
+  activeWatches?: number;
+  threatsBlocked?: number;
+  uptime?: number;
 }
 
 function detectType(value: string): CheckType | null {
@@ -1700,7 +1703,7 @@ function CommunityCTA() {
 }
 
 /* ─────────── Social proof ─────────── */
-function SocialProofSection() {
+function SocialProofSection({ stats }: { stats: SiteStats | null }) {
   const { lang } = useTranslation();
   const testimonials = [
     {
@@ -1734,8 +1737,13 @@ function SocialProofSection() {
   ];
 
   const headerBadge = lang === "uk" ? "Довіряють професіонали" : lang === "ru" ? "Доверяют профессионалы" : lang === "es" ? "De confianza para profesionales" : lang === "de" ? "Von Profis vertraut" : "Trusted by professionals";
-  const headerTitle = lang === "uk" ? "2 800+ дослідників безпеки, аналітиків і розробників" : lang === "ru" ? "2 800+ исследователей безопасности, аналитиков и разработчиков" : lang === "es" ? "Más de 2.800 investigadores de seguridad, analistas y desarrolladores" : lang === "de" ? "2.800+ Sicherheitsforscher, Analysten & Entwickler" : "2,800+ security researchers, analysts & developers";
+  const headerTitle = lang === "uk" ? "Дослідники безпеки, аналітики і розробники" : lang === "ru" ? "Исследователи безопасности, аналитики и разработчики" : lang === "es" ? "Investigadores, analistas y desarrolladores de seguridad" : lang === "de" ? "Sicherheitsforscher, Analysten & Entwickler" : "Security researchers, analysts & developers";
   const headerSub = lang === "uk" ? "Реальні користувачі. Реальні результати." : lang === "ru" ? "Реальные пользователи. Реальные результаты." : lang === "es" ? "Usuarios reales. Resultados reales." : lang === "de" ? "Echte Nutzer. Echte Ergebnisse." : "Real users. Real results.";
+
+  const usersCount = stats?.totalUsers ?? 0;
+  const scansCount = stats?.totalReports ?? 0;
+  const uptimeValue = stats?.uptime != null ? `${stats.uptime}%` : "—";
+  const fmt = (n: number) => n.toLocaleString("en-US");
   const statLabels = {
     users: lang === "uk" ? "Активних користувачів" : lang === "ru" ? "Активных пользователей" : lang === "es" ? "Usuarios activos" : lang === "de" ? "Aktive Nutzer" : "Active users",
     scans: lang === "uk" ? "Сканувань виконано" : lang === "ru" ? "Сканирований выполнено" : lang === "es" ? "Escaneos realizados" : lang === "de" ? "Scans durchgeführt" : "Scans run",
@@ -1758,17 +1766,17 @@ function SocialProofSection() {
           </div>
           <div className="flex items-center gap-5 text-center">
             <div>
-              <div className="text-[18px] font-bold leading-none text-white tabular-nums"><CountUp raw={2800} suffix="+" /></div>
+              <div className="text-[18px] font-bold leading-none text-white tabular-nums">{stats ? fmt(usersCount) : "—"}</div>
               <div className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">{statLabels.users}</div>
             </div>
             <div className="h-8 w-px bg-white/10" />
             <div>
-              <div className="text-[18px] font-bold leading-none text-white tabular-nums"><CountUp raw={47000} suffix="+" /></div>
+              <div className="text-[18px] font-bold leading-none text-white tabular-nums">{stats ? fmt(scansCount) : "—"}</div>
               <div className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">{statLabels.scans}</div>
             </div>
             <div className="h-8 w-px bg-white/10" />
             <div>
-              <div className="text-[18px] font-bold leading-none text-emerald-300 tabular-nums">99.9%</div>
+              <div className="text-[18px] font-bold leading-none text-emerald-300 tabular-nums">{uptimeValue}</div>
               <div className="mt-1 text-[10px] text-zinc-500 uppercase tracking-wider">{statLabels.uptime}</div>
             </div>
           </div>
@@ -2099,7 +2107,7 @@ export default function Home() {
         <WhatWeCheck />
         <HowItWorks />
         <Sources />
-        <SocialProofSection />
+        <SocialProofSection stats={stats} />
         <TrustStrip stats={stats} />
         <ComplianceBadges />
         <PricingTeaser />
