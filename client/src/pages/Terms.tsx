@@ -35,7 +35,7 @@ function TermsContent() {
     },
     {
       title: "6. Payment & Refund Policy",
-      content: "Certain features of the Service require a paid subscription (PRO or Enterprise tier). All payments are processed securely through Stripe. Subscription fees are billed in advance on a recurring basis. You may cancel your subscription at any time, and cancellation will take effect at the end of the current billing period. Refunds are generally not provided for partial billing periods. In cases of Service unavailability exceeding 48 hours, pro-rata credits may be issued at our discretion."
+      content: "Certain features of the Service require a paid subscription (PRO or Enterprise tier). All payments are processed securely through PCI DSS Level 1 certified partner banks (MonoBank for cards, CryptoBot for crypto, Telegram for Stars). Subscription fees are billed in advance on a recurring basis. You may cancel your subscription at any time, and cancellation will take effect at the end of the current billing period. Refunds are generally not provided for partial billing periods. In cases of Service unavailability exceeding 48 hours, pro-rata credits may be issued at our discretion."
     },
     {
       title: "7. Account Termination",

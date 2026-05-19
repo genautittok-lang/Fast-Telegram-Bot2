@@ -86,11 +86,11 @@ export default function Trust() {
       name: "PCI DSS SAQ A",
       status: "ready",
       description: t(
-        "Оплати обробляє Stripe (PCI DSS Level 1 сертифікований). Ми не зберігаємо номери карт.",
-        "Платежи обрабатывает Stripe (PCI DSS Level 1). Мы не храним номера карт.",
-        "Pagos procesados por Stripe (PCI DSS Level 1). No almacenamos números de tarjeta.",
-        "Zahlungen werden von Stripe verarbeitet (PCI DSS Level 1). Wir speichern keine Kartennummern.",
-        "Payments handled by Stripe (PCI DSS Level 1 certified). We never store card numbers."
+        "Оплати обробляють PCI DSS Level 1 сертифіковані банк-партнери. Ми не зберігаємо номери карт.",
+        "Платежи обрабатывают PCI DSS Level 1 сертифицированные банки-партнёры. Мы не храним номера карт.",
+        "Pagos procesados por bancos asociados certificados PCI DSS Level 1. No almacenamos números de tarjeta.",
+        "Zahlungen werden von PCI DSS Level 1 zertifizierten Partnerbanken verarbeitet. Wir speichern keine Kartennummern.",
+        "Payments handled by PCI DSS Level 1 certified partner banks. We never store card numbers."
       ),
       icon: Lock,
     },

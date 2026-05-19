@@ -19,7 +19,7 @@ function PrivacyContent() {
         "\u2022 Account Information: Telegram user ID, username, first name, and profile photo URL when you authenticate via Telegram. Google account email and profile information when you authenticate via Google.\n\n" +
         "\u2022 Usage Data: Search queries, investigation targets (IP addresses, domains, usernames, blockchain addresses), timestamps, and interaction patterns with the platform.\n\n" +
         "\u2022 Technical Data: Browser type, device information, IP address, and session identifiers for security and analytics purposes.\n\n" +
-        "\u2022 Payment Data: When you subscribe to a paid plan, payment processing is handled by Stripe. We do not store your full credit card details on our servers."
+        "\u2022 Payment Data: When you subscribe to a paid plan, payment processing is handled by PCI DSS Level 1 certified partner banks (MonoBank for cards, CryptoBot for crypto, Telegram for Stars). We do not store your card numbers on our servers."
     },
     {
       title: "2. How We Use Information",
@@ -49,7 +49,7 @@ function PrivacyContent() {
         "\u2022 GreyNoise \u2014 Internet background noise and threat intelligence data.\n\n" +
         "\u2022 AbuseIPDB \u2014 IP address abuse and malicious activity reports.\n\n" +
         "\u2022 Blockchain APIs \u2014 Cryptocurrency address analysis and transaction lookups (Bitcoin, Ethereum, and other networks).\n\n" +
-        "\u2022 Stripe \u2014 Secure payment processing for subscriptions.\n\n" +
+        "\u2022 MonoBank / CryptoBot / Telegram Stars \u2014 Secure payment processing for subscriptions.\n\n" +
         "\u2022 OpenAI \u2014 AI-powered analysis and threat assessment generation.\n\n" +
         "\u2022 Telegram Bot API \u2014 User authentication and bot interaction services.\n\n" +
         "When you perform an OSINT query, relevant data may be sent to these third-party services to generate results. We only share the minimum information necessary to fulfill your request."

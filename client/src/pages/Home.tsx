@@ -1353,7 +1353,7 @@ function FAQ() {
       { q: "How is it different from Have I Been Pwned?", a: `HIBP only checks email breaches. DarkShare covers email, phone, username, wallet, domain and IP — using ${OSINT_SOURCES.length}+ open sources and threat feeds, not just one database.` },
       { q: "Are my queries stored?", a: "Free checks — no. Paid plans only store your own scan history, accessible only to you. Delete it in one click." },
       { q: "Can I get a refund?", a: "Yes — within 7 days for PRO subscription, no questions asked. Single reports are non-refundable, but you can see a preview for free." },
-      { q: "How do I pay?", a: "Card (Stripe) with Apple/Google Pay, Telegram Stars, USDT/BTC. All methods available on the pricing page." },
+      { q: "How do I pay?", a: "Card with Apple/Google Pay, Telegram Stars, or crypto (USDT/BTC via CryptoBot). All methods available on the pricing page." },
     ],
     uk: [
       { q: "Це легально?", a: "Так. Використовуємо лише публічні джерела та API: HIBP, AbuseIPDB, VirusTotal, ончейн-дані, OSINT-каталоги. Жодних зливів без правових підстав." },
@@ -1361,7 +1361,7 @@ function FAQ() {
       { q: "Чим відрізняється від Have I Been Pwned?", a: `HIBP перевіряє лише email-витоки. DarkShare охоплює email, телефон, username, гаманець, домен і IP — і використовує ${OSINT_SOURCES.length}+ відкритих джерел та threat-фідів.` },
       { q: "Чи зберігаються мої запити?", a: "Безплатні перевірки — ні. У платних тарифах зберігається лише історія твоїх власних перевірок, доступна тільки тобі. Видалити можна в один клік." },
       { q: "Чи можна повернути гроші?", a: "Так, протягом 7 днів по підписці PRO без запитань. Разовий звіт — без повернення, але ти можеш побачити превʼю безплатно." },
-      { q: "Як оплатити?", a: "Картка (Stripe) з Apple/Google Pay, Telegram Stars, USDT/BTC. Всі способи доступні на сторінці тарифів." },
+      { q: "Як оплатити?", a: "Картка з Apple/Google Pay, Telegram Stars або крипта (USDT/BTC через CryptoBot). Всі способи на сторінці тарифів." },
     ],
     ru: [
       { q: "Это легально?", a: "Да. Используем только публичные источники и API: HIBP, AbuseIPDB, VirusTotal, ончейн-данные, OSINT-каталоги. Никаких слитых баз без правовых оснований." },
@@ -1369,7 +1369,7 @@ function FAQ() {
       { q: "Чем отличается от Have I Been Pwned?", a: `HIBP проверяет только email-утечки. DarkShare охватывает email, телефон, username, кошелёк, домен и IP — и использует ${OSINT_SOURCES.length}+ открытых источников и threat-фидов.` },
       { q: "Хранятся ли мои запросы?", a: "Бесплатные проверки — нет. В платных тарифах сохраняется только история твоих собственных проверок. Удалить можно в один клик." },
       { q: "Можно ли вернуть деньги?", a: "Да, в течение 7 дней по подписке PRO без вопросов. Разовый отчёт — невозвратный, но ты можешь увидеть превью бесплатно." },
-      { q: "Как оплатить?", a: "Карта (Stripe) с Apple/Google Pay, Telegram Stars, USDT/BTC. Все способы доступны на странице тарифов." },
+      { q: "Как оплатить?", a: "Карта с Apple/Google Pay, Telegram Stars или крипта (USDT/BTC через CryptoBot). Все способы на странице тарифов." },
     ],
     es: [
       { q: "¿Es esto legal?", a: "Sí. Solo usamos fuentes y APIs públicas: HIBP, AbuseIPDB, VirusTotal, datos on-chain, catálogos OSINT. Sin bases de datos filtradas sin base legal." },
@@ -1377,7 +1377,7 @@ function FAQ() {
       { q: "¿En qué se diferencia de Have I Been Pwned?", a: `HIBP solo verifica filtraciones de email. DarkShare cubre email, teléfono, usuario, billetera, dominio e IP — usando ${OSINT_SOURCES.length}+ fuentes abiertas.` },
       { q: "¿Se almacenan mis consultas?", a: "Verificaciones gratuitas — no. Los planes de pago solo guardan tu historial de búsquedas, accesible solo para ti. Elimínalo con un clic." },
       { q: "¿Puedo obtener un reembolso?", a: "Sí — dentro de 7 días para la suscripción PRO, sin preguntas. Los informes únicos no son reembolsables, pero puedes ver una vista previa gratis." },
-      { q: "¿Cómo pago?", a: "Tarjeta (Stripe) con Apple/Google Pay, Telegram Stars, USDT/BTC." },
+      { q: "¿Cómo pago?", a: "Tarjeta con Apple/Google Pay, Telegram Stars o cripto (USDT/BTC vía CryptoBot)." },
     ],
     de: [
       { q: "Ist das legal?", a: "Ja. Wir verwenden nur öffentliche Quellen und APIs: HIBP, AbuseIPDB, VirusTotal, On-Chain-Daten, OSINT-Kataloge. Keine geleakten Datenbanken ohne rechtliche Grundlage." },
@@ -1385,7 +1385,7 @@ function FAQ() {
       { q: "Was unterscheidet es von Have I Been Pwned?", a: `HIBP prüft nur E-Mail-Leaks. DarkShare deckt E-Mail, Telefon, Benutzernamen, Wallet, Domain und IP ab — mit ${OSINT_SOURCES.length}+ offenen Quellen.` },
       { q: "Werden meine Abfragen gespeichert?", a: "Kostenlose Checks — nein. Bezahlpläne speichern nur Ihren eigenen Scan-Verlauf. Löschen mit einem Klick." },
       { q: "Kann ich eine Rückerstattung erhalten?", a: "Ja — innerhalb von 7 Tagen für PRO-Abonnement, ohne Fragen. Einzelberichte sind nicht erstattungsfähig, aber Sie können eine kostenlose Vorschau sehen." },
-      { q: "Wie bezahle ich?", a: "Karte (Stripe) mit Apple/Google Pay, Telegram Stars, USDT/BTC." },
+      { q: "Wie bezahle ich?", a: "Karte mit Apple/Google Pay, Telegram Stars oder Krypto (USDT/BTC via CryptoBot)." },
     ],
   };
   const allItems = itemsByLang[lang] ?? itemsByLang.en;
@@ -1490,7 +1490,7 @@ function ComplianceBadges() {
   const badges: { label: string; sub: string; status: StatusKind }[] = [
     { label: "GDPR",      status: "ready",    sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
     { label: "CCPA",      status: "ready",    sub: lang === "uk" ? "Готовий" : lang === "ru" ? "Готово" : lang === "es" ? "Listo" : lang === "de" ? "Bereit" : "Ready" },
-    { label: "PCI DSS",   status: "ready",    sub: "Via Stripe" },
+    { label: "PCI DSS",   status: "ready",    sub: lang === "uk" ? "Через банк-партнерів" : lang === "ru" ? "Через банк-партнёров" : lang === "es" ? "Vía bancos asociados" : lang === "de" ? "Via Partnerbanken" : "Via partner banks" },
     { label: "RFC 9116",  status: "ready",    sub: "security.txt ✓" },
     { label: "SOC 2 II",  status: "progress", sub: lang === "uk" ? "В процесі · Q4 ’26" : lang === "ru" ? "В процессе · Q4 ’26" : lang === "es" ? "En progreso · Q4 ’26" : lang === "de" ? "In Arbeit · Q4 ’26" : "In progress · Q4 ’26" },
     { label: "ISO 27001", status: "planned",  sub: lang === "uk" ? "Заплановано · Q1 ’27" : lang === "ru" ? "Запланировано · Q1 ’27" : lang === "es" ? "Planificado · Q1 ’27" : lang === "de" ? "Geplant · Q1 ’27" : "Planned · Q1 ’27" },
@@ -2195,7 +2195,7 @@ export default function Home() {
               name: "What payment methods are supported?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Card (Visa / Mastercard) via Stripe with Apple Pay & Google Pay support, Telegram Stars, and crypto.",
+                text: "Card (Visa / Mastercard) with Apple Pay & Google Pay support, Telegram Stars, and crypto (USDT/BTC via CryptoBot).",
               },
             },
           ],
