@@ -376,7 +376,6 @@ export default function Account() {
   const requestsUsed = useMemo(() => {
     const tierLimits: Record<string, number> = {
       FREE: 5,
-      BASIC: 30,
       PRO: 50,
       ENTERPRISE: 999999,
       GROUPS: 999999,

@@ -1047,35 +1047,40 @@ export async function registerRoutes(
       return res.status(400).json({ error: validation.error });
     }
 
-    // Check daily limits per tier
+    // Check limits per tier (daily quota + signup bonus pool)
     const user = authReq.user!;
     const userTier = (user.tier || "FREE").toUpperCase();
     
     const DAILY_LIMITS: Record<string, number> = {
-      FREE: 5,
+      FREE: 1,
       PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
     };
     
-    const dailyLimit = DAILY_LIMITS[userTier] || 5;
-    
+    const dailyLimit = DAILY_LIMITS[userTier] || 1;
+    let dailyRemaining = Infinity;
+
     if (dailyLimit !== Infinity) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const userReports = await storage.getReports(user.id);
       const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
-      
-      if (todayChecks >= dailyLimit) {
+      dailyRemaining = Math.max(0, dailyLimit - todayChecks);
+      const bonusLeft = user.requestsLeft || 0;
+
+      if (dailyRemaining <= 0 && bonusLeft <= 0) {
         return res.status(429).json({ 
-          error: `Daily check limit reached (${todayChecks}/${dailyLimit}). Upgrade your plan for more checks.`,
+          error: `Daily limit reached (${todayChecks}/${dailyLimit}) and bonus pool empty. Upgrade your plan for more checks.`,
           limit: dailyLimit,
           used: todayChecks,
+          bonusLeft,
         });
       }
     }
 
-    if (userTier !== "ENTERPRISE" && userTier !== "GROUPS" && (user.requestsLeft || 0) > 0) {
+    // Use daily quota first; only decrement bonus pool when daily is exhausted
+    if (userTier !== "ENTERPRISE" && userTier !== "GROUPS" && dailyRemaining <= 0 && (user.requestsLeft || 0) > 0) {
       await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
     }
 
@@ -1090,8 +1095,11 @@ export async function registerRoutes(
           const referrer = await storage.getUserByRefCode(authReq.user!.pendingRefCode);
           if (referrer && referrer.id !== authReq.user!.id) {
             await storage.createReferral({ referrerId: referrer.id, referredId: authReq.user!.id, bonus: 5 });
-            await storage.updateUser(authReq.user!.id, { requestsLeft: (authReq.user!.requestsLeft || 3) + 5, pendingRefCode: null });
-            await storage.updateUser(referrer.id, { requestsLeft: (referrer.requestsLeft || 3) + 2 });
+            // Re-fetch to avoid stale requestsLeft after earlier decrement
+            const freshUser = await storage.getUser(authReq.user!.id);
+            const freshRef = await storage.getUser(referrer.id);
+            await storage.updateUser(authReq.user!.id, { requestsLeft: (freshUser?.requestsLeft || 0) + 5, pendingRefCode: null });
+            await storage.updateUser(referrer.id, { requestsLeft: (freshRef?.requestsLeft || 0) + 2 });
           } else {
             await storage.updateUser(authReq.user!.id, { pendingRefCode: null });
           }
@@ -1333,31 +1341,41 @@ export async function registerRoutes(
       return res.status(400).json({ error: "Maximum 20 checks per request" });
     }
 
-    // Check daily limits per tier
+    // Check limits per tier (daily quota + signup bonus pool)
     const user = authReq.user!;
     const userTier = (user.tier || "FREE").toUpperCase();
     
     const DAILY_LIMITS: Record<string, number> = {
-      FREE: 5,
+      FREE: 1,
       PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
     };
     
-    const dailyLimit = DAILY_LIMITS[userTier] || 5;
+    const dailyLimit = DAILY_LIMITS[userTier] || 1;
     
     if (dailyLimit !== Infinity) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const userReports = await storage.getReports(user.id);
       const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
-      
-      if (todayChecks >= dailyLimit) {
+      const dailyRemaining = Math.max(0, dailyLimit - todayChecks);
+      const bonusLeft = user.requestsLeft || 0;
+      const totalAvailable = dailyRemaining + bonusLeft;
+
+      if (totalAvailable < checks.length) {
         return res.status(429).json({ 
-          error: `Daily check limit reached (${todayChecks}/${dailyLimit}). Upgrade your plan for more checks.`,
+          error: `Not enough checks available (${totalAvailable} left, ${checks.length} requested). Upgrade your plan.`,
           limit: dailyLimit,
           used: todayChecks,
+          bonusLeft,
         });
+      }
+
+      // Decrement bonus pool for any checks beyond the daily quota
+      const fromBonus = Math.max(0, checks.length - dailyRemaining);
+      if (fromBonus > 0 && userTier !== "ENTERPRISE" && userTier !== "GROUPS") {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, bonusLeft - fromBonus) });
       }
     }
 
@@ -2707,11 +2725,11 @@ export async function registerRoutes(
           if (botInstance && user.tg_id) {
             const lang = user.lang || "uk";
             const expiredTexts: Record<string, string> = {
-              uk: `⚠️ *Підписка закінчилась*\n\nВаш тариф *${user.tier}* закінчився. Ви переведені на безкоштовний план (5 перевірок/день).\n\n💡 Поновіть підписку, щоб продовжити користуватися всіма функціями.`,
-              ru: `⚠️ *Подписка истекла*\n\nВаш тариф *${user.tier}* истёк. Вы переведены на бесплатный план (5 проверок/день).\n\n💡 Обновите подписку, чтобы продолжить использование всех функций.`,
-              en: `⚠️ *Subscription expired*\n\nYour *${user.tier}* plan has expired. You've been downgraded to the free plan (5 checks/day).\n\n💡 Renew your subscription to keep using all features.`,
-              es: `⚠️ *Suscripción expirada*\n\nSu plan *${user.tier}* ha expirado. Ha sido degradado al plan gratuito (5 verificaciones/día).\n\n💡 Renueve su suscripción para seguir usando todas las funciones.`,
-              de: `⚠️ *Abonnement abgelaufen*\n\nIhr *${user.tier}*-Plan ist abgelaufen. Sie wurden auf den kostenlosen Plan herabgestuft (5 Prüfungen/Tag).\n\n💡 Verlängern Sie Ihr Abonnement, um alle Funktionen weiterhin nutzen zu können.`,
+              uk: `⚠️ *Підписка закінчилась*\n\nВаш тариф *${user.tier}* закінчився. Ви переведені на безкоштовний план (1 перевірка/день + 5 бонусних).\n\n💡 Поновіть підписку, щоб продовжити користуватися всіма функціями.`,
+              ru: `⚠️ *Подписка истекла*\n\nВаш тариф *${user.tier}* истёк. Вы переведены на бесплатный план (1 проверка/день + 5 бонусных).\n\n💡 Обновите подписку, чтобы продолжить использование всех функций.`,
+              en: `⚠️ *Subscription expired*\n\nYour *${user.tier}* plan has expired. You've been downgraded to the free plan (1 check/day + 5 bonus).\n\n💡 Renew your subscription to keep using all features.`,
+              es: `⚠️ *Suscripción expirada*\n\nSu plan *${user.tier}* ha expirado. Ha sido degradado al plan gratuito (1 verificación/día + 5 de bono).\n\n💡 Renueve su suscripción para seguir usando todas las funciones.`,
+              de: `⚠️ *Abonnement abgelaufen*\n\nIhr *${user.tier}*-Plan ist abgelaufen. Sie wurden auf den kostenlosen Plan herabgestuft (1 Prüfung/Tag + 5 Bonus).\n\n💡 Verlängern Sie Ihr Abonnement, um alle Funktionen weiterhin nutzen zu können.`,
             };
             try {
               await botInstance.telegram.sendMessage(user.tg_id, expiredTexts[lang] || expiredTexts["en"], { parse_mode: "Markdown" });

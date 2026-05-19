@@ -653,7 +653,7 @@ function PricingContent() {
                   },
                   {
                     label: lang === "uk" ? "Щоденних перевірок" : lang === "ru" ? "Проверок в день" : lang === "es" ? "Checks por día" : lang === "de" ? "Checks pro Tag" : "Checks per day",
-                    values: { FREE: "15", PRO: "100", ENTERPRISE: lang === "uk" ? "Безліміт" : lang === "ru" ? "Безлимит" : lang === "es" ? "Ilimitado" : lang === "de" ? "Unbegrenzt" : "Unlimited", GROUPS: lang === "uk" ? "Безліміт" : lang === "ru" ? "Безлимит" : lang === "es" ? "Ilimitado" : lang === "de" ? "Unbegrenzt" : "Unlimited" },
+                    values: { FREE: lang === "uk" ? "1 + 5 бонус" : lang === "ru" ? "1 + 5 бонус" : lang === "es" ? "1 + 5 bono" : lang === "de" ? "1 + 5 Bonus" : "1 + 5 bonus", PRO: "50", ENTERPRISE: lang === "uk" ? "Безліміт" : lang === "ru" ? "Безлимит" : lang === "es" ? "Ilimitado" : lang === "de" ? "Unbegrenzt" : "Unlimited", GROUPS: lang === "uk" ? "Безліміт" : lang === "ru" ? "Безлимит" : lang === "es" ? "Ilimitado" : lang === "de" ? "Unbegrenzt" : "Unlimited" },
                   },
                   {
                     label: lang === "uk" ? "Типів перевірок" : lang === "ru" ? "Типов проверок" : lang === "es" ? "Tipos de verificación" : lang === "de" ? "Check-Typen" : "Check types",

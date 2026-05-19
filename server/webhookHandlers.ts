@@ -3,7 +3,7 @@ import { storage } from './storage';
 import Stripe from 'stripe';
 
 const TIER_REQUESTS: Record<string, number> = {
-  'FREE': 15,
+  'FREE': 5,
   'PRO': 50,
   'ENTERPRISE': 999999,
   'GROUPS': 999999,

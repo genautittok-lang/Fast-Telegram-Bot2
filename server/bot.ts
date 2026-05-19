@@ -738,7 +738,6 @@ ${t(lang, "startWelcome.selectLang")}`;
     const requestsLeft = user?.requestsLeft ?? 5;
     const tierLimits: Record<string, number> = {
       "FREE": 5,
-      "BASIC": 30,
       "PRO": 50,
       "ENTERPRISE": 999999,
       "GROUPS": 999999,
@@ -1294,7 +1293,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
     } catch (e) {}
 
     const tierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
-    const statsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const statsTierLimits: Record<string, number> = { "FREE": 5, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, statsUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
@@ -2042,18 +2041,6 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
       }
     }
 
-    const userTier = (user?.tier || "FREE").toUpperCase();
-    const isUnlimitedTier = userTier === "ENTERPRISE" || userTier === "GROUPS";
-    if (user && !isUnlimitedTier && user.requestsLeft! <= 0) {
-      return ctx.reply(t(lang, "checkResult.limitExceeded"), {
-        parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([
-          [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)],
-          [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
-        ])
-      });
-    }
-
     if (!state || !state.module) {
       return ctx.reply(t(lang, "common.useMenu"));
     }
@@ -2063,26 +2050,28 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
       const userTier = (user.tier || "FREE").toUpperCase();
       
       const DAILY_LIMITS: Record<string, number> = {
-        FREE: 5,
+        FREE: 1,
         PRO: 50,
         ENTERPRISE: Infinity,
         GROUPS: Infinity,
       };
       
-      const dailyLimit = DAILY_LIMITS[userTier] || 5;
+      const dailyLimit = DAILY_LIMITS[userTier] || 1;
       
       if (dailyLimit !== Infinity) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const userReports = await storage.getReports(user.id);
         const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
-        
-        if (todayChecks >= dailyLimit) {
+        const dailyRemaining = Math.max(0, dailyLimit - todayChecks);
+        const bonusLeft = user.requestsLeft || 0;
+
+        if (dailyRemaining <= 0 && bonusLeft <= 0) {
           const errorMsg = lang === "uk" 
-            ? `❌ Денний ліміт досягнутий (${todayChecks}/${dailyLimit}). Оновіться для більше перевірок.`
+            ? `❌ Денний ліміт використано (${todayChecks}/${dailyLimit}) і бонус закінчився. Оновіть тариф.`
             : lang === "ru"
-            ? `❌ Дневной лимит достигнут (${todayChecks}/${dailyLimit}). Обновитесь для большего количества проверок.`
-            : `❌ Daily check limit reached (${todayChecks}/${dailyLimit}). Upgrade your plan for more checks.`;
+            ? `❌ Дневной лимит исчерпан (${todayChecks}/${dailyLimit}) и бонус закончился. Обновите тариф.`
+            : `❌ Daily limit reached (${todayChecks}/${dailyLimit}) and bonus pool empty. Upgrade your plan.`;
           
           return ctx.reply(errorMsg, {
             parse_mode: "Markdown",
@@ -2376,7 +2365,17 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
     if (user) {
       const checkTier = (user.tier || "FREE").toUpperCase();
       if (checkTier !== "ENTERPRISE" && checkTier !== "GROUPS") {
-        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 3) - 1) });
+        // Decrement bonus pool only when daily quota is exhausted
+        const DAILY_LIMITS_DEC: Record<string, number> = { FREE: 1, PRO: 50 };
+        const dailyLimitDec = DAILY_LIMITS_DEC[checkTier] || 1;
+        const todayD = new Date(); todayD.setHours(0, 0, 0, 0);
+        const reportsD = await storage.getReports(user.id);
+        const todayChecksD = reportsD.filter(r => r.generatedAt && new Date(r.generatedAt) >= todayD).length;
+        // Note: this is called AFTER the report is created below, but report happens after this block — so todayChecksD does NOT include the current check yet.
+        // Daily quota covers the current (about-to-be-saved) check if todayChecksD < dailyLimitDec.
+        if (todayChecksD >= dailyLimitDec) {
+          await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
+        }
       }
       creditPendingReferral(user).catch(() => {});
       
@@ -2399,7 +2398,7 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
 
     // ─────────── Conversion hooks ───────────
     const hookTier = (user?.tier || "FREE").toUpperCase();
-    const isFree = hookTier === "FREE" || hookTier === "BASIC";
+    const isFree = hookTier === "FREE";
     const left = Math.max(0, (user?.requestsLeft ?? 5) - 1);
     const isHighRisk = checkResult.riskScore >= 50;
 
@@ -3880,7 +3879,7 @@ ${faqText}`;
       ? (lang === "uk" ? "API, SIEM, ∞ запитів" : lang === "ru" ? "API, SIEM, ∞ запросов" : "API, SIEM, ∞ checks")
       : user.tier === "PRO" 
         ? (lang === "uk" ? "∞ запитів, PDF, моніторинг" : lang === "ru" ? "∞ запросов, PDF, мониторинг" : "∞ checks, PDF, monitoring")
-        : (lang === "uk" ? "5 запитів/день, 1 монітор" : lang === "ru" ? "5 запросов/день, 1 монитор" : "5 checks/day, 1 monitor");
+        : (lang === "uk" ? "1 запит/день + 5 бонус, 1 монітор" : lang === "ru" ? "1 запрос/день + 5 бонус, 1 монитор" : "1 check/day + 5 bonus, 1 monitor");
     
     const riskHunterProgress = Math.min(totalChecks, 10);
     const scamSlayerProgress = Math.min(totalChecks, 50);
@@ -3987,7 +3986,7 @@ ${pe("globe")} <b>${escHtml(lang === "uk" ? "Мова" : lang === "ru" ? "Язы
       .join("\n") || "├ —";
     
     const detailTierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
-    const detailTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const detailTierLimits: Record<string, number> = { "FREE": 5, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
     const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, detailUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
@@ -6001,19 +6000,33 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     
     const qcTier = (user?.tier || "FREE").toUpperCase();
     const qcUnlimited = qcTier === "ENTERPRISE" || qcTier === "GROUPS";
-    if (!user || (!qcUnlimited && user.requestsLeft! <= 0)) {
-      return ctx.reply(t(lang, "validation.limitReached", { limit: "5" }), 
-        Markup.inlineKeyboard([
-          [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)]
-        ])
+    const QC_DAILY: Record<string, number> = { FREE: 1, PRO: 50 };
+    const qcDaily = QC_DAILY[qcTier] || 1;
+    let qcDailyRemaining = Infinity;
+    if (!user) {
+      return ctx.reply(t(lang, "validation.limitReached", { limit: "5" }),
+        Markup.inlineKeyboard([[cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)]])
       );
+    }
+    if (!qcUnlimited) {
+      const todayQ = new Date(); todayQ.setHours(0, 0, 0, 0);
+      const reportsQ = await storage.getReports(user.id);
+      const todayChecksQ = reportsQ.filter(r => r.generatedAt && new Date(r.generatedAt) >= todayQ).length;
+      qcDailyRemaining = Math.max(0, qcDaily - todayChecksQ);
+      if (qcDailyRemaining <= 0 && (user.requestsLeft ?? 0) <= 0) {
+        return ctx.reply(t(lang, "validation.limitReached", { limit: "5" }), 
+          Markup.inlineKeyboard([
+            [cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)]
+          ])
+        );
+      }
     }
     
     const processingMsg = await ctx.reply(t(lang, "quickCheck.analyzing", { type: checkType, target }));
     
     try {
       const checkResult = await performCheck(checkType, target);
-      if (qcTier !== "ENTERPRISE" && qcTier !== "GROUPS") {
+      if (qcTier !== "ENTERPRISE" && qcTier !== "GROUPS" && qcDailyRemaining <= 0) {
         await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
       }
       creditPendingReferral(user).catch(() => {});
@@ -6464,13 +6477,31 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
 
       const inlineTier = (user?.tier || "FREE").toUpperCase();
       const inlineUnlimited = inlineTier === "ENTERPRISE" || inlineTier === "GROUPS";
-      if (!user || (!inlineUnlimited && (user.requestsLeft ?? 0) <= 0)) {
+      const INLINE_DAILY: Record<string, number> = { FREE: 1, PRO: 50 };
+      const inlineDaily = INLINE_DAILY[inlineTier] || 1;
+      let inlineDailyRemaining = Infinity;
+      if (user && !inlineUnlimited) {
+        const todayI = new Date(); todayI.setHours(0, 0, 0, 0);
+        const reportsI = await storage.getReports(user.id);
+        const todayChecksI = reportsI.filter(r => r.generatedAt && new Date(r.generatedAt) >= todayI).length;
+        inlineDailyRemaining = Math.max(0, inlineDaily - todayChecksI);
+        if (inlineDailyRemaining <= 0 && (user.requestsLeft ?? 0) <= 0) {
+          return ctx.answerInlineQuery([{
+            type: "article",
+            id: "no-checks",
+            title: "⚠️ No checks remaining",
+            description: "Daily limit reached and bonus pool empty. Upgrade!",
+            input_message_content: { message_text: "⚠️ Daily check limit reached and bonus pool empty.\n🚀 Upgrade at darkshare.store/pricing" },
+          }], { cache_time: 5 });
+        }
+      }
+      if (!user) {
         return ctx.answerInlineQuery([{
           type: "article",
-          id: "no-checks",
-          title: "⚠️ No checks remaining",
-          description: "Daily limit reached. Upgrade your plan!",
-          input_message_content: { message_text: "⚠️ Daily check limit reached.\n🚀 Upgrade at darkshare.store/pricing" },
+          id: "no-user",
+          title: "⚠️ Please /start the bot first",
+          description: "Open @DarkShare1Bot and press Start",
+          input_message_content: { message_text: "Please /start the bot first: @DarkShare1Bot" },
         }], { cache_time: 5 });
       }
 
@@ -6482,8 +6513,8 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
         timeoutPromise
       ]);
       
-      if (inlineTier !== "ENTERPRISE" && inlineTier !== "GROUPS") {
-        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 1) - 1) });
+      if (inlineTier !== "ENTERPRISE" && inlineTier !== "GROUPS" && inlineDailyRemaining <= 0) {
+        await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft ?? 0) - 1) });
       }
       creditPendingReferral(user).catch(() => {});
 
