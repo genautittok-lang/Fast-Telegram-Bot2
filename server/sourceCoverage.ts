@@ -33,13 +33,11 @@ const MIN_NAME_LEN = 5;
 
 const PAID_ONLY = new Set([
   "DeHashed",
-  "Snusbase",
   "LeakCheck",
   "IntelligenceX",
   "Spycloud",
   "Hudson Rock",
   "BreachAware",
-  "WeLeakInfo",
   "Hunter.io",
   "Snov.io",
   "VoilaNorbert",

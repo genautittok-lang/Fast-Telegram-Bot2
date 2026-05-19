@@ -1250,7 +1250,7 @@ export async function registerRoutes(
 
       const sourcesMap: Record<string, string[]> = {
         email: [
-          "HaveIBeenPwned", "DeHashed", "LeakCheck", "Snusbase", "BreachDirectory",
+          "HaveIBeenPwned", "DeHashed", "LeakCheck", "BreachDirectory",
           "IntelligenceX", "Hudson Rock", "EmailRep", "Hunter.io", "Verifalia",
           "Holehe", "GHunt", "Spycloud", "Cybernews Leak Checker", "OSINT.industries",
         ],
