@@ -2943,9 +2943,10 @@ export async function registerRoutes(
 
   // ==================== ADMIN API ROUTES ====================
   
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
-  const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "";
+  const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || "").trim();
+  const ADMIN_TOKEN_SECRET = (process.env.ADMIN_TOKEN_SECRET || "").trim();
   const ADMIN_LOGIN_ENABLED = ADMIN_PASSWORD.length >= 8 && ADMIN_TOKEN_SECRET.length >= 16;
+  console.log(`[admin] login enabled=${ADMIN_LOGIN_ENABLED} pwdLen=${ADMIN_PASSWORD.length} tokenLen=${ADMIN_TOKEN_SECRET.length}`);
   if (!ADMIN_LOGIN_ENABLED) {
     console.warn("[admin] ADMIN_PASSWORD/ADMIN_TOKEN_SECRET not configured — admin password login disabled. Use Telegram ADMIN_IDS to access admin features.");
   }
@@ -2970,8 +2971,9 @@ export async function registerRoutes(
     if (!ADMIN_LOGIN_ENABLED) {
       return res.status(503).json({ success: false, error: "Admin password login is disabled" });
     }
-    const password = typeof req.body?.password === "string" ? req.body.password : "";
+    const password = (typeof req.body?.password === "string" ? req.body.password : "").trim();
     if (!password || !timingSafeEqualStr(password, ADMIN_PASSWORD)) {
+      console.warn(`[admin] login fail: submittedLen=${password.length} expectedLen=${ADMIN_PASSWORD.length} match=${password === ADMIN_PASSWORD}`);
       return res.status(401).json({ success: false, error: "Invalid password" });
     }
     return res.json({ success: true, token: ADMIN_TOKEN_SECRET });
