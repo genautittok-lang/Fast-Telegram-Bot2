@@ -144,16 +144,18 @@ function AppSplashLogin() {
     if (!showLogin) return;
 
     window.onTelegramAuth = async (telegramUser: any) => {
+      console.log("[TelegramAuth/PageLayout] callback fired with user id:", telegramUser?.id);
       setAuthError(null);
       try {
         await login(telegramUser);
-      } catch {
+        console.log("[TelegramAuth/PageLayout] login() resolved");
+      } catch (err: any) {
+        console.error("[TelegramAuth/PageLayout] login() failed:", err?.message || err);
         setAuthError(t("auth.telegramFailed") || "Login failed. Please try again.");
       }
     };
 
-    if (telegramRef.current) {
-      telegramRef.current.innerHTML = "";
+    if (telegramRef.current && !telegramRef.current.querySelector("script,iframe")) {
       const script = document.createElement("script");
       script.src = "https://telegram.org/js/telegram-widget.js?22";
       script.setAttribute("data-telegram-login", "DarkShare1Bot");
@@ -165,9 +167,7 @@ function AppSplashLogin() {
       script.async = true;
       telegramRef.current.appendChild(script);
     }
-
-    return () => { delete window.onTelegramAuth; };
-  }, [showLogin, login, t]);
+  }, [showLogin]);
 
   useEffect(() => {
     if (showLogin) return;

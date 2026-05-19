@@ -82,9 +82,12 @@ export default function Login() {
 
   useEffect(() => {
     window.onTelegramAuth = async (telegramUser: any) => {
+      console.log("[TelegramAuth] callback fired with user id:", telegramUser?.id);
       try {
         await login(telegramUser);
-      } catch (err) {
+        console.log("[TelegramAuth] login() resolved");
+      } catch (err: any) {
+        console.error("[TelegramAuth] login() failed:", err?.message || err);
         toast({
           title: t("auth.loginError"),
           description: t("auth.telegramFailed"),
@@ -93,8 +96,7 @@ export default function Login() {
       }
     };
 
-    if (telegramRef.current) {
-      telegramRef.current.innerHTML = "";
+    if (telegramRef.current && !telegramRef.current.querySelector("script,iframe")) {
       const script = document.createElement("script");
       script.src = "https://telegram.org/js/telegram-widget.js?22";
       script.setAttribute("data-telegram-login", "DarkShare1Bot");
@@ -106,11 +108,7 @@ export default function Login() {
       script.async = true;
       telegramRef.current.appendChild(script);
     }
-
-    return () => {
-      delete window.onTelegramAuth;
-    };
-  }, [login, setLocation, toast]);
+  }, []);
 
   const featuresList = [
     { icon: Shield, title: t("landing.features.protection"), desc: t("landing.features.realTimeAnalysis") },
