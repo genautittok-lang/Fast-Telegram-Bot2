@@ -7,6 +7,10 @@ import {
   epssLookup, osvLookupByCve, mozillaObservatory,
   ripestat, bgpview, stopForumSpam, isFeodoC2,
   hackerNewsUser, coingeckoUsd, isOfacSanctioned,
+  isCryptoScamAddress, isCryptoScamDomain,
+  githubAdvisoriesForCve, blocklistDe, aggregatedBlocklistLookup,
+  isOpenPhish, iscSansIp, coinPaprikaUsd, wikipediaSummary,
+  gleifEntity, adguardCheck,
 } from "./freeIntel";
 
 export interface AIInsights {
@@ -680,6 +684,39 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     riskScore += extra;
   } catch {}
 
+  // Aggregated attacker blocklists (IPsum + GreenSnow + CINS) + Blocklist.de + ISC SANS
+  try {
+    const [agg, bde, isc] = await Promise.all([
+      aggregatedBlocklistLookup(value).catch(() => null),
+      blocklistDe(value).catch(() => null),
+      iscSansIp(value).catch(() => null),
+    ]);
+    if (agg && agg.length > 0) {
+      riskScore += Math.min(35, agg.length * 15);
+      for (const n of agg) if (!sources.includes(n)) sources.push(n);
+      ipData.attackerBlocklists = agg;
+      findings.push(`🔴 У блок-листах атакуючих: ${agg.join(", ")}`);
+    } else if (agg && agg.length === 0) {
+      sources.push("IPsum", "GreenSnow", "CINS Army");
+    }
+    if (bde && bde.attacks > 0) {
+      riskScore += Math.min(40, bde.attacks);
+      sources.push("Blocklist.de");
+      ipData.blocklistDe = bde;
+      findings.push(`🔴 Blocklist.de: ${bde.attacks} зафіксованих атак${bde.categories?.length ? ` (${bde.categories.join(", ")})` : ""}`);
+    } else if (bde) {
+      sources.push("Blocklist.de");
+    }
+    if (isc && (isc.attacks || 0) > 0) {
+      riskScore += Math.min(30, isc.attacks || 0);
+      sources.push("ISC SANS");
+      ipData.iscSans = isc;
+      findings.push(`⚠️ ISC SANS: ${isc.attacks} атак, ${isc.count} спостережень`);
+    } else if (isc) {
+      sources.push("ISC SANS");
+    }
+  } catch {}
+
   if (sources.length <= 1) {
     findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
   } else if (findings.length === 0) {
@@ -1014,6 +1051,19 @@ async function checkWallet(value: string, timestamp: Date): Promise<CheckResult>
     }
   } catch {}
 
+  // ScamSniffer crypto scam darklist
+  try {
+    const scam = await isCryptoScamAddress(value);
+    if (scam === true) {
+      riskScore += 50;
+      sources.push("ScamSniffer");
+      walletData.scamSniffer = true;
+      findings.push("🔴 ScamSniffer: адреса у crypto-darklist");
+    } else if (scam === false) {
+      sources.push("ScamSniffer");
+    }
+  } catch {}
+
   // CoinGecko price conversion (if we know the asset)
   try {
     const chain = (walletData.chain || "").toString().toUpperCase();
@@ -1029,12 +1079,17 @@ async function checkWallet(value: string, timestamp: Date): Promise<CheckResult>
       sym = "sol"; balanceNum = parseFloat(walletData.balanceSOL);
     }
     if (sym && balanceNum && balanceNum > 0) {
-      const price = await coingeckoUsd(sym);
+      let price = await coingeckoUsd(sym);
+      let priceSrc = "CoinGecko";
+      if (!price) {
+        price = await coinPaprikaUsd(sym);
+        if (price) priceSrc = "CoinPaprika";
+      }
       if (price) {
         const usd = balanceNum * price;
         walletData.usdValue = usd;
         walletData.usdPrice = price;
-        sources.push("CoinGecko");
+        sources.push(priceSrc);
         findings.push(`💵 ≈ $${usd.toFixed(2)} (${sym.toUpperCase()} @ $${price.toLocaleString()})`);
       }
     }
@@ -2289,6 +2344,54 @@ async function checkDomain(value: string, timestamp: Date): Promise<CheckResult>
     }
   } catch {}
 
+  // OpenPhish + CryptoScamDB domain check
+  try {
+    const [phish, scam] = await Promise.all([
+      isOpenPhish(domain).catch(() => null),
+      isCryptoScamDomain(domain).catch(() => null),
+    ]);
+    if (phish === true) {
+      riskScore += 60;
+      sources.push("OpenPhish");
+      domainData.openPhish = true;
+      findings.push("🔴 OpenPhish: домен у фід-листі фішингу!");
+    } else if (phish === false) sources.push("OpenPhish");
+    if (scam === true) {
+      riskScore += 50;
+      sources.push("ScamSniffer / PhishFort");
+      domainData.scamSniffer = true;
+      findings.push("🔴 ScamSniffer/PhishFort: домен у darklist");
+    } else if (scam === false) sources.push("ScamSniffer / PhishFort");
+  } catch {}
+
+  // AdGuard DNS security filter
+  try {
+    const ag = await adguardCheck(domain);
+    if (ag) {
+      sources.push("AdGuard DNS");
+      if (ag.blocked) {
+        riskScore += 25;
+        domainData.adguardBlocked = true;
+        findings.push("⚠️ AdGuard DNS блокує домен (security filter)");
+      } else {
+        findings.push("✅ AdGuard DNS: домен чистий");
+      }
+    }
+  } catch {}
+
+  // GLEIF — Legal Entity Identifier lookup for organization domains
+  try {
+    const orgName = domain.replace(/\.[a-z]+$/i, "").split(".").pop()?.replace(/[-_]/g, " ");
+    if (orgName && orgName.length >= 3) {
+      const lei = await gleifEntity(orgName);
+      if (lei && lei.length > 0) {
+        sources.push("GLEIF");
+        domainData.gleif = lei.slice(0, 2);
+        findings.push(`🏛️ GLEIF: ${lei[0].name} (${lei[0].country || "?"}) — LEI ${lei[0].lei}`);
+      }
+    }
+  } catch {}
+
   riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
@@ -2604,6 +2707,40 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
 
+  // OpenPhish + CryptoScamDB host check
+  try {
+    if (urlData.domain) {
+      const [phish, scam] = await Promise.all([
+        isOpenPhish(urlData.domain).catch(() => null),
+        isCryptoScamDomain(urlData.domain).catch(() => null),
+      ]);
+      if (phish === true) {
+        riskScore += 60;
+        sources.push("OpenPhish");
+        urlData.openPhish = true;
+        findings.push("🔴 OpenPhish: URL у фід-листі фішингу!");
+      } else if (phish === false) sources.push("OpenPhish");
+      if (scam === true) {
+        riskScore += 50;
+        sources.push("ScamSniffer / PhishFort");
+        urlData.scamSniffer = true;
+        findings.push("🔴 ScamSniffer/PhishFort: домен у darklist");
+      } else if (scam === false) sources.push("ScamSniffer / PhishFort");
+    }
+    // AdGuard DNS security filter
+    if (urlData.domain) {
+      const ag = await adguardCheck(urlData.domain).catch(() => null);
+      if (ag) {
+        sources.push("AdGuard DNS");
+        if (ag.blocked) {
+          riskScore += 25;
+          urlData.adguardBlocked = true;
+          findings.push("⚠️ AdGuard DNS блокує домен (security filter)");
+        }
+      }
+    }
+  } catch {}
+
   if (findings.length <= 1) {
     findings.push("✅ Базова перевірка пройшла");
   }
@@ -2856,6 +2993,19 @@ async function checkCVE(value: string, timestamp: Date): Promise<CheckResult> {
               sources.push("OSV.dev");
               cveData.osv = osv;
               findings.push(`📦 OSV.dev: ${osv.length} запис(ів) у базі open-source`);
+            }
+          } catch {}
+
+          // GitHub Security Advisories
+          try {
+            const gh = await githubAdvisoriesForCve(cleanValue);
+            if (gh && gh.length > 0) {
+              sources.push("GitHub Advisories");
+              cveData.githubAdvisories = gh;
+              const sev = gh[0].severity?.toUpperCase() || "?";
+              const pkgs = gh[0].packages.slice(0, 3).join(", ");
+              findings.push(`🐙 GitHub Advisory ${gh[0].ghsaId} · ${sev}${pkgs ? ` · ${pkgs}` : ""}`);
+              if (gh.some((a) => a.severity?.toLowerCase() === "critical")) riskScore += 10;
             }
           } catch {}
 
@@ -3296,6 +3446,26 @@ async function checkUsername(value: string, timestamp: Date): Promise<CheckResul
       findings.push("🖼️ Gravatar: ймовірний профіль (gmail-варіант)");
     } else if (g === false) {
       sources.push("gravatar.com");
+    }
+  } catch {}
+
+  // Wikipedia entity disambiguation — gated to reduce false positives on common words
+  // Only query if username is reasonably unique-looking: ≥6 chars, mixed case or contains digits/dot
+  try {
+    const common = /^(admin|root|user|test|guest|john|jane|alex|maria|john1|user1)$/i;
+    const looksDistinct = username.length >= 6 && !common.test(username) && /[A-Z0-9._-]/.test(username);
+    if (looksDistinct) {
+      const wiki = await wikipediaSummary(username);
+      if (wiki && wiki.extract) {
+        // Require Wikipedia title to be related to the input (loose substring match)
+        const u = username.toLowerCase().replace(/[._-]/g, "");
+        const t = (wiki.title || "").toLowerCase().replace(/\s+/g, "");
+        if (t.includes(u) || u.includes(t)) {
+          sources.push("Wikipedia");
+          usernameData.wikipedia = { title: wiki.title, description: wiki.description, url: wiki.url };
+          findings.push(`📚 Wikipedia: ${wiki.title}${wiki.description ? ` — ${wiki.description}` : ""}`);
+        }
+      }
     }
   } catch {}
 
