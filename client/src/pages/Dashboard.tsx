@@ -1323,7 +1323,8 @@ Sources: ${result.sources.join(', ')}`;
       <div className="flex-1 flex flex-col min-h-screen max-w-full overflow-hidden">
         <div className="flex-1 p-0 lg:p-8 overflow-auto max-w-full pb-24 lg:pb-8">
           <div className="max-w-6xl mx-auto lg:space-y-6">
-            <div className="px-3 pt-2 pb-1 lg:px-0 lg:pt-0 space-y-2.5">
+            {/* Compact top hero */}
+            <div className="px-3 pt-2 pb-1 lg:px-0 lg:pt-0">
               {user && (
                 <AppHeroCard
                   user={user}
@@ -1333,77 +1334,27 @@ Sources: ${result.sources.join(', ')}`;
                   tier={(user.tier || "FREE").toUpperCase()}
                 />
               )}
-
-              <AppQuickActions
-                lastCheck={recentReports.length > 0 ? recentReports[0] : null}
-                monitoringCount={platformStats?.activeWatches ?? 0}
-                streakDays={user?.streakDays ?? 0}
-                totalChecks={recentReports.length}
-              />
-
-              <SecurityTipRotator lang={lang} />
             </div>
 
-            <div className="hidden lg:flex items-center justify-between px-1">
+            {/* Scanner header — always visible */}
+            <div className="flex items-center justify-between px-3 lg:px-1 pt-1">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
-                  <Scan className="w-5 h-5 text-primary" />
+                <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                  <Scan className="w-4 h-4 lg:w-5 lg:h-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold tracking-tight text-white leading-tight">
+                  <h2 className="text-base lg:text-lg font-semibold tracking-tight text-white leading-tight">
                     {lang === "uk" ? "Сканер безпеки" : lang === "ru" ? "Сканер безопасности" : lang === "es" ? "Escáner de seguridad" : lang === "de" ? "Sicherheitsscanner" : "Security Scanner"}
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.selectTypeAndEnter')}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t('dashboard.selectTypeAndEnter')}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/[0.08] border border-cyan-500/20">
-                <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                <span className="text-[11px] font-medium text-cyan-400 uppercase tracking-wider">{t('dashboard.systemActive')}</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-500/[0.08] border border-cyan-500/20">
+                <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
+                <span className="text-[10px] font-medium text-cyan-400 uppercase tracking-wider hidden sm:inline">{t('dashboard.systemActive')}</span>
               </div>
             </div>
 
-            {user && (() => {
-              const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
-              const maxLimit = limits[(user.tier || "FREE").toUpperCase()] || 5;
-              const left = user.requestsLeft ?? 0;
-              const pct = maxLimit >= 9999 ? 100 : Math.round((left / maxLimit) * 100);
-              const isLow = pct <= 20 && maxLimit < 9999;
-              const isZero = left <= 0 && maxLimit < 9999;
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className={`hidden lg:flex p-3 lg:p-4 rounded-xl border backdrop-blur-xl items-center gap-3 ${isZero ? 'bg-red-500/10 border-red-500/30' : isLow ? 'bg-orange-500/10 border-orange-500/30' : 'bg-cyan-500/10 border-cyan-500/30'}`}
-                  data-testid="checks-counter"
-                >
-                  <div className={`p-2 rounded-lg ${isZero ? 'bg-red-500/20' : isLow ? 'bg-orange-500/20' : 'bg-cyan-500/20'}`}>
-                    <Zap className={`w-4 h-4 ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-cyan-400'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium text-muted-foreground">{t('dashboard.checksRemaining')}</span>
-                      <span className={`text-sm font-mono font-bold ${isZero ? 'text-red-400' : isLow ? 'text-orange-400' : 'text-cyan-400'}`}>
-                        {maxLimit >= 9999 ? '∞' : `${left}/${maxLimit}`}
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
-                      <motion.div
-                        className={`h-full rounded-full ${isZero ? 'bg-red-500' : isLow ? 'bg-orange-500' : 'bg-cyan-500'}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                      />
-                    </div>
-                  </div>
-                  {isZero && (
-                    <Button size="sm" variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs shrink-0" onClick={() => setShowSubscription(true)} data-testid="button-upgrade-checks">
-                      <Crown className="w-3 h-3 mr-1" />{t('pricing.upgrade')}
-                    </Button>
-                  )}
-                </motion.div>
-              );
-            })()}
 
             {(() => {
               const paidTiers = ["PRO", "ENTERPRISE", "GROUPS"];
@@ -1491,7 +1442,7 @@ Sources: ${result.sources.join(', ')}`;
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.07 }}
-              className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"
+              className="hidden grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4"
             >
               <div
                 className="p-3 lg:p-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent border border-indigo-500/20 backdrop-blur-xl"
@@ -1601,111 +1552,6 @@ Sources: ${result.sources.join(', ')}`;
                 })()}
               </div>
             </motion.div>
-
-            {/* Scan Insights with charts - shown for all authenticated users */}
-            {user && (
-              <ScanInsights />
-            )}
-
-            {/* Quick Actions Widget - hidden on mobile */}
-            {recentReports.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="p-3 sm:p-4 lg:p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent border border-cyan-500/20 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.1)]"
-              >
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center bg-cyan-500/20 border border-cyan-500/30">
-                        <PlayCircle className="w-4 h-4 lg:w-5 lg:h-5 text-cyan-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm lg:text-base font-display font-semibold text-white">{t('dashboard.quickActions')}</h3>
-                        <p className="text-[10px] lg:text-xs text-muted-foreground">{t('dashboard.repeatLastChecks')}</p>
-                      </div>
-                    </div>
-                    <Link href="/history">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[10px] h-7 px-2 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
-                        data-testid="button-view-all-history"
-                      >
-                        {t('dashboard.all')}
-                        <ChevronRight className="w-3.5 h-3.5 ml-1" />
-                      </Button>
-                    </Link>
-                  </div>
-                
-                {reportsLoading ? (
-                  <div className="flex items-center justify-center py-6">
-                    <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-                    <span className="text-xs text-muted-foreground ml-2">{t('common.loading')}</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 lg:gap-3 min-w-0">
-                    {recentReports.slice(0, 5).map((report, idx) => {
-                      const riskConfig = getRiskConfig(report.riskLevel);
-                      const RiskIcon = riskConfig.icon;
-                      const checkType = checkTypes.find(t => t.id === report.type.toLowerCase());
-                      const TypeIcon = checkType?.icon || Globe;
-                      
-                      return (
-                        <motion.div
-                          key={report.id}
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: idx * 0.05, duration: 0.3 }}
-                          className={`relative p-3 lg:p-4 rounded-xl ${riskConfig.bg} ${riskConfig.border} border backdrop-blur-sm group hover:border-white/30 transition-all duration-300`}
-                        >
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${checkType?.iconColor ? checkType.iconColor.replace('text-', 'bg-').replace('400', '500/20') : 'bg-white/[0.09]'}`}>
-                              <TypeIcon className={`w-3.5 h-3.5 ${checkType?.iconColor || 'text-white'}`} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] lg:text-xs font-medium uppercase tracking-wide text-muted-foreground">{checkType?.label || report.type}</p>
-                              <p className="text-xs lg:text-sm font-mono truncate text-white/90" title={report.target}>
-                                {report.target.length > 15 ? `${report.target.slice(0, 12)}...` : report.target}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between gap-1">
-                            <div className="flex items-center gap-1.5">
-                              <RiskIcon className={`w-3 h-3 ${riskConfig.color}`} />
-                              <span className={`text-[9px] lg:text-[10px] font-medium uppercase ${riskConfig.color}`}>
-                                {report.riskLevel}
-                              </span>
-                              <span className="text-[9px] lg:text-[10px] text-muted-foreground">·</span>
-                              <span className="text-[9px] lg:text-[10px] text-muted-foreground">
-                                {formatTimeAgo(report.createdAt)}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleRepeatCheck(report)}
-                            disabled={checkMutation.isPending}
-                            aria-label={lang === "uk" ? "Повторити перевірку" : lang === "ru" ? "Повторить проверку" : lang === "es" ? "Repetir verificación" : lang === "de" ? "Prüfung wiederholen" : "Repeat check"}
-                            className="absolute top-2 right-2 w-11 h-11 sm:w-7 sm:h-7 lg:w-8 lg:h-8 p-0 rounded-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white/[0.09] hover:bg-white/20 border border-white/[0.09]"
-                            data-testid={`button-repeat-check-${report.id}`}
-                          >
-                            {checkMutation.isPending ? (
-                              <Loader2 className="w-3 h-3 lg:w-3.5 lg:h-3.5 animate-spin" />
-                            ) : (
-                              <RotateCcw className="w-3 h-3 lg:w-3.5 lg:h-3.5" />
-                            )}
-                          </Button>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                )}
-              </motion.div>
-            )}
 
             <div className="space-y-3 lg:space-y-6">
               {/* Mobile: horizontal scroll strip */}
@@ -2841,6 +2687,19 @@ Sources: ${result.sources.join(', ')}`;
                 )}
               </AnimatePresence>
             </motion.div>
+
+            {/* Stats + insights section — shown below scan area */}
+            <div className="px-3 lg:px-0 space-y-4 pb-4">
+              <AppQuickActions
+                lastCheck={recentReports.length > 0 ? recentReports[0] : null}
+                monitoringCount={platformStats?.activeWatches ?? 0}
+                streakDays={user?.streakDays ?? 0}
+                totalChecks={recentReports.length}
+              />
+              {user && <ScanInsights />}
+              <SecurityTipRotator lang={lang} />
+            </div>
+
           </div>
         </div>
 

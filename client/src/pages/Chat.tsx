@@ -955,58 +955,37 @@ export default function Chat() {
           <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 overflow-hidden min-h-0">
 
             <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-3 lg:mb-4">
-              <div
-                className="relative p-3 lg:p-4 rounded-md border border-white/[0.06] shadow-xl overflow-visible"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(13,13,20,0.9) 0%, rgba(16,16,28,0.9) 50%, rgba(13,13,20,0.9) 100%)',
-                  backdropFilter: 'blur(16px)',
-                }}
-              >
-                <div className="absolute inset-0 rounded-md overflow-hidden pointer-events-none">
-                  <div
-                    className="absolute inset-0 opacity-[0.07]"
-                    style={{
-                      background: 'linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(190 80% 50%) 33%, hsl(280 70% 50%) 66%, hsl(142 71% 45%) 100%)',
-                      backgroundSize: '300% 300%',
-                      animation: 'holographic 8s ease infinite',
-                    }}
-                  />
-                </div>
+              <div className="relative rounded-xl border border-white/[0.07] overflow-hidden bg-[#0C0C14]/95 backdrop-blur-xl shadow-lg">
+                {/* Subtle top accent */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
-                <div className="relative flex items-center justify-between gap-2 flex-wrap">
+                <div className="relative p-3 lg:p-4 flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-3">
-                    <div className="relative" style={{ perspective: '600px' }}>
-                      <motion.div
-                        className="w-11 h-11 lg:w-12 lg:h-12 rounded-md bg-gradient-to-br from-primary/30 to-cyan-500/20 border border-primary/30 flex items-center justify-center"
-                        animate={{ rotateY: [0, 10, -10, 0] }}
-                        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                        style={{ transformStyle: 'preserve-3d' }}
-                      >
-                        <ShieldCheck className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
-                      </motion.div>
-                      <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-cyan-500 border-2 border-[#0d0d14] flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    <div className="relative shrink-0">
+                      <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl bg-gradient-to-br from-primary/25 to-cyan-500/15 border border-primary/25 flex items-center justify-center">
+                        <ShieldCheck className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0C0C14]">
+                        <div className="w-full h-full rounded-full bg-emerald-400 animate-ping opacity-75" />
                       </div>
                     </div>
                     <div>
-                      <h1 className="text-lg lg:text-xl font-display font-bold flex items-center gap-1.5" data-testid="text-chat-title">
-                        <span className="bg-gradient-to-r from-white via-white to-primary/80 bg-clip-text text-transparent">
-                          {chatTitle}
-                        </span>
-                        {activeTeamId && <Lock className="w-3.5 h-3.5 text-primary/60" />}
+                      <h1 className="text-base lg:text-lg font-semibold flex items-center gap-2 text-white" data-testid="text-chat-title">
+                        {chatTitle}
+                        {activeTeamId && <Lock className="w-3.5 h-3.5 text-primary/50" />}
                       </h1>
-                      <p className="text-[11px] lg:text-xs text-muted-foreground">{chatSubtitle}</p>
+                      <p className="text-[11px] text-muted-foreground/70">{chatSubtitle}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowSearch(!showSearch)}
-                      className={`${showSearch ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                      className={`h-8 w-8 rounded-lg ${showSearch ? 'text-primary bg-primary/10 border border-primary/20' : 'text-muted-foreground hover:text-white hover:bg-white/[0.05]'}`}
                       data-testid="button-search-toggle"
                     >
-                      <Search className="w-4 h-4" />
+                      <Search className="w-3.5 h-3.5" />
                     </Button>
                     <OnlineIndicator />
                   </div>
@@ -1086,22 +1065,20 @@ export default function Chat() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-[#0a0a12]/80 backdrop-blur-xl border-white/[0.06] rounded-md shadow-2xl shadow-black/30">
+              <Card className="flex-1 flex flex-col overflow-hidden min-h-0 bg-[#0a0a12]/80 backdrop-blur-xl border-white/[0.06] rounded-xl shadow-2xl shadow-black/30">
 
-                <div className="px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02] flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-muted-foreground">
-                      {activeTeamId ? <Lock className="w-3 h-3 inline mr-1" /> : <ShieldCheck className="w-3 h-3 inline mr-1" />}
-                      {filteredMessages.length} {lang === "uk" ? "повідомлень" : lang === "ru" ? "сообщений" : "messages"}
-                    </span>
+                <div className="px-4 py-2 border-b border-white/[0.05] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-600">
+                    {activeTeamId ? <Lock className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                    <span>{filteredMessages.length} {lang === "uk" ? "повідомлень" : lang === "ru" ? "сообщений" : "msgs"}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
-                      <Lock className="w-3 h-3" />
-                      <span className="hidden sm:inline">{lang === "uk" ? "Зашифровано" : lang === "ru" ? "Зашифровано" : "Encrypted"}</span>
+                  <div className="flex items-center gap-3 text-[10px] text-zinc-600">
+                    <div className="flex items-center gap-1">
+                      <Lock className="w-2.5 h-2.5" />
+                      <span className="hidden sm:inline">{lang === "uk" ? "Зашифровано" : lang === "ru" ? "Зашифровано" : "E2E"}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
-                      <Eye className="w-3 h-3" />
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-2.5 h-2.5" />
                       <span className="hidden sm:inline">{lang === "uk" ? "Модерація" : lang === "ru" ? "Модерация" : "Moderated"}</span>
                     </div>
                   </div>

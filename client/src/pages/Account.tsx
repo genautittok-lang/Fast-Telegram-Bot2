@@ -468,49 +468,56 @@ export default function Account() {
       <main className="flex-1 overflow-y-auto pb-28 lg:pb-0 bg-[#0A0A0A]">
         <div className="p-3 sm:p-5 lg:p-8 space-y-4 sm:space-y-5 lg:space-y-8 max-w-6xl mx-auto overflow-x-hidden">
           <motion.div 
-            className="relative p-3 sm:p-5 lg:p-8 rounded-2xl bg-[#0E0E12] border border-white/[0.12] overflow-hidden shadow-[0_0_48px_-12px_rgba(34,211,238,0.08)]"
+            className="relative rounded-2xl overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  "radial-gradient(ellipse 60% 80% at 100% 0%, rgba(34,211,238,0.08), transparent 60%)",
-              }}
-            />
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent z-10" />
+            {/* Background */}
+            <div className="absolute inset-0 bg-[#0C0C12] border border-white/[0.08] rounded-2xl" />
+            <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: "radial-gradient(ellipse 70% 90% at 100% 0%, rgba(34,211,238,0.07), transparent 55%)" }} />
+            <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: "radial-gradient(ellipse 50% 60% at 0% 100%, rgba(99,102,241,0.04), transparent 50%)" }} />
 
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-              <Avatar className="w-14 h-14 sm:w-20 sm:h-20 lg:w-24 lg:h-24 border border-white/[0.09] shrink-0">
-                <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
-                <AvatarFallback className="bg-white/[0.06] text-cyan-300 text-2xl lg:text-3xl font-semibold">
-                  {user?.username?.slice(0, 2).toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
+            <div className="relative p-4 sm:p-6 lg:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-7">
+              {/* Avatar with glow ring */}
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500/30 to-primary/20 blur-lg scale-110" />
+                <Avatar className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 ring-2 ring-cyan-500/30 ring-offset-2 ring-offset-[#0C0C12]">
+                  <AvatarImage src={user?.photoUrl || user?.profileImageUrl} />
+                  <AvatarFallback className="bg-gradient-to-br from-cyan-500/20 to-primary/10 text-cyan-300 text-2xl lg:text-3xl font-bold">
+                    {user?.username?.slice(0, 2).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Online dot */}
+                <div className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0C0C12]" />
+              </div>
 
-              <div className="flex-1 min-w-0 space-y-2 lg:space-y-3 w-full">
-                <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-                  <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-white truncate leading-tight" data-testid="text-username">
+              <div className="flex-1 min-w-0 space-y-2.5">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white leading-tight" data-testid="text-username">
                     @{user?.username || "anonymous"}
                   </h1>
                   <TierBadge tier={userTier} />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] lg:text-sm text-zinc-400">
-                  <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] lg:text-[13px] text-zinc-400">
+                  <div className="flex items-center gap-1.5">
                     <Smartphone className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                    <span data-testid="text-telegram-id" className="truncate font-mono">{user?.tgId?.startsWith('replit:') ? 'Account' : t('account.telegramId')}: {user?.tgId?.startsWith('replit:') ? (user?.username || 'Web User') : (user?.tgId || "N/A")}</span>
+                    <span data-testid="text-telegram-id" className="font-mono truncate max-w-[180px]">
+                      {user?.tgId?.startsWith('replit:') ? 'Account' : t('account.telegramId')}: {user?.tgId?.startsWith('replit:') ? (user?.username || 'Web User') : (user?.tgId || "N/A")}
+                    </span>
                   </div>
                   {user?.refCode && (
-                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                      <span data-testid="text-ref-code" className="truncate font-mono">{t('account.ref')}: {user.refCode}</span>
+                      <span data-testid="text-ref-code" className="font-mono">{t('account.ref')}: {user.refCode}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 mt-2" data-testid="text-streak-days">
+                <div className="flex items-center gap-3" data-testid="text-streak-days">
                   <FireStreak streakDays={user?.streakDays || 0} size="sm" />
                 </div>
               </div>
@@ -532,40 +539,44 @@ export default function Account() {
               </>
             ) : (
               <>
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
-                    <BarChart3 className="w-3.5 h-3.5 text-cyan-300" />
+                <div className="group relative rounded-xl border border-white/[0.07] bg-[#0E0E14] p-3 sm:p-4 lg:p-5 transition-all duration-300 hover:border-cyan-500/25 hover:bg-[#101018] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative flex items-center gap-2 mb-3 text-[10px] sm:text-[11px] uppercase tracking-widest text-zinc-500">
+                    <BarChart3 className="w-3.5 h-3.5 text-cyan-400/70" />
                     <span>{t('account.totalChecks')}</span>
                   </div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-total-checks">{stats.totalChecks}</p>
+                  <p className="relative text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-total-checks">{stats.totalChecks}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
-                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                <div className="group relative rounded-xl border border-white/[0.07] bg-[#0E0E14] p-3 sm:p-4 lg:p-5 transition-all duration-300 hover:border-emerald-500/25 hover:bg-[#101018] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative flex items-center gap-2 mb-3 text-[10px] sm:text-[11px] uppercase tracking-widest text-zinc-500">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400/70" />
                     <span>{t('account.activeMonitors')}</span>
                   </div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-active-monitors">{stats.activeMonitors}</p>
+                  <p className="relative text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-active-monitors">{stats.activeMonitors}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
-                    <Users className="w-3.5 h-3.5 text-cyan-300" />
+                <div className="group relative rounded-xl border border-white/[0.07] bg-[#0E0E14] p-3 sm:p-4 lg:p-5 transition-all duration-300 hover:border-violet-500/25 hover:bg-[#101018] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative flex items-center gap-2 mb-3 text-[10px] sm:text-[11px] uppercase tracking-widest text-zinc-500">
+                    <Users className="w-3.5 h-3.5 text-violet-400/70" />
                     <span>{t('account.referrals')}</span>
                   </div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-referrals-count">{stats.referralsCount}</p>
+                  <p className="relative text-2xl sm:text-3xl font-bold tracking-tight text-white font-mono tabular-nums" data-testid="text-referrals-count">{stats.referralsCount}</p>
                 </div>
 
-                <div className="rounded-xl border border-white/[0.09] bg-[#0E0E12] p-3 sm:p-4 lg:p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_20px_-6px_rgba(34,211,238,0.15)]">
-                  <div className="flex items-center gap-2 mb-2.5 text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500 truncate">
-                    <TrendingUp className="w-3.5 h-3.5 text-cyan-300" />
+                <div className="group relative rounded-xl border border-white/[0.07] bg-[#0E0E14] p-3 sm:p-4 lg:p-5 transition-all duration-300 hover:border-amber-500/25 hover:bg-[#101018] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative flex items-center gap-2 mb-3 text-[10px] sm:text-[11px] uppercase tracking-widest text-zinc-500">
+                    <TrendingUp className="w-3.5 h-3.5 text-amber-400/70" />
                     <span>{t('account.top')}</span>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="relative flex flex-wrap gap-1.5">
                     {stats.mostUsedTypes.length === 0 ? (
                       <span className="text-[12px] text-zinc-500 font-mono">—</span>
                     ) : stats.mostUsedTypes.map((type, idx) => (
-                      <span key={idx} className="inline-flex items-center rounded-full border border-white/[0.09] bg-white/[0.04] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
+                      <span key={idx} className="inline-flex items-center rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[11px] font-mono text-zinc-300">
                         {type}
                       </span>
                     ))}
