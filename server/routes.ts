@@ -3011,14 +3011,43 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
-  // Update coupon (toggle public, edit description/image)
+  // Update coupon (full edit support)
   app.patch("/api/admin/coupons/:id", requireAdmin, async (req, res) => {
     try {
-      const allowedFields = ["description", "imageUrl", "isPublic", "isActive"];
+      const allowedFields = ["code", "type", "value", "tier", "maxUses", "expiresAt", "description", "imageUrl", "isPublic", "isActive"];
       const updates: Record<string, any> = {};
       for (const key of allowedFields) {
-        if (req.body[key] !== undefined) {
-          updates[key] = req.body[key];
+        if (req.body[key] === undefined) continue;
+        const val = req.body[key];
+        if (key === "value") {
+          const num = parseInt(val);
+          if (isNaN(num) || num < 1 || num > 1000000) return res.status(400).json({ error: "Invalid value (1-1000000)" });
+          updates[key] = num;
+        } else if (key === "maxUses") {
+          const num = parseInt(val);
+          if (isNaN(num) || num < 1 || num > 10000000) return res.status(400).json({ error: "Invalid maxUses (1-10000000)" });
+          updates[key] = num;
+        } else if (key === "type") {
+          if (val !== "checks" && val !== "tier") return res.status(400).json({ error: "Invalid type" });
+          updates[key] = val;
+        } else if (key === "tier") {
+          if (val !== null && val !== "PRO" && val !== "ENTERPRISE") return res.status(400).json({ error: "Invalid tier" });
+          updates[key] = val;
+        } else if (key === "expiresAt") {
+          if (val === null || val === "") { updates[key] = null; }
+          else {
+            const d = new Date(val);
+            if (isNaN(d.getTime())) return res.status(400).json({ error: "Invalid expiresAt" });
+            updates[key] = d;
+          }
+        } else if (key === "code") {
+          const code = String(val).trim().toUpperCase();
+          if (!code || code.length > 64) return res.status(400).json({ error: "Invalid code" });
+          updates[key] = code;
+        } else if (key === "isPublic" || key === "isActive") {
+          updates[key] = Boolean(val);
+        } else {
+          updates[key] = typeof val === "string" ? val.slice(0, 1000) : val;
         }
       }
       if (Object.keys(updates).length === 0) {
@@ -3316,9 +3345,12 @@ export async function registerRoutes(
       try {
         const targetUser = await storage.getUser(targetUserId);
         if (targetUser?.tgId && botInstance) {
+          const { t: tt, normalizeLang: nl } = await import("./i18n");
+          const userLang = nl(targetUser.lang);
+          const prefix = tt(userLang, "admin.supportMessagePrefix");
           await botInstance.telegram.sendMessage(
             targetUser.tgId,
-            `📩 Повідомлення від підтримки DARKSHARE:\n\n${message.trim()}`
+            `${prefix}\n\n${message.trim()}`
           );
           telegramDelivered = true;
         }

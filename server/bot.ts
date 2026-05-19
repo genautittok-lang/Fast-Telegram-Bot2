@@ -2,7 +2,7 @@ import { Telegraf, Markup, Context } from "telegraf";
 import { IStorage } from "./storage";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { performCheck, CheckResult, validateInput, extractExifFromBuffer } from "./checkService";
-import { t, Language, languageNames } from "./i18n";
+import { t, Language, languageNames, normalizeLang } from "./i18n";
 import { generateWireGuardKeyPair, generatePresharedKey, allocatePeerIp, buildPeerConfig, isProTier } from "./vpn";
 import { pe, setEmoji, clearEmoji, getMappings, extractCustomEmojis, escHtml, suggestSlotForEmoji } from "./premiumEmoji";
 import { generateApiKey } from "./apiV1";
@@ -1694,7 +1694,8 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
         try {
           const ticketUser = await storage.getUserById(ticket.userId);
           if (ticketUser) {
-            await ctx.telegram.sendMessage(ticketUser.tgId, `${t(lang, "admin.ticketReply")}\n\n${replyText}`);
+            const userLang = normalizeLang(ticketUser.lang);
+            await ctx.telegram.sendMessage(ticketUser.tgId, `${t(userLang, "admin.supportMessagePrefix")}\n\n${replyText}`);
           }
         } catch (e) {
           console.log("Failed to notify user about ticket reply");
@@ -1704,6 +1705,36 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
       await ctx.reply(t(lang, "admin.ticketReplySent"), {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_tickets", "danger", E.msg)]])
+      });
+      return;
+    }
+
+    if (state?.module === "admin_coupon_edit" && state?.step === "awaiting_value") {
+      if (!isAdmin(tgId)) {
+        userStates.delete(tgId);
+        return ctx.reply(t(lang, "admin.accessDenied"));
+      }
+      const { couponId, field } = state.data;
+      const raw = text.trim();
+      let updates: any = {};
+      if (field === "value") {
+        const n = parseInt(raw);
+        if (isNaN(n) || n < 1 || n > 100) return ctx.reply(t(lang, "admin.invalidAmount"));
+        updates.value = n;
+      } else if (field === "maxUses") {
+        const n = parseInt(raw);
+        if (isNaN(n) || n < 0) return ctx.reply(t(lang, "admin.invalidAmount"));
+        updates.maxUses = n === 0 ? 999999 : n;
+      } else if (field === "expiresAt") {
+        const days = parseInt(raw);
+        if (isNaN(days) || days < 0) return ctx.reply(t(lang, "admin.invalidAmount"));
+        updates.expiresAt = days > 0 ? new Date(Date.now() + days * 24 * 60 * 60 * 1000) : null;
+      }
+      userStates.delete(tgId);
+      await storage.updateCoupon(couponId, updates);
+      await ctx.reply(t(lang, "admin.couponUpdated"), {
+        parse_mode: "Markdown",
+        ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_coupons", "danger", E.gift)]])
       });
       return;
     }
@@ -5341,7 +5372,10 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       text += `   ${t(lang, "admin.couponDiscount")} ${c.value}%\n`;
       text += `   ${t(lang, "admin.couponUses")} ${c.usedCount || 0}/${c.maxUses || "inf"}\n`;
       text += `   ${t(lang, "admin.couponExpiry")} ${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : "never"}\n\n`;
-      buttons.push([cb(`${t(lang, "admin.deleteCoupon")} ${c.code}`, `admin_coupon_delete_${c.id}`, "danger", E.trash)]);
+      buttons.push([
+        cb(`${t(lang, "admin.editCoupon")} ${c.code}`, `admin_coupon_edit_${c.id}`, "primary", E.gift),
+        cb(`${t(lang, "admin.deleteCoupon")}`, `admin_coupon_delete_${c.id}`, "danger", E.trash),
+      ]);
     });
     
     buttons.push([cb(t(lang, "admin.createCoupon"), "admin_coupon_create", "success", E.gift)]);
@@ -5350,6 +5384,40 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard(buttons)
+    });
+  });
+
+  bot.action(/^admin_coupon_edit_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    const couponId = parseInt(ctx.match[1]);
+    const coupons = await storage.getCoupons();
+    const c = coupons.find(x => x.id === couponId);
+    if (!c) return ctx.answerCbQuery("Not found");
+    const info = `\`${c.code}\` · ${c.value}% · ${c.usedCount || 0}/${c.maxUses || "∞"} · ${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString() : "—"}`;
+    await ctx.editMessageText(info, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [cb(t(lang, "admin.editCouponDiscount"), `admin_coupon_edit_value_${c.id}`, "primary", E.gift)],
+        [cb(t(lang, "admin.editCouponMaxUses"), `admin_coupon_edit_maxUses_${c.id}`, "primary", E.gift)],
+        [cb(t(lang, "admin.editCouponExpiry"), `admin_coupon_edit_expiresAt_${c.id}`, "primary", E.gift)],
+        [cb(t(lang, "admin.back"), "admin_coupons", "danger", E.back)],
+      ])
+    });
+  });
+
+  bot.action(/^admin_coupon_edit_(value|maxUses|expiresAt)_(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+    const field = ctx.match[1];
+    const couponId = parseInt(ctx.match[2]);
+    userStates.set(tgId, { module: "admin_coupon_edit", step: "awaiting_value", data: { couponId, field } });
+    const promptKey = field === "value" ? "admin.enterNewDiscount" : field === "maxUses" ? "admin.enterNewMaxUses" : "admin.enterNewExpiry";
+    await ctx.editMessageText(t(lang, promptKey), {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([[cb(t(lang, "admin.cancel"), "admin_coupons", "danger", E.back)]])
     });
   });
 

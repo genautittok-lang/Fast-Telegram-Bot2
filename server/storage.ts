@@ -69,7 +69,7 @@ export interface IStorage {
   getCouponByCode(code: string): Promise<Coupon | undefined>;
   createCoupon(coupon: InsertCoupon): Promise<Coupon>;
   deleteCoupon(id: number): Promise<void>;
-  updateCoupon(id: number, data: Partial<{ description: string | null; imageUrl: string | null; isPublic: boolean; isActive: boolean }>): Promise<any>;
+  updateCoupon(id: number, data: Partial<{ code: string; type: string; value: number; tier: string | null; maxUses: number | null; expiresAt: Date | null; description: string | null; imageUrl: string | null; isPublic: boolean; isActive: boolean }>): Promise<any>;
   useCoupon(couponId: number, userId: number): Promise<void>;
   hasUserUsedCoupon(couponId: number, userId: number): Promise<boolean>;
   
@@ -441,7 +441,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(coupons).where(eq(coupons.id, id));
   }
 
-  async updateCoupon(id: number, data: Partial<{ description: string | null; imageUrl: string | null; isPublic: boolean; isActive: boolean }>): Promise<any> {
+  async updateCoupon(id: number, data: Partial<{ code: string; type: string; value: number; tier: string | null; maxUses: number | null; expiresAt: Date | null; description: string | null; imageUrl: string | null; isPublic: boolean; isActive: boolean }>): Promise<any> {
     if (!db) throw new Error("Database not available");
     const [updated] = await db.update(coupons).set(data).where(eq(coupons.id, id)).returning();
     return updated;

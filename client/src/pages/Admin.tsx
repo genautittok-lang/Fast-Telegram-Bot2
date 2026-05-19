@@ -58,6 +58,7 @@ import {
   ImagePlus,
   Film,
   Play,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,6 +87,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -251,6 +253,20 @@ export default function Admin() {
     description: "",
     imageUrl: "",
     isPublic: false,
+  });
+
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+  const [editCouponForm, setEditCouponForm] = useState({
+    code: "",
+    type: "checks" as "checks" | "tier",
+    value: 10,
+    tier: "PRO",
+    maxUses: 100,
+    expiresAt: null as Date | null,
+    description: "",
+    imageUrl: "",
+    isPublic: false,
+    isActive: true,
   });
 
   const [settingsForm, setSettingsForm] = useState({
@@ -518,6 +534,46 @@ export default function Admin() {
       toast({ title: "Оновлено" });
     },
   });
+
+  const updateCouponMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: typeof editCouponForm }) => {
+      const payload: any = {
+        code: data.code,
+        type: data.type,
+        value: data.value,
+        tier: data.tier,
+        maxUses: data.maxUses,
+        expiresAt: data.expiresAt ? data.expiresAt.toISOString() : null,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        isPublic: data.isPublic,
+        isActive: data.isActive,
+      };
+      return await adminPatch(`/api/admin/coupons/${id}`, payload);
+    },
+    onSuccess: () => {
+      queryClientInstance.invalidateQueries({ queryKey: ["/api/admin/coupons"] });
+      toast({ title: "Купон оновлено" });
+      setEditingCoupon(null);
+    },
+    onError: (error: Error) => { toast({ title: "Помилка", description: error.message, variant: "destructive" }); },
+  });
+
+  const openEditCoupon = (c: Coupon) => {
+    setEditingCoupon(c);
+    setEditCouponForm({
+      code: c.code,
+      type: c.type,
+      value: c.value,
+      tier: c.tier || "PRO",
+      maxUses: c.maxUses,
+      expiresAt: c.expiresAt ? new Date(c.expiresAt) : null,
+      description: (c as any).description || "",
+      imageUrl: (c as any).imageUrl || "",
+      isPublic: c.isPublic,
+      isActive: c.isActive,
+    });
+  };
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: PaymentSettings) => { await adminPost("/api/admin/settings", data); },
@@ -1835,9 +1891,14 @@ export default function Admin() {
                               </TableCell>
                               <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">{coupon.expiresAt ? format(new Date(coupon.expiresAt), "dd.MM.yyyy") : "—"}</TableCell>
                               <TableCell className="text-right">
-                                <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => deleteCouponMutation.mutate(coupon.id)} disabled={deleteCouponMutation.isPending} data-testid={`button-delete-coupon-${coupon.id}`}>
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button variant="ghost" size="icon" className="text-blue-400 h-8 w-8" onClick={() => openEditCoupon(coupon)} data-testid={`button-edit-coupon-${coupon.id}`}>
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => { if (confirm(`Видалити купон ${coupon.code}?`)) deleteCouponMutation.mutate(coupon.id); }} disabled={deleteCouponMutation.isPending} data-testid={`button-delete-coupon-${coupon.id}`}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -2616,6 +2677,100 @@ export default function Admin() {
           )}
         </main>
       </div>
+
+      <Dialog open={!!editingCoupon} onOpenChange={(open) => !open && setEditingCoupon(null)}>
+        <DialogContent className="bg-zinc-950 border-white/10 max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Редагувати купон</DialogTitle>
+            <DialogDescription>Зміни код, відсоток, термін дії та інші параметри.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Код</label>
+              <Input value={editCouponForm.code} onChange={(e) => setEditCouponForm({ ...editCouponForm, code: e.target.value.toUpperCase() })} className="bg-white/5 border-white/10" data-testid="input-edit-coupon-code" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Тип</label>
+                <Select value={editCouponForm.type} onValueChange={(v: "checks" | "tier") => setEditCouponForm({ ...editCouponForm, type: v })}>
+                  <SelectTrigger className="bg-white/5 border-white/10" data-testid="select-edit-coupon-type"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="checks">Перевірки (+N)</SelectItem>
+                    <SelectItem value="tier">Підписка (тариф)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {editCouponForm.type === "checks" ? (
+                <div>
+                  <label className="text-xs text-muted-foreground">Значення / %</label>
+                  <Input type="number" min={1} value={editCouponForm.value} onChange={(e) => setEditCouponForm({ ...editCouponForm, value: parseInt(e.target.value) || 0 })} className="bg-white/5 border-white/10" data-testid="input-edit-coupon-value" />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-muted-foreground">Тариф</label>
+                  <Select value={editCouponForm.tier} onValueChange={(v) => setEditCouponForm({ ...editCouponForm, tier: v })}>
+                    <SelectTrigger className="bg-white/5 border-white/10" data-testid="select-edit-coupon-tier"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PRO">PRO</SelectItem>
+                      <SelectItem value="ENTERPRISE">ENTERPRISE</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Макс. використань</label>
+                <Input type="number" min={1} value={editCouponForm.maxUses} onChange={(e) => setEditCouponForm({ ...editCouponForm, maxUses: parseInt(e.target.value) || 0 })} className="bg-white/5 border-white/10" data-testid="input-edit-coupon-maxuses" />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Термін дії</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/10" data-testid="button-edit-coupon-expiry">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      {editCouponForm.expiresAt ? format(editCouponForm.expiresAt, "dd.MM.yyyy") : "Без обмежень"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent mode="single" selected={editCouponForm.expiresAt || undefined} onSelect={(date) => setEditCouponForm({ ...editCouponForm, expiresAt: date || null })} initialFocus />
+                    {editCouponForm.expiresAt && (
+                      <div className="p-2 border-t">
+                        <Button variant="ghost" size="sm" className="w-full" onClick={() => setEditCouponForm({ ...editCouponForm, expiresAt: null })}>Очистити</Button>
+                      </div>
+                    )}
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Опис</label>
+              <Input value={editCouponForm.description} onChange={(e) => setEditCouponForm({ ...editCouponForm, description: e.target.value })} className="bg-white/5 border-white/10" data-testid="input-edit-coupon-description" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Зображення (URL)</label>
+              <Input value={editCouponForm.imageUrl} onChange={(e) => setEditCouponForm({ ...editCouponForm, imageUrl: e.target.value })} className="bg-white/5 border-white/10" data-testid="input-edit-coupon-image" />
+            </div>
+            <div className="flex items-center gap-6">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={editCouponForm.isActive} onChange={(e) => setEditCouponForm({ ...editCouponForm, isActive: e.target.checked })} className="rounded" data-testid="checkbox-edit-coupon-active" />
+                Активний
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={editCouponForm.isPublic} onChange={(e) => setEditCouponForm({ ...editCouponForm, isPublic: e.target.checked })} className="rounded" data-testid="checkbox-edit-coupon-public" />
+                Публічний
+              </label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingCoupon(null)} data-testid="button-cancel-edit-coupon">Скасувати</Button>
+            <Button onClick={() => editingCoupon && updateCouponMutation.mutate({ id: editingCoupon.id, data: editCouponForm })} disabled={updateCouponMutation.isPending || !editCouponForm.code} data-testid="button-save-edit-coupon">
+              {updateCouponMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              Зберегти
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
