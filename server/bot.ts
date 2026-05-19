@@ -382,6 +382,59 @@ export async function setupBot(storage: IStorage) {
     return next();
   });
 
+  // Anti-spam: per-user rate limiter for text/photo messages.
+  // 20 messages per 30s window. Excess is silently dropped (no reply to avoid feedback loops).
+  // Admins are exempt. Callback queries and commands bypass to preserve UX.
+  const rlBuckets = new Map<string, number[]>();
+  const RL_WINDOW_MS = 30_000;
+  const RL_MAX = 20;
+  bot.use(async (ctx, next) => {
+    const tgId = ctx.from?.id?.toString();
+    if (!tgId || isAdmin(tgId)) return next();
+    const isMessage = ctx.updateType === "message" && !((ctx.message as any)?.text?.startsWith("/"));
+    if (!isMessage) return next();
+    const now = Date.now();
+    const arr = (rlBuckets.get(tgId) || []).filter(t => now - t < RL_WINDOW_MS);
+    if (arr.length >= RL_MAX) {
+      rlBuckets.set(tgId, arr);
+      if (arr.length === RL_MAX) {
+        // Warn once per window
+        const lang = getUserLang((await storage.getUserByTgId(tgId).catch(() => null))?.lang);
+        ctx.reply(
+          lang === "uk" ? "⏳ Забагато повідомлень. Зачекайте 30 секунд." :
+          lang === "ru" ? "⏳ Слишком много сообщений. Подождите 30 секунд." :
+          lang === "es" ? "⏳ Demasiados mensajes. Espera 30 segundos." :
+          lang === "de" ? "⏳ Zu viele Nachrichten. Warten Sie 30 Sekunden." :
+          "⏳ Too many messages. Please wait 30 seconds."
+        ).catch(() => {});
+        arr.push(now);
+      }
+      rlBuckets.set(tgId, arr);
+      return;
+    }
+    arr.push(now);
+    rlBuckets.set(tgId, arr);
+    // Periodic cleanup to prevent unbounded growth
+    if (rlBuckets.size > 5000) {
+      for (const [k, v] of rlBuckets) {
+        if (v.length === 0 || now - v[v.length - 1] > RL_WINDOW_MS) rlBuckets.delete(k);
+      }
+    }
+    return next();
+  });
+
+  // Safety net: ensure every callback_query is answered so the loading spinner clears.
+  // Individual handlers may still call answerCbQuery with custom text — Telegram ignores duplicates.
+  bot.use(async (ctx, next) => {
+    try {
+      await next();
+    } finally {
+      if (ctx.updateType === "callback_query") {
+        ctx.answerCbQuery().catch(() => {});
+      }
+    }
+  });
+
   async function getLang(tgId: string): Promise<Language> {
     const user = await storage.getUserByTgId(tgId);
     return getUserLang(user?.lang);
