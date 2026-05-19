@@ -82,12 +82,9 @@ export default function Login() {
 
   useEffect(() => {
     window.onTelegramAuth = async (telegramUser: any) => {
-      console.log("[TelegramAuth] callback fired with user id:", telegramUser?.id);
       try {
         await login(telegramUser);
-        console.log("[TelegramAuth] login() resolved");
       } catch (err: any) {
-        console.error("[TelegramAuth] login() failed:", err?.message || err);
         toast({
           title: t("auth.loginError"),
           description: t("auth.telegramFailed"),

@@ -3430,7 +3430,8 @@ export async function registerRoutes(
     if (!["FREE", "PRO", "ENTERPRISE"].includes(tier)) return res.status(400).json({ error: "Invalid tier" });
     try {
       const user = await storage.updateUserTier(parseInt(req.params.id), tier);
-      storage.logActivity({ eventType: "tier_change", userId: user.id, username: user.username || null, details: `Tier changed to ${tier}`, meta: { tier, adminId: authReq.user!.id } }).catch(() => {});
+      const adminId = (req as AuthenticatedRequest).user?.id ?? null;
+      storage.logActivity({ eventType: "tier_change", userId: user.id, username: user.username || null, details: `Tier changed to ${tier}`, meta: { tier, adminId } }).catch(() => {});
       res.json(user);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to update tier" });

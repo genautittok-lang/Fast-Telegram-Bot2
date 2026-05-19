@@ -330,13 +330,15 @@ function MonitorCard({
               size="icon"
               onClick={onDelete}
               disabled={isDeleting}
-              className="w-8 h-8 sm:w-9 sm:h-9 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              aria-label="Delete monitor"
+              title="Delete monitor"
+              className="w-11 h-11 sm:w-9 sm:h-9 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               data-testid={`button-delete-${watch.id}`}
             >
               {isDeleting ? (
-                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                <Trash2 className="w-4 h-4" />
               )}
             </Button>
           </div>

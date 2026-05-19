@@ -63,7 +63,10 @@ const E = {
   pin: "5431736674147114227",
 };
 
-export const ADMIN_IDS = (process.env.ADMIN_IDS || "7820995179").split(",").map(id => id.trim());
+export const ADMIN_IDS = (process.env.ADMIN_IDS || "").split(",").map(id => id.trim()).filter(Boolean);
+if (ADMIN_IDS.length === 0) {
+  console.warn("[bot] ADMIN_IDS env var is empty — admin notifications & admin-only bot commands will be disabled.");
+}
 
 export let botInstance: Telegraf<BotContext> | null = null;
 

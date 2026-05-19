@@ -354,11 +354,16 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
                   {PH_EXAMPLES[phIdx]}
                 </span>
               )}
+                <label htmlFor="hero-target-input" className="sr-only">
+                  {lang === "uk" ? "Цільовий об'єкт для сканування (email, телефон, IP, домен, гаманець)" : lang === "ru" ? "Цель для сканирования (email, телефон, IP, домен, кошелёк)" : lang === "es" ? "Objetivo a escanear (email, teléfono, IP, dominio, cartera)" : lang === "de" ? "Scan-Ziel (E-Mail, Telefon, IP, Domain, Wallet)" : "Target to scan (email, phone, IP, domain, wallet)"}
+                </label>
                 <input
+                  id="hero-target-input"
                   ref={inputRef}
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
                   placeholder=""
+                  aria-label={lang === "uk" ? "Цільовий об'єкт для сканування" : lang === "ru" ? "Цель для сканирования" : lang === "es" ? "Objetivo a escanear" : lang === "de" ? "Scan-Ziel" : "Target to scan"}
                   className="h-14 w-full rounded-xl border border-white/[0.16] bg-[#111114] pl-11 pr-36 text-[15px] text-white placeholder:text-zinc-500 outline-none transition-colors focus:border-cyan-400/72"
                   autoComplete="off"
                   autoCorrect="off"
