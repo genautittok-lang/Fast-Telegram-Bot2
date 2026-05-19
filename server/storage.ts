@@ -34,6 +34,7 @@ export interface IStorage {
   // Watches
   createWatch(watch: any): Promise<Watch>;
   getWatches(userId: number): Promise<Watch[]>;
+  getWatchById(id: number): Promise<Watch | undefined>;
   getAllWatches(): Promise<Watch[]>;
   updateWatch(id: number, updates: Partial<Watch>): Promise<Watch>;
   deleteWatch(id: number): Promise<void>;
@@ -266,6 +267,12 @@ export class DatabaseStorage implements IStorage {
   async deleteWatch(id: number): Promise<void> {
     if (!db) throw new Error("Database not available");
     await db.delete(watches).where(eq(watches.id, id));
+  }
+
+  async getWatchById(id: number): Promise<Watch | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [w] = await db.select().from(watches).where(eq(watches.id, id)).limit(1);
+    return w;
   }
 
   async getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }> {
@@ -1123,6 +1130,10 @@ export class MemStorage implements IStorage {
 
   async deleteWatch(id: number): Promise<void> {
     this.watches.delete(id);
+  }
+
+  async getWatchById(id: number): Promise<Watch | undefined> {
+    return this.watches.get(id);
   }
 
   async createPayment(insertPayment: any): Promise<Payment> {

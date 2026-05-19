@@ -13,7 +13,8 @@ import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGe
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
-import { randomUUID, createHmac } from "crypto";
+import { randomUUID, createHmac, timingSafeEqual } from "crypto";
+import * as crypto from "crypto";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import { registerVpnRoutes } from "./vpn";
@@ -1782,15 +1783,26 @@ export async function registerRoutes(
     }
   });
 
-  // Delete watch endpoint (requires auth)
+  // Delete watch endpoint (requires auth + ownership)
   app.delete(api.watches.delete.path, loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     const id = parseInt(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid monitor id" });
+    }
     try {
+      const watch = await storage.getWatchById(id);
+      if (!watch) {
+        return res.status(404).json({ error: "Monitor not found" });
+      }
+      if (watch.userId !== authReq.user!.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       await storage.deleteWatch(id);
       res.json({ message: "Monitor deleted" });
     } catch (err) {
-      res.status(404).json({ error: "Monitor not found" });
+      console.error("Delete watch error:", err);
+      res.status(500).json({ error: "Failed to delete monitor" });
     }
   });
 
@@ -2931,21 +2943,43 @@ export async function registerRoutes(
 
   // ==================== ADMIN API ROUTES ====================
   
-  const ADMIN_PASSWORD = "bogdan123boG#";
-  const ADMIN_TOKEN = "ds_admin_" + Buffer.from(ADMIN_PASSWORD).toString("base64");
-  
+  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+  const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "";
+  const ADMIN_LOGIN_ENABLED = ADMIN_PASSWORD.length >= 8 && ADMIN_TOKEN_SECRET.length >= 16;
+  if (!ADMIN_LOGIN_ENABLED) {
+    console.warn("[admin] ADMIN_PASSWORD/ADMIN_TOKEN_SECRET not configured — admin password login disabled. Use Telegram ADMIN_IDS to access admin features.");
+  }
+
+  const timingSafeEqualStr = (a: string, b: string): boolean => {
+    try {
+      const ab = Buffer.from(a, "utf8");
+      const bb = Buffer.from(b, "utf8");
+      if (ab.length !== bb.length) {
+        crypto.timingSafeEqual(ab, ab);
+        return false;
+      }
+      return crypto.timingSafeEqual(ab, bb);
+    } catch { return false; }
+  };
+
   app.post("/api/admin/login", (req, res) => {
-    const { password } = req.body;
-    if (password === ADMIN_PASSWORD) {
-      res.json({ success: true, token: ADMIN_TOKEN });
-    } else {
-      res.status(401).json({ success: false, error: "Invalid password" });
+    const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+    if (rateLimit(`admin-login:${ip}`, 5, 15 * 60 * 1000)) {
+      return res.status(429).json({ success: false, error: "Too many attempts. Try again later." });
     }
+    if (!ADMIN_LOGIN_ENABLED) {
+      return res.status(503).json({ success: false, error: "Admin password login is disabled" });
+    }
+    const password = typeof req.body?.password === "string" ? req.body.password : "";
+    if (!password || !timingSafeEqualStr(password, ADMIN_PASSWORD)) {
+      return res.status(401).json({ success: false, error: "Invalid password" });
+    }
+    return res.json({ success: true, token: ADMIN_TOKEN_SECRET });
   });
 
   const requireAdmin: express.RequestHandler = async (req, res, next) => {
-    const authHeader = req.headers["x-admin-token"] as string;
-    if (authHeader === ADMIN_TOKEN) {
+    const authHeader = (req.headers["x-admin-token"] as string) || "";
+    if (ADMIN_LOGIN_ENABLED && authHeader && timingSafeEqualStr(authHeader, ADMIN_TOKEN_SECRET)) {
       return next();
     }
     const authReq = req as AuthenticatedRequest;
@@ -2956,8 +2990,8 @@ export async function registerRoutes(
   };
 
   app.get("/api/admin/verify", loadUser, async (req, res) => {
-    const authHeader = req.headers["x-admin-token"] as string;
-    if (authHeader === ADMIN_TOKEN) {
+    const authHeader = (req.headers["x-admin-token"] as string) || "";
+    if (ADMIN_LOGIN_ENABLED && authHeader && timingSafeEqualStr(authHeader, ADMIN_TOKEN_SECRET)) {
       return res.json({ isAdmin: true });
     }
     const authReq = req as AuthenticatedRequest;
