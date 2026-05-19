@@ -920,13 +920,14 @@ function PricingContent() {
               </div>
             </div>
             <div className="sm:text-right">
-              <div className="flex items-center gap-1 justify-center sm:justify-end">
-                {[1,2,3,4,5].map(i => (
-                  <span key={i} className="text-amber-400 text-sm">★</span>
-                ))}
+              <div className="flex items-center gap-1.5 justify-center sm:justify-end">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
+                <span className="text-xs font-medium text-emerald-300">
+                  {lang === "uk" ? "Зашифровано" : lang === "ru" ? "Зашифровано" : lang === "es" ? "Cifrado" : lang === "de" ? "Verschlüsselt" : "Encrypted"}
+                </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {lang === "uk" ? "Оцінка 4.9 · 2800+ користувачів" : lang === "ru" ? "Оценка 4.9 · 2800+ пользователей" : lang === "es" ? "Calificación 4.9 · 2800+ usuarios" : lang === "de" ? "Bewertet 4.9 · 2800+ Nutzer" : "Rated 4.9 · 2800+ users"}
+                {lang === "uk" ? "Преміум-якість · без логів" : lang === "ru" ? "Премиум-качество · без логов" : lang === "es" ? "Calidad premium · sin registros" : lang === "de" ? "Premium-Qualität · keine Logs" : "Premium quality · zero logs"}
               </p>
             </div>
           </div>

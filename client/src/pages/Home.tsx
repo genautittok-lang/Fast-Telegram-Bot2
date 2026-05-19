@@ -1717,28 +1717,24 @@ function SocialProofSection({ stats }: { stats: SiteStats | null }) {
       author: "Alex M.",
       role: lang === "uk" ? "Дослідник безпеки" : lang === "ru" ? "Исследователь безопасности" : lang === "es" ? "Investigador de seguridad" : lang === "de" ? "Sicherheitsforscher" : "Security Researcher",
       avatar: "AM",
-      rating: 5,
     },
     {
       text: "The domain OSINT module is incredible — found subdomains and SSL issues our pentest completely missed.",
       author: "Sarah K.",
       role: lang === "uk" ? "DevSecOps Інженер" : lang === "ru" ? "DevSecOps-инженер" : lang === "es" ? "Ingeniera DevSecOps" : lang === "de" ? "DevSecOps-Ingenieur" : "DevSecOps Engineer",
       avatar: "SK",
-      rating: 5,
     },
     {
       text: "Discovered my Telegram API token was exposed in a public forum. Fixed it in minutes. Potentially saved my bot.",
       author: "Denis T.",
       role: lang === "uk" ? "Розробник ботів" : lang === "ru" ? "Разработчик ботов" : lang === "es" ? "Desarrollador de bots" : lang === "de" ? "Bot-Entwickler" : "Bot Developer",
       avatar: "DT",
-      rating: 5,
     },
     {
       text: "Used it to vet a vendor's IP before signing a contract. Found it linked to fraud networks. Saved us $40k.",
       author: "Maria V.",
       role: lang === "uk" ? "Фінансовий аналітик" : lang === "ru" ? "Финансовый аналитик" : lang === "es" ? "Analista financiera" : lang === "de" ? "Finanzanalystin" : "Financial Analyst",
       avatar: "MV",
-      rating: 5,
     },
   ];
 
@@ -1813,11 +1809,6 @@ function SocialProofSection({ stats }: { stats: SiteStats | null }) {
                     <span className="truncate">{t.role}</span>
                     <span className="text-emerald-400/70">· {verifiedLabel}</span>
                   </div>
-                </div>
-                <div className="hidden sm:flex shrink-0 items-center gap-0.5">
-                  {Array.from({ length: t.rating }).map((_, j) => (
-                    <Star key={j} className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-                  ))}
                 </div>
               </div>
             ))}
@@ -2085,13 +2076,9 @@ function CTABottom({ stats }: { stats: SiteStats | null }) {
         </div>
         <div className="relative mx-auto max-w-2xl text-center">
           {/* Stars row */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-400/35 bg-amber-400/[0.09] px-4 py-1.5 shadow-[0_0_20px_-3px_rgba(251,191,36,0.38)]">
-            <span className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
-              ))}
-            </span>
-            <span className="text-[12px] text-zinc-200/85">4.9 / 5{usersCount > 0 ? ` · ${usersCount.toLocaleString("en-US")} ${lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "users"}` : ""}</span>
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/35 bg-cyan-400/[0.09] px-4 py-1.5 shadow-[0_0_20px_-3px_rgba(34,211,238,0.38)]">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
+            <span className="text-[12px] text-zinc-200/85">{lang === "uk" ? "Реальні дані · без логів · без реєстрації" : lang === "ru" ? "Реальные данные · без логов · без регистрации" : lang === "es" ? "Datos reales · sin logs · sin registro" : lang === "de" ? "Echte Daten · keine Logs · keine Anmeldung" : "Real data · zero logs · no signup"}</span>
           </div>
           <h2 className="text-[32px] font-semibold tracking-tight text-white sm:text-[46px] sm:leading-[1.05]">
             {headline}

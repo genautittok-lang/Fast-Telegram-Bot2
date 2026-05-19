@@ -119,11 +119,11 @@ export function PremiumLock({ lang, children, variant = "blur", testId = "premiu
 }
 
 const ctaLabels: Record<Lang, { line1: string; line2: string; cta: string; social: string }> = {
-  en: { line1: "Liked the scan?", line2: "Get unlimited checks, full reports, AI analysis & VPN", cta: "Get PRO — $9/mo", social: "Join 2,800+ security researchers" },
-  uk: { line1: "Сподобалась перевірка?", line2: "Безліміт перевірок, повні звіти, AI-аналіз та VPN", cta: "Отримати PRO — $9/міс", social: "Вже 2 800+ дослідників захищені" },
-  ru: { line1: "Понравилась проверка?", line2: "Безлимит проверок, полные отчёты, AI-анализ и VPN", cta: "Получить PRO — $9/мес", social: "Уже 2 800+ исследователей защищены" },
-  es: { line1: "¿Te gustó el escaneo?", line2: "Verificaciones ilimitadas, informes completos, IA y VPN", cta: "Obtener PRO — $9/mes", social: "Únete a 2,800+ investigadores" },
-  de: { line1: "Scan gefallen?", line2: "Unbegrenzte Prüfungen, volle Berichte, KI-Analyse und VPN", cta: "PRO holen — $9/Mo", social: "Bereits 2.800+ Forscher geschützt" },
+  en: { line1: "Liked the scan?", line2: "Get unlimited checks, full reports, AI analysis & VPN", cta: "Get PRO — $9/mo", social: "Trusted by security researchers worldwide" },
+  uk: { line1: "Сподобалась перевірка?", line2: "Безліміт перевірок, повні звіти, AI-аналіз та VPN", cta: "Отримати PRO — $9/міс", social: "Довіряють дослідники безпеки по всьому світу" },
+  ru: { line1: "Понравилась проверка?", line2: "Безлимит проверок, полные отчёты, AI-анализ и VPN", cta: "Получить PRO — $9/мес", social: "Доверяют исследователи безопасности по всему миру" },
+  es: { line1: "¿Te gustó el escaneo?", line2: "Verificaciones ilimitadas, informes completos, IA y VPN", cta: "Obtener PRO — $9/mes", social: "Confían investigadores de seguridad en todo el mundo" },
+  de: { line1: "Scan gefallen?", line2: "Unbegrenzte Prüfungen, volle Berichte, KI-Analyse und VPN", cta: "PRO holen — $9/Mo", social: "Vertraut von Sicherheitsforschern weltweit" },
 };
 
 export function PostResultUpsell({ lang, testId = "post-result-upsell" }: { lang: string; testId?: string }) {

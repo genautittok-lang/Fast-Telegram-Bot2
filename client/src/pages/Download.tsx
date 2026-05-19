@@ -63,8 +63,8 @@ export default function DownloadPage() {
     backHome: L("На головну", "На главную", "Back to Home", "Inicio", "Startseite"),
     free: L("Безкоштовно", "Бесплатно", "Free", "Gratis", "Kostenlos"),
     size: "~5 MB",
-    rating: "4.9",
-    installs: "PWA",
+    rating: L("PWA · офлайн", "PWA · офлайн", "PWA · offline-ready", "PWA · sin conexión", "PWA · offline"),
+    installs: L("Без магазину", "Без магазина", "No app store", "Sin tienda", "Ohne App-Store"),
     features: L("Можливості", "Возможности", "Features", "Características", "Funktionen"),
     howToInstall: L("Як встановити", "Как установить", "How to Install", "Cómo instalar", "So installieren Sie"),
     iosStep1: L("Натисни кнопку 'Поділитися'", "Нажмите кнопку 'Поделиться'", "Tap the Share button", "Toca el botón Compartir", "Tippen Sie auf die Teilen-Taste"),
@@ -143,7 +143,7 @@ export default function DownloadPage() {
 
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm text-muted-foreground pt-2 relative scan-beam overflow-hidden rounded-lg px-4 py-2">
                 <div className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <Star className="w-4 h-4 text-cyan-400 fill-cyan-400" />
                   <span className="font-semibold text-white">{tr.rating}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
