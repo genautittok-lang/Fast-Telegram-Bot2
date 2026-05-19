@@ -22,6 +22,8 @@ function DataDeletionContent() {
   const [identifier, setIdentifier] = useState("");
   const [reason, setReason] = useState("");
   const [submittedId, setSubmittedId] = useState<number | null>(null);
+  const [autoErased, setAutoErased] = useState<boolean>(false);
+  const [deletedCount, setDeletedCount] = useState<number>(0);
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -31,6 +33,8 @@ function DataDeletionContent() {
     onSuccess: (data: any) => {
       if (data?.requestId) {
         setSubmittedId(data.requestId);
+        setAutoErased(!!data.autoErased);
+        setDeletedCount(Number(data.deletedCount || 0));
         toast({ title: "Запит прийнято", description: `Номер заявки: #${data.requestId}` });
       }
     },
@@ -57,10 +61,14 @@ function DataDeletionContent() {
               <div className="space-y-2 text-sm">
                 <p><strong>Що відбувається далі:</strong></p>
                 <ul className="space-y-1.5 text-muted-foreground list-disc ml-5">
-                  <li>Ваш запит передано команді DARKSHARE та внесено до журналу обробки.</li>
-                  <li>Ми відповімо на вказаний email протягом <strong className="text-cyan-300">30 календарних днів</strong> згідно зі ст. 12(3) GDPR.</li>
-                  <li>За потреби ми можемо запитати додаткову верифікацію особи (ст. 12(6) GDPR).</li>
-                  <li>Після підтвердження дані будуть видалені з активних баз протягом 7 днів та з резервних копій протягом 90 днів.</li>
+                  {autoErased ? (
+                    <li><strong className="text-cyan-300">Автоматичне видалення виконано:</strong> система очистила <strong className="text-cyan-300">{deletedCount}</strong> ваших записів з нашого індексу/кешу (моніторинги, кеш-звіти, обрані, AI-профілі, повідомлення чату), що містили вказаний ідентифікатор.</li>
+                  ) : (
+                    <li><strong className="text-amber-300">Запит у черзі ручної верифікації:</strong> для видалення даних, не пов'язаних з вашим акаунтом, потрібне підтвердження особи згідно зі ст. 12(6) GDPR. Команда DARKSHARE відповість на вказаний email.</li>
+                  )}
+                  <li>Запит #{submittedId} внесено до журналу обробки відповідно до ст. 30 GDPR.</li>
+                  <li>З резервних копій дані буде остаточно видалено протягом <strong className="text-cyan-300">90 днів</strong> у звичайному циклі ротації.</li>
+                  <li>Ми відповімо на вказаний email протягом 30 календарних днів згідно зі ст. 12(3) GDPR.</li>
                 </ul>
                 <p className="pt-2"><strong>Зв'язок:</strong> darkshare.store@gmail.com або @DarkShare1Bot із зазначенням номера #{submittedId}.</p>
               </div>
@@ -136,7 +144,7 @@ function DataDeletionContent() {
               onChange={(e) => setIdentifier(e.target.value)}
               data-testid="input-deletion-identifier"
             />
-            <p className="text-xs text-muted-foreground">Конкретні дані, які ми маємо видалити з нашого індексу/кешу.</p>
+            <p className="text-xs text-muted-foreground">Якщо ви <strong className="text-foreground">авторизовані</strong>, система автоматично видалить ваші власні записи з цим ідентифікатором з нашого індексу/кешу одразу. Для даних з чужих акаунтів запит піде на ручну верифікацію особи (ст. 12(6) GDPR).</p>
           </div>
 
           <div className="space-y-2">

@@ -4624,7 +4624,8 @@ export async function registerRoutes(
 
   // ============ DARKSHARE v4.5 — Compliance & Wow Features ============
 
-  // GDPR Data Deletion Request (public, no auth required for transparency)
+  // GDPR Data Deletion Request — automatic removal from our index/cache
+  // Art. 17 GDPR (Right to erasure) + UK DPA 2018 + ЗУ "Про захист персональних даних"
   app.post("/api/data-deletion", loadUser, async (req: Request, res: Response) => {
     try {
       const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.ip || "anon";
@@ -4638,15 +4639,77 @@ export async function registerRoutes(
       }
       const userId = (req as any).user?.id ?? null;
       const created = await storage.createDataDeletionRequest({ ...parsed.data, userId });
+
+      // ---- AUTOMATIC ERASURE — only for authenticated users on THEIR OWN rows ----
+      // Unauthenticated / cross-user requests stay `pending` and go to admin queue.
+      let deletedCounts = { watches: 0, reports: 0, favorites: 0, threatProfiles: 0, chatMessages: 0 };
+      const identifier = (parsed.data.identifier || "").trim();
+      const canAutoErase = !!userId && identifier.length >= 3 && identifier.length <= 256;
+      try {
+        if (canAutoErase) {
+          const { db: dbConn } = await import("./db");
+          const schema = await import("@shared/schema");
+          const { eq, and } = await import("drizzle-orm");
+          if (dbConn) {
+            const ident = identifier;
+
+            const w = await dbConn.delete(schema.watches)
+              .where(and(eq(schema.watches.userId, userId), eq(schema.watches.value, ident)))
+              .returning({ id: schema.watches.id });
+            deletedCounts.watches = w.length;
+
+            const f = await dbConn.delete(schema.favorites)
+              .where(and(eq(schema.favorites.userId, userId), eq(schema.favorites.value, ident)))
+              .returning({ id: schema.favorites.id });
+            deletedCounts.favorites = f.length;
+
+            const tp = await dbConn.delete(schema.threatProfiles)
+              .where(and(eq(schema.threatProfiles.userId, userId), eq(schema.threatProfiles.query, ident)))
+              .returning({ id: schema.threatProfiles.id });
+            deletedCounts.threatProfiles = tp.length;
+
+            // Reports: delete by exact value match in object_type/data_json scoped to user only.
+            // Use parameterized query; require exact identifier presence in data_json text.
+            try {
+              const { sql } = await import("drizzle-orm");
+              const r = await dbConn.execute(
+                sql`DELETE FROM ds_reports WHERE user_id = ${userId} AND data_json::text LIKE ${"%" + ident.replace(/[%_\\]/g, "\\$&") + "%"} ESCAPE '\\' RETURNING id`
+              );
+              deletedCounts.reports = (r as any).rowCount ?? ((r as any).rows?.length ?? 0);
+            } catch (e) { console.error("[GDPR] reports purge error:", e); }
+            // chatMessages: only purge user's own messages exactly equal to identifier (no substring abuse)
+            try {
+              const c = await dbConn.delete(schema.chatMessages)
+                .where(and(eq(schema.chatMessages.userId, userId), eq(schema.chatMessages.message, ident)))
+                .returning({ id: schema.chatMessages.id });
+              deletedCounts.chatMessages = c.length;
+            } catch (e) { /* ignore */ }
+          }
+        }
+      } catch (e) {
+        console.error("[GDPR] auto-erasure error:", e);
+      }
+
+      const totalDeleted = Object.values(deletedCounts).reduce((a, b) => a + b, 0);
+      const status = canAutoErase ? "auto_resolved" : "pending";
+      const notes = canAutoErase
+        ? `Auto-erased ${totalDeleted} records for user #${userId}: watches=${deletedCounts.watches}, reports=${deletedCounts.reports}, favorites=${deletedCounts.favorites}, threatProfiles=${deletedCounts.threatProfiles}, chatMessages=${deletedCounts.chatMessages}`
+        : userId
+          ? "Pending: identifier missing or invalid length"
+          : "Pending: unauthenticated request requires manual identity verification (GDPR Art. 12(6))";
+      try {
+        await storage.updateDataDeletionRequest(created.id, { status, adminNotes: notes, resolvedAt: canAutoErase ? new Date() : undefined });
+      } catch {}
+
       try {
         for (const adminId of ADMIN_IDS) {
           await botInstance?.telegram.sendMessage(
             adminId,
-            `🗑 Новий GDPR-запит на видалення даних\n\nID: ${created.id}\nEmail: ${created.email}\nIdentifier: ${created.identifier ?? "—"}\nReason: ${created.reason ?? "—"}`
+            `🗑 GDPR request #${created.id}\n\nStatus: ${status}\nEmail: ${created.email}\nUser: ${userId ?? "anonymous"}\nIdentifier: ${created.identifier ?? "—"}\nAuto-deleted: ${totalDeleted}${canAutoErase ? ` (W:${deletedCounts.watches} R:${deletedCounts.reports} F:${deletedCounts.favorites} TP:${deletedCounts.threatProfiles} C:${deletedCounts.chatMessages})` : ""}\nReason: ${created.reason ?? "—"}`
           ).catch(() => {});
         }
       } catch {}
-      return res.json({ success: true, requestId: created.id, status: "pending" });
+      return res.json({ success: true, requestId: created.id, status, deletedCount: totalDeleted, breakdown: deletedCounts, autoErased: canAutoErase });
     } catch (err: any) {
       console.error("Data deletion request error:", err);
       return res.status(500).json({ error: "Internal error" });
