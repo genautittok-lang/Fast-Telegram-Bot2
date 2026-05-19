@@ -120,7 +120,7 @@ export default function Referral() {
     {
       level: 4,
       name: lang === "uk" ? "Елітний Партнер" : lang === "ru" ? "Элитный Партнёр" : lang === "es" ? "Socio Élite" : lang === "de" ? "Elite-Partner" : "Elite Partner",
-      referrals: "31+",
+      referrals: "31",
       bonus: t('referral.eliteBonus'),
       icon: Crown,
       iconColor: "text-amber-300",

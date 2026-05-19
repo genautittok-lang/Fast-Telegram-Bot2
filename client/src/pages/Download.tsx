@@ -64,7 +64,7 @@ export default function DownloadPage() {
     free: L("Безкоштовно", "Бесплатно", "Free", "Gratis", "Kostenlos"),
     size: "~5 MB",
     rating: "4.9",
-    installs: "10K+",
+    installs: "PWA",
     features: L("Можливості", "Возможности", "Features", "Características", "Funktionen"),
     howToInstall: L("Як встановити", "Как установить", "How to Install", "Cómo instalar", "So installieren Sie"),
     iosStep1: L("Натисни кнопку 'Поділитися'", "Нажмите кнопку 'Поделиться'", "Tap the Share button", "Toca el botón Compartir", "Tippen Sie auf die Teilen-Taste"),

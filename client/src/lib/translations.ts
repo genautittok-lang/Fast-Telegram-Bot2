@@ -131,6 +131,8 @@ export interface TranslationSchema {
     groupsActivityLog: string;
     promoCode: string;
     promoApplied: string;
+    cryptoPayOpened: string;
+    cryptoPayDesc: string;
     promoInvalid: string;
     promoAppliedLabel: string;
     apply: string;
@@ -1027,6 +1029,8 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsActivityLog: "Team activity log",
       promoCode: "Promo code",
       promoApplied: "Promo code applied!",
+      cryptoPayOpened: "Crypto Pay opened",
+      cryptoPayDesc: "Complete the payment in CryptoBot. Your plan will be activated automatically.",
       promoInvalid: "Invalid promo code",
       promoAppliedLabel: "discount applied",
       apply: "Apply",
@@ -1921,6 +1925,8 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsActivityLog: "Журнал активності команди",
       promoCode: "Промокод",
       promoApplied: "Промокод застосовано!",
+      cryptoPayOpened: "Crypto Pay відкрито",
+      cryptoPayDesc: "Завершіть оплату в CryptoBot. Ваш тариф активується автоматично.",
       promoInvalid: "Недійсний промокод",
       promoAppliedLabel: "знижку застосовано",
       apply: "Застосувати",
@@ -2815,6 +2821,8 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsActivityLog: "Журнал активности команды",
       promoCode: "Промокод",
       promoApplied: "Промокод применён!",
+      cryptoPayOpened: "Crypto Pay открыт",
+      cryptoPayDesc: "Завершите оплату в CryptoBot. Ваш тариф активируется автоматически.",
       promoInvalid: "Недействительный промокод",
       promoAppliedLabel: "скидка применена",
       apply: "Применить",
@@ -3709,6 +3717,8 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsActivityLog: "Registro de actividad del equipo",
       promoCode: "Código promocional",
       promoApplied: "Código promocional aplicado!",
+      cryptoPayOpened: "Crypto Pay abierto",
+      cryptoPayDesc: "Completa el pago en CryptoBot. Tu plan se activará automáticamente.",
       promoInvalid: "Código promocional inválido",
       promoAppliedLabel: "descuento aplicado",
       apply: "Aplicar",
@@ -4603,6 +4613,8 @@ export const translations: Record<Language, TranslationSchema> = {
       groupsActivityLog: "Team-Aktivitätsprotokoll",
       promoCode: "Promo-Code",
       promoApplied: "Promo-Code angewendet!",
+      cryptoPayOpened: "Crypto Pay geöffnet",
+      cryptoPayDesc: "Schließen Sie die Zahlung in CryptoBot ab. Ihr Plan wird automatisch aktiviert.",
       promoInvalid: "Ungültiger Promo-Code",
       promoAppliedLabel: "Rabatt angewendet",
       apply: "Anwenden",

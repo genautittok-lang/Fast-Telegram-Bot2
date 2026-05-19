@@ -36,6 +36,12 @@ uri = "file://artifacts/mockup-sandbox/public/images/ds-login-bg.png"
 type = "image"
 title = "Abstract cyan network graph visualization"
 
+[[generated]]
+id = "1o48j9mHlL3irQchPrlB0"
+uri = "file://attached_assets/generated_images/promo_shield_emblem.png"
+type = "image"
+title = "promo shield emblem"
+
 [[outputs]]
 id = "jTTb5eQUnenZ6CFWKejWW"
 uri = "file://attached_assets/screenshots/fe8751ae-0314-46ff-b35e-8e4dda8e7e7d-00-1vmd2logwd6l8_picard_replit_dev_mockup_preview_ds-redesign_Home.png"

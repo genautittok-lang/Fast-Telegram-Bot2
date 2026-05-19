@@ -39,6 +39,7 @@ import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/PublicHeader";
 import { useTranslation } from "@/lib/i18n";
 import { OSINT_SOURCES, CATEGORY_LABELS, type OsintCategory } from "@/data/osintSources";
+import promoShieldImg from "@assets/generated_images/promo_shield_emblem.png";
 import { SourcesScanGrid, type ScanItem } from "@/components/SourcesScanGrid";
 import { Seo } from "@/components/Seo";
 
@@ -165,27 +166,27 @@ function HeroCheck({ stats }: { stats: SiteStats | null }) {
   const BADGE_MSGS: Record<string, string[]> = {
     en: [
       `${OSINT_SOURCES.length}+ live sources · 14 leak DBs · no signup`,
-      "47,000+ scans · 2,800+ users · 99.9% uptime",
+      "AI risk scoring · 17 data types · 99.9% uptime",
       "real data · zero logs · 7-day guarantee",
     ],
     uk: [
       `${OSINT_SOURCES.length}+ джерел · 14 баз зливів · без реєстрації`,
-      "47 000+ сканувань · 2800+ користувачів · 99.9% uptime",
+      "AI-оцінка ризику · 17 типів даних · 99.9% uptime",
       "реальні дані · нуль логів · гарантія 7 днів",
     ],
     ru: [
       `${OSINT_SOURCES.length}+ источников · 14 баз утечек · без регистрации`,
-      "47 000+ сканов · 2800+ пользователей · 99.9% uptime",
+      "AI-оценка риска · 17 типов данных · 99.9% uptime",
       "реальные данные · ноль логов · гарантия 7 дней",
     ],
     es: [
       `${OSINT_SOURCES.length}+ fuentes · 14 DBs de filtraciones · sin registro`,
-      "47.000+ escaneos · 2.800+ usuarios · 99.9% uptime",
+      "Puntuación IA · 17 tipos de datos · 99.9% uptime",
       "datos reales · cero logs · garantía 7 días",
     ],
     de: [
       `${OSINT_SOURCES.length}+ Quellen · 14 Leak-DBs · ohne Anmeldung`,
-      "47.000+ Scans · 2.800+ Nutzer · 99,9% Uptime",
+      "KI-Risikobewertung · 17 Datentypen · 99,9% Uptime",
       "echte Daten · keine Logs · 7-Tage-Garantie",
     ],
   };
@@ -1305,10 +1306,10 @@ function TrustStrip({ stats }: { stats: SiteStats | null }) {
   const items: StatItem[] = [
     { icon: Database, label: L.sources, raw: OSINT_SOURCES.length, suffix: "+" },
     { icon: Shield,   label: L.leakDB,  raw: 14 },
-    { icon: Users,    label: L.users,   raw: 2800, suffix: "+" },
-    { icon: Activity, label: L.today,   static: stats?.checksToday ? stats.checksToday.toLocaleString("en-US") : "—", live: true },
+    { icon: Users,    label: L.users,   static: stats?.totalUsers != null ? stats.totalUsers.toLocaleString("en-US") : "—", live: true },
+    { icon: Activity, label: L.today,   static: stats?.checksToday != null ? stats.checksToday.toLocaleString("en-US") : "—", live: true },
     { icon: Eye,      label: L.risk,    static: "0–100" },
-    { icon: Zap,      label: L.uptime,  static: "99.9%" },
+    { icon: Zap,      label: L.uptime,  static: stats?.uptime != null ? `${stats.uptime}%` : "—", live: true },
   ];
   return (
     <section className="border-t border-white/[0.09] bg-[#07070A]">
@@ -1581,7 +1582,7 @@ function CommunityCTA() {
               <div className="mb-3 inline-flex items-center rounded-full border border-cyan-400/32 bg-cyan-500/[0.11] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-cyan-300 shadow-[0_0_12px_-3px_rgba(34,211,238,0.28)]">{L.badge}</div>
               <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-zinc-400">
                 <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400 drop-shadow-[0_0_4px_rgba(52,211,153,0.9)]" /></span>
-                {lang === "uk" ? "340+ учасників онлайн" : lang === "ru" ? "340+ участников онлайн" : lang === "es" ? "340+ miembros conectados" : lang === "de" ? "340+ Mitglieder online" : "340+ members online"}
+                {lang === "uk" ? "Активна спільнота" : lang === "ru" ? "Активное сообщество" : lang === "es" ? "Comunidad activa" : lang === "de" ? "Aktive Community" : "Active community"}
               </div>
               <h2 className="text-[24px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">
                 {L.headline}
@@ -1900,11 +1901,14 @@ function LiveActivity() {
   );
 }
 
-/* ─────────── Promo bar ─────────── */
+/* ─────────── Promo popup (premium card) ─────────── */
 function PromoBar() {
   const [show, setShow] = useState(false);
   const [gone, setGone] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { lang } = useTranslation();
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("ds-promo-hide")) return;
     const t = setTimeout(() => setShow(true), 8000);
@@ -1914,23 +1918,128 @@ function PromoBar() {
     setGone(true);
     if (typeof sessionStorage !== "undefined") sessionStorage.setItem("ds-promo-hide", "1");
   };
+  const later = () => {
+    setGone(true);
+    if (typeof sessionStorage !== "undefined") sessionStorage.setItem("ds-promo-hide", "1");
+  };
+  useEffect(() => {
+    if (!show || gone) return;
+    prevFocusRef.current = (document.activeElement as HTMLElement) || null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusable = cardRef.current?.querySelectorAll<HTMLElement>('button, a, [tabindex]:not([tabindex="-1"])');
+    focusable?.[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); dismiss(); return; }
+      if (e.key !== "Tab" || !focusable || focusable.length === 0) return;
+      const first = focusable[0]; const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      prevFocusRef.current?.focus?.();
+    };
+  }, [show, gone]);
+  const copyAndGo = () => {
+    navigator.clipboard.writeText("DARKNEU").then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
   if (!show || gone) return null;
-  const text = lang === "uk" ? "Промокод DARKNEU → −50% на перший місяць PRO" : lang === "ru" ? "Промокод DARKNEU → −50% на первый месяц PRO" : lang === "es" ? "Código DARKNEU → −50% primer mes PRO" : lang === "de" ? "Code DARKNEU → −50% erster PRO-Monat" : "Code DARKNEU → −50% off first PRO month";
-  const cta = lang === "uk" ? "Отримати PRO" : lang === "ru" ? "Получить PRO" : lang === "es" ? "Obtener PRO" : lang === "de" ? "PRO holen" : "Get PRO";
+
+  const T = {
+    eyebrow: lang === "uk" ? "Ексклюзивна пропозиція" : lang === "ru" ? "Эксклюзивное предложение" : lang === "es" ? "Oferta exclusiva" : lang === "de" ? "Exklusives Angebot" : "Exclusive offer",
+    headline: lang === "uk" ? "−50% на перший місяць PRO" : lang === "ru" ? "−50% на первый месяц PRO" : lang === "es" ? "−50% en tu primer mes PRO" : lang === "de" ? "−50% auf den ersten PRO-Monat" : "−50% off your first PRO month",
+    sub: lang === "uk" ? "Безлімітні перевірки, AI-аналітика, моніторинг 24/7" : lang === "ru" ? "Безлимитные проверки, AI-аналитика, мониторинг 24/7" : lang === "es" ? "Verificaciones ilimitadas, IA, monitoreo 24/7" : lang === "de" ? "Unbegrenzte Prüfungen, KI, 24/7 Überwachung" : "Unlimited checks, AI insights, 24/7 monitoring",
+    codeLabel: lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código" : lang === "de" ? "Code" : "Promo code",
+    activate: lang === "uk" ? "Активувати" : lang === "ru" ? "Активировать" : lang === "es" ? "Activar" : lang === "de" ? "Aktivieren" : "Activate",
+    later: lang === "uk" ? "Пізніше" : lang === "ru" ? "Позже" : lang === "es" ? "Más tarde" : lang === "de" ? "Später" : "Later",
+    copied: lang === "uk" ? "Скопійовано!" : lang === "ru" ? "Скопировано!" : lang === "es" ? "¡Copiado!" : lang === "de" ? "Kopiert!" : "Copied!",
+  };
+
   return (
-    <div className="fixed bottom-[4.5rem] left-1/2 z-50 -translate-x-1/2 flex animate-fade-up items-center gap-3 rounded-full border border-cyan-400/45 bg-[#080B0F]/95 px-4 py-2.5 shadow-[0_8px_52px_rgba(0,0,0,0.70),0_0_42px_-3px_rgba(34,211,238,0.42)] backdrop-blur-xl">
-      <Sparkles className="h-3.5 w-3.5 shrink-0 text-cyan-400" />
-      <span className="hidden whitespace-nowrap text-[12px] text-zinc-200 sm:inline">{text}</span>
-      <span className="inline whitespace-nowrap text-[12px] font-mono font-bold text-cyan-300 sm:hidden">DARKNEU → −50% PRO</span>
-      <Link href="/pricing?plan=PRO&code=DARKNEU">
-        <span className="shrink-0 cursor-pointer rounded-full bg-cyan-400 px-3 py-1 text-[11px] font-bold text-black transition-all hover:bg-cyan-300 hover:shadow-[0_0_10px_-1px_rgba(34,211,238,0.60)] shadow-[0_0_10px_-1px_rgba(34,211,238,0.50)]" data-testid="button-promo-bar-cta">
-          {cta}
-        </span>
-      </Link>
-      <button onClick={dismiss} className="shrink-0 rounded-full p-0.5 text-zinc-400 transition-colors hover:text-zinc-100" aria-label="Dismiss" data-testid="button-promo-dismiss">
-        <X className="h-3.5 w-3.5" />
-      </button>
-    </div>
+    <>
+      {/* backdrop */}
+      <div className="fixed inset-0 z-[90] bg-black/45 backdrop-blur-sm animate-fade-in" onClick={dismiss} aria-hidden />
+      {/* card */}
+      <div ref={cardRef} className="fixed left-1/2 top-1/2 z-[100] flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 animate-fade-up flex-col overflow-y-auto rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-[#0B1015]/98 via-[#0A0D12]/98 to-[#080B0F]/98 shadow-[0_24px_80px_-12px_rgba(0,0,0,0.85),0_0_60px_-8px_rgba(34,211,238,0.32)] backdrop-blur-2xl" role="dialog" aria-modal="true" aria-label={T.eyebrow}>
+        {/* close */}
+        <button
+          onClick={dismiss}
+          className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/[0.06] text-zinc-400 transition-all hover:bg-white/[0.12] hover:text-white"
+          aria-label="Close"
+          data-testid="button-promo-close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* hero image */}
+        <div className="relative h-44 w-full overflow-hidden bg-[#06080B]">
+          <img
+            src={promoShieldImg}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-90"
+            loading="lazy"
+            decoding="async"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0A0D12]" />
+          {/* eyebrow badge */}
+          <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/15 px-2.5 py-1 text-[10.5px] font-medium uppercase tracking-[0.16em] text-cyan-300 backdrop-blur-md shadow-[0_0_16px_-4px_rgba(34,211,238,0.5)]">
+            <Sparkles className="h-3 w-3" />
+            {T.eyebrow}
+          </div>
+        </div>
+
+        {/* body */}
+        <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+          <h3 className="text-[20px] font-semibold leading-tight tracking-tight text-white sm:text-[22px]">
+            {T.headline}
+          </h3>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-400">{T.sub}</p>
+
+          {/* code block */}
+          <button
+            type="button"
+            onClick={copyAndGo}
+            className="mt-4 flex w-full items-center justify-between gap-3 rounded-xl border border-cyan-400/25 bg-cyan-500/[0.06] px-4 py-3 text-left transition-all hover:border-cyan-400/45 hover:bg-cyan-500/[0.10]"
+            data-testid="button-promo-copy-code"
+          >
+            <div>
+              <div className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-zinc-500">{T.codeLabel}</div>
+              <div className="mt-0.5 font-mono text-[18px] font-bold tracking-[0.12em] text-cyan-300">DARKNEU</div>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+              {copied ? <><Check className="h-3.5 w-3.5 text-emerald-400" /><span className="text-emerald-300">{T.copied}</span></> : <><Copy className="h-3.5 w-3.5" /></>}
+            </div>
+          </button>
+
+          {/* actions */}
+          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:gap-2.5">
+            <button
+              onClick={later}
+              className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.04] px-4 text-[13px] font-medium text-zinc-300 transition-all hover:border-white/[0.22] hover:bg-white/[0.08] hover:text-white"
+              data-testid="button-promo-later"
+            >
+              {T.later}
+            </button>
+            <Link href="/pricing?plan=PRO&code=DARKNEU" className="flex-[1.4]">
+              <span
+                onClick={dismiss}
+                className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-xl bg-cyan-400 px-4 text-[13px] font-semibold text-black shadow-[0_0_24px_-4px_rgba(34,211,238,0.6)] transition-all hover:bg-cyan-300 hover:shadow-[0_0_32px_-3px_rgba(34,211,238,0.8)] active:scale-[0.98]"
+                data-testid="button-promo-activate"
+              >
+                {T.activate}
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -1956,8 +2065,9 @@ function ScrollToTop() {
 }
 
 /* ─────────── CTA bottom ─────────── */
-function CTABottom() {
+function CTABottom({ stats }: { stats: SiteStats | null }) {
   const { lang } = useTranslation();
+  const usersCount = stats?.totalUsers ?? 0;
   const headline = lang === "uk" ? "Дізнайся, що про тебе знає інтернет." : lang === "ru" ? "Узнай, что интернет знает о тебе." : lang === "es" ? "Descubre qué sabe internet sobre ti." : lang === "de" ? "Finde heraus, was das Internet über dich weiß." : "Find out what the internet knows about you.";
   const sub = lang === "uk" ? "Перша перевірка — безплатно. Без реєстрації, без email, без зобов'язань." : lang === "ru" ? "Первая проверка — бесплатно. Без регистрации, без email, без обязательств." : lang === "es" ? "Primera verificación gratis. Sin registro, sin email, sin compromisos." : lang === "de" ? "Erste Prüfung kostenlos. Ohne Registrierung, ohne E-Mail, ohne Verpflichtung." : "First scan is free. No signup, no email, no commitment.";
   const scanNow = lang === "uk" ? "Перевірити зараз" : lang === "ru" ? "Проверить сейчас" : lang === "es" ? "Escanear ahora" : lang === "de" ? "Jetzt prüfen" : "Scan now →";
@@ -1981,7 +2091,7 @@ function CTABottom() {
                 <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
               ))}
             </span>
-            <span className="text-[12px] text-zinc-200/85">4.9 / 5 &middot; 2,800+ {lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "users"}</span>
+            <span className="text-[12px] text-zinc-200/85">4.9 / 5{usersCount > 0 ? ` · ${usersCount.toLocaleString("en-US")} ${lang === "uk" ? "користувачів" : lang === "ru" ? "пользователей" : lang === "es" ? "usuarios" : lang === "de" ? "Nutzer" : "users"}` : ""}</span>
           </div>
           <h2 className="text-[32px] font-semibold tracking-tight text-white sm:text-[46px] sm:leading-[1.05]">
             {headline}
@@ -2118,7 +2228,7 @@ export default function Home() {
         <PricingTeaser />
         <CommunityCTA />
         <FAQ />
-        <CTABottom />
+        <CTABottom stats={stats} />
       </div>
       <PromoBar />
       <ScrollToTop />
