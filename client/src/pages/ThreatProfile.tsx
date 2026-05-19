@@ -14,6 +14,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { AIDisclaimer } from "@/components/AIDisclaimer";
+import { Seo } from "@/components/Seo";
 
 interface ThreatProfileResult {
   query: string;
@@ -313,5 +314,15 @@ export default function ThreatProfilePage() {
     setLocation("/login");
     return null;
   }
-  return <PageLayout title="AI Threat Profile"><ProfileContent /></PageLayout>;
+  return (
+    <PageLayout title="AI Threat Profile">
+      <Seo
+        title="AI Threat Profile — OSINT Personality & Risk Analysis"
+        description="AI-generated threat-actor profile from OSINT findings. Get behavior patterns, motivations, related accounts, breach correlation and recommended defensive actions. PRO+ feature."
+        keywords="AI threat profile, OSINT personality analysis, threat actor profiling, risk score AI, behavioral OSINT, dark web profile"
+        path="/threat-profile"
+      />
+      <ProfileContent />
+    </PageLayout>
+  );
 }

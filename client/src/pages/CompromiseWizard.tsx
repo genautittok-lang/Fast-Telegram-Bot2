@@ -16,6 +16,7 @@ import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Seo } from "@/components/Seo";
 
 interface WizardStep {
   priority: 1 | 2 | 3;
@@ -273,6 +274,15 @@ export default function CompromiseWizard() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
+  const seo = (
+    <Seo
+      title="Compromise Wizard — Free Account Takeover Recovery Checklist"
+      description="Free step-by-step compromise recovery wizard. If your email, crypto wallet, social account or SIM was hacked — get a prioritized action plan in seconds. By DARKSHARE OSINT."
+      keywords="account compromised, hacked account checklist, recover hacked email, SIM swap recovery, crypto wallet stolen, incident response wizard, free security checklist"
+      path="/wizard"
+    />
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -282,11 +292,12 @@ export default function CompromiseWizard() {
   }
 
   if (isAuthenticated) {
-    return <PageLayout title="Wizard"><WizardContent /></PageLayout>;
+    return <PageLayout title="Wizard">{seo}<WizardContent /></PageLayout>;
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {seo}
       <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer" onClick={() => setLocation("/")} data-testid="link-home-brand-wizard">

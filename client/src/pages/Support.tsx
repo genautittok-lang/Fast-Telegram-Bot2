@@ -11,6 +11,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
+import { Seo } from "@/components/Seo";
 import { useTranslation } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -174,9 +175,19 @@ export default function Support() {
     );
   }
 
+  const seo = (
+    <Seo
+      title="Support — DARKSHARE Help Center & Contact"
+      description="Get help with DARKSHARE OSINT platform. Submit support tickets, browse FAQ, contact via Telegram @DarkShare1Bot or email. Response within 24 hours."
+      keywords="DARKSHARE support, OSINT help, contact darkshare, technical support"
+      path="/support"
+    />
+  );
+
   if (isAuthenticated) {
     return (
       <PageLayout title={lang === "uk" ? "Підтримка" : lang === "ru" ? "Поддержка" : lang === "es" ? "Soporte" : lang === "de" ? "Support" : "Support"}>
+        {seo}
         <SupportForm />
       </PageLayout>
     );
@@ -184,6 +195,7 @@ export default function Support() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {seo}
       <nav className="relative z-50 w-full border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer" onClick={() => setLocation("/")}>
