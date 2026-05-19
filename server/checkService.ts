@@ -3,6 +3,12 @@ import exifr from "exifr";
 import { createHash } from "crypto";
 import { buildScanCoverage, summarizeCoverage, type ScanResult } from "./sourceCoverage";
 
+import {
+  epssLookup, osvLookupByCve, mozillaObservatory,
+  ripestat, bgpview, stopForumSpam, isFeodoC2,
+  hackerNewsUser, coingeckoUsd, isOfacSanctioned,
+} from "./freeIntel";
+
 export interface AIInsights {
   summary: string;
   recommendations: string[];
@@ -668,6 +674,12 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     }
   } catch {}
 
+  // Free intel enrichment: RIPEstat, BGPView, Feodo, StopForumSpam
+  try {
+    const extra = await enrichIpWithFreeIntel(value, findings, sources, ipData);
+    riskScore += extra;
+  } catch {}
+
   if (sources.length <= 1) {
     findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
   } else if (findings.length === 0) {
@@ -705,6 +717,49 @@ async function checkIP(value: string, timestamp: Date): Promise<CheckResult> {
     sources,
     timestamp,
   };
+}
+
+async function enrichIpWithFreeIntel(
+  ip: string,
+  findings: string[],
+  sources: string[],
+  ipData: any,
+): Promise<number> {
+  let extraRisk = 0;
+  const [ripe, bgp, feodo, sfs] = await Promise.all([
+    ripestat(ip).catch(() => null),
+    bgpview(ip).catch(() => null),
+    isFeodoC2(ip).catch(() => null),
+    stopForumSpam("ip", ip).catch(() => null),
+  ]);
+  if (ripe) {
+    sources.push("RIPEstat");
+    ipData.ripestat = ripe;
+    if (ripe.prefix) findings.push(`🌐 RIPE: префікс ${ripe.prefix}`);
+    if (ripe.abuseContacts?.length) findings.push(`📧 Abuse: ${ripe.abuseContacts.join(", ")}`);
+  }
+  if (bgp) {
+    sources.push("BGPView");
+    ipData.bgpview = bgp;
+    if (bgp.name) findings.push(`🛰️ AS${bgp.asn} ${bgp.name} (${bgp.country || "?"})`);
+  }
+  if (feodo === true) {
+    extraRisk += 60;
+    sources.push("Feodo Tracker");
+    ipData.feodoC2 = true;
+    findings.push("🔴 Feodo Tracker: IP — C2-сервер ботнету!");
+  } else if (feodo === false) {
+    sources.push("Feodo Tracker");
+  }
+  if (sfs && sfs.appearances > 0) {
+    extraRisk += Math.min(30, sfs.appearances);
+    sources.push("StopForumSpam");
+    ipData.stopForumSpam = sfs;
+    findings.push(`⚠️ StopForumSpam: ${sfs.appearances} згадок як спам/абуз`);
+  } else if (sfs) {
+    sources.push("StopForumSpam");
+  }
+  return extraRisk;
 }
 
 // ==================== WALLET CHECK ====================
@@ -940,7 +995,51 @@ async function checkWallet(value: string, timestamp: Date): Promise<CheckResult>
   }
   
   walletData.addressShort = `${value.substring(0, 6)}...${value.substring(value.length - 4)}`;
-  
+
+  // OFAC SDN sanctions list (US Treasury)
+  try {
+    const ofac = await isOfacSanctioned(value);
+    if (ofac === true) {
+      sources.push("OFAC SDN");
+      walletData.ofacSanctioned = true;
+      if (walletData.sanctioned) {
+        findings.push("✅ Підтверджено OFAC SDN (корелює з відомою адресою)");
+      } else {
+        riskScore += 80;
+        findings.push("🔴 OFAC SDN: гаманець у санкційному списку США!");
+      }
+    } else if (ofac === false) {
+      sources.push("OFAC SDN");
+      findings.push("✅ Не в OFAC SDN");
+    }
+  } catch {}
+
+  // CoinGecko price conversion (if we know the asset)
+  try {
+    const chain = (walletData.chain || "").toString().toUpperCase();
+    let sym: string | null = null;
+    let balanceNum: number | null = null;
+    if (chain === "BTC" && walletData.balanceBTC) {
+      sym = "btc"; balanceNum = parseFloat(walletData.balanceBTC);
+    } else if ((chain === "ETH" || chain === "EVM") && walletData.balanceETH) {
+      sym = "eth"; balanceNum = parseFloat(walletData.balanceETH);
+    } else if (chain === "TRX" && walletData.balanceTRX) {
+      sym = "trx"; balanceNum = parseFloat(walletData.balanceTRX);
+    } else if (chain === "SOL" && walletData.balanceSOL) {
+      sym = "sol"; balanceNum = parseFloat(walletData.balanceSOL);
+    }
+    if (sym && balanceNum && balanceNum > 0) {
+      const price = await coingeckoUsd(sym);
+      if (price) {
+        const usd = balanceNum * price;
+        walletData.usdValue = usd;
+        walletData.usdPrice = price;
+        sources.push("CoinGecko");
+        findings.push(`💵 ≈ $${usd.toFixed(2)} (${sym.toUpperCase()} @ $${price.toLocaleString()})`);
+      }
+    }
+  } catch {}
+
   riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
@@ -1578,6 +1677,21 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     findings.push("⚠️ Низька достовірність: більшість джерел недоступні");
   }
 
+  // StopForumSpam — email in spam database
+  try {
+    const sfs = await stopForumSpam("email", value);
+    if (sfs) {
+      sources.push("StopForumSpam");
+      if (sfs.appearances > 0) {
+        riskScore += Math.min(30, sfs.appearances);
+        emailData.stopForumSpam = sfs;
+        findings.push(`⚠️ StopForumSpam: ${sfs.appearances} згадок як спам/абуз`);
+      } else {
+        findings.push("✅ Не в StopForumSpam");
+      }
+    }
+  } catch {}
+
   riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
@@ -2163,6 +2277,18 @@ async function checkDomain(value: string, timestamp: Date): Promise<CheckResult>
     }
   } catch {}
 
+  // Mozilla Observatory — security headers grade
+  try {
+    const obs = await mozillaObservatory(domain);
+    if (obs) {
+      sources.push("Mozilla Observatory");
+      domainData.observatory = obs;
+      findings.push(`🛡️ Заголовки безпеки: ${obs.grade} (${obs.score}/100)`);
+      if (["F", "E"].includes(obs.grade)) riskScore += 20;
+      else if (obs.grade === "D") riskScore += 10;
+    }
+  } catch {}
+
   riskScore = Math.min(riskScore, 100);
   const riskLevel = getRiskLevel(riskScore);
   
@@ -2464,6 +2590,20 @@ async function checkURL(value: string, timestamp: Date): Promise<CheckResult> {
     };
   }
   
+  // Mozilla Observatory for URL host
+  try {
+    if (urlData.domain) {
+      const obs = await mozillaObservatory(urlData.domain);
+      if (obs) {
+        sources.push("Mozilla Observatory");
+        urlData.observatory = obs;
+        findings.push(`🛡️ Заголовки безпеки: ${obs.grade} (${obs.score}/100)`);
+        if (["F", "E"].includes(obs.grade)) riskScore += 20;
+        else if (obs.grade === "D") riskScore += 10;
+      }
+    }
+  } catch {}
+
   if (findings.length <= 1) {
     findings.push("✅ Базова перевірка пройшла");
   }
@@ -2694,7 +2834,31 @@ async function checkCVE(value: string, timestamp: Date): Promise<CheckResult> {
             findings.push("🔴 В каталозі CISA KEV!");
             cveData.cisaKnownExploited = true;
           }
-          
+
+          // EPSS (FIRST.org) — exploit prediction
+          try {
+            const epss = await epssLookup(cleanValue);
+            if (epss) {
+              sources.push("FIRST.org EPSS");
+              cveData.epss = epss;
+              const pct = Math.round(epss.score * 100);
+              const perc = Math.round(epss.percentile * 100);
+              findings.push(`📈 EPSS: ${pct}% імовірність експлуатації (топ ${100 - perc}%)`);
+              if (epss.score >= 0.5) riskScore += 25;
+              else if (epss.score >= 0.1) riskScore += 10;
+            }
+          } catch {}
+
+          // OSV.dev — open-source vulnerability database
+          try {
+            const osv = await osvLookupByCve(cleanValue);
+            if (osv && osv.length > 0) {
+              sources.push("OSV.dev");
+              cveData.osv = osv;
+              findings.push(`📦 OSV.dev: ${osv.length} запис(ів) у базі open-source`);
+            }
+          } catch {}
+
         } else {
           findings.push("⚠️ CVE не знайдено в NVD");
           riskScore = 30;
@@ -3135,8 +3299,32 @@ async function checkUsername(value: string, timestamp: Date): Promise<CheckResul
     }
   } catch {}
 
+  // HackerNews profile
+  try {
+    const hn = await hackerNewsUser(username);
+    if (hn) {
+      sources.push("news.ycombinator.com");
+      usernameData.hackernews = hn;
+      const yr = new Date(hn.created * 1000).getFullYear();
+      findings.push(`🟧 HackerNews: ${hn.karma} karma · since ${yr}`);
+    }
+  } catch {}
+
+  // StopForumSpam — username in spam database
+  try {
+    const sfs = await stopForumSpam("username", username);
+    if (sfs) {
+      sources.push("StopForumSpam");
+      if (sfs.appearances > 0) {
+        riskScore += Math.min(25, sfs.appearances);
+        usernameData.stopForumSpam = sfs;
+        findings.push(`⚠️ StopForumSpam: ${sfs.appearances} згадок як спам`);
+      }
+    }
+  } catch {}
+
   // Calculate uniqueness score
-  const platformsFound = [usernameData.github?.exists, usernameData.instagram?.exists, usernameData.reddit?.exists].filter(Boolean).length;
+  const platformsFound = [usernameData.github?.exists, usernameData.instagram?.exists, usernameData.reddit?.exists, usernameData.hackernews].filter(Boolean).length;
   if (platformsFound === 0) {
     riskScore += 15;
     findings.push("⚠️ Не знайдено на платформах");

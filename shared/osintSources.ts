@@ -78,6 +78,9 @@ export const OSINT_SOURCES: OsintSource[] = [
   { name: "Onyphe", url: "https://onyphe.io", category: "ip" },
   { name: "Netlas", url: "https://netlas.io", category: "ip" },
   { name: "DroneBL", url: "https://dronebl.org", category: "ip" },
+  { name: "RIPEstat", url: "https://stat.ripe.net", category: "ip", notes: "Free RIPE NCC network info, ASN, abuse contacts" },
+  { name: "BGPView", url: "https://bgpview.io", category: "ip", notes: "Free ASN and BGP routing info" },
+  { name: "StopForumSpam", url: "https://stopforumspam.com", category: "ip", notes: "Free spam IP/email/username database" },
 
   { name: "URLScan.io", url: "https://urlscan.io", category: "domain" },
   { name: "WHOIS", url: "https://whois.com", category: "domain" },
@@ -99,6 +102,7 @@ export const OSINT_SOURCES: OsintSource[] = [
   { name: "OpenPhish", url: "https://openphish.com", category: "domain" },
   { name: "URLhaus", url: "https://urlhaus.abuse.ch", category: "domain" },
   { name: "ThreatCrowd", url: "https://threatcrowd.org", category: "domain" },
+  { name: "Mozilla Observatory", url: "https://observatory.mozilla.org", category: "domain", notes: "Free security headers grading" },
 
   { name: "Etherscan", url: "https://etherscan.io", category: "wallet" },
   { name: "Blockchair", url: "https://blockchair.com", category: "wallet" },
@@ -120,6 +124,7 @@ export const OSINT_SOURCES: OsintSource[] = [
   { name: "Nansen", url: "https://nansen.ai", category: "wallet" },
   { name: "WalletExplorer", url: "https://walletexplorer.com", category: "wallet" },
   { name: "CryptoScamDB", url: "https://cryptoscamdb.org", category: "wallet" },
+  { name: "CoinGecko", url: "https://coingecko.com", category: "wallet", notes: "Free crypto price API for USD conversion" },
 
   { name: "Sherlock", url: "https://github.com/sherlock-project/sherlock", category: "username" },
   { name: "Maigret", url: "https://github.com/soxoj/maigret", category: "username" },
@@ -153,6 +158,9 @@ export const OSINT_SOURCES: OsintSource[] = [
   { name: "Exploit-DB", url: "https://exploit-db.com", category: "threat" },
   { name: "VulnDB", url: "https://vuldb.com", category: "threat" },
   { name: "Vulners", url: "https://vulners.com", category: "threat" },
+  { name: "FIRST.org EPSS", url: "https://www.first.org/epss", category: "threat", notes: "Free exploit prediction scoring" },
+  { name: "OSV.dev", url: "https://osv.dev", category: "threat", notes: "Free open-source vulnerability database (Google)" },
+  { name: "CISA KEV", url: "https://www.cisa.gov/known-exploited-vulnerabilities-catalog", category: "threat", notes: "Free known exploited vulnerabilities catalog" },
 
   { name: "Ahmia", url: "https://ahmia.fi", category: "darkweb" },
   { name: "DarkSearch", url: "https://darksearch.io", category: "darkweb" },
@@ -173,6 +181,7 @@ export const OSINT_SOURCES: OsintSource[] = [
   { name: "LinkedIn", url: "https://linkedin.com", category: "social" },
   { name: "Reddit", url: "https://reddit.com", category: "social" },
   { name: "GitHub", url: "https://github.com", category: "social" },
+  { name: "HackerNews", url: "https://news.ycombinator.com", category: "social", notes: "Free Firebase API for user profiles" },
   { name: "GitLab", url: "https://gitlab.com", category: "social" },
   { name: "Telegram", url: "https://t.me", category: "social" },
   { name: "Discord", url: "https://discord.com", category: "social" },
