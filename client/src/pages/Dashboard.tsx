@@ -490,7 +490,7 @@ function AppQuickActions({ lastCheck, monitoringCount, streakDays, totalChecks }
     >
       <SecurityGauge score={securityScore} />
 
-      <div className="w-full grid grid-cols-4 gap-3 lg:gap-4">
+      <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
         {actions.map((action, idx) => (
           <motion.div
             key={action.label}
@@ -1528,7 +1528,8 @@ Sources: ${result.sources.join(', ')}`;
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="flex-shrink-0"
+                            aria-label={lang === "uk" ? "Керувати API ключем" : lang === "ru" ? "Управлять API ключом" : lang === "es" ? "Gestionar clave API" : lang === "de" ? "API-Schlüssel verwalten" : "Manage API key"}
+                            className="flex-shrink-0 w-11 h-11 sm:w-9 sm:h-9"
                             data-testid="button-manage-api-key"
                           >
                             <Key className="w-3.5 h-3.5 text-indigo-400" />
@@ -1688,7 +1689,8 @@ Sources: ${result.sources.join(', ')}`;
                             variant="ghost"
                             onClick={() => handleRepeatCheck(report)}
                             disabled={checkMutation.isPending}
-                            className="absolute top-2 right-2 w-7 h-7 lg:w-8 lg:h-8 p-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity bg-white/[0.09] hover:bg-white/20 border border-white/[0.09]"
+                            aria-label={lang === "uk" ? "Повторити перевірку" : lang === "ru" ? "Повторить проверку" : lang === "es" ? "Repetir verificación" : lang === "de" ? "Prüfung wiederholen" : "Repeat check"}
+                            className="absolute top-2 right-2 w-11 h-11 sm:w-7 sm:h-7 lg:w-8 lg:h-8 p-0 rounded-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-white/[0.09] hover:bg-white/20 border border-white/[0.09]"
                             data-testid={`button-repeat-check-${report.id}`}
                           >
                             {checkMutation.isPending ? (
@@ -3000,7 +3002,8 @@ Sources: ${result.sources.join(', ')}`;
                 <Button
                   size="icon"
                   variant="outline"
-                  className="flex-shrink-0 border-primary/30 hover:bg-primary/20"
+                  aria-label={copied ? (lang === "uk" ? "Скопійовано" : lang === "ru" ? "Скопировано" : lang === "es" ? "Copiado" : lang === "de" ? "Kopiert" : "Copied") : (lang === "uk" ? "Скопіювати адресу" : lang === "ru" ? "Копировать адрес" : lang === "es" ? "Copiar dirección" : lang === "de" ? "Adresse kopieren" : "Copy address")}
+                  className="flex-shrink-0 w-11 h-11 sm:w-10 sm:h-10 border-primary/30 hover:bg-primary/20"
                   onClick={copyAddress}
                   data-testid="button-copy-address"
                 >
