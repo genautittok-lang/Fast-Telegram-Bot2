@@ -84,7 +84,7 @@ const chatUpload = multer({ storage: multer.diskStorage({
 } });
 
 const TIER_REQUESTS: Record<string, number> = {
-  FREE: 3,
+  FREE: 5,
   PRO: 50,
   ENTERPRISE: 500,
   GROUPS: 500,
@@ -164,7 +164,7 @@ export async function registerRoutes(
             photoUrl: photoUrl || null,
             lang: "uk",
             tier: "FREE",
-            requestsLeft: 3,
+            requestsLeft: 5,
             streakDays: 1,
             refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           });
@@ -553,7 +553,7 @@ export async function registerRoutes(
           photoUrl: photoUrl || null,
           lang: "UA",
           tier: "FREE",
-          requestsLeft: 3,
+          requestsLeft: 5,
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
@@ -1052,7 +1052,7 @@ export async function registerRoutes(
     const userTier = (user.tier || "FREE").toUpperCase();
     
     const DAILY_LIMITS: Record<string, number> = {
-      FREE: 3,
+      FREE: 5,
       PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
@@ -1338,7 +1338,7 @@ export async function registerRoutes(
     const userTier = (user.tier || "FREE").toUpperCase();
     
     const DAILY_LIMITS: Record<string, number> = {
-      FREE: 3,
+      FREE: 5,
       PRO: 50,
       ENTERPRISE: Infinity,
       GROUPS: Infinity,
@@ -2701,7 +2701,7 @@ export async function registerRoutes(
       );
       for (const user of expiredResult.rows) {
         try {
-          await storage.updateUser(user.id, { tier: "FREE", requestsLeft: 3, autoRenew: false } as any);
+          await storage.updateUser(user.id, { tier: "FREE", requestsLeft: 5, autoRenew: false } as any);
           console.log(`Subscription expired for user ${user.id}, downgraded to FREE`);
 
           if (botInstance && user.tg_id) {

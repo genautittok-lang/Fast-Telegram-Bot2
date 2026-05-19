@@ -373,7 +373,7 @@ export async function setupBot(storage: IStorage) {
           tgId,
           username: ctx.from.username,
           lang: detectedLang,
-          requestsLeft: 3,
+          requestsLeft: 5,
           streakDays: 1,
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
@@ -735,15 +735,15 @@ ${t(lang, "startWelcome.selectLang")}`;
     const lang = getUserLang(user?.lang);
     userStates.delete(tgId);
 
-    const requestsLeft = user?.requestsLeft ?? 3;
+    const requestsLeft = user?.requestsLeft ?? 5;
     const tierLimits: Record<string, number> = {
-      "FREE": 3,
+      "FREE": 5,
       "BASIC": 30,
       "PRO": 50,
       "ENTERPRISE": 999999,
       "GROUPS": 999999,
     };
-    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
+    const requestsLimit = tierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const progressBar = generateProgressBar(requestsLeft, requestsLimit);
     const lastActivity = formatLastActivity(user?.lastLogin, lang);
 
@@ -1294,8 +1294,8 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
     } catch (e) {}
 
     const tierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
-    const statsTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
-    const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
+    const statsTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const statsUserLimit = statsTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, statsUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
     
@@ -2063,13 +2063,13 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
       const userTier = (user.tier || "FREE").toUpperCase();
       
       const DAILY_LIMITS: Record<string, number> = {
-        FREE: 3,
+        FREE: 5,
         PRO: 50,
         ENTERPRISE: Infinity,
         GROUPS: Infinity,
       };
       
-      const dailyLimit = DAILY_LIMITS[userTier] || 3;
+      const dailyLimit = DAILY_LIMITS[userTier] || 5;
       
       if (dailyLimit !== Infinity) {
         const today = new Date();
@@ -2400,7 +2400,7 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
     // ─────────── Conversion hooks ───────────
     const hookTier = (user?.tier || "FREE").toUpperCase();
     const isFree = hookTier === "FREE" || hookTier === "BASIC";
-    const left = Math.max(0, (user?.requestsLeft ?? 3) - 1);
+    const left = Math.max(0, (user?.requestsLeft ?? 5) - 1);
     const isHighRisk = checkResult.riskScore >= 50;
 
     let hookLine = "";
@@ -3908,7 +3908,7 @@ ${pe("chart")} <b>${escHtml(lang === "uk" ? "Статистика" : lang === "r
 ├ ${pe("eye")} ${escHtml(lang === "uk" ? "Моніторів" : lang === "ru" ? "Мониторов" : "Monitors")}: <b>${activeMonitors}</b>
 ├ ${pe("people")} ${escHtml(lang === "uk" ? "Рефералів" : lang === "ru" ? "Рефералов" : "Referrals")}: <b>${referralCount}</b>
 ├ ${pe("fire")} ${escHtml(lang === "uk" ? "Серія" : lang === "ru" ? "Серия" : "Streak")}: <b>${streakDays}</b> ${escHtml(lang === "uk" ? "дн" : lang === "ru" ? "дн" : "days")}
-└ ${pe("zap")} ${escHtml(lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left")}: <b>${user.requestsLeft ?? 3}</b>
+└ ${pe("zap")} ${escHtml(lang === "uk" ? "Залишок" : lang === "ru" ? "Остаток" : "Left")}: <b>${user.requestsLeft ?? 5}</b>
 
 ${pe("trophy")} <b>${escHtml(lang === "uk" ? "Топ перевірки" : lang === "ru" ? "Топ проверки" : "Top checks")}</b>
 ${topTypesText}
@@ -3987,8 +3987,8 @@ ${pe("globe")} <b>${escHtml(lang === "uk" ? "Мова" : lang === "ru" ? "Язы
       .join("\n") || "├ —";
     
     const detailTierSlot = user.tier === "ENTERPRISE" ? "crown" : user.tier === "PRO" ? "diamond" : "star";
-    const detailTierLimits: Record<string, number> = { "FREE": 3, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
-    const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 3;
+    const detailTierLimits: Record<string, number> = { "FREE": 5, "BASIC": 30, "PRO": 50, "ENTERPRISE": 999999, "GROUPS": 999999 };
+    const detailUserLimit = detailTierLimits[(user?.tier || "FREE").toUpperCase()] || 5;
     const requestsBar = generateProgressBar(user.requestsLeft || 0, detailUserLimit);
     const streakBar = generateProgressBar(Math.min(user.streakDays || 0, 30), 30);
     
@@ -4829,8 +4829,8 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       return ctx.answerCbQuery(t(lang, "admin.userNotFound", { id: userId.toString() }));
     }
     
-    const tierLimits: Record<string, number> = { FREE: 3, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
-    const newRequests = tierLimits[newTier] || 3;
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
+    const newRequests = tierLimits[newTier] || 5;
     await storage.updateUser(userId, { tier: newTier, requestsLeft: newRequests });
     await ctx.answerCbQuery(t(lang, "admin.tierChangedTo", { tier: newTier }));
     

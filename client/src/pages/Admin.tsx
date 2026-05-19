@@ -1089,14 +1089,14 @@ export default function Admin() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium">Telegram Bot</p>
-                          <p className="text-xs text-muted-foreground truncate">t.me/DarkShareBot</p>
+                          <p className="text-xs text-muted-foreground truncate">t.me/DarkShare1Bot</p>
                         </div>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          navigator.clipboard.writeText("https://t.me/DarkShareBot");
+                          navigator.clipboard.writeText("https://t.me/DarkShare1Bot");
                           toast({ title: "Посилання скопійовано" });
                         }}
                         data-testid="button-copy-bot-link"

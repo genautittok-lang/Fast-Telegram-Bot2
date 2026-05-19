@@ -1329,7 +1329,7 @@ Sources: ${result.sources.join(', ')}`;
                   user={user}
                   streakDays={user.streakDays ?? 0}
                   checksLeft={user.requestsLeft ?? 0}
-                  maxChecks={(() => { const limits: Record<string, number> = { FREE: 3, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 }; return limits[(user.tier || "FREE").toUpperCase()] || 3; })()}
+                  maxChecks={(() => { const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 }; return limits[(user.tier || "FREE").toUpperCase()] || 5; })()}
                   tier={(user.tier || "FREE").toUpperCase()}
                 />
               )}
@@ -1363,8 +1363,8 @@ Sources: ${result.sources.join(', ')}`;
             </div>
 
             {user && (() => {
-              const limits: Record<string, number> = { FREE: 3, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
-              const maxLimit = limits[(user.tier || "FREE").toUpperCase()] || 3;
+              const limits: Record<string, number> = { FREE: 5, BASIC: 30, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
+              const maxLimit = limits[(user.tier || "FREE").toUpperCase()] || 5;
               const left = user.requestsLeft ?? 0;
               const pct = maxLimit >= 9999 ? 100 : Math.round((left / maxLimit) * 100);
               const isLow = pct <= 20 && maxLimit < 9999;

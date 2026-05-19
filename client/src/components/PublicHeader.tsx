@@ -79,7 +79,7 @@ export function PublicHeader() {
             <LanguageSwitcher />
 
             <a
-              href="https://t.me/darkshare_bot"
+              href="https://t.me/DarkShare1Bot"
               target="_blank"
               rel="noopener"
               className="hidden sm:inline-flex h-8 items-center gap-1.5 rounded-lg border border-cyan-400/25 bg-cyan-500/[0.09] px-2.5 text-[12.5px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/[0.16] hover:border-cyan-400/35"
@@ -166,7 +166,7 @@ export function PublicHeader() {
               <div className="my-2 h-px bg-white/[0.07]" />
 
               <a
-                href="https://t.me/darkshare_bot"
+                href="https://t.me/DarkShare1Bot"
                 target="_blank"
                 rel="noopener"
                 className="flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium text-cyan-300 transition-colors hover:bg-cyan-500/[0.07]"

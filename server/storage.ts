@@ -752,8 +752,8 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserTier(userId: number, tier: string): Promise<User> {
     if (!db) throw new Error("Database not available");
-    const tierLimits: Record<string, number> = { FREE: 3, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
-    const requestsLeft = tierLimits[tier] || 3;
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
+    const requestsLeft = tierLimits[tier] || 5;
     const [updated] = await db.update(users).set({ tier, requestsLeft }).where(eq(users.id, userId)).returning();
     return updated;
   }
@@ -1016,7 +1016,7 @@ export class MemStorage implements IStorage {
       lang: insertUser.lang || "uk",
       langSet: insertUser.langSet ?? false,
       tier: insertUser.tier || "FREE",
-      requestsLeft: insertUser.requestsLeft ?? 3,
+      requestsLeft: insertUser.requestsLeft ?? 5,
       streakDays: insertUser.streakDays ?? 0,
       refCode: insertUser.refCode || null,
       discountPct: insertUser.discountPct ?? 0,
@@ -1465,8 +1465,8 @@ export class MemStorage implements IStorage {
   async updateUserTier(userId: number, tier: string): Promise<User> {
     const user = this.users.get(userId);
     if (!user) throw new Error("User not found");
-    const tierLimits: Record<string, number> = { FREE: 3, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
-    const requestsLeft = tierLimits[tier] || 3;
+    const tierLimits: Record<string, number> = { FREE: 5, PRO: 50, ENTERPRISE: 999999, GROUPS: 999999 };
+    const requestsLeft = tierLimits[tier] || 5;
     const updated = { ...user, tier, requestsLeft };
     this.users.set(userId, updated);
     return updated;
