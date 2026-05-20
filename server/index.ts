@@ -516,59 +516,75 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  // Create tables before starting server
-  await ensureTablesExist();
-  
-  await registerRoutes(httpServer, app);
+// Track app initialization status (exposed via /health for richer diagnostics)
+let appReady = false;
+let appInitError: string | null = null;
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(413).json({ message: "File too large" });
-    }
-    if (err.message?.includes("Invalid file type")) {
-      return res.status(415).json({ message: err.message });
-    }
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    console.error("Unhandled error:", message);
-    res.status(status).json({ message });
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    const { setupVite } = await import("./vite");
-    await setupVite(httpServer, app);
+app.get("/ready", (_req, res) => {
+  if (appInitError) {
+    return res.status(503).json({ ready: false, error: appInitError });
   }
-
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 8080 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  
-  console.log(`Starting HTTP server on port ${port}...`);
-  
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      console.log(`HTTP server is listening on port ${port}`);
-      log(`serving on port ${port}`);
-    },
-  );
-  
-  httpServer.on('error', (err) => {
-    console.error('HTTP server error:', err);
-  });
-})().catch((err) => {
-  console.error('Failed to start application:', err);
-  process.exit(1);
+  res.status(appReady ? 200 : 503).json({ ready: appReady });
 });
+
+// ============================================================================
+// STARTUP: listen FIRST (so Railway/Replit healthcheck on /health passes
+// immediately), then run heavy initialization in the background.
+// ============================================================================
+const port = parseInt(process.env.PORT || "5000", 10);
+
+console.log(`Starting HTTP server on port ${port}...`);
+
+httpServer.listen(
+  {
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  },
+  () => {
+    console.log(`HTTP server is listening on port ${port}`);
+    log(`serving on port ${port}`);
+  },
+);
+
+httpServer.on('error', (err) => {
+  console.error('HTTP server error:', err);
+});
+
+// Background initialization — does not block /health
+(async () => {
+  try {
+    console.log("Initializing application (background)...");
+    await ensureTablesExist();
+    await registerRoutes(httpServer, app);
+
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({ message: "File too large" });
+      }
+      if (err.message?.includes("Invalid file type")) {
+        return res.status(415).json({ message: err.message });
+      }
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      console.error("Unhandled error:", message);
+      res.status(status).json({ message });
+    });
+
+    // Only setup vite in development. In prod, serveStatic registers the catch-all
+    // AFTER all API routes so it doesn't shadow them.
+    if (process.env.NODE_ENV === "production") {
+      serveStatic(app);
+    } else {
+      const { setupVite } = await import("./vite");
+      await setupVite(httpServer, app);
+    }
+
+    appReady = true;
+    console.log("Application fully initialized and ready");
+  } catch (err: any) {
+    appInitError = err?.message || String(err);
+    console.error('Failed to initialize application:', err);
+    // Do NOT exit — keep /health responding so Railway can show the error via /ready
+  }
+})();
