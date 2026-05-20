@@ -343,6 +343,46 @@ async function ensureTablesExist() {
     `);
     await pool.query(`ALTER TABLE ds_ad_banners ADD COLUMN IF NOT EXISTS media_type TEXT DEFAULT 'image'`);
 
+    // VPN — WireGuard infrastructure (Phase 6)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_vpn_servers (
+        id SERIAL PRIMARY KEY,
+        region TEXT NOT NULL,
+        country_code TEXT NOT NULL,
+        flag TEXT NOT NULL,
+        hostname TEXT NOT NULL,
+        public_endpoint TEXT NOT NULL,
+        port INTEGER NOT NULL DEFAULT 51820,
+        server_public_key TEXT NOT NULL,
+        capacity INTEGER NOT NULL DEFAULT 100,
+        used INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'active',
+        is_premium BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vpn_servers_status ON ds_vpn_servers(status)`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_vpn_peers (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES ds_users(id) ON DELETE CASCADE,
+        server_id INTEGER NOT NULL REFERENCES ds_vpn_servers(id) ON DELETE CASCADE,
+        peer_public_key TEXT NOT NULL,
+        peer_private_key TEXT NOT NULL,
+        preshared_key TEXT,
+        allowed_ip TEXT NOT NULL,
+        dns TEXT DEFAULT '1.1.1.1, 1.0.0.1',
+        expires_at TIMESTAMP,
+        traffic_used INTEGER DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'active',
+        last_handshake_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vpn_peers_user_id ON ds_vpn_peers(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vpn_peers_server_id ON ds_vpn_peers(server_id)`);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS auth_users (
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::VARCHAR,

@@ -39,7 +39,7 @@ import { Footer } from "@/components/Footer";
 import { PublicHeader } from "@/components/PublicHeader";
 import { useTranslation } from "@/lib/i18n";
 import { OSINT_SOURCES, CATEGORY_LABELS, type OsintCategory } from "@/data/osintSources";
-import promoShieldImg from "@assets/generated_images/promo_shield_emblem.png";
+import promoShieldImg from "@/assets/promo_shield_emblem.png";
 import { SourcesScanGrid, type ScanItem } from "@/components/SourcesScanGrid";
 import { Seo } from "@/components/Seo";
 
