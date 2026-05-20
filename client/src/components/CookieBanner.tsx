@@ -28,6 +28,8 @@ export function CookieBanner() {
     localStorage.setItem("ds_cookie_consent", value);
     localStorage.setItem("ds_cookie_consent_at", new Date().toISOString());
     setVisible(false);
+    // Notify other components in the same tab (storage event only fires cross-tab)
+    try { window.dispatchEvent(new CustomEvent("ds:cookie-consent-saved", { detail: value })); } catch {}
   };
 
   const T = {

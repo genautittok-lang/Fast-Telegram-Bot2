@@ -1902,8 +1902,40 @@ function PromoBar() {
   const prevFocusRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("ds-promo-hide")) return;
-    const t = setTimeout(() => setShow(true), 8000);
-    return () => clearTimeout(t);
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const tryShow = () => {
+      // Show promo ONLY after user has handled the cookie banner.
+      // CookieBanner writes "ds_cookie_consent" to localStorage on accept/reject.
+      const consent = typeof localStorage !== "undefined" ? localStorage.getItem("ds_cookie_consent") : "all";
+      if (!consent) return;
+      timer = setTimeout(() => setShow(true), 2500);
+    };
+
+    tryShow();
+
+    // If cookie banner is still up, wait for it to be dismissed (storage event + custom event).
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "ds_cookie_consent" && e.newValue) tryShow();
+    };
+    const onConsent = () => tryShow();
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("ds:cookie-consent-saved", onConsent);
+
+    // Fallback poll (storage event doesn't fire in the same tab that wrote it)
+    const poll = setInterval(() => {
+      if (typeof localStorage !== "undefined" && localStorage.getItem("ds_cookie_consent")) {
+        tryShow();
+        clearInterval(poll);
+      }
+    }, 1000);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      clearInterval(poll);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("ds:cookie-consent-saved", onConsent);
+    };
   }, []);
   const dismiss = () => {
     setGone(true);
@@ -1956,8 +1988,10 @@ function PromoBar() {
     <>
       {/* backdrop */}
       <div className="fixed inset-0 z-[90] bg-black/45 backdrop-blur-sm animate-fade-in" onClick={dismiss} aria-hidden />
+      {/* viewport-safe wrapper centers the card while leaving room for browser chrome on phones */}
+      <div className="pointer-events-none fixed inset-0 z-[100] flex justify-center px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] items-start sm:items-center">
       {/* card */}
-      <div ref={cardRef} className="fixed left-1/2 top-1/2 z-[100] flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 animate-fade-up flex-col overflow-y-auto rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-[#0B1015]/98 via-[#0A0D12]/98 to-[#080B0F]/98 shadow-[0_24px_80px_-12px_rgba(0,0,0,0.85),0_0_60px_-8px_rgba(34,211,238,0.32)] backdrop-blur-2xl" role="dialog" aria-modal="true" aria-label={T.eyebrow}>
+      <div ref={cardRef} className="pointer-events-auto flex max-h-full w-full max-w-md animate-fade-up flex-col overflow-y-auto rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-[#0B1015]/98 via-[#0A0D12]/98 to-[#080B0F]/98 shadow-[0_24px_80px_-12px_rgba(0,0,0,0.85),0_0_60px_-8px_rgba(34,211,238,0.32)] backdrop-blur-2xl" role="dialog" aria-modal="true" aria-label={T.eyebrow}>
         {/* close */}
         <button
           onClick={dismiss}
@@ -1968,8 +2002,8 @@ function PromoBar() {
           <X className="h-4 w-4" />
         </button>
 
-        {/* hero image */}
-        <div className="relative h-44 w-full overflow-hidden bg-[#06080B]">
+        {/* hero image — shorter on phone so action buttons stay visible */}
+        <div className="relative h-28 sm:h-44 w-full overflow-hidden bg-[#06080B]">
           <img
             src={promoShieldImg}
             alt=""
@@ -2029,6 +2063,7 @@ function PromoBar() {
             </Link>
           </div>
         </div>
+      </div>
       </div>
     </>
   );
