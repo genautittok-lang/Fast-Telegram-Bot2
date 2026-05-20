@@ -1,3 +1,11 @@
+import dns from "dns";
+// CRITICAL: Force IPv4-first DNS resolution. Railway internal DNS returns both
+// IPv4 and IPv6 records for the Postgres host, but the IPv6 path is broken
+// inside the runtime container — Node.js' default "happy eyeballs" tries IPv6
+// first and hangs for 2+ minutes per query before falling back. Setting this
+// at process start makes every DNS lookup (incl. pg, fetch, axios) prefer IPv4.
+dns.setDefaultResultOrder("ipv4first");
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -15,8 +23,16 @@ async function ensureTablesExist() {
   }
   
   const { Pool } = await import("pg");
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+    connectionTimeoutMillis: 10_000,   // fail fast if DB unreachable
+    statement_timeout: 30_000,         // never let a single DDL hang >30s
+    query_timeout: 30_000,
+    keepAlive: true,
+    max: 4,                            // small pool — this is one-shot init
+  });
+
   try {
     console.log("Ensuring database tables exist...");
     
@@ -418,9 +434,13 @@ async function ensureTablesExist() {
 
     console.log("Database tables ready!");
   } catch (error: any) {
-    console.error("Error creating tables:", error.message);
+    // Robust error logging — error.message can be empty for AggregateError/ETIMEDOUT
+    const msg = error?.message || error?.code || error?.name || "unknown";
+    const details = error?.errors?.map?.((e: any) => `${e.code || ""}:${e.address || ""}:${e.port || ""}`).join(" | ") || "";
+    console.error(`Error creating tables: ${msg} ${details ? "[" + details + "]" : ""}`);
+    if (error?.stack) console.error(error.stack);
   } finally {
-    await pool.end();
+    try { await pool.end(); } catch {}
   }
 }
 

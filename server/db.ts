@@ -10,9 +10,19 @@ let db: ReturnType<typeof drizzle> | null = null;
 
 if (process.env.DATABASE_URL) {
   try {
-    pool = new Pool({ 
+    pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+      // Resilient defaults: fail fast on unreachable DB, never hang forever on a single query.
+      connectionTimeoutMillis: 10_000,
+      statement_timeout: 30_000,
+      query_timeout: 30_000,
+      idleTimeoutMillis: 30_000,
+      keepAlive: true,
+      max: 20,
+    });
+    pool.on("error", (err) => {
+      console.error("Postgres pool error:", err?.message || err);
     });
     db = drizzle(pool, { schema });
     console.log("Database connection configured");
