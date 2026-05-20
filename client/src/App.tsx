@@ -13,6 +13,7 @@ import { InstallBanner } from "@/components/InstallBanner";
 import { NotificationManager } from "@/components/NotificationManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BottomTabBar } from "@/components/BottomTabBar";
+import { RouteSeo } from "@/components/RouteSeo";
 import { motion, AnimatePresence } from "framer-motion";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
@@ -138,6 +139,7 @@ function App() {
           <LanguageProvider>
             <PWAProvider>
               <AuthProvider>
+                <RouteSeo />
                 <OfflineIndicator />
                 <AppUpdateBanner />
                 <InstallBanner />

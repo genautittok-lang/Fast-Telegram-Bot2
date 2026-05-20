@@ -23,7 +23,9 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="DARKSHARE — AI-powered Security OSINT & Threat Intelligence" />
     <meta property="og:description" content="Scan IPs, crypto wallets, emails, domains, CVEs & more in seconds. AI risk scoring, real-time monitoring, branded PDF reports, full API." />
-    <meta property="og:image" content="https://www.darkshare.store/logo.png" />
+    <meta property="og:image" content="https://www.darkshare.store/og-image.png" />
+    <meta property="og:image:secure_url" content="https://www.darkshare.store/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="DARKSHARE OSINT Platform" />
@@ -38,7 +40,8 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DARKSHARE — AI-powered Security OSINT" />
     <meta name="twitter:description" content="17 OSINT modules · AI risk scoring · real-time monitoring · branded PDF reports · full API." />
-    <meta name="twitter:image" content="https://www.darkshare.store/logo.png" />
+    <meta name="twitter:image" content="https://www.darkshare.store/og-image.png" />
+    <meta name="twitter:image:alt" content="DARKSHARE OSINT Platform" />
     <meta name="twitter:site" content="@darkshare" />
 
     <meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)" />
@@ -49,9 +52,18 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="DARKSHARE" />
 
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- Search engine verification (replace placeholders after registering site) -->
+    <meta name="google-site-verification" content="REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_TOKEN" />
+    <meta name="msvalidate.01" content="REPLACE_WITH_BING_WEBMASTER_TOKEN" />
+    <meta name="yandex-verification" content="REPLACE_WITH_YANDEX_WEBMASTER_TOKEN" />
+    <meta name="facebook-domain-verification" content="REPLACE_WITH_FACEBOOK_DOMAIN_TOKEN" />
+    <meta name="p:domain_verify" content="REPLACE_WITH_PINTEREST_TOKEN" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -209,7 +221,42 @@
   </head>
   <body>
     <div id="root"></div>
-    <noscript>DARKSHARE — AI-powered OSINT & Threat Intelligence platform. Please enable JavaScript to use the app, or open our Telegram bot @DarkShare1Bot.</noscript>
+    <noscript>
+      <header>
+        <h1>DARKSHARE — AI-powered Security OSINT &amp; Threat Intelligence Platform</h1>
+        <p>Professional OSINT platform with 17 modules across 159+ data sources. Scan IPs, crypto wallets (BTC, ETH, TRX), emails, domains, URLs, CVEs, EXIF metadata and GEOINT in seconds. AI-driven risk scoring 0-100 with verifiable multi-page PDF reports.</p>
+      </header>
+      <section>
+        <h2>Core OSINT modules</h2>
+        <ul>
+          <li>IP &amp; DNS reputation analysis</li>
+          <li>Crypto wallet OSINT (Bitcoin, Ethereum, Tron)</li>
+          <li>Email &amp; password leak checks</li>
+          <li>Domain &amp; WHOIS analysis</li>
+          <li>URL &amp; SSL safety scanning</li>
+          <li>CVE vulnerability lookup with EPSS scoring</li>
+          <li>EXIF metadata extraction and GEOINT location hints</li>
+          <li>Real-time monitoring with Web Push and Telegram alerts</li>
+          <li>AI-generated risk profiles and recommendations</li>
+          <li>Branded multi-page PDF reports with QR verification</li>
+          <li>Public REST API v1 with HMAC-SHA256 webhooks</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Available on</h2>
+        <p>
+          Web app: <a href="https://www.darkshare.store">www.darkshare.store</a> ·
+          Telegram bot: <a href="https://t.me/DarkShare1Bot">@DarkShare1Bot</a> ·
+          PWA install &middot; Android APK
+        </p>
+      </section>
+      <section>
+        <h2>Pricing</h2>
+        <p>FREE forever tier &middot; PRO $9/mo &middot; ENTERPRISE $30/mo (white-label) &middot; GROUPS $45/mo (multi-seat)</p>
+        <p><a href="https://www.darkshare.store/pricing">View all plans</a></p>
+      </section>
+      <p>JavaScript is required to use the interactive app. You can also use our Telegram bot which works without JavaScript.</p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

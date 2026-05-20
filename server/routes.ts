@@ -133,6 +133,107 @@ export async function registerRoutes(
     res.status(200).json({ status: "ok", service: "DARKSHARE", timestamp: Date.now() });
   });
 
+  // ============ SEO: robots.txt + sitemap.xml ============
+  const SEO_ORIGIN = "https://www.darkshare.store";
+  const PUBLIC_PATHS: Array<{ path: string; priority: string; changefreq: string }> = [
+    { path: "/",               priority: "1.0", changefreq: "daily" },
+    { path: "/pricing",        priority: "0.9", changefreq: "weekly" },
+    { path: "/api-docs",       priority: "0.9", changefreq: "weekly" },
+    { path: "/guide",          priority: "0.9", changefreq: "weekly" },
+    { path: "/download",       priority: "0.8", changefreq: "weekly" },
+    { path: "/vpn",            priority: "0.8", changefreq: "monthly" },
+    { path: "/exif",           priority: "0.8", changefreq: "monthly" },
+    { path: "/geoint",         priority: "0.8", changefreq: "monthly" },
+    { path: "/wizard",         priority: "0.7", changefreq: "monthly" },
+    { path: "/takedown",       priority: "0.7", changefreq: "monthly" },
+    { path: "/widget",         priority: "0.7", changefreq: "monthly" },
+    { path: "/community",      priority: "0.7", changefreq: "weekly" },
+    { path: "/support",        priority: "0.6", changefreq: "monthly" },
+    { path: "/trust",          priority: "0.6", changefreq: "monthly" },
+    { path: "/login",          priority: "0.5", changefreq: "yearly" },
+    { path: "/terms",          priority: "0.4", changefreq: "yearly" },
+    { path: "/privacy",        priority: "0.4", changefreq: "yearly" },
+    { path: "/aup",            priority: "0.4", changefreq: "yearly" },
+    { path: "/data-deletion",  priority: "0.4", changefreq: "yearly" },
+  ];
+  const LANGS = ["en", "uk", "ru", "es", "de"];
+
+  app.get("/robots.txt", (_req, res) => {
+    res.type("text/plain").send(
+`User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /account
+Disallow: /chat
+Disallow: /history
+Disallow: /monitoring
+Disallow: /widget
+Disallow: /verify/
+Disallow: /r/
+Disallow: /teams/join/
+Disallow: /uploads/
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+Sitemap: ${SEO_ORIGIN}/sitemap.xml
+Host: ${SEO_ORIGIN}
+`);
+  });
+
+  app.get("/sitemap.xml", (_req, res) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const urlEntries = PUBLIC_PATHS.map(({ path, priority, changefreq }) => {
+      const loc = `${SEO_ORIGIN}${path}`;
+      const alternates = LANGS.map(
+        (l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SEO_ORIGIN}${path}?lang=${l}"/>`,
+      ).join("\n");
+      return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+${alternates}
+    <xhtml:link rel="alternate" hreflang="x-default" href="${loc}"/>
+  </url>`;
+    }).join("\n");
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urlEntries}
+</urlset>`;
+    res.type("application/xml").send(xml);
+  });
+
+  app.get("/sitemap-index.xml", (_req, res) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${SEO_ORIGIN}/sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+</sitemapindex>`;
+    res.type("application/xml").send(xml);
+  });
+
   // Setup Google Auth - MUST be before other routes
   await setupAuth(app);
   registerAuthRoutes(app);

@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /account
+Disallow: /chat
+Disallow: /history
+Disallow: /monitoring
+Disallow: /widget
+Disallow: /verify/
+Disallow: /r/
+Disallow: /teams/join/
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://www.darkshare.store/sitemap.xml
+Host: https://www.darkshare.store
