@@ -239,6 +239,13 @@ export default function Admin() {
   const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem("adminToken") || "");
   const [passwordError, setPasswordError] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const { data: verifyData, isLoading: verifyLoading } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ["/api/admin/verify"],
+    queryFn: () => fetch("/api/admin/verify", { credentials: "include" }).then(r => r.json()),
+    enabled: !isPasswordVerified,
+    retry: false,
+  });
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [editChecksAmount, setEditChecksAmount] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -370,7 +377,8 @@ export default function Admin() {
     return res.json();
   };
 
-  const isAdmin = isPasswordVerified;
+  const isSessionAdmin = verifyData?.isAdmin === true;
+  const isAdmin = isPasswordVerified || isSessionAdmin;
 
   const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
@@ -657,7 +665,15 @@ export default function Admin() {
     },
   });
 
-  if (!isPasswordVerified) {
+  if (!isAdmin) {
+    if (verifyLoading) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+
     const handlePasswordSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setPasswordLoading(true);
