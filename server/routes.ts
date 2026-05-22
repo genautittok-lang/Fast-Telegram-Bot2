@@ -3104,6 +3104,10 @@ ${urlEntries}
       return next();
     }
     const authReq = req as AuthenticatedRequest;
+    if (!authReq.user && req.session?.userId) {
+      const user = await storage.getUserById(req.session.userId);
+      if (user) authReq.user = user;
+    }
     if (authReq.user && ADMIN_IDS.includes(authReq.user.tgId)) {
       return next();
     }
