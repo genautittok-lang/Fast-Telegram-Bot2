@@ -3318,8 +3318,9 @@ ${urlEntries}
     if (payment.userId) {
       const tier = payment.tier?.toUpperCase() || "PRO";
       const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
+      const periodDays = payment.period === "yearly" ? 365 : 30;
       await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
-      autoProvisionAlorVpn(payment.userId, tier, 30).catch(() => {});
+      autoProvisionAlorVpn(payment.userId, tier, periodDays).catch(() => {});
       
       const user = await storage.getUserById(payment.userId);
       storage.logActivity({ eventType: "payment", userId: payment.userId, username: user?.username || null, details: `Payment approved: ${tier}`, meta: { paymentId, tier, amount: payment.amountUsdt } }).catch(() => {});
@@ -3566,7 +3567,7 @@ ${urlEntries}
 
   app.post("/api/admin/users/:id/tier", requireAdmin, async (req, res) => {
     const { tier } = req.body;
-    if (!["FREE", "PRO", "ENTERPRISE"].includes(tier)) return res.status(400).json({ error: "Invalid tier" });
+    if (!["FREE", "PRO", "ENTERPRISE", "GROUPS"].includes(tier)) return res.status(400).json({ error: "Invalid tier" });
     try {
       const user = await storage.updateUserTier(parseInt(req.params.id), tier);
       const adminId = (req as AuthenticatedRequest).user?.id ?? null;

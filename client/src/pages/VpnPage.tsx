@@ -340,7 +340,7 @@ function UpgradePanel() {
         <p className="mt-2 text-[14px] text-zinc-400">Available on PRO and ENTERPRISE plans</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <PlanCard
           name="PRO VPN"
           tier="PRO"
@@ -357,6 +357,14 @@ function UpgradePanel() {
           devices={5}
           features={["5 devices", "All locations", "Maximum speed", "Priority servers", "Auto-activation"]}
           highlight
+        />
+        <PlanCard
+          name="GROUPS VPN"
+          tier="GROUPS"
+          price="$55"
+          period="/mo"
+          devices={5}
+          features={["5 devices", "All locations", "Team management", "Priority support", "Shared billing"]}
         />
       </div>
     </div>

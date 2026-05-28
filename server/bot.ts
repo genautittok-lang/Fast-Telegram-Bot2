@@ -3651,9 +3651,15 @@ ${faqText}`;
     const tier = (user.tier || "FREE").toUpperCase();
 
     if (!isProTier(tier)) {
-      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${escHtml(vpnT(lang, "tagline"))}\n\n${pe("warning")} ${escHtml(vpnT(lang, "proRequired"))}`;
+      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n<i>${escHtml(vpnT(lang, "tagline"))}</i>\n\n` +
+        (lang === "uk"
+          ? `${pe("warning")} VPN доступний на платних тарифах:\n\n• <b>PRO</b> — 2 пристрої · $9/міс\n• <b>ENTERPRISE</b> — 5 пристроїв · $29/міс\n• <b>GROUPS</b> — 5 пристроїв + керування командою · $55/міс\n\nПісля оплати VPN активується автоматично.`
+          : lang === "ru"
+          ? `${pe("warning")} VPN доступен на платных тарифах:\n\n• <b>PRO</b> — 2 устройства · $9/мес\n• <b>ENTERPRISE</b> — 5 устройств · $29/мес\n• <b>GROUPS</b> — 5 устройств + управление командой · $55/мес\n\nПосле оплаты VPN активируется автоматически.`
+          : `${pe("warning")} VPN is available on paid plans:\n\n• <b>PRO</b> — 2 devices · $9/mo\n• <b>ENTERPRISE</b> — 5 devices · $29/mo\n• <b>GROUPS</b> — 5 devices + team management · $55/mo\n\nVPN auto-activates after purchase.`);
       const kb = Markup.inlineKeyboard([
-        [urlS(vpnT(lang, "buyPro"), `${webUrl}/pricing?plan=PRO&src=bot_vpn`, "success", E.diamond)],
+        [urlS(`💎 PRO`, `${webUrl}/pricing?plan=PRO&src=bot_vpn`, "success"), urlS(`👥 GROUPS`, `${webUrl}/pricing?plan=GROUPS&src=bot_vpn`, "success")],
+        [urlS(`🏢 ENTERPRISE`, `${webUrl}/pricing?plan=ENTERPRISE&src=bot_vpn`, "success")],
         [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
       ]);
       try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
