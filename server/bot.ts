@@ -3713,9 +3713,10 @@ ${faqText}`;
     if (hasVpn && vpnUrl) {
       rows.push([cb(`🔗 ${lang === "uk" ? "Підключити" : lang === "ru" ? "Подключить" : "Connect"}`, "vpn_get_config", "success")]);
       rows.push([
+        cb(`📱 ${lang === "uk" ? "Пристрої" : lang === "ru" ? "Устройства" : "Devices"}`, "vpn_devices", "primary"),
         cb(`📲 ${lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Help"}`, "vpn_instruction", "primary"),
-        urlS(`🌐 ${lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"}`, `${webUrl}/vpn`, "default"),
       ]);
+      rows.push([urlS(`🌐 ${lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"}`, `${webUrl}/vpn`, "default")]);
     } else {
       rows.push([cb(`⚡ ${lang === "uk" ? "Активувати VPN" : lang === "ru" ? "Активировать VPN" : "Activate VPN"}`, "vpn_activate", "success")]);
       rows.push([cb(`📲 ${lang === "uk" ? "Як це працює?" : lang === "ru" ? "Как это работает?" : "How it works?"}`, "vpn_instruction", "primary")]);
@@ -3822,6 +3823,86 @@ ${faqText}`;
       const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)]]);
       try { await ctx.editMessageText(errText, { parse_mode: "HTML", ...kb }); } catch {}
     }
+  });
+
+  async function renderVpnDevices(ctx: any, user: any) {
+    const lang = getUserLang(user?.lang);
+    const tier = (user.tier || "FREE").toUpperCase();
+    const limit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : tier === "PRO" ? 2 : 0;
+    let devices: any[] = [];
+    try { devices = await storage.listVpnDevices(user.id); } catch {}
+    const active = devices.filter((d) => !d.revokedAt);
+
+    const T = {
+      title: { uk: "Підключені пристрої", ru: "Подключённые устройства", en: "Connected devices" } as any,
+      slots: { uk: "слотів зайнято", ru: "слотов занято", en: "slots used" } as any,
+      empty: {
+        uk: "Поки що жодних пристроїв.\nІмпортуй підписку у VPN-застосунку — пристрій з'явиться тут автоматично.",
+        ru: "Пока нет устройств.\nИмпортируй подписку в VPN-приложении — устройство появится здесь автоматически.",
+        en: "No devices yet.\nImport the subscription in your VPN app — it appears here automatically.",
+      } as any,
+      hint: {
+        uk: "💡 Один слот = один застосунок + мережа. Відкликай старі, щоб звільнити місце.",
+        ru: "💡 Один слот = одно приложение + сеть. Отзывай старые, чтобы освободить место.",
+        en: "💡 One slot = one app on one network. Revoke old ones to free up space.",
+      } as any,
+      revoke: { uk: "Відкликати", ru: "Отозвать", en: "Revoke" } as any,
+      revoked: { uk: "Відкликано", ru: "Отозвано", en: "Revoked" } as any,
+      lastSeen: { uk: "Останнє з'єднання", ru: "Последнее подключение", en: "Last seen" } as any,
+    };
+    const tt = (k: keyof typeof T) => T[k][lang] || T[k].en;
+
+    let text = `📱 <b>${escHtml(tt("title"))}</b>\n`;
+    text += `<code>─────────────</code>\n`;
+    const slotsClass = active.length >= limit ? "⚠️" : "✅";
+    text += `${slotsClass} <b>${active.length} / ${limit}</b> ${escHtml(tt("slots"))}\n\n`;
+
+    const rows: any[][] = [];
+    if (devices.length === 0) {
+      text += `<i>${escHtml(tt("empty"))}</i>\n\n`;
+    } else {
+      const top = devices.slice(0, 10);
+      for (const d of top) {
+        const lastStr = d.lastSeen ? new Date(d.lastSeen).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-GB", { dateStyle: "short", timeStyle: "short" }) : "—";
+        const dot = d.revokedAt ? "⚫️" : "🟢";
+        const ipStr = d.ipPrefix ? ` · <code>${escHtml(d.ipPrefix)}.x</code>` : "";
+        text += `${dot} <b>${escHtml(d.deviceName || "VPN")}</b>${ipStr}\n`;
+        text += `   <i>${escHtml(tt("lastSeen"))}: ${escHtml(lastStr)}</i>\n`;
+        if (d.revokedAt) {
+          text += `   <i>${escHtml(tt("revoked"))}</i>\n`;
+        } else {
+          rows.push([cb(`❌ ${tt("revoke")}: ${(d.deviceName || "VPN").slice(0, 18)}`, `vpn_dev_rev:${d.id}`, "danger")]);
+        }
+      }
+    }
+    text += `\n<code>─────────────</code>\n${escHtml(tt("hint"))}`;
+
+    rows.push([cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)]);
+    const kb = Markup.inlineKeyboard(rows);
+    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+  }
+
+  bot.action("vpn_devices", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    await ctx.answerCbQuery();
+    if (!user) return;
+    await renderVpnDevices(ctx, user);
+  });
+
+  bot.action(/^vpn_dev_rev:(\d+)$/, async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    if (!user) { await ctx.answerCbQuery(); return; }
+    const id = parseInt((ctx.match as any)[1], 10);
+    const lang = getUserLang(user?.lang);
+    try {
+      await storage.revokeVpnDevice(id, user.id);
+      await ctx.answerCbQuery(lang === "uk" ? "✅ Відкликано" : lang === "ru" ? "✅ Отозвано" : "✅ Revoked");
+    } catch {
+      await ctx.answerCbQuery("⚠️");
+    }
+    try { await renderVpnDevices(ctx, user); } catch { await showVpnMenu(ctx, tgId, true); }
   });
 
   bot.action("vpn_instruction", async (ctx) => {

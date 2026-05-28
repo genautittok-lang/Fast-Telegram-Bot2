@@ -170,6 +170,89 @@ function ActiveDashboard({ vpn, onRefresh, isRefreshing }: { vpn: VpnStatus; onR
 
       {/* QR + One-tap install */}
       <ConnectPanel vpn={vpn} />
+
+      {/* Devices */}
+      <DevicesPanel deviceLimit={vpn.deviceLimit} />
+    </div>
+  );
+}
+
+interface DeviceEntry {
+  id: number;
+  name: string;
+  userAgent?: string;
+  ipPrefix?: string;
+  firstSeen?: string;
+  lastSeen?: string;
+  revoked: boolean;
+}
+
+function DevicesPanel({ deviceLimit }: { deviceLimit: number }) {
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery<{ devices: DeviceEntry[]; activeCount: number; deviceLimit: number }>({
+    queryKey: ["/api/alor-vpn/devices"],
+    refetchInterval: 30000,
+  });
+  const revoke = useMutation({
+    mutationFn: async (id: number) => apiRequest("POST", `/api/alor-vpn/devices/${id}/revoke`, {}),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/alor-vpn/devices"] }),
+  });
+
+  const devices = data?.devices ?? [];
+  const active = devices.filter((d) => !d.revoked);
+  const slotsUsed = data?.activeCount ?? active.length;
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0D0D11] p-5 sm:p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-[14px] font-semibold text-white">Connected devices</h3>
+          <p className="mt-0.5 text-[12px] text-zinc-500">
+            <span className={slotsUsed >= deviceLimit ? "text-amber-400" : "text-zinc-400"}>
+              {slotsUsed} / {deviceLimit}
+            </span>{" "}
+            slots used. Revoke any device to free a slot.
+          </p>
+        </div>
+        <div className="text-[11px] text-zinc-600">
+          A device = one app on one network. Re-import to claim a free slot.
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="rounded-xl border border-white/[0.06] bg-black/20 p-6 text-center text-[12.5px] text-zinc-500">Loading…</div>
+      ) : devices.length === 0 ? (
+        <div className="rounded-xl border border-white/[0.06] bg-black/20 p-6 text-center text-[12.5px] text-zinc-500">
+          No devices yet. Import the subscription in your VPN app — it appears here automatically.
+        </div>
+      ) : (
+        <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-xl border border-white/[0.06] bg-black/20">
+          {devices.map((d) => (
+            <li key={d.id} className="flex items-center justify-between gap-3 px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block h-2 w-2 rounded-full ${d.revoked ? "bg-zinc-600" : "bg-emerald-400"}`} />
+                  <span className="truncate text-[13.5px] font-medium text-white">{d.name}</span>
+                  {d.revoked && <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-zinc-500">Revoked</span>}
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-[11.5px] text-zinc-500">
+                  {d.ipPrefix && <span className="font-mono">{d.ipPrefix}.x</span>}
+                  {d.lastSeen && <span>Last seen {new Date(d.lastSeen).toLocaleString()}</span>}
+                </div>
+              </div>
+              {!d.revoked && (
+                <button
+                  onClick={() => revoke.mutate(d.id)}
+                  disabled={revoke.isPending}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/[0.06] px-3 py-1.5 text-[12px] font-medium text-rose-300 transition hover:border-rose-400 hover:bg-rose-500/[0.12] disabled:opacity-50"
+                >
+                  Revoke
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

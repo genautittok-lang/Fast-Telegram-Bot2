@@ -1,5 +1,72 @@
 import type { Express, Request, Response } from "express";
+import { createHash } from "crypto";
 import { storage } from "./storage";
+import { vpnDeviceLimit } from "./alorVpn";
+
+// Country access per tier: PRO sees a curated subset; ENTERPRISE/GROUPS see all.
+// Keys match the country names AlorVPN reports (lowercased) — see FLAG_BY_COUNTRY for full mapping.
+const TIER_COUNTRIES: Record<string, Set<string> | null> = {
+  PRO: new Set(["germany", "netherlands", "finland", "france", "poland", "ukraine", "usa"]),
+  ENTERPRISE: null, // null => no restriction
+  GROUPS: null,
+};
+
+function detectCountryKey(remark: string): string {
+  const lower = remark.toLowerCase();
+  for (const key of Object.keys(FLAG_BY_COUNTRY)) {
+    const re = new RegExp(`(^|[^a-z])${key}([^a-z]|$)`, "i");
+    if (re.test(lower)) return key;
+  }
+  return "";
+}
+
+function isAllowedForTier(remark: string, tier: string): boolean {
+  const allow = TIER_COUNTRIES[tier.toUpperCase()];
+  if (allow === undefined || allow === null) return true; // ENTERPRISE/GROUPS/unknown → all
+  const key = detectCountryKey(remark);
+  if (!key) return false; // unknown country → hide for PRO (safer than leaking)
+  // Map aliases to canonical names used in the allow-list
+  const canonicalAliases: Record<string, string> = {
+    de: "germany", nl: "netherlands", us: "usa", "united states": "usa",
+    uk: "uk", gb: "uk", fr: "france", fi: "finland", pl: "poland", ua: "ukraine",
+  };
+  const canonical = canonicalAliases[key] || key;
+  return allow.has(canonical);
+}
+
+function fingerprint(req: Request): { fp: string; ipPrefix: string; uaShort: string } {
+  const ua = (req.get("user-agent") || "").slice(0, 200);
+  const ipRaw = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "0.0.0.0";
+  // Hash the /24 (IPv4) or /48 (IPv6) prefix so we don't pin the user to a specific session IP
+  const ipPrefix = ipRaw.includes(":")
+    ? ipRaw.split(":").slice(0, 3).join(":")
+    : ipRaw.split(".").slice(0, 3).join(".");
+  const fp = createHash("sha256").update(`${ua}|${ipPrefix}`).digest("hex").slice(0, 32);
+  return { fp, ipPrefix, uaShort: ua };
+}
+
+function deviceNameFromUA(ua: string): string {
+  const u = ua.toLowerCase();
+  // App detection (order matters — most specific first)
+  if (u.includes("happ")) return "Happ";
+  if (u.includes("shadowrocket")) return "Shadowrocket";
+  if (u.includes("streisand")) return "Streisand";
+  if (u.includes("v2rayng") || u.includes("v2rayn")) return "v2rayNG";
+  if (u.includes("hiddify")) return "Hiddify";
+  if (u.includes("clash")) return "Clash";
+  if (u.includes("nekobox") || u.includes("nekoray")) return "Nekobox";
+  if (u.includes("foxray")) return "FoXray";
+  if (u.includes("singbox") || u.includes("sing-box")) return "sing-box";
+  if (u.includes("loon")) return "Loon";
+  if (u.includes("quantumult")) return "Quantumult";
+  // Platform fallback
+  if (/iphone|ipad|ipod/.test(u)) return "iOS device";
+  if (/android/.test(u)) return "Android device";
+  if (/mac os|macintosh/.test(u)) return "macOS";
+  if (/windows/.test(u)) return "Windows";
+  if (/linux/.test(u)) return "Linux";
+  return "VPN client";
+}
 
 const BRAND = "DarkShare VPN";
 const SERVER_PREFIX = "DarkShare";
@@ -56,6 +123,12 @@ function rebrandRemark(original: string): string {
   return `${SERVER_PREFIX} ${flag} ${cleaned}`;
 }
 
+function extractRemark(line: string): string {
+  const hashIdx = line.indexOf("#");
+  if (hashIdx === -1) return "";
+  try { return decodeURIComponent(line.slice(hashIdx + 1)); } catch { return line.slice(hashIdx + 1); }
+}
+
 function rewriteVlessOrTrojan(line: string, scheme: string): string {
   const hashIdx = line.indexOf("#");
   if (hashIdx === -1) return `${line}#${encodeURIComponent(`${SERVER_PREFIX} 🌍 Server`)}`;
@@ -93,7 +166,31 @@ function rewriteLine(line: string): string {
   return line;
 }
 
-function rewriteBody(text: string): string {
+function filterByTier(text: string, tier: string): string {
+  const allowList = TIER_COUNTRIES[tier.toUpperCase()];
+  // null/undefined → no restriction (ENTERPRISE/GROUPS or unknown tier)
+  if (allowList === null || allowList === undefined) return text;
+  return text
+    .split(/\r?\n/)
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || !/^(vless|vmess|trojan|ss):\/\//.test(trimmed)) return true;
+      if (trimmed.startsWith("vmess://")) {
+        try {
+          const b64 = trimmed.slice("vmess://".length).trim();
+          const json = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+          return isAllowedForTier(String(json.ps || ""), tier);
+        } catch {
+          // Fail closed for restricted tiers — unparseable entry is dropped
+          return false;
+        }
+      }
+      return isAllowedForTier(extractRemark(trimmed), tier);
+    })
+    .join("\n");
+}
+
+function rewriteBody(text: string, tier?: string): string {
   // First, try to detect base64 wrapper (single token, no scheme prefix)
   const looksLikeBase64 =
     !/^(vless|vmess|trojan|ss):\/\//m.test(text) &&
@@ -112,7 +209,11 @@ function rewriteBody(text: string): string {
     } catch {}
   }
 
-  const rewritten = working
+  // Apply tier country filter AFTER base64 decode so PRO restrictions
+  // are enforced on subscriptions delivered as base64 wrappers.
+  const filtered = tier ? filterByTier(working, tier) : working;
+
+  const rewritten = filtered
     .split(/\r?\n/)
     .map(rewriteLine)
     .join("\n");
@@ -143,6 +244,33 @@ export function registerVpnProxy(app: Express) {
       if (!token) return res.status(404).send("Not found");
 
       const user = await storage.getUserByAlorVpnToken?.(token);
+
+      // Device tracking & per-tier limit enforcement
+      if (user?.id) {
+        const tier = String(user.tier || "FREE").toUpperCase();
+        const limit = vpnDeviceLimit(tier);
+        const { fp, ipPrefix, uaShort } = fingerprint(req);
+        try {
+          const devices = await storage.listVpnDevices(user.id);
+          const active = devices.filter((d: any) => !d.revokedAt);
+          const existing = devices.find((d: any) => d.fingerprint === fp);
+          if (!existing && limit > 0 && active.length >= limit) {
+            res.setHeader("Content-Type", "text/plain; charset=utf-8");
+            return res.status(403).send(
+              `# DarkShare VPN — device limit reached\n# Your ${tier} plan allows up to ${limit} active devices.\n# Visit https://www.darkshare.store/vpn to revoke a device, then re-import.\n`
+            );
+          }
+          await storage.upsertVpnDevice(user.id, fp, {
+            userAgent: uaShort,
+            ipPrefix,
+            deviceName: deviceNameFromUA(uaShort),
+          });
+        } catch (e: any) {
+          // Don't break VPN service if device tracking fails (e.g., table missing on stale deploy)
+          console.warn("[vpnProxy] device tracking failed:", e?.message);
+        }
+      }
+
       let upstreamUrl: string | undefined = (user as any)?.alorVpnSubscriptionUrl;
 
       // Fallback: lookup by scanning is expensive; if storage method missing, just use token via AlorVPN convention
@@ -188,7 +316,9 @@ export function registerVpnProxy(app: Express) {
       });
 
       const body = await upstreamRes.text();
-      const rewritten = rewriteBody(body);
+      // Apply tier-based country filter (handles base64 wrappers internally) and white-label remarks
+      const tier = String((user as any)?.tier || "FREE").toUpperCase();
+      const rewritten = rewriteBody(body, tier);
 
       // Forward / rewrite headers
       const ctype = upstreamRes.headers.get("content-type") || "text/plain; charset=utf-8";

@@ -179,6 +179,46 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
     }
   });
 
+  app.get("/api/alor-vpn/devices", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const devices = await storage.listVpnDevices(userId);
+      const user = await storage.getUserById(userId);
+      const tier = (user?.tier || "FREE").toUpperCase();
+      const limit = vpnDeviceLimit(tier);
+      const active = devices.filter((d: any) => !d.revokedAt);
+      res.json({
+        ok: true,
+        deviceLimit: limit,
+        activeCount: active.length,
+        devices: devices.map((d: any) => ({
+          id: d.id,
+          name: d.deviceName || "VPN client",
+          userAgent: d.userAgent,
+          ipPrefix: d.ipPrefix,
+          firstSeen: d.firstSeen,
+          lastSeen: d.lastSeen,
+          revoked: Boolean(d.revokedAt),
+        })),
+      });
+    } catch (err: any) {
+      console.error("[AlorVPN] devices list error:", err);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
+  app.post("/api/alor-vpn/devices/:id/revoke", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (!Number.isFinite(id)) return res.status(400).json({ error: "bad_id" });
+      await storage.revokeVpnDevice(id, req.user!.id);
+      res.json({ ok: true });
+    } catch (err: any) {
+      console.error("[AlorVPN] device revoke error:", err);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
   app.post("/api/alor-vpn/toggle", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
     try {
       const user = await storage.getUserById(req.user!.id);

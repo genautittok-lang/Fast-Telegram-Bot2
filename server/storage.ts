@@ -1,4 +1,4 @@
-import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, dataDeletionRequests, threatProfiles, takedownLetters, vpnServers, vpnPeers, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog, type DataDeletionRequest, type InsertDataDeletionRequest, type ThreatProfile, type InsertThreatProfile, type TakedownLetter, type InsertTakedownLetter, type VpnServer, type InsertVpnServer, type VpnPeer, type InsertVpnPeer } from "@shared/schema";
+import { users, reports, watches, payments, referrals, coupons, couponUsages, adminSettings, supportTickets, teams, teamMembers, favorites, chatMessages, adminMessages, activityLog, pushSubscriptions, dataDeletionRequests, threatProfiles, takedownLetters, vpnServers, vpnPeers, vpnDevices, type User, type InsertUser, type Report, type Watch, type Payment, type Coupon, type InsertCoupon, type AdminSetting, type SupportTicket, type InsertSupportTicket, type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type Favorite, type InsertFavorite, type ChatMessage, type InsertChatMessage, type AdminMessage, type InsertAdminMessage, type ActivityLog, type InsertActivityLog, type DataDeletionRequest, type InsertDataDeletionRequest, type ThreatProfile, type InsertThreatProfile, type TakedownLetter, type InsertTakedownLetter, type VpnServer, type InsertVpnServer, type VpnPeer, type InsertVpnPeer, type VpnDevice, type InsertVpnDevice } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, isNull } from "drizzle-orm";
 
@@ -21,6 +21,10 @@ export interface IStorage {
   getUserByRefCode(refCode: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | null>;
   getUserByAlorVpnToken(token: string): Promise<User | undefined>;
+  listVpnDevices(userId: number): Promise<VpnDevice[]>;
+  upsertVpnDevice(userId: number, fingerprint: string, info: { userAgent?: string; ipPrefix?: string; deviceName?: string }): Promise<{ device: VpnDevice; isNew: boolean }>;
+  revokeVpnDevice(id: number, userId: number): Promise<void>;
+  countActiveVpnDevices(userId: number): Promise<number>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserLogin(id: number): Promise<void>;
@@ -198,6 +202,44 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     const [user] = await db.select().from(users).where(eq((users as any).alorVpnToken, token)).limit(1);
     return user;
+  }
+
+  async listVpnDevices(userId: number): Promise<VpnDevice[]> {
+    if (!db) throw new Error("Database not available");
+    return db.select().from(vpnDevices).where(eq(vpnDevices.userId, userId)).orderBy(desc(vpnDevices.lastSeen));
+  }
+
+  async upsertVpnDevice(userId: number, fingerprint: string, info: { userAgent?: string; ipPrefix?: string; deviceName?: string }): Promise<{ device: VpnDevice; isNew: boolean }> {
+    if (!db) throw new Error("Database not available");
+    const [existing] = await db.select().from(vpnDevices)
+      .where(and(eq(vpnDevices.userId, userId), eq(vpnDevices.fingerprint, fingerprint))).limit(1);
+    if (existing) {
+      const [updated] = await db.update(vpnDevices)
+        .set({ lastSeen: new Date(), revokedAt: null })
+        .where(eq(vpnDevices.id, existing.id)).returning();
+      return { device: updated, isNew: false };
+    }
+    const [created] = await db.insert(vpnDevices).values({
+      userId,
+      fingerprint,
+      userAgent: info.userAgent || null,
+      ipPrefix: info.ipPrefix || null,
+      deviceName: info.deviceName || null,
+    } as any).returning();
+    return { device: created, isNew: true };
+  }
+
+  async revokeVpnDevice(id: number, userId: number): Promise<void> {
+    if (!db) throw new Error("Database not available");
+    await db.update(vpnDevices).set({ revokedAt: new Date() })
+      .where(and(eq(vpnDevices.id, id), eq(vpnDevices.userId, userId)));
+  }
+
+  async countActiveVpnDevices(userId: number): Promise<number> {
+    if (!db) throw new Error("Database not available");
+    const rows = await db.select({ id: vpnDevices.id }).from(vpnDevices)
+      .where(and(eq(vpnDevices.userId, userId), isNull(vpnDevices.revokedAt)));
+    return rows.length;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -1017,6 +1059,10 @@ export class MemStorage implements IStorage {
   async getUserByAlorVpnToken(token: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(u => (u as any).alorVpnToken === token);
   }
+  async listVpnDevices(_userId: number): Promise<VpnDevice[]> { return []; }
+  async upsertVpnDevice(_userId: number, _fp: string, _info: any): Promise<{ device: VpnDevice; isNew: boolean }> { throw new Error("VPN devices require PostgreSQL storage"); }
+  async revokeVpnDevice(_id: number, _userId: number): Promise<void> {}
+  async countActiveVpnDevices(_userId: number): Promise<number> { return 0; }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.nextId.user++;

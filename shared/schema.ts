@@ -81,6 +81,21 @@ export const payments = pgTable("ds_payments", {
   index("idx_payments_status").on(table.status),
 ]);
 
+export const vpnDevices = pgTable("ds_vpn_devices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  fingerprint: text("fingerprint").notNull(),
+  deviceName: text("device_name"),
+  userAgent: text("user_agent"),
+  ipPrefix: text("ip_prefix"),
+  firstSeen: timestamp("first_seen").defaultNow(),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  revokedAt: timestamp("revoked_at"),
+}, (table) => [
+  index("idx_vpn_devices_user_id").on(table.userId),
+  uniqueIndex("idx_vpn_devices_user_fp").on(table.userId, table.fingerprint),
+]);
+
 export const referrals = pgTable("ds_referrals", {
   id: serial("id").primaryKey(),
   referrerId: integer("referrer_id").references(() => users.id),
@@ -353,6 +368,9 @@ export type VpnServer = typeof vpnServers.$inferSelect;
 export type InsertVpnServer = z.infer<typeof insertVpnServerSchema>;
 export type VpnPeer = typeof vpnPeers.$inferSelect;
 export type InsertVpnPeer = z.infer<typeof insertVpnPeerSchema>;
+export type VpnDevice = typeof vpnDevices.$inferSelect;
+export const insertVpnDeviceSchema = createInsertSchema(vpnDevices).omit({ id: true, firstSeen: true, lastSeen: true, revokedAt: true });
+export type InsertVpnDevice = z.infer<typeof insertVpnDeviceSchema>;
 
 // Types
 export type User = typeof users.$inferSelect;
