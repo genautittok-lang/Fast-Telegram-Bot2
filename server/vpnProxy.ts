@@ -613,10 +613,26 @@ export function registerVpnProxy(app: Express) {
       const sep = upstreamUrl.includes("?") ? "&" : "?";
       const upstreamUrlWithParams = `${upstreamUrl}${sep}prefix=${encodeURIComponent(`${SERVER_PREFIX} `)}&names=${encodeURIComponent(namesMap)}`;
 
+      // AlorVPN officially supports: Happ, v2rayNG, V2rayN, Nekobox, Clash/Verge, Shadowrocket.
+      // For other V2Ray-compatible clients (Hiddify, Streisand, FoXray, sing-box, NekoRay,
+      // Loon, Quantumult, generic curl/browsers) AlorVPN can return empty/non-parsable content.
+      // → Send a known-good upstream UA so AlorVPN returns the universal raw v2ray base64
+      //   subscription, which ALL V2Ray-compatible clients (including Hiddify) can parse.
+      const rawUA = (req.get("user-agent") || "").toLowerCase();
+      const isAlorNative =
+        rawUA.includes("happ") ||
+        rawUA.includes("v2rayng") || rawUA.includes("v2rayn") ||
+        rawUA.includes("nekobox") || rawUA.includes("nekoray") ||
+        rawUA.includes("clash") ||
+        rawUA.includes("shadowrocket");
+      const upstreamUA = isAlorNative
+        ? (req.get("user-agent") as string)
+        : "v2rayNG/1.9.5"; // universal raw v2ray subscription
+
       const upstreamRes = await fetch(upstreamUrlWithParams, {
         method: "GET",
         headers: {
-          "User-Agent": req.get("user-agent") || "DarkShareVPN/1.0",
+          "User-Agent": upstreamUA,
           "Accept": req.get("accept") || "*/*",
         },
       });
