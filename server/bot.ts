@@ -792,8 +792,19 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
 
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
+    const vpnLabel = lang === "uk"
+      ? "🛡️ DARKSHARE VPN  ·  20+ країн  ·  ⚡"
+      : lang === "ru"
+      ? "🛡️ DARKSHARE VPN  ·  20+ стран  ·  ⚡"
+      : lang === "es"
+      ? "🛡️ DARKSHARE VPN  ·  20+ países  ·  ⚡"
+      : lang === "de"
+      ? "🛡️ DARKSHARE VPN  ·  20+ Länder  ·  ⚡"
+      : "🛡️ DARKSHARE VPN  ·  20+ countries  ·  ⚡";
+
     const keyboardRows: any[][] = [
       [cb(t(lang, "buttons.check"), "check_all", "primary", E.search)],
+      [cb(vpnLabel, "vpn_menu", "danger", E.shield)],
       [
         cb(t(lang, "buttons.profile"), "profile", "primary", E.user),
         cb(t(lang, "buttons.upgrade"), "upgrade", "success", E.star)
@@ -807,11 +818,10 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
         cb(t(lang, "support.command"), "open_support", "primary", E.msg)
       ],
       [
-        cb((lang === "uk" ? "VPN" : lang === "ru" ? "VPN" : lang === "es" ? "VPN" : lang === "de" ? "VPN" : "VPN") + " ✨", "vpn_menu", "success", E.shield),
         cb((lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : lang === "es" ? "Guía" : lang === "de" ? "Anleitung" : "Guide"), "open_guide", "primary", E.doc),
+        cb((lang === "uk" ? "🔌 API" : lang === "ru" ? "🔌 API" : lang === "es" ? "🔌 API" : lang === "de" ? "🔌 API" : "🔌 API"), "open_api", "primary", E.lock),
       ],
       [
-        cb((lang === "uk" ? "🔌 API" : lang === "ru" ? "🔌 API" : lang === "es" ? "🔌 API" : lang === "de" ? "🔌 API" : "🔌 API"), "open_api", "primary", E.lock),
         cb((lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : lang === "es" ? "Actualizar" : lang === "de" ? "Aktualisieren" : "Refresh"), "refresh_dashboard", "danger", E.bolt)
       ],
       [
