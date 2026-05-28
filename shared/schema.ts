@@ -34,6 +34,10 @@ export const users = pgTable("ds_users", {
   teamsWebhookUrl: text("teams_webhook_url"),
   payoutAddress: text("payout_address"),
   payoutCurrency: text("payout_currency"),
+  alorVpnToken: text("alor_vpn_token"),
+  alorVpnUuid: text("alor_vpn_uuid"),
+  alorVpnSubscriptionUrl: text("alor_vpn_subscription_url"),
+  alorVpnExpiresAt: timestamp("alor_vpn_expires_at"),
 });
 
 export const reports = pgTable("ds_reports", {

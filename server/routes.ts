@@ -18,6 +18,7 @@ import * as crypto from "crypto";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import { registerVpnRoutes } from "./vpn";
+import { registerAlorVpnRoutes, autoProvisionAlorVpn } from "./alorVpnRoutes";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -573,6 +574,8 @@ ${urlEntries}
 
   // VPN routes (Phase 6 — own WireGuard infrastructure)
   registerVpnRoutes(app, loadUser, requireAuth);
+  // AlorVPN B2B routes
+  registerAlorVpnRoutes(app, loadUser, requireAuth);
   registerApiV1(app);
   registerSeoRoutes(app);
 
@@ -2258,6 +2261,7 @@ ${urlEntries}
             subscriptionExpiresAt: expiryDate,
             autoRenew: false,
           } as any);
+          autoProvisionAlorVpn(userId, tier, periodDays).catch(() => {});
 
           const user = await storage.getUserById(userId);
           if (user && botInstance) {
@@ -2679,6 +2683,7 @@ ${urlEntries}
               }
 
               await storage.updateUser(payment.userId, updateData);
+              autoProvisionAlorVpn(payment.userId, tier, periodDays).catch(() => {});
 
               const user = await storage.getUserById(payment.userId);
               if (user && botInstance) {
@@ -2946,6 +2951,7 @@ ${urlEntries}
           const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
 
           await storage.updateUser(payment.userId, updateData);
+          autoProvisionAlorVpn(payment.userId, tier, periodDays).catch(() => {});
 
           const user = await storage.getUserById(payment.userId);
           if (user && botInstance) {
@@ -3016,6 +3022,7 @@ ${urlEntries}
               const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
 
               await storage.updateUser(row.user_id, { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true } as any);
+              autoProvisionAlorVpn(row.user_id, tier, periodDays).catch(() => {});
 
               const user = await storage.getUserById(row.user_id);
               if (user && botInstance) {
@@ -3306,6 +3313,7 @@ ${urlEntries}
       const tier = payment.tier?.toUpperCase() || "PRO";
       const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
       await storage.updateUser(payment.userId, { tier, requestsLeft: requests });
+      autoProvisionAlorVpn(payment.userId, tier, 30).catch(() => {});
       
       const user = await storage.getUserById(payment.userId);
       storage.logActivity({ eventType: "payment", userId: payment.userId, username: user?.username || null, details: `Payment approved: ${tier}`, meta: { paymentId, tier, amount: payment.amountUsdt } }).catch(() => {});
@@ -3557,6 +3565,7 @@ ${urlEntries}
       const user = await storage.updateUserTier(parseInt(req.params.id), tier);
       const adminId = (req as AuthenticatedRequest).user?.id ?? null;
       storage.logActivity({ eventType: "tier_change", userId: user.id, username: user.username || null, details: `Tier changed to ${tier}`, meta: { tier, adminId } }).catch(() => {});
+      autoProvisionAlorVpn(user.id, tier, 30).catch(() => {});
       res.json(user);
     } catch (err: any) {
       res.status(400).json({ error: err.message || "Failed to update tier" });

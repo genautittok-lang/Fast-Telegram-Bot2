@@ -3546,39 +3546,93 @@ ${faqText}`;
     await ctx.answerCbQuery(t("uk", "admin.rejectedShort"));
   });
 
-  // ==================== VPN ====================
+  // ==================== VPN (AlorVPN B2B) ====================
   function vpnT(lang: Language, key: string): string {
     const dict: Record<string, Record<string, string>> = {
       title: { uk: "DARKSHARE VPN", ru: "DARKSHARE VPN", en: "DARKSHARE VPN", es: "DARKSHARE VPN", de: "DARKSHARE VPN" },
       tagline: {
-        uk: "WireGuard · 0 логів · ~5 локацій",
-        ru: "WireGuard · 0 логов · ~5 локаций",
-        en: "WireGuard · zero logs · ~5 locations",
-        es: "WireGuard · sin registros · ~5 ubicaciones",
-        de: "WireGuard · keine Logs · ~5 Standorte",
+        uk: "Trojan Reality · 0 логів · Багато локацій",
+        ru: "Trojan Reality · 0 логов · Много локаций",
+        en: "Trojan Reality · zero logs · multiple locations",
+        es: "Trojan Reality · sin registros · múltiples ubicaciones",
+        de: "Trojan Reality · keine Logs · viele Standorte",
       },
       proRequired: {
-        uk: "VPN доступний на тарифах PRO / ENTERPRISE / GROUPS\n\nОтримай WireGuard-конфіг для до 3-х пристроїв за $35/міс.\nПромокод DARKNEU — мінус 50%.",
-        ru: "VPN доступен на тарифах PRO / ENTERPRISE / GROUPS\n\nПолучи WireGuard-конфиг для 3-х устройств за $35/мес.\nПромокод DARKNEU — минус 50%.",
-        en: "VPN is available on PRO / ENTERPRISE / GROUPS\n\nGet a WireGuard config for up to 3 devices for $35/mo.\nUse promo DARKNEU — 50% off.",
-        es: "VPN disponible en PRO / ENTERPRISE / GROUPS\n\nObtén configuración WireGuard para hasta 3 dispositivos por $35/mes.\nPromo DARKNEU — 50% off.",
-        de: "VPN ist in PRO / ENTERPRISE / GROUPS verfügbar\n\nWireGuard-Konfiguration für bis zu 3 Geräte für $35/Monat.\nPromo DARKNEU — 50% Rabatt.",
+        uk: "🔐 DarkShare VPN доступний на тарифах PRO / ENTERPRISE\n\n• PRO — до 2 пристроїв\n• ENTERPRISE — до 5 пристроїв\n\nПісля покупки підписка активується автоматично.",
+        ru: "🔐 DarkShare VPN доступен на тарифах PRO / ENTERPRISE\n\n• PRO — до 2 устройств\n• ENTERPRISE — до 5 устройств\n\nПосле покупки подписка активируется автоматически.",
+        en: "🔐 DarkShare VPN is available on PRO / ENTERPRISE\n\n• PRO — up to 2 devices\n• ENTERPRISE — up to 5 devices\n\nSubscription activates automatically after purchase.",
+        es: "🔐 DarkShare VPN disponible en PRO / ENTERPRISE\n\n• PRO — hasta 2 dispositivos\n• ENTERPRISE — hasta 5 dispositivos\n\nLa suscripción se activa automáticamente.",
+        de: "🔐 DarkShare VPN in PRO / ENTERPRISE verfügbar\n\n• PRO — bis 2 Geräte\n• ENTERPRISE — bis 5 Geräte\n\nAbo wird nach Kauf automatisch aktiviert.",
       },
-      pickServer: { uk: "Обери локацію:", ru: "Выбери локацию:", en: "Pick a location:", es: "Elige ubicación:", de: "Standort wählen:" },
-      yourPeers: { uk: "Твої активні підключення:", ru: "Твои активные подключения:", en: "Your active connections:", es: "Tus conexiones activas:", de: "Deine aktiven Verbindungen:" },
-      noServers: { uk: "Сервери поки в розгортанні. Зайди трохи пізніше.", ru: "Серверы в процессе развертывания. Загляни позже.", en: "Servers are still being deployed. Check back soon.", es: "Servidores aún desplegándose. Vuelve pronto.", de: "Server werden gerade bereitgestellt. Schau bald wieder vorbei." },
-      noPeers: { uk: "Підключень ще немає. Створи перше нижче ⤵️", ru: "Подключений ещё нет. Создай первое ниже ⤵️", en: "No connections yet. Create your first one below ⤵️", es: "Aún sin conexiones. Crea la primera abajo ⤵️", de: "Noch keine Verbindungen. Erstelle die erste unten ⤵️" },
-      activate: { uk: "✨ Підключити", ru: "✨ Подключить", en: "✨ Connect", es: "✨ Conectar", de: "✨ Verbinden" },
-      myPeers: { uk: "📋 Мої підключення", ru: "📋 Мои подключения", en: "📋 My connections", es: "📋 Mis conexiones", de: "📋 Meine Verbindungen" },
+      hasSubscription: {
+        uk: "✅ Підписка активна",
+        ru: "✅ Подписка активна",
+        en: "✅ Subscription active",
+        es: "✅ Suscripción activa",
+        de: "✅ Abonnement aktiv",
+      },
+      noSubscription: {
+        uk: "⚠️ Підписка ще не активована. Натисни «Активувати VPN» нижче або відкрий сайт.",
+        ru: "⚠️ Подписка ещё не активирована. Нажми «Активировать VPN» или открой сайт.",
+        en: "⚠️ Subscription not yet activated. Tap 'Activate VPN' below or open the website.",
+        es: "⚠️ Suscripción aún no activada. Toca 'Activar VPN' o abre el sitio web.",
+        de: "⚠️ Abo noch nicht aktiviert. Tippe auf 'VPN aktivieren' oder öffne die Website.",
+      },
+      subUrl: {
+        uk: "🔗 Твоє посилання підписки",
+        ru: "🔗 Твоя ссылка подписки",
+        en: "🔗 Your subscription link",
+        es: "🔗 Tu enlace de suscripción",
+        de: "🔗 Dein Abonnement-Link",
+      },
+      expires: {
+        uk: "📅 Діє до",
+        ru: "📅 Действует до",
+        en: "📅 Valid until",
+        es: "📅 Válido hasta",
+        de: "📅 Gültig bis",
+      },
+      devices: {
+        uk: "📱 Пристроїв",
+        ru: "📱 Устройств",
+        en: "📱 Devices",
+        es: "📱 Dispositivos",
+        de: "📱 Geräte",
+      },
+      getConfig: { uk: "🔗 Отримати посилання", ru: "🔗 Получить ссылку", en: "🔗 Get link", es: "🔗 Obtener enlace", de: "🔗 Link erhalten" },
+      activate: { uk: "⚡ Активувати VPN", ru: "⚡ Активировать VPN", en: "⚡ Activate VPN", es: "⚡ Activar VPN", de: "⚡ VPN aktivieren" },
+      openSite: { uk: "🌐 Відкрити сайт", ru: "🌐 Открыть сайт", en: "🌐 Open website", es: "🌐 Abrir sitio", de: "🌐 Website öffnen" },
+      instruction: { uk: "📲 Інструкція", ru: "📲 Инструкция", en: "📲 Instructions", es: "📲 Instrucciones", de: "📲 Anleitung" },
       back: { uk: "◀️ Назад", ru: "◀️ Назад", en: "◀️ Back", es: "◀️ Atrás", de: "◀️ Zurück" },
-      buyPro: { uk: "💎 Купити PRO −50%", ru: "💎 Купить PRO −50%", en: "💎 Buy PRO −50%", es: "💎 Comprar PRO −50%", de: "💎 PRO kaufen −50%" },
-      capacity: { uk: "Завантаження", ru: "Загрузка", en: "Load", es: "Carga", de: "Auslastung" },
-      created: { uk: "✅ Створено!\n\nКонфіг надіслано окремим повідомленням нижче. Імпортуй його у застосунок WireGuard.", ru: "✅ Создано!\n\nКонфиг отправлен отдельным сообщением ниже. Импортируй его в приложение WireGuard.", en: "✅ Created!\n\nConfig sent in a separate message below. Import it into the WireGuard app.", es: "✅ ¡Creado!\n\nConfig enviada abajo. Impórtala en la app WireGuard.", de: "✅ Erstellt!\n\nKonfig unten gesendet. In WireGuard-App importieren." },
-      revoke: { uk: "🗑 Відключити", ru: "🗑 Отключить", en: "🗑 Revoke", es: "🗑 Revocar", de: "🗑 Widerrufen" },
-      revoked: { uk: "✅ Підключення відключено", ru: "✅ Подключение отключено", en: "✅ Connection revoked", es: "✅ Conexión revocada", de: "✅ Verbindung widerrufen" },
-      limitReached: { uk: "⚠️ Досягнуто ліміт пристроїв на твоєму тарифі. Відключи одне зі старих з'єднань або оновись до Enterprise.", ru: "⚠️ Достигнут лимит устройств на твоём тарифе. Отключи одно из старых или обновись до Enterprise.", en: "⚠️ Device limit reached on your tier. Revoke an old connection or upgrade to Enterprise.", es: "⚠️ Límite de dispositivos alcanzado. Revoca una conexión antigua o actualiza a Enterprise.", de: "⚠️ Gerätelimit erreicht. Widerrufe eine alte Verbindung oder upgrade auf Enterprise." },
-      configFile: { uk: "📎 Твій WireGuard конфіг", ru: "📎 Твой WireGuard конфиг", en: "📎 Your WireGuard config", es: "📎 Tu config WireGuard", de: "📎 Deine WireGuard-Konfig" },
-      installApp: { uk: "📲 Встанови WireGuard:", ru: "📲 Установи WireGuard:", en: "📲 Install WireGuard:", es: "📲 Instala WireGuard:", de: "📲 Installiere WireGuard:" },
+      buyPro: { uk: "💎 Купити PRO з VPN", ru: "💎 Купить PRO с VPN", en: "💎 Get PRO with VPN", es: "💎 Obtener PRO con VPN", de: "💎 PRO mit VPN holen" },
+      instructionText: {
+        uk: "📲 <b>Як підключитися до DarkShare VPN:</b>\n\n1. Встанови один з додатків:\n   • Android: <b>Happ</b>, v2rayNG або Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ або Streisand\n   • Windows/Mac: <b>Happ</b> або Clash Verge\n\n2. Відкрий додаток → «Додати підписку» або «Імпортувати за URL»\n3. Встав <b>посилання підписки</b>\n4. Вибери сервер → Підключитись\n\n✅ Готово! Трафік зашифровано.",
+        ru: "📲 <b>Как подключиться к DarkShare VPN:</b>\n\n1. Установи одно из приложений:\n   • Android: <b>Happ</b>, v2rayNG или Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ или Streisand\n   • Windows/Mac: <b>Happ</b> или Clash Verge\n\n2. Открой приложение → «Добавить подписку» или «Импорт по URL»\n3. Вставь <b>ссылку подписки</b>\n4. Выбери сервер → Подключиться\n\n✅ Готово! Трафик зашифрован.",
+        en: "📲 <b>How to connect to DarkShare VPN:</b>\n\n1. Install one of these apps:\n   • Android: <b>Happ</b>, v2rayNG or Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ or Streisand\n   • Windows/Mac: <b>Happ</b> or Clash Verge\n\n2. Open the app → 'Add subscription' or 'Import from URL'\n3. Paste your <b>subscription link</b>\n4. Select a server → Connect\n\n✅ Done! Your traffic is encrypted.",
+        es: "📲 <b>Cómo conectarse a DarkShare VPN:</b>\n\n1. Instala una de estas apps:\n   • Android: <b>Happ</b>, v2rayNG o Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ o Streisand\n   • Windows/Mac: <b>Happ</b> o Clash Verge\n\n2. Abre la app → 'Agregar suscripción' o 'Importar desde URL'\n3. Pega tu <b>enlace de suscripción</b>\n4. Selecciona un servidor → Conectar\n\n✅ ¡Listo! Tu tráfico está cifrado.",
+        de: "📲 <b>So verbindest du dich mit DarkShare VPN:</b>\n\n1. Installiere eine dieser Apps:\n   • Android: <b>Happ</b>, v2rayNG oder Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ oder Streisand\n   • Windows/Mac: <b>Happ</b> oder Clash Verge\n\n2. App öffnen → 'Abo hinzufügen' oder 'URL importieren'\n3. Deinen <b>Abonnement-Link</b> einfügen\n4. Server auswählen → Verbinden\n\n✅ Fertig! Dein Traffic ist verschlüsselt.",
+      },
+      activating: {
+        uk: "⏳ Активую підписку...",
+        ru: "⏳ Активирую подписку...",
+        en: "⏳ Activating subscription...",
+        es: "⏳ Activando suscripción...",
+        de: "⏳ Abonnement wird aktiviert...",
+      },
+      activated: {
+        uk: "✅ VPN активовано! Натисни «Отримати посилання» щоб підключитися.",
+        ru: "✅ VPN активирован! Нажми «Получить ссылку» чтобы подключиться.",
+        en: "✅ VPN activated! Tap 'Get link' to connect.",
+        es: "✅ ¡VPN activado! Toca 'Obtener enlace' para conectarte.",
+        de: "✅ VPN aktiviert! Tippe auf 'Link erhalten' zum Verbinden.",
+      },
+      activationError: {
+        uk: "❌ Помилка активації. Спробуй ще раз або звернись до підтримки.",
+        ru: "❌ Ошибка активации. Попробуй ещё раз или обратись в поддержку.",
+        en: "❌ Activation error. Try again or contact support.",
+        es: "❌ Error de activación. Inténtalo de nuevo o contacta soporte.",
+        de: "❌ Aktivierungsfehler. Versuche es erneut oder kontaktiere den Support.",
+      },
     };
     return dict[key]?.[lang] || dict[key]?.en || key;
   }
@@ -3586,62 +3640,50 @@ ${faqText}`;
   async function showVpnMenu(ctx: any, tgId: string, isEdit: boolean = true) {
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+
     if (!user) {
-      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${escHtml(vpnT(lang, "tagline"))}\n\n${pe("warning")} ${escHtml(vpnT(lang, "proRequired"))}`;
+      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${escHtml(vpnT(lang, "proRequired"))}`;
       const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]]);
       return ctx.reply(text, { parse_mode: "HTML", ...kb });
     }
+
     const tier = (user.tier || "FREE").toUpperCase();
-    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
 
     if (!isProTier(tier)) {
       const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${escHtml(vpnT(lang, "tagline"))}\n\n${pe("warning")} ${escHtml(vpnT(lang, "proRequired"))}`;
       const kb = Markup.inlineKeyboard([
-        [urlS(vpnT(lang, "buyPro"), `${webUrl}/pricing?plan=PRO&code=DARKNEU&src=bot_vpn`, "success", E.diamond)],
+        [urlS(vpnT(lang, "buyPro"), `${webUrl}/pricing?plan=PRO&src=bot_vpn`, "success", E.diamond)],
         [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
       ]);
       try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
       return;
     }
 
-    const [servers, peers] = await Promise.all([
-      storage.listVpnServers(false),
-      storage.listUserVpnPeers(user.id),
-    ]);
+    const deviceLimit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : 2;
+    let text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n<i>${escHtml(vpnT(lang, "tagline"))}</i>\n\n`;
 
-    let text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n${escHtml(vpnT(lang, "tagline"))}\n\n`;
-    if (peers.length > 0) {
-      text += `${pe("eye")} <b>${escHtml(vpnT(lang, "yourPeers"))}</b>\n`;
-      peers.forEach((p, i) => {
-        text += `${i + 1}. ${p.serverFlag} ${escHtml(p.serverRegion)} (<code>${escHtml(p.allowedIp)}</code>)\n`;
-      });
-      text += "\n";
+    const hasVpn = Boolean((user as any).alorVpnToken);
+    const vpnExpiry = (user as any).alorVpnExpiresAt;
+    const vpnUrl = (user as any).alorVpnSubscriptionUrl;
+
+    if (hasVpn && vpnUrl) {
+      const expiryStr = vpnExpiry ? new Date(vpnExpiry).toLocaleDateString("uk-UA") : "—";
+      text += `${pe("check")} <b>${escHtml(vpnT(lang, "hasSubscription"))}</b>\n`;
+      text += `${escHtml(vpnT(lang, "expires"))}: <b>${expiryStr}</b>\n`;
+      text += `${escHtml(vpnT(lang, "devices"))}: <b>${deviceLimit}</b>\n`;
     } else {
-      text += `<i>${escHtml(vpnT(lang, "noPeers"))}</i>\n\n`;
-    }
-    if (servers.length === 0) {
-      text += `<i>${escHtml(vpnT(lang, "noServers"))}</i>`;
-    } else {
-      text += `${pe("globe")} <b>${escHtml(vpnT(lang, "pickServer"))}</b>`;
+      text += `${pe("warning")} <i>${escHtml(vpnT(lang, "noSubscription"))}</i>\n`;
     }
 
     const rows: any[][] = [];
-    if (servers.length > 0) {
-      const chunked: any[][] = [];
-      for (let i = 0; i < servers.length; i += 2) chunked.push(servers.slice(i, i + 2));
-      for (const row of chunked) {
-        rows.push(
-          row.map((s) => {
-            const cap = s.capacity > 0 ? Math.min(100, Math.round(((s.used || 0) / s.capacity) * 100)) : 0;
-            const label = `${s.flag} ${s.region} · ${cap}%`;
-            return cb(label, `vpn_create_${s.id}`, "success", E.globe);
-          })
-        );
-      }
+    if (hasVpn && vpnUrl) {
+      rows.push([cb(vpnT(lang, "getConfig"), "vpn_get_config", "success", E.globe)]);
+    } else {
+      rows.push([cb(vpnT(lang, "activate"), "vpn_activate", "success", E.shield)]);
     }
-    if (peers.length > 0) {
-      rows.push([cb(vpnT(lang, "myPeers"), "vpn_my_peers", "primary", E.eye)]);
-    }
+    rows.push([cb(vpnT(lang, "instruction"), "vpn_instruction", "primary", E.eye)]);
+    rows.push([urlS(vpnT(lang, "openSite"), `${webUrl}/vpn`, "default", E.globe)]);
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
@@ -3659,7 +3701,23 @@ ${faqText}`;
     await showVpnMenu(ctx, tgId, true);
   });
 
-  bot.action(/^vpn_create_(\d+)$/, async (ctx) => {
+  bot.action("vpn_get_config", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    if (!user) return ctx.answerCbQuery("⛔");
+    const vpnUrl = (user as any).alorVpnSubscriptionUrl;
+    if (!vpnUrl) {
+      await ctx.answerCbQuery(vpnT(lang, "noSubscription"), { show_alert: true });
+      return showVpnMenu(ctx, tgId, true);
+    }
+    await ctx.answerCbQuery();
+    const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "subUrl"))}</b>\n\n<code>${escHtml(vpnUrl)}</code>\n\n<i>${escHtml(vpnT(lang, "instruction") === vpnT(lang, "instruction") ? (lang === "uk" ? "Скопіюй та вставте в застосунок VPN" : lang === "ru" ? "Скопируй и вставь в приложение VPN" : "Copy and paste into your VPN app") : "")}</i>`;
+    const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "instruction"), "vpn_instruction", "primary", E.eye), cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)]]);
+    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+  });
+
+  bot.action("vpn_activate", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
@@ -3669,92 +3727,38 @@ ${faqText}`;
       await ctx.answerCbQuery("PRO required");
       return showVpnMenu(ctx, tgId, true);
     }
-    const limits: Record<string, number> = { PRO: 3, ENTERPRISE: 10, GROUPS: 25 };
-    const max = limits[tier] || 1;
-    const existing = await storage.listUserVpnPeers(user.id);
-    const activeCount = existing.filter((p: any) => p.status === "active").length;
-    if (activeCount >= max) {
-      await ctx.answerCbQuery(vpnT(lang, "limitReached"), { show_alert: true });
-      return;
-    }
-    const serverId = parseInt((ctx.match as RegExpMatchArray)[1]);
-    const server = await storage.getVpnServer(serverId);
-    if (!server || server.status !== "active") {
-      return ctx.answerCbQuery(lang === "uk" ? "Сервер недоступний" : lang === "ru" ? "Сервер недоступен" : "Server unavailable", { show_alert: true });
-    }
-    if (server.capacity > 0 && (server.used || 0) >= server.capacity) {
-      return ctx.answerCbQuery(lang === "uk" ? "Сервер переповнений" : lang === "ru" ? "Сервер переполнен" : "Server full", { show_alert: true });
-    }
 
-    const { privateKey, publicKey } = generateWireGuardKeyPair();
-    const presharedKey = generatePresharedKey();
-    const allowedIp = allocatePeerIp(serverId, (server.used || 0) + 1);
-    const peer = await storage.createVpnPeer({
-      userId: user.id,
-      serverId,
-      peerPublicKey: publicKey,
-      peerPrivateKey: privateKey,
-      presharedKey,
-      allowedIp,
-      dns: "1.1.1.1, 1.0.0.1",
-      status: "active",
-    });
-    await storage.incrementVpnServerUsed(serverId, 1);
-    await ctx.answerCbQuery("✅");
-
-    const conf = buildPeerConfig(
-      { peerPrivateKey: privateKey, presharedKey, allowedIp, dns: "1.1.1.1, 1.0.0.1" },
-      { serverPublicKey: server.serverPublicKey, publicEndpoint: server.publicEndpoint, port: server.port }
-    );
-    const filename = `darkshare-${server.countryCode.toLowerCase()}-${peer.id}.conf`;
+    await ctx.answerCbQuery();
+    const loadingText = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n⏳ ${escHtml(vpnT(lang, "activating"))}`;
+    try { await ctx.editMessageText(loadingText, { parse_mode: "HTML" }); } catch {}
 
     try {
-      await ctx.editMessageText(vpnT(lang, "created"), { parse_mode: "Markdown" });
-    } catch {}
-
-    await ctx.replyWithDocument(
-      { source: Buffer.from(conf, "utf-8"), filename },
-      {
-        caption: `${vpnT(lang, "configFile")} · ${server.flag} ${server.region}\n\n${vpnT(lang, "installApp")}\n• Android: play.google.com/store/apps/details?id=com.wireguard.android\n• iOS: apps.apple.com/app/wireguard/id1441195209\n• Win/Mac/Linux: wireguard.com/install`,
-      }
-    );
-
-    setTimeout(() => showVpnMenu(ctx, tgId, false).catch(() => {}), 1500);
-  });
-
-  bot.action("vpn_my_peers", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const user = await storage.getUserByTgId(tgId);
-    const lang = getUserLang(user?.lang);
-    if (!user) return ctx.answerCbQuery("⛔");
-    const peers = await storage.listUserVpnPeers(user.id);
-    await ctx.answerCbQuery();
-    if (peers.length === 0) {
-      return showVpnMenu(ctx, tgId, true);
+      const { createAlorSubscription, vpnDeviceLimit } = await import("./alorVpn");
+      const sub = await createAlorSubscription(30);
+      await storage.updateUser(user.id, {
+        alorVpnToken: sub.token,
+        alorVpnUuid: sub.uuid,
+        alorVpnSubscriptionUrl: sub.subscription_url,
+        alorVpnExpiresAt: new Date(sub.expires_at),
+      } as any);
+      await ctx.answerCbQuery();
+      await showVpnMenu(ctx, tgId, true);
+    } catch (err: any) {
+      console.error("[VPN Bot] Activation error:", err);
+      const errText = `${pe("warning")} ${escHtml(vpnT(lang, "activationError"))}`;
+      const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)]]);
+      try { await ctx.editMessageText(errText, { parse_mode: "HTML", ...kb }); } catch {}
     }
-    let text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n${pe("eye")} <b>${escHtml(vpnT(lang, "yourPeers"))}</b>\n\n`;
-    const rows: any[][] = [];
-    peers.forEach((p, i) => {
-      text += `${i + 1}. ${p.serverFlag} ${escHtml(p.serverRegion)}\n   <code>${escHtml(p.allowedIp)}</code>\n\n`;
-      rows.push([cb(`${vpnT(lang, "revoke")} #${i + 1} · ${p.serverFlag}`, `vpn_revoke_${p.id}`, "danger", E.trash)]);
-    });
-    rows.push([cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)]);
-    const kb = Markup.inlineKeyboard(rows);
-    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
   });
 
-  bot.action(/^vpn_revoke_(\d+)$/, async (ctx) => {
+  bot.action("vpn_instruction", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
-    if (!user) return ctx.answerCbQuery("⛔");
-    const peerId = parseInt((ctx.match as RegExpMatchArray)[1]);
-    const peer = await storage.getVpnPeer(peerId);
-    if (!peer || peer.userId !== user.id) return ctx.answerCbQuery("⛔");
-    await storage.revokeVpnPeer(peerId, user.id);
-    if (peer.serverId) await storage.incrementVpnServerUsed(peer.serverId, -1);
-    await ctx.answerCbQuery(vpnT(lang, "revoked"));
-    await showVpnMenu(ctx, tgId, true);
+    await ctx.answerCbQuery();
+    const text = vpnT(lang, "instructionText");
+    const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)]]);
+    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
   });
 
   bot.command("support", async (ctx) => {

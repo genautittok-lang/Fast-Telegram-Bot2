@@ -432,6 +432,22 @@ async function ensureTablesExist() {
     }
     console.log(`Verified ${whiteLabelCols.length} white-label columns on ds_users`);
 
+    // AlorVPN columns (added May 2026) — idempotent
+    const alorVpnCols = [
+      ["alor_vpn_token",            "TEXT"],
+      ["alor_vpn_uuid",             "TEXT"],
+      ["alor_vpn_subscription_url", "TEXT"],
+      ["alor_vpn_expires_at",       "TIMESTAMP"],
+    ] as const;
+    for (const [name, type] of alorVpnCols) {
+      try {
+        await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS ${name} ${type}`);
+      } catch (e: any) {
+        console.error(`Failed to add ds_users.${name}:`, e?.message || e);
+      }
+    }
+    console.log(`Verified ${alorVpnCols.length} AlorVPN columns on ds_users`);
+
     console.log("Database tables ready!");
   } catch (error: any) {
     // Robust error logging — error.message can be empty for AggregateError/ETIMEDOUT
