@@ -20,6 +20,7 @@ import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./goo
 import { registerVpnRoutes } from "./vpn";
 import { registerAlorVpnRoutes, autoProvisionAlorVpn } from "./alorVpnRoutes";
 import { registerVpnProxy } from "./vpnProxy";
+import { registerVpnDeepLinkRoutes } from "./vpnDeepLinks";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -579,6 +580,8 @@ ${urlEntries}
   registerAlorVpnRoutes(app, loadUser, requireAuth);
   // Public white-label VPN subscription proxy (DarkShare VPN rebranding)
   registerVpnProxy(app);
+  // QR code + deep-links to popular VPN clients
+  registerVpnDeepLinkRoutes(app);
   registerApiV1(app);
   registerSeoRoutes(app);
 

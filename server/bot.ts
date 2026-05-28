@@ -3712,11 +3712,44 @@ ${faqText}`;
       await ctx.answerCbQuery(vpnT(lang, "noSubscription"), { show_alert: true });
       return showVpnMenu(ctx, tgId, true);
     }
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
     const vpnUrl = `${webUrl}/vpn/sub/${vpnToken}`;
+    const qrUrl = `${webUrl}/vpn/sub/${vpnToken}/qr`;
     await ctx.answerCbQuery();
-    const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "subUrl"))}</b>\n\n<code>${escHtml(vpnUrl)}</code>\n\n<i>${escHtml(vpnT(lang, "instruction") === vpnT(lang, "instruction") ? (lang === "uk" ? "Скопіюй та вставте в застосунок VPN" : lang === "ru" ? "Скопируй и вставь в приложение VPN" : "Copy and paste into your VPN app") : "")}</i>`;
-    const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "instruction"), "vpn_instruction", "primary", E.eye), cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)]]);
-    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+
+    const caption =
+      `${pe("lock")} <b>DarkShare VPN</b>\n\n` +
+      (lang === "uk"
+        ? `Відскануй QR-код у застосунку VPN — або натисни кнопку нижче, щоб відкрити підписку напряму у твоєму улюбленому застосунку.\n\n<b>Посилання підписки:</b>\n<code>${escHtml(vpnUrl)}</code>`
+        : lang === "ru"
+        ? `Отсканируй QR-код в приложении VPN — или нажми кнопку ниже, чтобы открыть подписку напрямую в твоём приложении.\n\n<b>Ссылка подписки:</b>\n<code>${escHtml(vpnUrl)}</code>`
+        : `Scan the QR with your VPN app — or tap a button below to open the subscription directly in your favourite client.\n\n<b>Subscription link:</b>\n<code>${escHtml(vpnUrl)}</code>`);
+
+    // Telegram inline URL buttons only accept http(s)/tg:// schemes — so we route through
+    // an HTTPS bridge that immediately redirects to the app's custom URL scheme.
+    const bridge = (appId: string) => `${webUrl}/vpn/open/${appId}/${vpnToken}`;
+
+    const kb = Markup.inlineKeyboard([
+      [urlS(`📱 Open in Happ`, bridge("happ"), "success")],
+      [urlS(`🍎 Shadowrocket`, bridge("shadowrocket"), "success"), urlS(`💎 Streisand`, bridge("streisand"), "success")],
+      [urlS(`🤖 v2rayNG`, bridge("v2rayng"), "success"), urlS(`🌐 Hiddify`, bridge("hiddify"), "success")],
+      [urlS(`💻 Clash Verge`, bridge("clashverge"), "success"), urlS(`🦊 FoXray`, bridge("foxray"), "success")],
+      [urlS(vpnT(lang, "openSite") || "Open dashboard", `${webUrl}/vpn`, "primary", E.globe)],
+      [cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)],
+    ]);
+
+    try {
+      // Try to send fresh photo (QR) with caption + buttons
+      await ctx.replyWithPhoto({ url: qrUrl }, { caption, parse_mode: "HTML", ...kb });
+      try { await ctx.deleteMessage(); } catch {}
+    } catch (err) {
+      // Fallback: edit current message with text only
+      try {
+        await ctx.editMessageText(caption, { parse_mode: "HTML", ...kb });
+      } catch {
+        await ctx.reply(caption, { parse_mode: "HTML", ...kb });
+      }
+    }
   });
 
   bot.action("vpn_activate", async (ctx) => {
@@ -3758,8 +3791,40 @@ ${faqText}`;
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     await ctx.answerCbQuery();
-    const text = vpnT(lang, "instructionText");
-    const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)]]);
+    const text =
+      lang === "uk"
+        ? `${pe("lock")} <b>Як підключити DarkShare VPN</b>\n\n` +
+          `<b>1.</b> Встанови застосунок під свою систему:\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket, Streisand\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Hiddify\n` +
+          `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
+          `<b>2.</b> Натисни «${escHtml("Get config")}» в боті — отримаєш QR + кнопки.\n\n` +
+          `<b>3.</b> Натисни кнопку свого застосунку — підписка імпортується автоматично. Або відскануй QR.\n\n` +
+          `<b>4.</b> Обери будь-який сервер у списку та натисни <b>Connect</b>.\n\n` +
+          `${pe("check")} Готово — трафік зашифровано.`
+        : lang === "ru"
+        ? `${pe("lock")} <b>Как подключить DarkShare VPN</b>\n\n` +
+          `<b>1.</b> Установи приложение для своей системы:\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket, Streisand\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Hiddify\n` +
+          `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
+          `<b>2.</b> Нажми «${escHtml("Get config")}» в боте — получишь QR + кнопки.\n\n` +
+          `<b>3.</b> Нажми кнопку своего приложения — подписка импортируется автоматически. Или отсканируй QR.\n\n` +
+          `<b>4.</b> Выбери любой сервер и нажми <b>Connect</b>.\n\n` +
+          `${pe("check")} Готово — трафик зашифрован.`
+        : `${pe("lock")} <b>How to connect DarkShare VPN</b>\n\n` +
+          `<b>1.</b> Install an app for your platform:\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket, Streisand\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Hiddify\n` +
+          `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
+          `<b>2.</b> Tap «Get config» in the bot — you'll get a QR + buttons.\n\n` +
+          `<b>3.</b> Tap your app's button — the subscription imports automatically. Or scan the QR.\n\n` +
+          `<b>4.</b> Pick any server and tap <b>Connect</b>.\n\n` +
+          `${pe("check")} Done — your traffic is encrypted.`;
+    const kb = Markup.inlineKeyboard([
+      [cb(vpnT(lang, "getConfig"), "vpn_get_config", "success", E.globe)],
+      [cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)],
+    ]);
     try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
   });
 

@@ -29,10 +29,21 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
+interface AppEntry {
+  id: string;
+  name: string;
+  platforms: ("ios" | "android" | "windows" | "macos" | "linux")[];
+  deepLink: string;
+  storeUrl: string;
+  recommended?: boolean;
+}
+
 interface VpnStatus {
   hasSubscription: boolean;
   isActive?: boolean;
   subscriptionUrl?: string;
+  qrUrl?: string;
+  apps?: AppEntry[];
   expiresAt?: string;
   uuid?: string;
   tier: string;
@@ -40,44 +51,36 @@ interface VpnStatus {
   configured: boolean;
 }
 
-const PLATFORMS = [
-  {
-    name: "Android",
-    icon: Smartphone,
-    apps: [
-      { name: "Happ", url: "https://play.google.com/store/apps/details?id=com.happvpn.android" },
-      { name: "v2rayNG", url: "https://play.google.com/store/apps/details?id=com.v2ray.ang" },
-      { name: "Nekobox", url: "https://play.google.com/store/apps/details?id=moe.nb4a" },
-    ],
-  },
-  {
-    name: "iPhone / iOS",
-    icon: Apple,
-    apps: [
-      { name: "Shadowrocket", url: "https://apps.apple.com/app/shadowrocket/id932747118" },
-      { name: "Happ", url: "https://apps.apple.com/app/happ-proxy-utility/id6504287215" },
-      { name: "Streisand", url: "https://apps.apple.com/app/streisand/id6450534064" },
-    ],
-  },
-  {
-    name: "Windows",
-    icon: Monitor,
-    apps: [
-      { name: "Happ", url: "https://github.com/happ-manager/happ-client/releases" },
-      { name: "v2rayN", url: "https://github.com/2dust/v2rayN/releases" },
-      { name: "Clash Verge", url: "https://github.com/clash-verge-rev/clash-verge-rev/releases" },
-    ],
-  },
-  {
-    name: "macOS",
-    icon: Apple,
-    apps: [
-      { name: "Happ", url: "https://github.com/happ-manager/happ-client/releases" },
-      { name: "Clash Verge", url: "https://github.com/clash-verge-rev/clash-verge-rev/releases" },
-      { name: "Shadowrocket", url: "https://apps.apple.com/app/shadowrocket/id932747118" },
-    ],
-  },
-];
+type Platform = "ios" | "android" | "windows" | "macos" | "linux" | "other";
+
+function detectPlatform(): Platform {
+  if (typeof navigator === "undefined") return "other";
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) return "ios";
+  if (/android/.test(ua)) return "android";
+  if (/macintosh|mac os x/.test(ua)) return "macos";
+  if (/windows/.test(ua)) return "windows";
+  if (/linux/.test(ua)) return "linux";
+  return "other";
+}
+
+const PLATFORM_LABELS: Record<Platform, string> = {
+  ios: "iPhone / iPad",
+  android: "Android",
+  windows: "Windows",
+  macos: "macOS",
+  linux: "Linux",
+  other: "All platforms",
+};
+
+const PLATFORM_ICONS: Record<Platform, typeof Smartphone> = {
+  ios: Apple,
+  android: Smartphone,
+  windows: Monitor,
+  macos: Apple,
+  linux: Monitor,
+  other: Globe2,
+};
 
 function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -165,56 +168,130 @@ function ActiveDashboard({ vpn, onRefresh, isRefreshing }: { vpn: VpnStatus; onR
         </div>
       )}
 
-      {/* Instructions */}
+      {/* QR + One-tap install */}
+      <ConnectPanel vpn={vpn} />
+    </div>
+  );
+}
+
+function ConnectPanel({ vpn }: { vpn: VpnStatus }) {
+  const [platform, setPlatform] = useState<Platform>("other");
+  useEffect(() => { setPlatform(detectPlatform()); }, []);
+
+  const allPlatforms: Platform[] = ["ios", "android", "windows", "macos", "linux"];
+  // When platform detection fails, default to a sensible tab without misleading the user.
+  // Most desktop unknowns are Windows; mobile UA always matches above. Show all-platform Happ first.
+  const visiblePlatform: Platform = platform === "other" ? "windows" : platform;
+
+  const apps = vpn.apps ?? [];
+  const filteredApps = apps.filter((a) => a.platforms.includes(visiblePlatform as any));
+  const sortedApps = [...filteredApps].sort((a, b) => Number(!!b.recommended) - Number(!!a.recommended));
+
+  return (
+    <div className="space-y-4">
+      {/* QR card */}
+      {vpn.qrUrl && (
+        <div className="rounded-2xl border border-white/10 bg-[#0D0D11] p-5 sm:p-6">
+          <h3 className="mb-4 text-[14px] font-semibold text-white">Scan QR with your VPN app</h3>
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+            <div className="rounded-2xl border border-white/10 bg-white p-3">
+              <img src={vpn.qrUrl} alt="Subscription QR" className="h-44 w-44 sm:h-52 sm:w-52" />
+            </div>
+            <div className="flex-1 space-y-2 text-[13px] text-zinc-400">
+              <p className="text-white font-medium">Fastest way to connect:</p>
+              <ol className="space-y-1.5">
+                <Step n={1}>Install a VPN app for your platform (buttons below).</Step>
+                <Step n={2}>Open the app and tap <b>«Add subscription»</b> / scan QR.</Step>
+                <Step n={3}>Choose any server and tap <b>Connect</b>.</Step>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Platform tabs + one-tap buttons */}
       <div className="rounded-2xl border border-white/10 bg-[#0D0D11] p-5 sm:p-6">
-        <h3 className="mb-4 text-[14px] font-semibold text-white">Connect on your device</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {PLATFORMS.map((p) => (
-            <div key={p.name} className="rounded-xl border border-white/[0.06] bg-black/20 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <p.icon className="h-4 w-4 text-zinc-400" />
-                <span className="text-[13px] font-medium text-white">{p.name}</span>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-[14px] font-semibold text-white">One-tap install</h3>
+          <span className="text-[11px] text-zinc-500">Detected: {PLATFORM_LABELS[platform]}</span>
+        </div>
+
+        {/* Platform tabs */}
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {allPlatforms.map((p) => {
+            const Icon = PLATFORM_ICONS[p];
+            const active = visiblePlatform === p;
+            return (
+              <button
+                key={p}
+                onClick={() => setPlatform(p)}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition ${
+                  active
+                    ? "border-cyan-500/40 bg-cyan-500/[0.08] text-cyan-300"
+                    : "border-white/10 bg-white/[0.02] text-zinc-400 hover:border-white/20 hover:text-white"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {PLATFORM_LABELS[p]}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* App cards with one-tap deep link */}
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          {sortedApps.map((a) => (
+            <div key={a.id} className="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-black/30 p-3.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13.5px] font-semibold text-white">{a.name}</span>
+                  {a.recommended && (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                      <Star className="h-2.5 w-2.5" /> Pick
+                    </span>
+                  )}
+                </div>
+                <a
+                  href={a.storeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11.5px] text-zinc-500 hover:text-white"
+                >
+                  Get app <ExternalLink className="h-3 w-3" />
+                </a>
               </div>
-              <div className="space-y-1.5">
-                {p.apps.map((a) => (
-                  <a
-                    key={a.name}
-                    href={a.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between rounded-lg px-3 py-2 text-[12.5px] text-zinc-400 transition hover:bg-white/[0.03] hover:text-white"
-                  >
-                    {a.name}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                ))}
-              </div>
+              <a
+                href={a.deepLink}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 text-[12.5px] font-semibold text-black shadow-[0_0_12px_rgba(6,182,212,0.25)] transition hover:bg-cyan-400"
+              >
+                <Zap className="h-3.5 w-3.5" />
+                Open in {a.name}
+              </a>
             </div>
           ))}
+          {sortedApps.length === 0 && (
+            <div className="col-span-2 rounded-xl border border-white/[0.06] bg-black/20 p-4 text-center text-[12.5px] text-zinc-500">
+              No apps for this platform yet — use the Subscription Link above with any V2Ray-compatible client.
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* How to use */}
-      <div className="rounded-2xl border border-white/10 bg-[#0D0D11] p-5 sm:p-6">
-        <h3 className="mb-4 text-[14px] font-semibold text-white">How to connect</h3>
-        <ol className="space-y-3">
-          {[
-            "Install one of the VPN apps listed above for your platform.",
-            "Open the app and find «Add subscription» or «Import from URL» (varies per app).",
-            "Paste your Subscription Link and confirm.",
-            "Select any server from the list and tap Connect.",
-            "Done — your traffic is now encrypted and secure.",
-          ].map((step, i) => (
-            <li key={i} className="flex gap-3 text-[13px] text-zinc-400">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/[0.06] text-[10px] font-bold text-cyan-400">
-                {i + 1}
-              </span>
-              {step}
-            </li>
-          ))}
-        </ol>
+        <p className="mt-4 text-[11.5px] text-zinc-600">
+          Tip: tap <b>Get app</b> first if you don't have the client installed, then return and tap <b>Open in …</b> — the subscription imports automatically.
+        </p>
       </div>
     </div>
+  );
+}
+
+function Step({ n, children }: { n: number; children: ReactNode }) {
+  return (
+    <li className="flex gap-2.5">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/[0.06] text-[10px] font-bold text-cyan-400">
+        {n}
+      </span>
+      <span className="text-[12.5px] text-zinc-400">{children}</span>
+    </li>
   );
 }
 

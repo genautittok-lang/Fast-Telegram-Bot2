@@ -9,6 +9,7 @@ import {
   vpnPlanDays,
 } from "./alorVpn";
 import { buildPublicSubUrl } from "./vpnProxy";
+import { buildDeepLinks } from "./vpnDeepLinks";
 
 interface AuthReq extends Request {
   user?: { id: number; tier?: string | null; tgId?: string | null } & any;
@@ -17,6 +18,13 @@ interface AuthReq extends Request {
 function publicSubUrl(req: Request, token: string | null | undefined): string | null {
   if (!token) return null;
   return buildPublicSubUrl(req, token);
+}
+
+function qrUrl(req: Request, token: string | null | undefined): string | null {
+  if (!token) return null;
+  const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
+  const host = (req.headers["x-forwarded-host"] as string) || req.get("host");
+  return `${proto}://${host}/vpn/sub/${token}/qr`;
 }
 
 export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: any) {
@@ -59,6 +67,8 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
         hasSubscription: true,
         isActive,
         subscriptionUrl,
+        qrUrl: qrUrl(req, user.alorVpnToken),
+        apps: subscriptionUrl ? buildDeepLinks(subscriptionUrl) : [],
         expiresAt,
         uuid: user.alorVpnUuid,
         tier,
