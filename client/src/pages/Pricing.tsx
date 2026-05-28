@@ -257,7 +257,7 @@ function PricingContent() {
       t('pricing.checksPerDay100'),
       t('pricing.aiAnalysis'),
       t('pricing.pdfReports'),
-      lang === "uk" ? "🛡️ Власний WireGuard VPN — 6 локацій, до 3 пристроїв" : lang === "ru" ? "🛡️ Свой WireGuard VPN — 6 локаций, до 3 устройств" : lang === "es" ? "🛡️ VPN WireGuard propio — 6 ubicaciones, 3 dispositivos" : lang === "de" ? "🛡️ Eigenes WireGuard VPN — 6 Standorte, 3 Geräte" : "🛡️ Own WireGuard VPN — 6 locations, up to 3 devices",
+      lang === "uk" ? "🛡️ DarkShare VPN — 7 країн, 2 пристрої, Trojan Reality" : lang === "ru" ? "🛡️ DarkShare VPN — 7 стран, 2 устройства, Trojan Reality" : lang === "es" ? "🛡️ DarkShare VPN — 7 países, 2 dispositivos, Trojan Reality" : lang === "de" ? "🛡️ DarkShare VPN — 7 Länder, 2 Geräte, Trojan Reality" : "🛡️ DarkShare VPN — 7 countries, 2 devices, Trojan Reality",
       t('pricing.prioritySupport'),
       t('pricing.realTimeMonitoring'),
       t('pricing.apiBeta'),
@@ -265,7 +265,7 @@ function PricingContent() {
     enterprise: [
       t('pricing.unlimitedChecks'),
       t('pricing.fullApiAccess'),
-      lang === "uk" ? "🛡️ Власний WireGuard VPN — до 10 пристроїв" : lang === "ru" ? "🛡️ Свой WireGuard VPN — до 10 устройств" : lang === "es" ? "🛡️ VPN WireGuard propio — hasta 10 dispositivos" : lang === "de" ? "🛡️ Eigenes WireGuard VPN — bis 10 Geräte" : "🛡️ Own WireGuard VPN — up to 10 devices",
+      lang === "uk" ? "🛡️ DarkShare VPN — 20+ країн, 5 пристроїв, нуль логів" : lang === "ru" ? "🛡️ DarkShare VPN — 20+ стран, 5 устройств, ноль логов" : lang === "es" ? "🛡️ DarkShare VPN — 20+ países, 5 dispositivos, cero logs" : lang === "de" ? "🛡️ DarkShare VPN — 20+ Länder, 5 Geräte, keine Logs" : "🛡️ DarkShare VPN — 20+ countries, 5 devices, zero logs",
       t('pricing.support247'),
       t('pricing.customReports'),
       t('pricing.whiteLabelIntegration'),
@@ -274,7 +274,7 @@ function PricingContent() {
     ],
     groups: [
       t('pricing.groupsAllEnterprise'),
-      lang === "uk" ? "🛡️ Командний VPN — до 25 пристроїв на учасника" : lang === "ru" ? "🛡️ Командный VPN — до 25 устройств на участника" : lang === "es" ? "🛡️ VPN de equipo — hasta 25 dispositivos por miembro" : lang === "de" ? "🛡️ Team-VPN — bis 25 Geräte pro Mitglied" : "🛡️ Team VPN — up to 25 devices per member",
+      lang === "uk" ? "🛡️ Командний DarkShare VPN — 20+ країн, 5 пристроїв на учасника" : lang === "ru" ? "🛡️ Командный DarkShare VPN — 20+ стран, 5 устройств на участника" : lang === "es" ? "🛡️ DarkShare VPN de equipo — 20+ países, 5 dispositivos por miembro" : lang === "de" ? "🛡️ DarkShare Team-VPN — 20+ Länder, 5 Geräte pro Mitglied" : "🛡️ DarkShare Team VPN — 20+ countries, 5 devices per member",
       t('pricing.groupsTeamMembers'),
       t('pricing.groupsSharedReports'),
       t('pricing.groupsTeamDashboard'),
@@ -698,8 +698,13 @@ function PricingContent() {
                     values: { FREE: false, PRO: lang === "uk" ? "Бета" : lang === "ru" ? "Бета" : lang === "es" ? "Beta" : lang === "de" ? "Beta" : "Beta", ENTERPRISE: true, GROUPS: true },
                   },
                   {
-                    label: "WireGuard VPN",
-                    values: { FREE: false, PRO: lang === "uk" ? "3 пристрої" : lang === "ru" ? "3 устройства" : lang === "es" ? "3 dispositivos" : lang === "de" ? "3 Geräte" : "3 devices", ENTERPRISE: lang === "uk" ? "10 пристроїв" : lang === "ru" ? "10 устройств" : lang === "es" ? "10 dispositivos" : lang === "de" ? "10 Geräte" : "10 devices", GROUPS: lang === "uk" ? "25/учасник" : lang === "ru" ? "25/участник" : lang === "es" ? "25/miembro" : lang === "de" ? "25/Mitglied" : "25/member" },
+                    label: "DarkShare VPN",
+                    values: {
+                      FREE: false,
+                      PRO: lang === "uk" ? "2 пристрої · 7 країн" : lang === "ru" ? "2 устройства · 7 стран" : lang === "es" ? "2 dispositivos · 7 países" : lang === "de" ? "2 Geräte · 7 Länder" : "2 devices · 7 countries",
+                      ENTERPRISE: lang === "uk" ? "5 пристроїв · 20+ країн" : lang === "ru" ? "5 устройств · 20+ стран" : lang === "es" ? "5 dispositivos · 20+ países" : lang === "de" ? "5 Geräte · 20+ Länder" : "5 devices · 20+ countries",
+                      GROUPS: lang === "uk" ? "5/учасник · 20+ країн" : lang === "ru" ? "5/участник · 20+ стран" : lang === "es" ? "5/miembro · 20+ países" : lang === "de" ? "5/Mitglied · 20+ Länder" : "5/member · 20+ countries",
+                    },
                   },
                   {
                     label: "White-label",

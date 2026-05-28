@@ -40,6 +40,21 @@ const howToSchema = {
   ],
 };
 
+const vpnSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: "DarkShare VPN",
+  description: "Modern privacy VPN built on Trojan Reality protocol. Bypasses DPI and censorship, zero logs, 20+ global server locations. Works on iOS, Android, Windows, macOS and Linux via Happ, Shadowrocket, Hiddify, v2rayNG, sing-box, Clash Verge, NekoBox, Streisand and FoXray.",
+  brand: { "@type": "Brand", name: "DarkShare" },
+  image: `${ORIGIN}/og-image.png`,
+  category: "VPN service",
+  offers: [
+    { "@type": "Offer", name: "PRO — 2 devices · 7 countries", price: "9", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=PRO`, availability: "https://schema.org/InStock" },
+    { "@type": "Offer", name: "ENTERPRISE — 5 devices · 20+ countries", price: "29", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=ENTERPRISE`, availability: "https://schema.org/InStock" },
+    { "@type": "Offer", name: "GROUPS — 5 devices/member · 20+ countries · team management", price: "55", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=GROUPS`, availability: "https://schema.org/InStock" },
+  ],
+};
+
 const apiSchema = {
   "@context": "https://schema.org",
   "@type": "TechArticle",
@@ -68,11 +83,11 @@ export const SEO_CONFIG: Record<string, PageSeo> = {
     noindex: true,
   },
   "/vpn": {
-    title: "WireGuard VPN — 6 regions, no logs",
-    description: "PRO+ private WireGuard VPN with server-side key generation, 6 regions, zero-logs policy. Built into your DARKSHARE account.",
-    keywords: "WireGuard VPN, private VPN, no logs VPN, OSINT VPN",
+    title: "DarkShare VPN — Trojan Reality, 20+ countries, zero logs",
+    description: "Modern VPN built into your DarkShare plan. Trojan Reality protocol bypasses DPI and censorship. Zero logs, 20+ global server locations, works on iOS, Android, Windows, macOS, Linux. PRO from $9/mo.",
+    keywords: "DarkShare VPN, Trojan Reality VPN, zero logs VPN, DPI bypass VPN, censorship bypass, V2Ray subscription, sing-box, Happ, Shadowrocket, Hiddify, Clash Verge",
     type: "product",
-    jsonLd: productSchema,
+    jsonLd: vpnSchema,
   },
   "/history": {
     title: "Scan History",

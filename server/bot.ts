@@ -3558,11 +3558,11 @@ ${faqText}`;
         de: "Trojan Reality · keine Logs · viele Standorte",
       },
       proRequired: {
-        uk: "🔐 DarkShare VPN доступний на тарифах PRO / ENTERPRISE\n\n• PRO — до 2 пристроїв\n• ENTERPRISE — до 5 пристроїв\n\nПісля покупки підписка активується автоматично.",
-        ru: "🔐 DarkShare VPN доступен на тарифах PRO / ENTERPRISE\n\n• PRO — до 2 устройств\n• ENTERPRISE — до 5 устройств\n\nПосле покупки подписка активируется автоматически.",
-        en: "🔐 DarkShare VPN is available on PRO / ENTERPRISE\n\n• PRO — up to 2 devices\n• ENTERPRISE — up to 5 devices\n\nSubscription activates automatically after purchase.",
-        es: "🔐 DarkShare VPN disponible en PRO / ENTERPRISE\n\n• PRO — hasta 2 dispositivos\n• ENTERPRISE — hasta 5 dispositivos\n\nLa suscripción se activa automáticamente.",
-        de: "🔐 DarkShare VPN in PRO / ENTERPRISE verfügbar\n\n• PRO — bis 2 Geräte\n• ENTERPRISE — bis 5 Geräte\n\nAbo wird nach Kauf automatisch aktiviert.",
+        uk: "🔐 DarkShare VPN доступний на тарифах PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 пристрої · 7 країн\n• ENTERPRISE — 5 пристроїв · 20+ країн\n• GROUPS — 5 пристроїв на учасника · 20+ країн · керування командою\n\nПротокол Trojan Reality · нуль логів · iOS, Android, Windows, macOS, Linux.\n\nПісля покупки підписка активується автоматично.",
+        ru: "🔐 DarkShare VPN доступен на тарифах PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 устройства · 7 стран\n• ENTERPRISE — 5 устройств · 20+ стран\n• GROUPS — 5 устройств на участника · 20+ стран · управление командой\n\nПротокол Trojan Reality · ноль логов · iOS, Android, Windows, macOS, Linux.\n\nПосле покупки подписка активируется автоматически.",
+        en: "🔐 DarkShare VPN is available on PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 devices · 7 countries\n• ENTERPRISE — 5 devices · 20+ countries\n• GROUPS — 5 devices/member · 20+ countries · team management\n\nTrojan Reality protocol · zero logs · iOS, Android, Windows, macOS, Linux.\n\nSubscription activates automatically after purchase.",
+        es: "🔐 DarkShare VPN disponible en PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 dispositivos · 7 países\n• ENTERPRISE — 5 dispositivos · 20+ países\n• GROUPS — 5 dispositivos/miembro · 20+ países · gestión de equipo\n\nProtocolo Trojan Reality · cero logs · iOS, Android, Windows, macOS, Linux.\n\nLa suscripción se activa automáticamente.",
+        de: "🔐 DarkShare VPN in PRO / ENTERPRISE / GROUPS verfügbar\n\n• PRO — 2 Geräte · 7 Länder\n• ENTERPRISE — 5 Geräte · 20+ Länder\n• GROUPS — 5 Geräte/Mitglied · 20+ Länder · Team-Verwaltung\n\nTrojan-Reality-Protokoll · keine Logs · iOS, Android, Windows, macOS, Linux.\n\nAbo wird nach Kauf automatisch aktiviert.",
       },
       hasSubscription: {
         uk: "✅ Підписка активна",

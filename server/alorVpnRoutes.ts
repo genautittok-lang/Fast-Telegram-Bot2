@@ -88,7 +88,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       const tier = (user.tier || "FREE").toUpperCase();
       if (!["PRO", "ENTERPRISE", "GROUPS"].includes(tier)) {
-        return res.status(402).json({ error: "pro_required", message: "VPN requires PRO or ENTERPRISE plan" });
+        return res.status(402).json({ error: "pro_required", message: "VPN requires PRO, ENTERPRISE or GROUPS plan" });
       }
 
       if (!isAlorConfigured()) {

@@ -1150,8 +1150,8 @@ function PricingTeaser() {
     full:     lang === "uk" ? "Повні результати + PDF" : lang === "ru" ? "Полные результаты + PDF" : lang === "es" ? "Resultados completos + PDF" : lang === "de" ? "Volle Ergebnisse + PDF" : "Full results + PDF",
     monitor:  lang === "uk" ? "Моніторинг 24/7" : lang === "ru" ? "Мониторинг 24/7" : lang === "es" ? "Monitoreo 24/7" : lang === "de" ? "24/7-Monitoring" : "24/7 monitoring",
     api:      lang === "uk" ? "REST API доступ" : lang === "ru" ? "Доступ REST API" : lang === "es" ? "Acceso REST API" : lang === "de" ? "REST-API-Zugang" : "REST API access",
-    vpn3:     lang === "uk" ? "VPN 3 пристрої" : lang === "ru" ? "VPN 3 устройства" : lang === "es" ? "VPN 3 dispositivos" : lang === "de" ? "VPN 3 Geräte" : "VPN 3 devices",
-    vpn10:    lang === "uk" ? "VPN 10 пристроїв" : lang === "ru" ? "VPN 10 устройств" : lang === "es" ? "VPN 10 dispositivos" : lang === "de" ? "VPN 10 Geräte" : "VPN 10 devices",
+    vpn2:     lang === "uk" ? "VPN · 2 пристрої · 7 країн" : lang === "ru" ? "VPN · 2 устройства · 7 стран" : lang === "es" ? "VPN · 2 dispositivos · 7 países" : lang === "de" ? "VPN · 2 Geräte · 7 Länder" : "VPN · 2 devices · 7 countries",
+    vpn5:     lang === "uk" ? "VPN · 5 пристроїв · 20+ країн" : lang === "ru" ? "VPN · 5 устройств · 20+ стран" : lang === "es" ? "VPN · 5 dispositivos · 20+ países" : lang === "de" ? "VPN · 5 Geräte · 20+ Länder" : "VPN · 5 devices · 20+ countries",
     bulk:     lang === "uk" ? "Bulk API (100/запит)" : lang === "ru" ? "Bulk API (100/запрос)" : lang === "es" ? "Bulk API (100/req)" : lang === "de" ? "Bulk-API (100/Req.)" : "Bulk API (100/req)",
     pdf:      lang === "uk" ? "Брендований PDF" : lang === "ru" ? "Брендированный PDF" : lang === "es" ? "PDF con marca" : lang === "de" ? "Gebrandetes PDF" : "White-label PDF",
   };
@@ -1171,7 +1171,7 @@ function PricingTeaser() {
       note: perReport,
       href: "/pricing?single=1",
       testId: "link-price-single",
-      features: [unlocked(f.scanUnl), unlocked(f.full), locked(f.monitor), locked(f.api), locked(f.vpn3)],
+      features: [unlocked(f.scanUnl), unlocked(f.full), locked(f.monitor), locked(f.api), locked(f.vpn2)],
     },
     {
       name: "PRO",
@@ -1181,7 +1181,7 @@ function PricingTeaser() {
       testId: "link-price-pro",
       hot: true,
       badge: mostPopular,
-      features: [unlocked(f.scanUnl), unlocked(f.full), unlocked(f.monitor), unlocked(f.api), unlocked(f.vpn3)],
+      features: [unlocked(f.scanUnl), unlocked(f.full), unlocked(f.monitor), unlocked(f.api), unlocked(f.vpn2)],
     },
     {
       name: "Enterprise",
@@ -1189,7 +1189,7 @@ function PricingTeaser() {
       note: perMonth,
       href: "/pricing?plan=ENTERPRISE",
       testId: "link-price-enterprise",
-      features: [unlocked(f.scanUnl), unlocked(f.full), unlocked(f.monitor), unlocked(f.bulk), unlocked(f.pdf)],
+      features: [unlocked(f.scanUnl), unlocked(f.full), unlocked(f.monitor), unlocked(f.bulk), unlocked(f.vpn5)],
     },
   ];
 
