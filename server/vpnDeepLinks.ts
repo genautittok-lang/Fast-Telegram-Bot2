@@ -13,17 +13,14 @@ export interface AppDeepLink {
 }
 
 function b64(s: string): string {
-  return Buffer.from(s, "utf8").toString("base64").replace(/=+$/, "");
-}
-function b64url(s: string): string {
-  // URL-safe base64: replace + / with - _ and strip padding (safe inside URL path segments)
-  return b64(s).replace(/\+/g, "-").replace(/\//g, "_");
+  // Standard base64 WITH padding — required by Happ / Shadowrocket
+  return Buffer.from(s, "utf8").toString("base64");
 }
 
 export function buildDeepLinks(subUrl: string): AppDeepLink[] {
   const encoded = encodeURIComponent(subUrl);
-  const base64Url = b64(subUrl);          // standard base64 — fine for sub://<b64>
-  const base64UrlSafe = b64url(subUrl);   // url-safe base64 — for path segments (Happ)
+  const base64Url = b64(subUrl);                // standard base64 with padding
+  const base64UrlEncoded = encodeURIComponent(base64Url); // safe for URL path segments
   const subSchemeUniversal = `sub://${base64Url}`;
 
   return [
@@ -31,7 +28,7 @@ export function buildDeepLinks(subUrl: string): AppDeepLink[] {
       id: "happ",
       name: "Happ",
       platforms: ["ios", "android", "windows", "macos"],
-      deepLink: `happ://add/${base64UrlSafe}`,
+      deepLink: `happ://add/${base64UrlEncoded}`,
       storeUrl: "https://happ.su",
       recommended: true,
     },

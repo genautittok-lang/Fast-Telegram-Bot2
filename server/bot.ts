@@ -3667,30 +3667,59 @@ ${faqText}`;
     }
 
     const deviceLimit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : 2;
-    let text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n<i>${escHtml(vpnT(lang, "tagline"))}</i>\n\n`;
-
     const hasVpn = Boolean((user as any).alorVpnToken);
     const vpnExpiry = (user as any).alorVpnExpiresAt;
     const vpnToken = (user as any).alorVpnToken;
     const vpnUrl = vpnToken ? `${webUrl}/vpn/sub/${vpnToken}` : null;
 
+    // Professional card layout: header + status block + info table + actions
+    const dim = lang === "uk" ? "─────────────" : lang === "ru" ? "─────────────" : "─────────────";
+    let text = `🛡️ <b>DARKSHARE VPN</b>\n`;
+    text += `<i>${escHtml(vpnT(lang, "tagline"))}</i>\n`;
+    text += `<code>${dim}</code>\n\n`;
+
     if (hasVpn && vpnUrl) {
-      const expiryStr = vpnExpiry ? new Date(vpnExpiry).toLocaleDateString("uk-UA") : "—";
-      text += `${pe("check")} <b>${escHtml(vpnT(lang, "hasSubscription"))}</b>\n`;
-      text += `${escHtml(vpnT(lang, "expires"))}: <b>${expiryStr}</b>\n`;
-      text += `${escHtml(vpnT(lang, "devices"))}: <b>${deviceLimit}</b>\n`;
+      const expiryDate = vpnExpiry ? new Date(vpnExpiry) : null;
+      const daysLeft = expiryDate ? Math.max(0, Math.ceil((expiryDate.getTime() - Date.now()) / 86400000)) : null;
+      const expiryStr = expiryDate ? expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-GB") : "—";
+      const statusEmoji = daysLeft !== null && daysLeft > 0 ? "🟢" : "🔴";
+      const statusLabel = lang === "uk" ? (daysLeft && daysLeft > 0 ? "Активна" : "Закінчилась") : lang === "ru" ? (daysLeft && daysLeft > 0 ? "Активна" : "Истекла") : (daysLeft && daysLeft > 0 ? "Active" : "Expired");
+
+      text += `${statusEmoji} <b>${escHtml(statusLabel)}</b>\n\n`;
+      text += `${lang === "uk" ? "📦 <b>Тариф:</b>" : lang === "ru" ? "📦 <b>Тариф:</b>" : "📦 <b>Plan:</b>"} <code>${tier}</code>\n`;
+      text += `${lang === "uk" ? "📱 <b>Пристроїв:</b>" : lang === "ru" ? "📱 <b>Устройств:</b>" : "📱 <b>Devices:</b>"} до <code>${deviceLimit}</code>\n`;
+      text += `${lang === "uk" ? "📅 <b>До:</b>" : lang === "ru" ? "📅 <b>До:</b>" : "📅 <b>Until:</b>"} <code>${expiryStr}</code>`;
+      if (daysLeft !== null) text += ` <i>(${daysLeft}${lang === "uk" ? " днів" : lang === "ru" ? " дней" : "d"})</i>`;
+      text += `\n${lang === "uk" ? "🌍 <b>Серверів:</b>" : lang === "ru" ? "🌍 <b>Серверов:</b>" : "🌍 <b>Servers:</b>"} <code>20+</code> ${lang === "uk" ? "країн" : lang === "ru" ? "стран" : "countries"}\n\n`;
+      text += `<code>${dim}</code>\n`;
+      text += lang === "uk"
+        ? `💡 Натисни «Підключити» — отримаєш QR і кнопки одним кліком.`
+        : lang === "ru"
+        ? `💡 Нажми «Подключить» — получишь QR и кнопки одним кликом.`
+        : `💡 Tap "Connect" — get the QR + one-tap install buttons.`;
     } else {
-      text += `${pe("warning")} <i>${escHtml(vpnT(lang, "noSubscription"))}</i>\n`;
+      text += `⚠️ <b>${lang === "uk" ? "Підписка ще не активована" : lang === "ru" ? "Подписка ещё не активирована" : "Subscription not yet activated"}</b>\n\n`;
+      text += `${lang === "uk" ? "📦 <b>Тариф:</b>" : lang === "ru" ? "📦 <b>Тариф:</b>" : "📦 <b>Plan:</b>"} <code>${tier}</code> ✓\n`;
+      text += `${lang === "uk" ? "📱 <b>Доступно:</b>" : lang === "ru" ? "📱 <b>Доступно:</b>" : "📱 <b>Available:</b>"} до <code>${deviceLimit}</code> ${lang === "uk" ? "пристроїв" : lang === "ru" ? "устройств" : "devices"}\n\n`;
+      text += `<code>${dim}</code>\n`;
+      text += lang === "uk"
+        ? `🚀 Натисни «Активувати» — VPN буде готовий за 2 секунди.`
+        : lang === "ru"
+        ? `🚀 Нажми «Активировать» — VPN будет готов за 2 секунды.`
+        : `🚀 Tap "Activate" — VPN ready in 2 seconds.`;
     }
 
     const rows: any[][] = [];
     if (hasVpn && vpnUrl) {
-      rows.push([cb(vpnT(lang, "getConfig"), "vpn_get_config", "success", E.globe)]);
+      rows.push([cb(`🔗 ${lang === "uk" ? "Підключити" : lang === "ru" ? "Подключить" : "Connect"}`, "vpn_get_config", "success")]);
+      rows.push([
+        cb(`📲 ${lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Help"}`, "vpn_instruction", "primary"),
+        urlS(`🌐 ${lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"}`, `${webUrl}/vpn`, "default"),
+      ]);
     } else {
-      rows.push([cb(vpnT(lang, "activate"), "vpn_activate", "success", E.shield)]);
+      rows.push([cb(`⚡ ${lang === "uk" ? "Активувати VPN" : lang === "ru" ? "Активировать VPN" : "Activate VPN"}`, "vpn_activate", "success")]);
+      rows.push([cb(`📲 ${lang === "uk" ? "Як це працює?" : lang === "ru" ? "Как это работает?" : "How it works?"}`, "vpn_instruction", "primary")]);
     }
-    rows.push([cb(vpnT(lang, "instruction"), "vpn_instruction", "primary", E.eye)]);
-    rows.push([urlS(vpnT(lang, "openSite"), `${webUrl}/vpn`, "default", E.globe)]);
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
@@ -3723,24 +3752,27 @@ ${faqText}`;
     const qrUrl = `${webUrl}/vpn/sub/${vpnToken}/qr`;
     await ctx.answerCbQuery();
 
+    const dim = "─────────────";
     const caption =
-      `${pe("lock")} <b>DarkShare VPN</b>\n\n` +
+      `🛡️ <b>DARKSHARE VPN</b>\n` +
+      `<code>${dim}</code>\n\n` +
       (lang === "uk"
-        ? `Відскануй QR-код у застосунку VPN — або натисни кнопку нижче, щоб відкрити підписку напряму у твоєму улюбленому застосунку.\n\n<b>Посилання підписки:</b>\n<code>${escHtml(vpnUrl)}</code>`
+        ? `📷 <b>Спосіб 1 — QR-код</b>\nВідкрий VPN-застосунок → «Додати підписку» → «Сканувати QR» → націль камеру на код вище.\n\n📱 <b>Спосіб 2 — Одним кліком</b>\nНатисни кнопку свого застосунку нижче — підписка імпортується автоматично.\n\n🔗 <b>Спосіб 3 — Скопіювати посилання</b>\n<code>${escHtml(vpnUrl)}</code>\n<i>(тапни щоб скопіювати, встав у «Імпорт з URL»)</i>\n\n<code>${dim}</code>\n✅ Після імпорту вибери будь-який сервер у списку та натисни Connect.`
         : lang === "ru"
-        ? `Отсканируй QR-код в приложении VPN — или нажми кнопку ниже, чтобы открыть подписку напрямую в твоём приложении.\n\n<b>Ссылка подписки:</b>\n<code>${escHtml(vpnUrl)}</code>`
-        : `Scan the QR with your VPN app — or tap a button below to open the subscription directly in your favourite client.\n\n<b>Subscription link:</b>\n<code>${escHtml(vpnUrl)}</code>`);
+        ? `📷 <b>Способ 1 — QR-код</b>\nОткрой VPN-приложение → «Добавить подписку» → «Сканировать QR» → наведи камеру на код выше.\n\n📱 <b>Способ 2 — Одним кликом</b>\nНажми кнопку своего приложения ниже — подписка импортируется автоматически.\n\n🔗 <b>Способ 3 — Скопировать ссылку</b>\n<code>${escHtml(vpnUrl)}</code>\n<i>(тапни чтобы скопировать, вставь в «Импорт по URL»)</i>\n\n<code>${dim}</code>\n✅ После импорта выбери любой сервер из списка и нажми Connect.`
+        : `📷 <b>Method 1 — QR code</b>\nOpen your VPN app → "Add subscription" → "Scan QR" → point the camera at the code above.\n\n📱 <b>Method 2 — One-tap install</b>\nTap your app's button below — subscription imports automatically.\n\n🔗 <b>Method 3 — Copy the link</b>\n<code>${escHtml(vpnUrl)}</code>\n<i>(tap to copy, paste into "Import from URL")</i>\n\n<code>${dim}</code>\n✅ After import, pick any server from the list and tap Connect.`);
 
     // Telegram inline URL buttons only accept http(s)/tg:// schemes — so we route through
     // an HTTPS bridge that immediately redirects to the app's custom URL scheme.
     const bridge = (appId: string) => `${webUrl}/vpn/open/${appId}/${vpnToken}`;
+    const openInLabel = lang === "uk" ? "Відкрити в" : lang === "ru" ? "Открыть в" : "Open in";
 
     const kb = Markup.inlineKeyboard([
-      [urlS(`📱 Open in Happ`, bridge("happ"), "success")],
-      [urlS(`🍎 Shadowrocket`, bridge("shadowrocket"), "success"), urlS(`💎 Streisand`, bridge("streisand"), "success")],
-      [urlS(`🤖 v2rayNG`, bridge("v2rayng"), "success"), urlS(`🌐 Hiddify`, bridge("hiddify"), "success")],
+      [urlS(`📱 ${openInLabel} Happ`, bridge("happ"), "success")],
+      [urlS(`🍎 Shadowrocket`, bridge("shadowrocket"), "success"), urlS(`🤖 v2rayNG`, bridge("v2rayng"), "success")],
+      [urlS(`🌐 Hiddify`, bridge("hiddify"), "success"), urlS(`💎 Streisand`, bridge("streisand"), "success")],
       [urlS(`💻 Clash Verge`, bridge("clashverge"), "success"), urlS(`🦊 FoXray`, bridge("foxray"), "success")],
-      [urlS(vpnT(lang, "openSite") || "Open dashboard", `${webUrl}/vpn`, "primary", E.globe)],
+      [urlS(`🌐 ${lang === "uk" ? "Дашборд на сайті" : lang === "ru" ? "Дашборд на сайте" : "Web dashboard"}`, `${webUrl}/vpn`, "primary")],
       [cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)],
     ]);
 
