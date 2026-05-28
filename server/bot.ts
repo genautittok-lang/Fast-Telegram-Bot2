@@ -3667,9 +3667,12 @@ ${faqText}`;
           : lang === "ru"
           ? `${pe("warning")} VPN доступен на платных тарифах:\n\n• <b>PRO</b> — 2 устройства · $9/мес\n• <b>ENTERPRISE</b> — 5 устройств · $29/мес\n• <b>GROUPS</b> — 5 устройств + управление командой · $55/мес\n\nПосле оплаты VPN активируется автоматически.`
           : `${pe("warning")} VPN is available on paid plans:\n\n• <b>PRO</b> — 2 devices · $9/mo\n• <b>ENTERPRISE</b> — 5 devices · $29/mo\n• <b>GROUPS</b> — 5 devices + team management · $55/mo\n\nVPN auto-activates after purchase.`);
+      const buyInBot = lang === "uk" ? "купити в боті" : lang === "ru" ? "купить в боте" : lang === "es" ? "comprar en el bot" : lang === "de" ? "im Bot kaufen" : "buy in bot";
       const kb = Markup.inlineKeyboard([
-        [urlS(`💎 PRO`, `${webUrl}/pricing?plan=PRO&src=bot_vpn`, "success"), urlS(`👥 GROUPS`, `${webUrl}/pricing?plan=GROUPS&src=bot_vpn`, "success")],
-        [urlS(`🏢 ENTERPRISE`, `${webUrl}/pricing?plan=ENTERPRISE&src=bot_vpn`, "success")],
+        [cb(`💎 PRO · $10 · ${buyInBot}`, "bot_pay_tier_PRO", "success", E.star)],
+        [cb(`🏢 ENTERPRISE · $35 · ${buyInBot}`, "bot_pay_tier_ENTERPRISE", "success", E.crown)],
+        [cb(`👥 GROUPS · $55 · ${buyInBot}`, "bot_pay_tier_GROUPS", "success", E.money)],
+        [urlS(lang === "uk" ? "🌐 Або оплатити на сайті" : lang === "ru" ? "🌐 Или оплатить на сайте" : lang === "es" ? "🌐 O pagar en el sitio" : lang === "de" ? "🌐 Oder auf der Website zahlen" : "🌐 Or pay on the website", `${webUrl}/pricing?src=bot_vpn`, "primary", E.globe)],
         [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
       ]);
       try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
@@ -3678,7 +3681,15 @@ ${faqText}`;
 
     const deviceLimit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : 2;
     const hasVpn = Boolean((user as any).alorVpnToken);
-    const vpnExpiry = (user as any).alorVpnExpiresAt;
+    // Source of truth: the LATER of VPN expiry and main subscription expiry.
+    // This prevents "stale" UI right after a Telegram-Stars/Monobank payment that
+    // updates `subscriptionExpiresAt` before AlorVPN renewal syncs `alorVpnExpiresAt`.
+    const vpnExpRaw = (user as any).alorVpnExpiresAt;
+    const subExpRaw = (user as any).subscriptionExpiresAt;
+    const vpnExpMs = vpnExpRaw ? new Date(vpnExpRaw).getTime() : 0;
+    const subExpMs = subExpRaw ? new Date(subExpRaw).getTime() : 0;
+    const effectiveExpMs = Math.max(vpnExpMs, subExpMs);
+    const vpnExpiry = effectiveExpMs > 0 ? new Date(effectiveExpMs) : null;
     const vpnToken = (user as any).alorVpnToken;
     const vpnUrl = vpnToken ? `${webUrl}/vpn/sub/${vpnToken}` : null;
 
@@ -3764,7 +3775,10 @@ ${faqText}`;
         cb(`🖥️ ${lang === "uk" ? "Пристрої" : lang === "ru" ? "Устройства" : "Devices"}`, "vpn_devices", "primary"),
         cb(`📲 ${lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Help"}`, "vpn_instruction", "primary"),
       ]);
-      rows.push([urlS(`🌐 ${lang === "uk" ? "Дашборд на сайті" : lang === "ru" ? "Дашборд на сайте" : "Web dashboard"}`, `${webUrl}/vpn`, "default")]);
+      rows.push([
+        cb(`🔄 ${lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"}`, "vpn_refresh", "primary", E.bolt),
+        urlS(`🌐 ${lang === "uk" ? "На сайті" : lang === "ru" ? "На сайте" : "Web"}`, `${webUrl}/vpn`, "default", E.globe),
+      ]);
     } else {
       rows.push([cb(`⚡ ${lang === "uk" ? "Активувати VPN" : lang === "ru" ? "Активировать VPN" : "Activate VPN"}`, "vpn_activate", "success")]);
       rows.push([cb(`📲 ${lang === "uk" ? "Як це працює?" : lang === "ru" ? "Как это работает?" : "How it works?"}`, "vpn_instruction", "primary")]);
@@ -3786,6 +3800,31 @@ ${faqText}`;
   bot.action("vpn_menu", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     await ctx.answerCbQuery();
+    await showVpnMenu(ctx, tgId, true);
+  });
+
+  // Force-sync VPN subscription state from AlorVPN before re-rendering the menu.
+  // Fixes "stale info" complaints after recent payments / external renewals.
+  bot.action("vpn_refresh", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    if (!user) { try { await ctx.answerCbQuery("⛔"); } catch {} return; }
+    try {
+      await ctx.answerCbQuery(lang === "uk" ? "🔄 Оновлюю…" : lang === "ru" ? "🔄 Обновляю…" : "🔄 Refreshing…");
+    } catch {}
+    const token = (user as any).alorVpnToken;
+    if (token) {
+      try {
+        const { getAlorStatus, isAlorConfigured } = await import("./alorVpn");
+        if (isAlorConfigured()) {
+          const status = await getAlorStatus(token);
+          await storage.updateUser(user.id, { alorVpnExpiresAt: new Date(status.expires_at) } as any);
+        }
+      } catch (e) {
+        console.error("[VPN Bot] refresh sync error:", e);
+      }
+    }
     await showVpnMenu(ctx, tgId, true);
   });
 
@@ -3908,7 +3947,8 @@ ${faqText}`;
         alorVpnSubscriptionUrl: sub.subscription_url,
         alorVpnExpiresAt: new Date(sub.expires_at),
       } as any);
-      await ctx.answerCbQuery();
+      // NOTE: do NOT call ctx.answerCbQuery() again here — it was already answered above.
+      // Telegraf will throw 400 "query is too old or already answered" otherwise.
       await showVpnMenu(ctx, tgId, true);
     } catch (err: any) {
       console.error("[VPN Bot] Activation error:", err);
@@ -3922,7 +3962,7 @@ ${faqText}`;
     const lang = getUserLang(user?.lang);
     const tier = (user.tier || "FREE").toUpperCase();
     const limit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : tier === "PRO" ? 2 : 0;
-    const countriesLabel = tier === "PRO" ? "7" : (tier === "ENTERPRISE" || tier === "GROUPS") ? "20+" : "0";
+    const countriesLabel = (tier === "PRO" || tier === "ENTERPRISE" || tier === "GROUPS") ? "20+" : "0";
     // Source of truth: later of (VPN expiry, main subscription expiry) — they're kept in sync.
     const vpnExp = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
     const mainExp = (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt) : null;
