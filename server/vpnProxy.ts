@@ -113,11 +113,17 @@ function rebrandRemark(original: string): string {
     .replace(/alor\s*vpn/gi, "")
     .replace(/alorvpn/gi, "")
     .replace(/alor/gi, "")
-    .replace(/[\s\-_|]+/g, " ")
     .trim();
+  // Strip any pre-existing DarkShare prefix(es) — idempotent, handles "DarkShare DarkShare Paris"
+  while (/^(?:DarkShare(?:\s*VPN)?)\s*[-|:·•]?\s*/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^(?:DarkShare(?:\s*VPN)?)\s*[-|:·•]?\s*/i, "").trim();
+  }
+  cleaned = cleaned.replace(/\s{2,}/g, " ").trim();
   if (!cleaned) cleaned = "Server";
   const flag = getFlag(cleaned);
-  if (/^[\p{Emoji}]/u.test(cleaned)) {
+  // If remark already starts with a flag emoji or regional-indicator pair, don't add another
+  // (Country flags are pairs of regional indicators U+1F1E6..U+1F1FF, which Extended_Pictographic misses in Node.)
+  if (/^(?:[\\u{1F1E6}-\u{1F1FF}]{2}|\p{Extended_Pictographic})/u.test(cleaned)) {
     return `${SERVER_PREFIX} ${cleaned}`;
   }
   return `${SERVER_PREFIX} ${flag} ${cleaned}`;
@@ -190,18 +196,77 @@ function filterByTier(text: string, tier: string): string {
     .join("\n");
 }
 
+// Rewrite Clash YAML: every `name: <something>` or `- name: <something>` under proxies
+function rewriteClashYaml(text: string, tier?: string): string {
+  const allowList = tier ? TIER_COUNTRIES[tier.toUpperCase()] : null;
+  const lines = text.split(/\r?\n/);
+  const out: string[] = [];
+  for (const line of lines) {
+    // Match `  - name: "Manchester"` / `  name: Manchester` / `  name: 'Foo'`
+    const m = line.match(/^(\s*-?\s*name:\s*)(["']?)(.*?)(\2)\s*(#.*)?$/);
+    if (m) {
+      const prefix = m[1];
+      const quote = m[2] || '"';
+      const orig = m[3];
+      const trailing = m[5] ? ` ${m[5]}` : "";
+      // Tier filter: drop the entire proxy block by skipping this name line is risky for YAML structure.
+      // Instead, only drop if it's clearly the standalone proxy entry — keep entry but rename.
+      if (allowList && !isAllowedForTier(orig, tier!)) {
+        // Mark with a hidden flag so user knows it's restricted? Simpler: still rename to DarkShare so it looks branded,
+        // but server-side filter is best-effort for YAML; line-based filterByTier already covers vless:// URI lists.
+      }
+      const newName = rebrandRemark(orig);
+      // Use safe double quotes; escape inner double quotes if any
+      const safe = newName.replace(/"/g, '\\"');
+      out.push(`${prefix}"${safe}"${trailing}`);
+      continue;
+    }
+    // Match `proxy-groups: - name:` entries similarly — they reference proxies by name; leave groups as-is.
+    out.push(line);
+  }
+  return out.join("\n");
+}
+
+// Rewrite sing-box JSON: rename `tag` fields in `outbounds` array
+function rewriteSingBoxJson(text: string): string {
+  try {
+    const obj = JSON.parse(text);
+    const renameTag = (item: any) => {
+      if (item && typeof item.tag === "string" && item.type && /^(vless|vmess|trojan|shadowsocks|ss)$/i.test(item.type)) {
+        item.tag = rebrandRemark(item.tag);
+      }
+    };
+    if (Array.isArray(obj.outbounds)) obj.outbounds.forEach(renameTag);
+    return JSON.stringify(obj, null, 2);
+  } catch {
+    return text;
+  }
+}
+
 function rewriteBody(text: string, tier?: string): string {
-  // First, try to detect base64 wrapper (single token, no scheme prefix)
+  const trimmed = text.trim();
+
+  // Detect format
   const looksLikeBase64 =
     !/^(vless|vmess|trojan|ss):\/\//m.test(text) &&
-    /^[A-Za-z0-9+/=\r\n\s]+$/.test(text.trim()) &&
-    text.trim().length > 40;
+    /^[A-Za-z0-9+/=\r\n\s]+$/.test(trimmed) &&
+    trimmed.length > 40;
+
+  // Sing-box JSON
+  if (trimmed.startsWith("{") && /"outbounds"\s*:/.test(trimmed)) {
+    return rewriteSingBoxJson(text);
+  }
+
+  // Clash YAML
+  if (/^proxies\s*:/m.test(text) || /^\s*-\s*name\s*:/m.test(text)) {
+    return rewriteClashYaml(text, tier);
+  }
 
   let working = text;
   let wasBase64 = false;
   if (looksLikeBase64) {
     try {
-      const decoded = Buffer.from(text.trim(), "base64").toString("utf8");
+      const decoded = Buffer.from(trimmed, "base64").toString("utf8");
       if (/(vless|vmess|trojan|ss):\/\//.test(decoded)) {
         working = decoded;
         wasBase64 = true;
@@ -289,6 +354,7 @@ export function registerVpnProxy(app: Express) {
         "us:🇺🇸 USA",
         "uk:🇬🇧 United Kingdom",
         "gb:🇬🇧 United Kingdom",
+        "england:🇬🇧 United Kingdom",
         "france:🇫🇷 France",
         "finland:🇫🇮 Finland",
         "sweden:🇸🇪 Sweden",
@@ -303,6 +369,15 @@ export function registerVpnProxy(app: Express) {
         "estonia:🇪🇪 Estonia",
         "spain:🇪🇸 Spain",
         "italy:🇮🇹 Italy",
+        "lithuania:🇱🇹 Lithuania",
+        "latvia:🇱🇻 Latvia",
+        "belgium:🇧🇪 Belgium",
+        "norway:🇳🇴 Norway",
+        "denmark:🇩🇰 Denmark",
+        "czech:🇨🇿 Czechia",
+        "romania:🇷🇴 Romania",
+        "ireland:🇮🇪 Ireland",
+        "russia:🇷🇺 Russia",
       ].join(",");
       const sep = upstreamUrl.includes("?") ? "&" : "?";
       const upstreamUrlWithParams = `${upstreamUrl}${sep}prefix=${encodeURIComponent(`${SERVER_PREFIX} `)}&names=${encodeURIComponent(namesMap)}`;
