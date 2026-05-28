@@ -13,22 +13,34 @@ export interface AppDeepLink {
 }
 
 function b64(s: string): string {
-  // Standard base64 WITH padding — required by Happ / Shadowrocket
+  // Standard base64 WITH padding — for query-param ?url= clients that decode after URL-decoding
   return Buffer.from(s, "utf8").toString("base64");
+}
+
+function b64url(s: string): string {
+  // RFC 4648 §5 base64url — no padding, "-"/"_" instead of "+"/"/".
+  // Required for Happ (happ://add/<b64url>) and sub:// scheme so the link is valid
+  // without any extra URL-encoding (which Happ does NOT decode and treats as invalid).
+  return Buffer.from(s, "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 export function buildDeepLinks(subUrl: string): AppDeepLink[] {
   const encoded = encodeURIComponent(subUrl);
-  const base64Url = b64(subUrl);                // standard base64 with padding
-  const base64UrlEncoded = encodeURIComponent(base64Url); // safe for URL path segments
-  const subSchemeUniversal = `sub://${base64Url}`;
+  const subB64Url = b64url(subUrl);            // base64url, no padding — for custom schemes
+  const subSchemeUniversal = `sub://${subB64Url}`;
 
   return [
     {
       id: "happ",
       name: "Happ",
       platforms: ["ios", "android", "windows", "macos"],
-      deepLink: `happ://add/${base64UrlEncoded}`,
+      // Happ expects raw base64url in the path (no percent-encoding, no padding).
+      // Using standard base64 + encodeURIComponent produced %2F/%2B/%3D which Happ rejects as "invalid link".
+      deepLink: `happ://add/${subB64Url}`,
       storeUrl: "https://happ.su",
       recommended: true,
     },

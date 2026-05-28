@@ -3711,12 +3711,16 @@ ${faqText}`;
 
     const rows: any[][] = [];
     if (hasVpn && vpnUrl) {
-      rows.push([cb(`🔗 ${lang === "uk" ? "Підключити" : lang === "ru" ? "Подключить" : "Connect"}`, "vpn_get_config", "success")]);
       rows.push([
-        cb(`📱 ${lang === "uk" ? "Пристрої" : lang === "ru" ? "Устройства" : "Devices"}`, "vpn_devices", "primary"),
+        cb(`📷 ${lang === "uk" ? "QR-код" : lang === "ru" ? "QR-код" : "QR code"}`, "vpn_qr", "success"),
+        cb(`🔗 ${lang === "uk" ? "Копіювати" : lang === "ru" ? "Скопировать" : "Copy link"}`, "vpn_copy_link", "success"),
+      ]);
+      rows.push([cb(`📱 ${lang === "uk" ? "Застосунки (1-клік)" : lang === "ru" ? "Приложения (1-клик)" : "Apps (one-tap)"}`, "vpn_apps", "primary")]);
+      rows.push([
+        cb(`🖥️ ${lang === "uk" ? "Пристрої" : lang === "ru" ? "Устройства" : "Devices"}`, "vpn_devices", "primary"),
         cb(`📲 ${lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Help"}`, "vpn_instruction", "primary"),
       ]);
-      rows.push([urlS(`🌐 ${lang === "uk" ? "Сайт" : lang === "ru" ? "Сайт" : "Website"}`, `${webUrl}/vpn`, "default")]);
+      rows.push([urlS(`🌐 ${lang === "uk" ? "Дашборд на сайті" : lang === "ru" ? "Дашборд на сайте" : "Web dashboard"}`, `${webUrl}/vpn`, "default")]);
     } else {
       rows.push([cb(`⚡ ${lang === "uk" ? "Активувати VPN" : lang === "ru" ? "Активировать VPN" : "Activate VPN"}`, "vpn_activate", "success")]);
       rows.push([cb(`📲 ${lang === "uk" ? "Як це працює?" : lang === "ru" ? "Как это работает?" : "How it works?"}`, "vpn_instruction", "primary")]);
@@ -3724,7 +3728,10 @@ ${faqText}`;
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
-    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+    // Always send fresh (delete the previous message). Photo messages can't be edited
+    // into text, and inconsistent edit behaviour caused stale UI complaints from users.
+    try { await ctx.deleteMessage(); } catch {}
+    await ctx.reply(text, { parse_mode: "HTML", ...kb });
   }
 
   bot.command("vpn", async (ctx) => {
@@ -3738,57 +3745,99 @@ ${faqText}`;
     await showVpnMenu(ctx, tgId, true);
   });
 
-  bot.action("vpn_get_config", async (ctx) => {
+  // Helper: resolve current VPN context (URL/QR) or bail with a soft alert.
+  // SINGLE OWNER of ctx.answerCbQuery — callers must NOT also answer the query,
+  // otherwise Telegram returns 400 ("query is too old / already answered") and the flow short-circuits.
+  async function getVpnCtx(ctx: any) {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
-    if (!user) return ctx.answerCbQuery("⛔");
+    if (!user) { try { await ctx.answerCbQuery("⛔"); } catch {} return null; }
     const vpnToken = (user as any).alorVpnToken;
     if (!vpnToken) {
-      await ctx.answerCbQuery(vpnT(lang, "noSubscription"), { show_alert: true });
-      return showVpnMenu(ctx, tgId, true);
+      try { await ctx.answerCbQuery(vpnT(lang, "noSubscription"), { show_alert: true }); } catch {}
+      await showVpnMenu(ctx, tgId, true);
+      return null;
     }
+    try { await ctx.answerCbQuery(); } catch {}
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
-    const vpnUrl = `${webUrl}/vpn/sub/${vpnToken}`;
-    const qrUrl = `${webUrl}/vpn/sub/${vpnToken}/qr`;
-    await ctx.answerCbQuery();
+    return {
+      tgId, user, lang, vpnToken, webUrl,
+      vpnUrl: `${webUrl}/vpn/sub/${vpnToken}`,
+      qrUrl: `${webUrl}/vpn/sub/${vpnToken}/qr`,
+    };
+  }
 
-    const dim = "─────────────";
-    const caption =
-      `🛡️ <b>DARKSHARE VPN</b>\n` +
-      `<code>${dim}</code>\n\n` +
-      (lang === "uk"
-        ? `📷 <b>Спосіб 1 — QR-код</b>\nВідкрий VPN-застосунок → «Додати підписку» → «Сканувати QR» → націль камеру на код вище.\n\n📱 <b>Спосіб 2 — Одним кліком</b>\nНатисни кнопку свого застосунку нижче — підписка імпортується автоматично.\n\n🔗 <b>Спосіб 3 — Скопіювати посилання</b>\n<code>${escHtml(vpnUrl)}</code>\n<i>(тапни щоб скопіювати, встав у «Імпорт з URL»)</i>\n\n<code>${dim}</code>\n✅ Після імпорту вибери будь-який сервер у списку та натисни Connect.`
-        : lang === "ru"
-        ? `📷 <b>Способ 1 — QR-код</b>\nОткрой VPN-приложение → «Добавить подписку» → «Сканировать QR» → наведи камеру на код выше.\n\n📱 <b>Способ 2 — Одним кликом</b>\nНажми кнопку своего приложения ниже — подписка импортируется автоматически.\n\n🔗 <b>Способ 3 — Скопировать ссылку</b>\n<code>${escHtml(vpnUrl)}</code>\n<i>(тапни чтобы скопировать, вставь в «Импорт по URL»)</i>\n\n<code>${dim}</code>\n✅ После импорта выбери любой сервер из списка и нажми Connect.`
-        : `📷 <b>Method 1 — QR code</b>\nOpen your VPN app → "Add subscription" → "Scan QR" → point the camera at the code above.\n\n📱 <b>Method 2 — One-tap install</b>\nTap your app's button below — subscription imports automatically.\n\n🔗 <b>Method 3 — Copy the link</b>\n<code>${escHtml(vpnUrl)}</code>\n<i>(tap to copy, paste into "Import from URL")</i>\n\n<code>${dim}</code>\n✅ After import, pick any server from the list and tap Connect.`);
+  // Legacy alias — older messages may still carry the old button. Route to QR (most-asked).
+  bot.action("vpn_get_config", async (ctx) => {
+    const c = await getVpnCtx(ctx); if (!c) return;
+    await sendVpnQr(ctx, c);
+  });
 
-    // Telegram inline URL buttons only accept http(s)/tg:// schemes — so we route through
-    // an HTTPS bridge that immediately redirects to the app's custom URL scheme.
-    const bridge = (appId: string) => `${webUrl}/vpn/open/${appId}/${vpnToken}`;
-    const openInLabel = lang === "uk" ? "Відкрити в" : lang === "ru" ? "Открыть в" : "Open in";
-
-    const kb = Markup.inlineKeyboard([
-      [urlS(`📱 ${openInLabel} Happ`, bridge("happ"), "success")],
-      [urlS(`🍎 Shadowrocket`, bridge("shadowrocket"), "success"), urlS(`🤖 v2rayNG`, bridge("v2rayng"), "success")],
-      [urlS(`🌐 Hiddify`, bridge("hiddify"), "success"), urlS(`💎 Streisand`, bridge("streisand"), "success")],
-      [urlS(`💻 Clash Verge`, bridge("clashverge"), "success"), urlS(`🦊 FoXray`, bridge("foxray"), "success")],
-      [urlS(`🌐 ${lang === "uk" ? "Дашборд на сайті" : lang === "ru" ? "Дашборд на сайте" : "Web dashboard"}`, `${webUrl}/vpn`, "primary")],
-      [cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)],
-    ]);
-
+  async function sendVpnQr(ctx: any, c: { lang: string; vpnUrl: string; qrUrl: string }) {
+    const back = backToConnectKb(c.lang);
+    const caption = c.lang === "uk"
+      ? `📷 <b>QR-код підписки DarkShare VPN</b>\n\n1) Відкрий VPN-застосунок\n2) <b>«Додати підписку» → «Сканувати QR»</b>\n3) Націль камеру на код вище\n4) Обери сервер → <b>Connect</b>\n\n<i>Не працює QR? Натисни «🔗 Копіювати посилання» і встав вручну.</i>`
+      : c.lang === "ru"
+      ? `📷 <b>QR-код подписки DarkShare VPN</b>\n\n1) Открой VPN-приложение\n2) <b>«Добавить подписку» → «Сканировать QR»</b>\n3) Наведи камеру на код выше\n4) Выбери сервер → <b>Connect</b>\n\n<i>Не работает QR? Нажми «🔗 Скопировать ссылку» и вставь вручную.</i>`
+      : `📷 <b>DarkShare VPN — Subscription QR</b>\n\n1) Open your VPN app\n2) <b>"Add subscription" → "Scan QR"</b>\n3) Point the camera at the code above\n4) Pick a server → <b>Connect</b>\n\n<i>QR not working? Tap "🔗 Copy link" and paste manually.</i>`;
+    try { await ctx.deleteMessage(); } catch {}
     try {
-      // Try to send fresh photo (QR) with caption + buttons
-      await ctx.replyWithPhoto({ url: qrUrl }, { caption, parse_mode: "HTML", ...kb });
-      try { await ctx.deleteMessage(); } catch {}
-    } catch (err) {
-      // Fallback: edit current message with text only
-      try {
-        await ctx.editMessageText(caption, { parse_mode: "HTML", ...kb });
-      } catch {
-        await ctx.reply(caption, { parse_mode: "HTML", ...kb });
-      }
+      await ctx.replyWithPhoto({ url: c.qrUrl }, { caption, parse_mode: "HTML", ...back });
+    } catch {
+      await ctx.reply(caption + `\n\n<code>${escHtml(c.vpnUrl)}</code>`, { parse_mode: "HTML", ...back });
     }
+  }
+
+  function backToConnectKb(lang: string) {
+    return Markup.inlineKeyboard([
+      [
+        cb(`📷 ${lang === "uk" ? "QR" : lang === "ru" ? "QR" : "QR"}`, "vpn_qr", "primary"),
+        cb(`🔗 ${lang === "uk" ? "Лінк" : lang === "ru" ? "Линк" : "Link"}`, "vpn_copy_link", "primary"),
+        cb(`📱 ${lang === "uk" ? "Апи" : lang === "ru" ? "Прил." : "Apps"}`, "vpn_apps", "primary"),
+      ],
+      [cb(vpnT(lang as any, "back"), "vpn_menu", "danger", E.back)],
+    ]);
+  }
+
+  bot.action("vpn_qr", async (ctx) => {
+    const c = await getVpnCtx(ctx); if (!c) return;
+    await sendVpnQr(ctx, c);
+  });
+
+  bot.action("vpn_copy_link", async (ctx) => {
+    const c = await getVpnCtx(ctx); if (!c) return;
+    const text = c.lang === "uk"
+      ? `🔗 <b>Посилання підписки DarkShare VPN</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Тапни на код вище — він скопіюється. Потім у VPN-застосунку: «Додати підписку» → «Імпорт з URL» → встав.</i>`
+      : c.lang === "ru"
+      ? `🔗 <b>Ссылка подписки DarkShare VPN</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Тапни на код выше — он скопируется. Потом в VPN-приложении: «Добавить подписку» → «Импорт по URL» → вставь.</i>`
+      : `🔗 <b>DarkShare VPN subscription link</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Tap the code above to copy it. Then in your VPN app: "Add subscription" → "Import from URL" → paste.</i>`;
+    try { await ctx.deleteMessage(); } catch {}
+    await ctx.reply(text, { parse_mode: "HTML", ...backToConnectKb(c.lang) });
+  });
+
+  bot.action("vpn_apps", async (ctx) => {
+    const c = await getVpnCtx(ctx); if (!c) return;
+    const bridge = (appId: string) => `${c.webUrl}/vpn/open/${appId}/${c.vpnToken}`;
+    const openInLabel = c.lang === "uk" ? "Відкрити в" : c.lang === "ru" ? "Открыть в" : "Open in";
+    const text = c.lang === "uk"
+      ? `📱 <b>Підключення в один клік</b>\n\nОбери свій застосунок нижче — підписка імпортується автоматично.\n\n<i>Спершу встанови потрібний застосунок (посилання у каталозі happ.su, App Store, Google Play).</i>\n\n💡 <b>Рекомендуємо:</b> Happ — працює на iOS, Android, Windows, macOS.`
+      : c.lang === "ru"
+      ? `📱 <b>Подключение в один клик</b>\n\nВыбери своё приложение ниже — подписка импортируется автоматически.\n\n<i>Сначала установи нужное приложение (ссылки в каталоге happ.su, App Store, Google Play).</i>\n\n💡 <b>Рекомендуем:</b> Happ — работает на iOS, Android, Windows, macOS.`
+      : `📱 <b>One-tap install</b>\n\nPick your app below — the subscription imports automatically.\n\n<i>Install the app first if you don't have it (links: happ.su, App Store, Google Play).</i>\n\n💡 <b>Recommended:</b> Happ — works on iOS, Android, Windows, macOS.`;
+    const kb = Markup.inlineKeyboard([
+      [urlS(`⭐ ${openInLabel} Happ`, bridge("happ"), "success")],
+      [urlS(`🍎 Shadowrocket (iOS)`, bridge("shadowrocket"), "primary"), urlS(`🤖 v2rayNG (Android)`, bridge("v2rayng"), "primary")],
+      [urlS(`🌐 Hiddify`, bridge("hiddify"), "primary"), urlS(`💎 Streisand (iOS)`, bridge("streisand"), "primary")],
+      [urlS(`💻 Clash Verge`, bridge("clashverge"), "primary"), urlS(`🦊 FoXray (iOS)`, bridge("foxray"), "primary")],
+      [
+        cb(`📷 QR`, "vpn_qr", "default"),
+        cb(`🔗 ${c.lang === "uk" ? "Лінк" : c.lang === "ru" ? "Линк" : "Link"}`, "vpn_copy_link", "default"),
+      ],
+      [cb(vpnT(c.lang as any, "back"), "vpn_menu", "danger", E.back)],
+    ]);
+    try { await ctx.deleteMessage(); } catch {}
+    await ctx.reply(text, { parse_mode: "HTML", ...kb });
   });
 
   bot.action("vpn_activate", async (ctx) => {
@@ -3899,7 +3948,8 @@ ${faqText}`;
 
     rows.push([cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)]);
     const kb = Markup.inlineKeyboard(rows);
-    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+    try { await ctx.deleteMessage(); } catch {}
+    await ctx.reply(text, { parse_mode: "HTML", ...kb });
   }
 
   bot.action("vpn_devices", async (ctx) => {
@@ -3961,10 +4011,15 @@ ${faqText}`;
           `<b>4.</b> Pick any server and tap <b>Connect</b>.\n\n` +
           `${pe("check")} Done — your traffic is encrypted.`;
     const kb = Markup.inlineKeyboard([
-      [cb(vpnT(lang, "getConfig"), "vpn_get_config", "success", E.globe)],
+      [
+        cb(`📷 ${lang === "uk" ? "QR-код" : lang === "ru" ? "QR-код" : "QR"}`, "vpn_qr", "success"),
+        cb(`🔗 ${lang === "uk" ? "Копіювати" : lang === "ru" ? "Скопировать" : "Copy link"}`, "vpn_copy_link", "success"),
+      ],
+      [cb(`📱 ${lang === "uk" ? "Застосунки" : lang === "ru" ? "Приложения" : "Apps"}`, "vpn_apps", "primary")],
       [cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)],
     ]);
-    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+    try { await ctx.deleteMessage(); } catch {}
+    await ctx.reply(text, { parse_mode: "HTML", ...kb });
   });
 
   bot.command("support", async (ctx) => {
@@ -7341,6 +7396,111 @@ ${feature.desc}
 
 🎯 _${tryLabels[lang]}_`;
   }
+
+  // Multilingual VPN launch announcement — sent on-demand by /vpn_announce admin command.
+  // Goes to ALL eligible users in their preferred language (uk/ru/en).
+  function buildVpnAnnouncement(lang: "uk" | "ru" | "en"): { text: string; kb: any } {
+    const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
+    const text = lang === "uk"
+      ? `🛡️ *DarkShare VPN — вже у твоєму тарифі!*\n\n` +
+        `Запустили власну VPN-мережу, повністю інтегровану в DarkShare.\n\n` +
+        `*Що ти отримуєш:*\n` +
+        `• Військового рівня шифрування (Trojan Reality)\n` +
+        `• Обхід DPI та цензури в один клік\n` +
+        `• Нуль логів — твій трафік приватний\n` +
+        `• Робота на iOS, Android, Windows, macOS, Linux\n\n` +
+        `*Тарифи з VPN:*\n` +
+        `⭐ *PRO* — 2 пристрої · 7 країн (DE, NL, FI, FR, PL, UA, USA)\n` +
+        `👑 *ENTERPRISE* — 5 пристроїв · 20+ країн\n` +
+        `👥 *GROUPS* — 5 пристроїв · 20+ країн · керування командою\n\n` +
+        `Натисни /vpn в боті або відкрий дашборд на сайті — підключення за 30 секунд.`
+      : lang === "ru"
+      ? `🛡️ *DarkShare VPN — уже в твоём тарифе!*\n\n` +
+        `Запустили собственную VPN-сеть, полностью интегрированную в DarkShare.\n\n` +
+        `*Что ты получаешь:*\n` +
+        `• Шифрование военного уровня (Trojan Reality)\n` +
+        `• Обход DPI и цензуры в один клик\n` +
+        `• Ноль логов — твой трафик приватный\n` +
+        `• Работает на iOS, Android, Windows, macOS, Linux\n\n` +
+        `*Тарифы с VPN:*\n` +
+        `⭐ *PRO* — 2 устройства · 7 стран (DE, NL, FI, FR, PL, UA, USA)\n` +
+        `👑 *ENTERPRISE* — 5 устройств · 20+ стран\n` +
+        `👥 *GROUPS* — 5 устройств · 20+ стран · управление командой\n\n` +
+        `Нажми /vpn в боте или открой дашборд на сайте — подключение за 30 секунд.`
+      : `🛡️ *DarkShare VPN — already in your plan!*\n\n` +
+        `We launched our own VPN network, fully integrated into DarkShare.\n\n` +
+        `*What you get:*\n` +
+        `• Military-grade encryption (Trojan Reality)\n` +
+        `• DPI & censorship bypass in one tap\n` +
+        `• Zero logs — your traffic stays private\n` +
+        `• Works on iOS, Android, Windows, macOS, Linux\n\n` +
+        `*Plans with VPN:*\n` +
+        `⭐ *PRO* — 2 devices · 7 countries (DE, NL, FI, FR, PL, UA, USA)\n` +
+        `👑 *ENTERPRISE* — 5 devices · 20+ countries\n` +
+        `👥 *GROUPS* — 5 devices · 20+ countries · team management\n\n` +
+        `Tap /vpn in the bot or open the web dashboard — connect in 30 seconds.`;
+    const kb = Markup.inlineKeyboard([
+      [cb(lang === "uk" ? "🛡️ Відкрити VPN" : lang === "ru" ? "🛡️ Открыть VPN" : "🛡️ Open VPN", "vpn_menu", "success")],
+      [urlS(lang === "uk" ? "🌐 Дашборд на сайті" : lang === "ru" ? "🌐 Дашборд на сайте" : "🌐 Web dashboard", `${webUrl}/vpn`, "primary")],
+    ]);
+    return { text, kb };
+  }
+
+  // Global broadcast lock — prevents overlapping announces or concurrent runs with daily broadcast
+  // from saturating Telegram's 30 msg/sec global limit.
+  let vpnAnnounceRunning = false;
+  const vpnAnnouncePending = new Map<string, number>(); // tgId(admin) -> expiresAt
+
+  async function sendVpnAnnouncement(): Promise<{ sent: number; total: number; throttled: number }> {
+    const allUsers = await storage.getAllUsers();
+    const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false && u.tgId && !u.tgId.startsWith("replit:"));
+    let sent = 0, throttled = 0;
+    for (const u of eligibleUsers) {
+      const lang = getUserLang(u.lang) as "uk" | "ru" | "en";
+      const { text, kb } = buildVpnAnnouncement(lang);
+      try {
+        await bot.telegram.sendMessage(u.tgId!, text, { parse_mode: "Markdown", ...kb });
+        sent++;
+      } catch (err: any) {
+        // Telegram 429: respect retry_after, then continue.
+        if (err?.response?.error_code === 429) {
+          throttled++;
+          const retryAfter = Math.max(1, Number(err?.response?.parameters?.retry_after) || 5);
+          await new Promise(r => setTimeout(r, retryAfter * 1000));
+          try {
+            await bot.telegram.sendMessage(u.tgId!, text, { parse_mode: "Markdown", ...kb });
+            sent++;
+          } catch {}
+        }
+        // 403 = user blocked the bot — skip silently.
+      }
+      await new Promise(r => setTimeout(r, 50)); // ~20 msg/s, under TG's 30/s global guideline
+    }
+    console.log(`[VPN announce] sent=${sent} throttled=${throttled} total=${eligibleUsers.length}`);
+    return { sent, total: eligibleUsers.length, throttled };
+  }
+
+  bot.command("vpn_announce", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    if (!isAdmin(tgId)) return ctx.reply("⛔");
+    // Two-step confirmation: first call schedules, second within 60s executes.
+    const pending = vpnAnnouncePending.get(tgId);
+    if (!pending || pending < Date.now()) {
+      vpnAnnouncePending.set(tgId, Date.now() + 60_000);
+      const total = (await storage.getAllUsers()).filter(u => !u.blocked && u.notifsOn !== false && u.tgId && !u.tgId.startsWith("replit:")).length;
+      return ctx.reply(`⚠️ This will broadcast the VPN launch announcement to *${total}* users in uk/ru/en.\n\nReply /vpn_announce again within 60s to confirm.`, { parse_mode: "Markdown" });
+    }
+    vpnAnnouncePending.delete(tgId);
+    if (vpnAnnounceRunning) return ctx.reply("⏳ Another broadcast is already running. Try again later.");
+    vpnAnnounceRunning = true;
+    try {
+      await ctx.reply("🚀 Sending VPN announcement…");
+      const { sent, total, throttled } = await sendVpnAnnouncement();
+      await ctx.reply(`✅ Delivered: *${sent}* / ${total}\n⏱️ Throttled (retried): *${throttled}*`, { parse_mode: "Markdown" });
+    } finally {
+      vpnAnnounceRunning = false;
+    }
+  });
 
   async function sendDailyBroadcast(): Promise<number> {
     const allUsers = await storage.getAllUsers();

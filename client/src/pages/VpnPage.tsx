@@ -690,11 +690,85 @@ function PublicVpnLanding() {
   );
 }
 
+function applyVpnSeo() {
+  const title = "DarkShare VPN — Secure, Zero-Log, Trojan Reality Network";
+  const desc = "Military-grade VPN built into your DarkShare plan. Trojan Reality protocol bypasses DPI and censorship. Zero logs, 20+ server locations, works on iOS, Android, Windows, macOS, Linux. Activate in 30 seconds.";
+  const canonical = "https://www.darkshare.store/vpn";
+  const image = "https://www.darkshare.store/og-image.png";
+
+  document.title = title;
+
+  const setMeta = (selector: string, attr: "name" | "property", key: string, value: string) => {
+    let el = document.head.querySelector<HTMLMetaElement>(selector);
+    if (!el) {
+      el = document.createElement("meta");
+      el.setAttribute(attr, key);
+      document.head.appendChild(el);
+    }
+    el.setAttribute("content", value);
+  };
+  setMeta('meta[name="description"]', "name", "description", desc);
+  setMeta('meta[name="keywords"]', "name", "keywords", "DarkShare VPN, Trojan Reality VPN, zero-log VPN, DPI bypass, censorship bypass, OSINT VPN, secure VPN subscription, V2Ray, sing-box, Happ, Shadowrocket, v2rayNG, Hiddify, Clash Verge");
+  setMeta('meta[property="og:title"]', "property", "og:title", title);
+  setMeta('meta[property="og:description"]', "property", "og:description", desc);
+  setMeta('meta[property="og:url"]', "property", "og:url", canonical);
+  setMeta('meta[property="og:image"]', "property", "og:image", image);
+  setMeta('meta[property="og:type"]', "property", "og:type", "website");
+  setMeta('meta[name="twitter:card"]', "name", "twitter:card", "summary_large_image");
+  setMeta('meta[name="twitter:title"]', "name", "twitter:title", title);
+  setMeta('meta[name="twitter:description"]', "name", "twitter:description", desc);
+  setMeta('meta[name="twitter:image"]', "name", "twitter:image", image);
+
+  let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.setAttribute("rel", "canonical");
+    document.head.appendChild(link);
+  }
+  link.setAttribute("href", canonical);
+
+  // JSON-LD: Product + FAQ for rich SERP
+  const ldId = "darkshare-vpn-jsonld";
+  document.getElementById(ldId)?.remove();
+  const ld = document.createElement("script");
+  ld.id = ldId;
+  ld.type = "application/ld+json";
+  ld.text = JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        name: "DarkShare VPN",
+        description: desc,
+        brand: { "@type": "Brand", name: "DarkShare" },
+        url: canonical,
+        image,
+        offers: [
+          { "@type": "Offer", name: "PRO", price: "9", priceCurrency: "USD", url: "https://www.darkshare.store/pricing?plan=PRO" },
+          { "@type": "Offer", name: "ENTERPRISE", price: "29", priceCurrency: "USD", url: "https://www.darkshare.store/pricing?plan=ENTERPRISE" },
+          { "@type": "Offer", name: "GROUPS", price: "55", priceCurrency: "USD", url: "https://www.darkshare.store/pricing?plan=GROUPS" },
+        ],
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: "What protocol does DarkShare VPN use?", acceptedAnswer: { "@type": "Answer", text: "Trojan Reality — a modern protocol that disguises VPN traffic as regular HTTPS, bypassing DPI and censorship in restrictive networks." } },
+          { "@type": "Question", name: "Does DarkShare VPN keep logs?", acceptedAnswer: { "@type": "Answer", text: "No. We do not log browsing activity or connection metadata. Your traffic stays private." } },
+          { "@type": "Question", name: "Which apps work with DarkShare VPN?", acceptedAnswer: { "@type": "Answer", text: "Any V2Ray-compatible client: Happ (recommended), Shadowrocket, v2rayNG, Hiddify, Clash Verge, Streisand, FoXray, NekoBox, v2rayN." } },
+          { "@type": "Question", name: "How many devices can I connect?", acceptedAnswer: { "@type": "Answer", text: "PRO supports 2 devices; ENTERPRISE and GROUPS support 5 devices each." } },
+          { "@type": "Question", name: "How many countries are available?", acceptedAnswer: { "@type": "Answer", text: "PRO unlocks 7 countries (Germany, Netherlands, Finland, France, Poland, Ukraine, USA). ENTERPRISE and GROUPS unlock 20+ global locations." } },
+        ],
+      },
+    ],
+  });
+  document.head.appendChild(ld);
+}
+
 export default function VpnPage() {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
 
   useEffect(() => {
-    document.title = "DarkShare VPN — Secure Network";
+    applyVpnSeo();
     const prev = document.body.style.backgroundColor;
     document.body.style.backgroundColor = "#0A0A0A";
     return () => { document.body.style.backgroundColor = prev; };
