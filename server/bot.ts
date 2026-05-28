@@ -3647,6 +3647,46 @@ ${faqText}`;
     return dict[key]?.[lang] || dict[key]?.en || key;
   }
 
+  // === Partner channel gating (AlorVPN is our upstream VPN provider) ===
+  // Users with an active VPN subscription must be subscribed to t.me/AlorVPN
+  // before they can access VPN credentials in the bot. Checked via getChatMember.
+  // Result is cached for 10 minutes per user to avoid hammering Telegram API.
+  const PARTNER_CHANNEL = "@AlorVPN";
+  const PARTNER_CHANNEL_URL = "https://t.me/AlorVPN";
+  const partnerSubCache = new Map<string, { ok: boolean; checkedAt: number }>();
+  const PARTNER_CACHE_MS = 10 * 60 * 1000;
+  async function isSubscribedToPartner(ctx: any, tgId: string): Promise<boolean> {
+    const cached = partnerSubCache.get(tgId);
+    if (cached && Date.now() - cached.checkedAt < PARTNER_CACHE_MS && cached.ok) return true;
+    try {
+      const member = await ctx.telegram.getChatMember(PARTNER_CHANNEL, Number(tgId));
+      const ok = ["creator", "administrator", "member"].includes(member?.status);
+      partnerSubCache.set(tgId, { ok, checkedAt: Date.now() });
+      return ok;
+    } catch (e: any) {
+      // Bot must be a member of @AlorVPN channel to query members. If not, fail-open
+      // (don't block legit paying users on misconfiguration).
+      console.warn("[VPN Bot] partner channel check failed:", e?.message);
+      return true;
+    }
+  }
+  function partnerGateText(lang: string): string {
+    if (lang === "uk") return `🤝 <b>Один крок до VPN</b>\n\nDarkShare VPN працює на інфраструктурі нашого офіційного партнера <b>AlorVPN</b>. Перед використанням підпишись на їхній канал — це обов'язкова умова партнерства.\n\n👉 ${PARTNER_CHANNEL_URL}\n\nПісля підписки натисни <b>«✅ Я підписався»</b>.`;
+    if (lang === "ru") return `🤝 <b>Один шаг до VPN</b>\n\nDarkShare VPN работает на инфраструктуре нашего официального партнёра <b>AlorVPN</b>. Перед использованием подпишись на их канал — это обязательное условие партнёрства.\n\n👉 ${PARTNER_CHANNEL_URL}\n\nПосле подписки нажми <b>«✅ Я подписался»</b>.`;
+    if (lang === "es") return `🤝 <b>Un paso para tu VPN</b>\n\nDarkShare VPN funciona sobre la infraestructura de nuestro socio oficial <b>AlorVPN</b>. Antes de usarla, suscríbete a su canal — es un requisito de la alianza.\n\n👉 ${PARTNER_CHANNEL_URL}\n\nLuego pulsa <b>«✅ Ya me suscribí»</b>.`;
+    if (lang === "de") return `🤝 <b>Ein Schritt zum VPN</b>\n\nDarkShare VPN läuft auf der Infrastruktur unseres offiziellen Partners <b>AlorVPN</b>. Vor der Nutzung abonniere bitte deren Kanal — Partner-Voraussetzung.\n\n👉 ${PARTNER_CHANNEL_URL}\n\nDanach tippe auf <b>"✅ Abonniert"</b>.`;
+    return `🤝 <b>One step to your VPN</b>\n\nDarkShare VPN runs on the infrastructure of our official partner <b>AlorVPN</b>. Please subscribe to their channel before using the VPN — it's a partnership requirement.\n\n👉 ${PARTNER_CHANNEL_URL}\n\nThen tap <b>"✅ I subscribed"</b>.`;
+  }
+  function partnerGateKb(lang: string) {
+    const subBtn = lang === "uk" ? "📢 Відкрити канал AlorVPN" : lang === "ru" ? "📢 Открыть канал AlorVPN" : lang === "es" ? "📢 Abrir canal AlorVPN" : lang === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel";
+    const okBtn = lang === "uk" ? "✅ Я підписався" : lang === "ru" ? "✅ Я подписался" : lang === "es" ? "✅ Ya me suscribí" : lang === "de" ? "✅ Abonniert" : "✅ I subscribed";
+    return Markup.inlineKeyboard([
+      [urlS(subBtn, PARTNER_CHANNEL_URL, "primary")],
+      [cb(okBtn, "vpn_partner_check", "success")],
+      [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
+    ]);
+  }
+
   async function showVpnMenu(ctx: any, tgId: string, isEdit: boolean = true) {
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
@@ -3676,6 +3716,17 @@ ${faqText}`;
         [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
       ]);
       try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+      return;
+    }
+
+    // Partner channel gate — only for users who already have a VPN subscription.
+    // Unsubscribed users see the "buy" branch above and are NOT gated.
+    const hasVpnEarly = Boolean((user as any).alorVpnToken);
+    if (hasVpnEarly && !(await isSubscribedToPartner(ctx, tgId))) {
+      const text = partnerGateText(lang);
+      const kb = partnerGateKb(lang);
+      try { await ctx.deleteMessage(); } catch {}
+      await ctx.reply(text, { parse_mode: "HTML", disable_web_page_preview: false, ...kb });
       return;
     }
 
@@ -3803,6 +3854,31 @@ ${faqText}`;
     await showVpnMenu(ctx, tgId, true);
   });
 
+  // Re-check partner channel subscription after the user (claims to have) joined @AlorVPN.
+  // Invalidates the cached "not subscribed" entry so the live API result wins.
+  bot.action("vpn_partner_check", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    partnerSubCache.delete(tgId);
+    const ok = await isSubscribedToPartner(ctx, tgId);
+    if (ok) {
+      try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : "✅ Thanks!"); } catch {}
+      await showVpnMenu(ctx, tgId, true);
+    } else {
+      try {
+        await ctx.answerCbQuery(
+          lang === "uk" ? "❗ Підписку ще не бачимо. Підпишись і спробуй знову."
+          : lang === "ru" ? "❗ Подписку ещё не видим. Подпишись и попробуй снова."
+          : lang === "es" ? "❗ Aún no vemos la suscripción. Suscríbete y reintenta."
+          : lang === "de" ? "❗ Abo noch nicht gefunden. Abonniere und versuche es erneut."
+          : "❗ We don't see your subscription yet. Subscribe and retry.",
+          { show_alert: true } as any,
+        );
+      } catch {}
+    }
+  });
+
   // Force-sync VPN subscription state from AlorVPN before re-rendering the menu.
   // Fixes "stale info" complaints after recent payments / external renewals.
   bot.action("vpn_refresh", async (ctx) => {
@@ -3839,6 +3915,12 @@ ${faqText}`;
     const vpnToken = (user as any).alorVpnToken;
     if (!vpnToken) {
       try { await ctx.answerCbQuery(vpnT(lang, "noSubscription"), { show_alert: true }); } catch {}
+      await showVpnMenu(ctx, tgId, true);
+      return null;
+    }
+    // Partner channel gate (same as showVpnMenu) — block direct action access.
+    if (!(await isSubscribedToPartner(ctx, tgId))) {
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
       await showVpnMenu(ctx, tgId, true);
       return null;
     }
@@ -3930,6 +4012,11 @@ ${faqText}`;
     const tier = (user.tier || "FREE").toUpperCase();
     if (!isProTier(tier)) {
       await ctx.answerCbQuery("PRO required");
+      return showVpnMenu(ctx, tgId, true);
+    }
+    // Partner channel gate — must subscribe to @AlorVPN before provisioning.
+    if (!(await isSubscribedToPartner(ctx, tgId))) {
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
       return showVpnMenu(ctx, tgId, true);
     }
 
@@ -4038,22 +4125,33 @@ ${faqText}`;
   bot.action("vpn_devices", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
-    await ctx.answerCbQuery();
-    if (!user) return;
+    if (!user) { try { await ctx.answerCbQuery("⛔"); } catch {} return; }
+    const lang = getUserLang(user?.lang);
+    // Partner channel gate — protects against stale-button bypass.
+    if ((user as any).alorVpnToken && !(await isSubscribedToPartner(ctx, tgId))) {
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
+      return showVpnMenu(ctx, tgId, true);
+    }
+    try { await ctx.answerCbQuery(); } catch {}
     await renderVpnDevices(ctx, user);
   });
 
   bot.action(/^vpn_dev_rev:(\d+)$/, async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
-    if (!user) { await ctx.answerCbQuery(); return; }
-    const id = parseInt((ctx.match as any)[1], 10);
+    if (!user) { try { await ctx.answerCbQuery(); } catch {} return; }
     const lang = getUserLang(user?.lang);
+    // Partner channel gate.
+    if ((user as any).alorVpnToken && !(await isSubscribedToPartner(ctx, tgId))) {
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
+      return showVpnMenu(ctx, tgId, true);
+    }
+    const id = parseInt((ctx.match as any)[1], 10);
     try {
       await storage.revokeVpnDevice(id, user.id);
       await ctx.answerCbQuery(lang === "uk" ? "✅ Відкликано" : lang === "ru" ? "✅ Отозвано" : "✅ Revoked");
     } catch {
-      await ctx.answerCbQuery("⚠️");
+      try { await ctx.answerCbQuery("⚠️"); } catch {}
     }
     try { await renderVpnDevices(ctx, user); } catch { await showVpnMenu(ctx, tgId, true); }
   });
