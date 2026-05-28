@@ -151,7 +151,35 @@ export function registerVpnProxy(app: Express) {
         upstreamUrl = `https://sub.alorvpn.fun/sub/${encodeURIComponent(token)}`;
       }
 
-      const upstreamRes = await fetch(upstreamUrl, {
+      // Leverage AlorVPN's native query-param rebranding (prefix + per-country names)
+      // so even if our body rewriter misses a format edge-case, servers still show our brand.
+      // Docs: https://alorvpn.fun/manual — supports ?prefix= and ?names=country:NewName,...
+      const namesMap = [
+        "germany:🇩🇪 Germany",
+        "netherlands:🇳🇱 Netherlands",
+        "usa:🇺🇸 USA",
+        "us:🇺🇸 USA",
+        "uk:🇬🇧 United Kingdom",
+        "gb:🇬🇧 United Kingdom",
+        "france:🇫🇷 France",
+        "finland:🇫🇮 Finland",
+        "sweden:🇸🇪 Sweden",
+        "poland:🇵🇱 Poland",
+        "ukraine:🇺🇦 Ukraine",
+        "switzerland:🇨🇭 Switzerland",
+        "austria:🇦🇹 Austria",
+        "canada:🇨🇦 Canada",
+        "japan:🇯🇵 Japan",
+        "singapore:🇸🇬 Singapore",
+        "turkey:🇹🇷 Turkey",
+        "estonia:🇪🇪 Estonia",
+        "spain:🇪🇸 Spain",
+        "italy:🇮🇹 Italy",
+      ].join(",");
+      const sep = upstreamUrl.includes("?") ? "&" : "?";
+      const upstreamUrlWithParams = `${upstreamUrl}${sep}prefix=${encodeURIComponent(`${SERVER_PREFIX} `)}&names=${encodeURIComponent(namesMap)}`;
+
+      const upstreamRes = await fetch(upstreamUrlWithParams, {
         method: "GET",
         headers: {
           "User-Agent": req.get("user-agent") || "DarkShareVPN/1.0",
