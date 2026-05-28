@@ -182,12 +182,20 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
   app.get("/api/alor-vpn/devices", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
     try {
       const userId = req.user!.id;
+      // Best-effort: keep VPN expiry in sync with main subscription before reporting.
+      try { await syncAlorVpnWithSubscription(userId); } catch {}
       const devices = await storage.listVpnDevices(userId);
       const user = await storage.getUserById(userId);
       const tier = (user?.tier || "FREE").toUpperCase();
       const limit = vpnDeviceLimit(tier);
       const active = devices.filter((d: any) => !d.revokedAt);
-      const expiresAt = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
+      // Source of truth for days-left: the LATER of main subscription and VPN expiry,
+      // because we always extend the VPN to match the main subscription.
+      const vpnExp = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
+      const mainExp = (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt) : null;
+      const expiresAt = vpnExp && mainExp
+        ? (vpnExp.getTime() > mainExp.getTime() ? vpnExp : mainExp)
+        : (vpnExp || mainExp);
       const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000)) : null;
       res.json({
         ok: true,
@@ -224,6 +232,116 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
     }
   });
 
+  // ============ ADMIN VPN MANAGEMENT ============
+  app.get("/api/admin/vpn/users", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      if (!(await isAdminRequest(req))) return res.status(403).json({ error: "forbidden" });
+      const all = await storage.getAllUsers();
+      const vpnUsers = all.filter((u: any) => u.alorVpnToken);
+      const enriched = await Promise.all(
+        vpnUsers.map(async (u: any) => {
+          let devices: any[] = [];
+          try { devices = await storage.listVpnDevices(u.id); } catch {}
+          const active = devices.filter((d) => !d.revokedAt);
+          const tier = (u.tier || "FREE").toUpperCase();
+          const vpnExp = u.alorVpnExpiresAt ? new Date(u.alorVpnExpiresAt) : null;
+          const mainExp = u.subscriptionExpiresAt ? new Date(u.subscriptionExpiresAt) : null;
+          const exp = vpnExp && mainExp ? (vpnExp.getTime() > mainExp.getTime() ? vpnExp : mainExp) : (vpnExp || mainExp);
+          const daysLeft = exp ? Math.max(0, Math.ceil((exp.getTime() - Date.now()) / 86400000)) : null;
+          return {
+            id: u.id,
+            username: u.username,
+            tgId: u.tgId,
+            tier,
+            deviceLimit: vpnDeviceLimit(tier),
+            activeDevices: active.length,
+            totalDevices: devices.length,
+            vpnExpiresAt: vpnExp ? vpnExp.toISOString() : null,
+            subscriptionExpiresAt: mainExp ? mainExp.toISOString() : null,
+            daysLeft,
+            isActive: exp ? exp.getTime() > Date.now() : false,
+            inSync: !mainExp || !vpnExp || Math.abs(mainExp.getTime() - vpnExp.getTime()) < 86400000,
+            uuid: u.alorVpnUuid,
+          };
+        })
+      );
+      enriched.sort((a, b) => (b.activeDevices - a.activeDevices) || ((b.daysLeft || 0) - (a.daysLeft || 0)));
+      res.json({ ok: true, users: enriched, total: enriched.length });
+    } catch (err: any) {
+      console.error("[AlorVPN admin] list error:", err);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
+  app.post("/api/admin/vpn/users/:id/sync", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      if (!(await isAdminRequest(req))) return res.status(403).json({ error: "forbidden" });
+      const id = parseInt(req.params.id, 10);
+      if (!Number.isFinite(id)) return res.status(400).json({ error: "bad_id" });
+      const result = await syncAlorVpnWithSubscription(id);
+      res.json({ ok: true, ...result });
+    } catch (err: any) {
+      console.error("[AlorVPN admin] sync error:", err);
+      res.status(500).json({ error: "internal", message: err.message });
+    }
+  });
+
+  app.post("/api/admin/vpn/users/:id/toggle", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      if (!(await isAdminRequest(req))) return res.status(403).json({ error: "forbidden" });
+      const id = parseInt(req.params.id, 10);
+      const isActive = Boolean(req.body?.is_active);
+      const user = await storage.getUserById(id);
+      if (!user || !(user as any).alorVpnToken) return res.status(404).json({ error: "no_subscription" });
+      const result = await toggleAlorSubscription((user as any).alorVpnToken, isActive);
+      res.json({ ok: true, is_active: result.is_active });
+    } catch (err: any) {
+      console.error("[AlorVPN admin] toggle error:", err);
+      res.status(500).json({ error: "internal", message: err.message });
+    }
+  });
+
+  app.post("/api/admin/vpn/users/:id/revoke-all", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      if (!(await isAdminRequest(req))) return res.status(403).json({ error: "forbidden" });
+      const id = parseInt(req.params.id, 10);
+      if (!Number.isFinite(id)) return res.status(400).json({ error: "bad_id" });
+      const devices = await storage.listVpnDevices(id);
+      let revoked = 0;
+      for (const d of devices) {
+        if (!d.revokedAt) { await storage.revokeVpnDevice(d.id, id); revoked++; }
+      }
+      res.json({ ok: true, revoked });
+    } catch (err: any) {
+      console.error("[AlorVPN admin] revoke-all error:", err);
+      res.status(500).json({ error: "internal", message: err.message });
+    }
+  });
+
+  app.get("/api/admin/vpn/users/:id/devices", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
+    try {
+      if (!(await isAdminRequest(req))) return res.status(403).json({ error: "forbidden" });
+      const id = parseInt(req.params.id, 10);
+      if (!Number.isFinite(id)) return res.status(400).json({ error: "bad_id" });
+      const devices = await storage.listVpnDevices(id);
+      res.json({
+        ok: true,
+        devices: devices.map((d: any) => ({
+          id: d.id,
+          name: d.deviceName || "VPN client",
+          userAgent: d.userAgent,
+          ipPrefix: d.ipPrefix,
+          firstSeen: d.firstSeen,
+          lastSeen: d.lastSeen,
+          revoked: Boolean(d.revokedAt),
+        })),
+      });
+    } catch (err: any) {
+      console.error("[AlorVPN admin] devices error:", err);
+      res.status(500).json({ error: "internal", message: err.message });
+    }
+  });
+
   app.post("/api/alor-vpn/toggle", loadUser, requireAuth, async (req: AuthReq, res: Response) => {
     try {
       const user = await storage.getUserById(req.user!.id);
@@ -244,6 +362,22 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
   });
 }
 
+// Resolve the effective VPN plan days for a user. We use the LATER of:
+//   (a) the explicit periodDays passed in (current purchase window), and
+//   (b) the days remaining on the user's main DarkShare subscription.
+// This guarantees the VPN never expires before the user's paid subscription does.
+function effectivePlanDays(user: any, periodDays: number): number {
+  let days = Math.max(1, Math.floor(periodDays || 30));
+  const mainExp = user?.subscriptionExpiresAt
+    ? new Date(user.subscriptionExpiresAt)
+    : null;
+  if (mainExp && mainExp.getTime() > Date.now()) {
+    const mainDays = Math.ceil((mainExp.getTime() - Date.now()) / 86400000);
+    if (mainDays > days) days = mainDays;
+  }
+  return days;
+}
+
 export async function autoProvisionAlorVpn(userId: number, tier: string, periodDays: number): Promise<void> {
   if (!isAlorConfigured()) return;
   if (!["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) return;
@@ -252,27 +386,101 @@ export async function autoProvisionAlorVpn(userId: number, tier: string, periodD
     const user = await storage.getUserById(userId);
     if (!user) return;
 
+    const planDays = effectivePlanDays(user, periodDays);
+
     if (user.alorVpnToken) {
       try {
         await toggleAlorSubscription(user.alorVpnToken, true);
-        const newExpiry = new Date(Date.now() + periodDays * 86400000);
+        const newExpiry = new Date(Date.now() + planDays * 86400000);
         await storage.updateUser(userId, { alorVpnExpiresAt: newExpiry });
-        console.log(`[AlorVPN] Reactivated subscription for user ${userId}`);
+        console.log(`[AlorVPN] Reactivated subscription for user ${userId} (+${planDays}d)`);
         return;
       } catch {
         // fallthrough to create new
       }
     }
 
-    const sub = await createAlorSubscription(periodDays);
+    const sub = await createAlorSubscription(planDays);
     await storage.updateUser(userId, {
       alorVpnToken: sub.token,
       alorVpnUuid: sub.uuid,
       alorVpnSubscriptionUrl: sub.subscription_url,
       alorVpnExpiresAt: new Date(sub.expires_at),
     });
-    console.log(`[AlorVPN] Created subscription for user ${userId}, expires ${sub.expires_at}`);
+    console.log(`[AlorVPN] Created subscription for user ${userId}, expires ${sub.expires_at} (${planDays}d)`);
   } catch (err: any) {
     console.error(`[AlorVPN] Auto-provision failed for user ${userId}:`, err.message);
   }
+}
+
+// Cooldown to avoid hammering the Alor API when called from polling endpoints.
+// We track the last sync attempt per-user and short-circuit subsequent calls within the window.
+const SYNC_COOLDOWN_MS = 60_000;
+const lastSyncAt: Map<number, number> = new Map();
+
+// Re-sync an existing user's VPN with their main subscription. Safe to call repeatedly.
+// If the user's main subscription expires later than their VPN, re-provision (extend) the VPN.
+// Pass `force=true` from admin actions to bypass the polling cooldown.
+export async function syncAlorVpnWithSubscription(userId: number, force = false): Promise<{ extended: boolean; expiresAt: string | null; skipped?: boolean }> {
+  if (!isAlorConfigured()) return { extended: false, expiresAt: null };
+  const user = await storage.getUserById(userId);
+  if (!user) return { extended: false, expiresAt: null };
+  const tier = (user.tier || "FREE").toUpperCase();
+  if (!["PRO", "ENTERPRISE", "GROUPS"].includes(tier)) return { extended: false, expiresAt: null };
+
+  const mainExp = (user as any).subscriptionExpiresAt
+    ? new Date((user as any).subscriptionExpiresAt)
+    : null;
+  const vpnExp = (user as any).alorVpnExpiresAt
+    ? new Date((user as any).alorVpnExpiresAt)
+    : null;
+
+  // If main sub is longer than VPN sub by more than 1 day, extend.
+  if (mainExp && (!vpnExp || mainExp.getTime() - (vpnExp?.getTime() || 0) > 86400000)) {
+    // Cooldown: skip if we tried recently (prevents hammering Alor API when extension fails).
+    const last = lastSyncAt.get(userId) || 0;
+    if (!force && Date.now() - last < SYNC_COOLDOWN_MS) {
+      return { extended: false, expiresAt: vpnExp ? vpnExp.toISOString() : null, skipped: true };
+    }
+    lastSyncAt.set(userId, Date.now());
+
+    const days = Math.ceil((mainExp.getTime() - Date.now()) / 86400000);
+    if (days > 0) {
+      const beforeExp = vpnExp ? vpnExp.getTime() : 0;
+      await autoProvisionAlorVpn(userId, tier, days);
+      const refreshed = await storage.getUserById(userId);
+      const afterExp = (refreshed as any)?.alorVpnExpiresAt
+        ? new Date((refreshed as any).alorVpnExpiresAt).getTime()
+        : 0;
+      // Only report extended=true when the expiry actually advanced.
+      return {
+        extended: afterExp > beforeExp + 86400000,
+        expiresAt: afterExp ? new Date(afterExp).toISOString() : null,
+      };
+    }
+  }
+  return { extended: false, expiresAt: vpnExp ? vpnExp.toISOString() : null };
+}
+
+// Local admin guard mirroring the requireAdmin defined in server/routes.ts so that both
+// x-admin-token (password admin) and ADMIN_IDS (Telegram admin) modes work consistently.
+async function isAdminRequest(req: any): Promise<boolean> {
+  const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "";
+  const ADMIN_LOGIN_ENABLED = Boolean(process.env.ADMIN_PASSWORD && ADMIN_TOKEN_SECRET);
+  const tokenHeader = (req.headers["x-admin-token"] as string) || "";
+  if (ADMIN_LOGIN_ENABLED && tokenHeader && tokenHeader.length === ADMIN_TOKEN_SECRET.length) {
+    // constant-time compare
+    let diff = 0;
+    for (let i = 0; i < tokenHeader.length; i++) diff |= tokenHeader.charCodeAt(i) ^ ADMIN_TOKEN_SECRET.charCodeAt(i);
+    if (diff === 0) return true;
+  }
+  const ADMIN_IDS = (process.env.ADMIN_IDS || "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (req.user && ADMIN_IDS.includes(String(req.user.tgId || ""))) return true;
+  if (!req.user && req.session?.userId) {
+    try {
+      const u = await storage.getUserById(req.session.userId);
+      if (u && ADMIN_IDS.includes(u.tgId)) return true;
+    } catch {}
+  }
+  return false;
 }

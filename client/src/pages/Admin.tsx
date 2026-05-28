@@ -199,7 +199,221 @@ interface ActivityLogResponse {
   offset: number;
 }
 
-type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "coupons" | "settings" | "messages" | "activity" | "banners" | "email";
+type AdminTab = "dashboard" | "tickets" | "payments" | "users" | "vpn" | "coupons" | "settings" | "messages" | "activity" | "banners" | "email";
+
+interface AdminVpnUser {
+  id: number;
+  username: string | null;
+  tgId: string;
+  tier: string;
+  deviceLimit: number;
+  activeDevices: number;
+  totalDevices: number;
+  vpnExpiresAt: string | null;
+  subscriptionExpiresAt: string | null;
+  daysLeft: number | null;
+  isActive: boolean;
+  inSync: boolean;
+  uuid: string | null;
+}
+
+function AdminVpnPanel() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const { data, isLoading, refetch } = useQuery<{ ok: boolean; users: AdminVpnUser[]; total: number }>({
+    queryKey: ["/api/admin/vpn/users"],
+    refetchInterval: 30000,
+  });
+
+  const syncMut = useMutation({
+    mutationFn: async (id: number) => apiRequest("POST", `/api/admin/vpn/users/${id}/sync`, {}),
+    onSuccess: (_d, id) => { toast({ title: `Синхронізовано #${id}` }); qc.invalidateQueries({ queryKey: ["/api/admin/vpn/users"] }); },
+    onError: (e: any) => toast({ title: "Помилка синхронізації", description: e?.message, variant: "destructive" }),
+  });
+  const toggleMut = useMutation({
+    mutationFn: async (p: { id: number; isActive: boolean }) =>
+      apiRequest("POST", `/api/admin/vpn/users/${p.id}/toggle`, { is_active: p.isActive }),
+    onSuccess: (_d, p) => { toast({ title: p.isActive ? "Увімкнено VPN" : "Вимкнено VPN" }); qc.invalidateQueries({ queryKey: ["/api/admin/vpn/users"] }); },
+    onError: (e: any) => toast({ title: "Помилка перемикання", description: e?.message, variant: "destructive" }),
+  });
+  const revokeMut = useMutation({
+    mutationFn: async (id: number) => apiRequest("POST", `/api/admin/vpn/users/${id}/revoke-all`, {}),
+    onSuccess: (d: any, id) => { toast({ title: `Відкликано ${d?.revoked ?? 0} пристроїв`, description: `Користувач #${id}` }); qc.invalidateQueries({ queryKey: ["/api/admin/vpn/users"] }); },
+    onError: (e: any) => toast({ title: "Помилка відкликання", description: e?.message, variant: "destructive" }),
+  });
+
+  const users = (data?.users || []).filter((u) => {
+    if (!search) return true;
+    const s = search.toLowerCase();
+    return (u.username || "").toLowerCase().includes(s) || u.tgId.includes(s) || u.id.toString().includes(s);
+  });
+  const totals = {
+    active: data?.users?.filter((u) => u.isActive).length || 0,
+    expired: data?.users?.filter((u) => !u.isActive).length || 0,
+    devices: data?.users?.reduce((sum, u) => sum + u.activeDevices, 0) || 0,
+    desync: data?.users?.filter((u) => !u.inSync).length || 0,
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Wifi className="w-5 h-5 text-primary" />
+          DarkShare VPN — користувачі
+        </h2>
+        <div className="flex items-center gap-2">
+          <div className="relative w-56">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Пошук user / id / tg..." className="pl-9 bg-white/5 border-white/10 h-9" data-testid="input-vpn-search" />
+          </div>
+          <Button variant="outline" size="sm" className="h-9" onClick={() => refetch()} data-testid="button-vpn-refresh">
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: "Активні", value: totals.active, icon: CheckCircle, color: "text-green-400", bg: "from-green-500/20 to-emerald-500/10" },
+          { label: "Прострочені", value: totals.expired, icon: AlertCircle, color: "text-orange-400", bg: "from-orange-500/20 to-red-500/10" },
+          { label: "Пристрої онлайн", value: totals.devices, icon: Server, color: "text-cyan-400", bg: "from-cyan-500/20 to-blue-500/10" },
+          { label: "Не синх.", value: totals.desync, icon: Clock, color: "text-yellow-400", bg: "from-yellow-500/20 to-amber-500/10" },
+        ].map((s) => (
+          <Card key={s.label} className="border-white/10 bg-white/5 overflow-hidden relative">
+            <div className={`absolute inset-0 bg-gradient-to-br ${s.bg} opacity-50 pointer-events-none`} />
+            <CardContent className="p-4 relative">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className="text-2xl font-bold mt-1" data-testid={`stat-vpn-${s.label}`}>{s.value}</p>
+                </div>
+                <s.icon className={`w-8 h-8 ${s.color} opacity-60`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="border-white/10 bg-white/5">
+        <CardContent className="pt-6">
+          {isLoading ? (
+            <div className="space-y-2">{Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Wifi className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>Користувачів з активним VPN ще немає.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-white/10">
+                    <TableHead>ID</TableHead>
+                    <TableHead>Користувач</TableHead>
+                    <TableHead>Тариф</TableHead>
+                    <TableHead>Пристрої</TableHead>
+                    <TableHead>Днів</TableHead>
+                    <TableHead className="hidden md:table-cell">VPN до</TableHead>
+                    <TableHead className="hidden lg:table-cell">Підписка до</TableHead>
+                    <TableHead>Статус</TableHead>
+                    <TableHead className="text-right">Дії</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((u) => {
+                    const isCritical = u.daysLeft !== null && u.daysLeft <= 3;
+                    const slotsFull = u.activeDevices >= u.deviceLimit;
+                    return (
+                      <TableRow key={u.id} className="border-white/10 group" data-testid={`vpn-row-${u.id}`}>
+                        <TableCell className="font-mono text-xs">#{u.id}</TableCell>
+                        <TableCell>
+                          <div className="font-medium">{u.username || "—"}</div>
+                          <div className="text-xs text-muted-foreground font-mono">{u.tgId.startsWith("replit:") ? "Web" : u.tgId}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={
+                            u.tier === "ENTERPRISE" ? "bg-purple-500/10 text-purple-400 border-purple-500/30"
+                            : u.tier === "GROUPS" ? "bg-pink-500/10 text-pink-400 border-pink-500/30"
+                            : "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                          }>{u.tier}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`font-mono text-sm ${slotsFull ? "text-orange-400" : "text-foreground"}`}>
+                            {u.activeDevices} / {u.deviceLimit}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`font-semibold ${isCritical ? "text-red-400" : (u.daysLeft || 0) <= 7 ? "text-yellow-400" : "text-green-400"}`}>
+                            {u.daysLeft ?? "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">
+                          {u.vpnExpiresAt ? format(new Date(u.vpnExpiresAt), "dd.MM.yyyy") : "—"}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
+                          {u.subscriptionExpiresAt ? format(new Date(u.subscriptionExpiresAt), "dd.MM.yyyy") : "—"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {u.isActive ? (
+                              <Badge className="bg-green-500/10 text-green-400 border-green-500/30 text-[10px]">Активний</Badge>
+                            ) : (
+                              <Badge className="bg-red-500/10 text-red-400 border-red-500/30 text-[10px]">Прострочено</Badge>
+                            )}
+                            {!u.inSync && (
+                              <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30 text-[10px]">Не синх</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost" size="icon"
+                              className="text-cyan-400 h-7 w-7"
+                              onClick={() => syncMut.mutate(u.id)}
+                              disabled={syncMut.isPending}
+                              title="Синхронізувати з підпискою"
+                              data-testid={`button-vpn-sync-${u.id}`}
+                            >
+                              <RefreshCw className={`w-3.5 h-3.5 ${syncMut.isPending && syncMut.variables === u.id ? "animate-spin" : ""}`} />
+                            </Button>
+                            <Button
+                              variant="ghost" size="icon"
+                              className={u.isActive ? "text-orange-400 h-7 w-7" : "text-green-400 h-7 w-7"}
+                              onClick={() => toggleMut.mutate({ id: u.id, isActive: !u.isActive })}
+                              disabled={toggleMut.isPending}
+                              title={u.isActive ? "Вимкнути VPN" : "Увімкнути VPN"}
+                              data-testid={`button-vpn-toggle-${u.id}`}
+                            >
+                              {u.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost" size="icon"
+                              className="text-red-400 h-7 w-7"
+                              onClick={() => {
+                                if (confirm(`Відкликати всі ${u.activeDevices} пристроїв користувача #${u.id}?`)) revokeMut.mutate(u.id);
+                              }}
+                              disabled={revokeMut.isPending || u.activeDevices === 0}
+                              title="Відкликати всі пристрої"
+                              data-testid={`button-vpn-revoke-${u.id}`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
 
 function generateCouponCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -749,6 +963,7 @@ export default function Admin() {
     { id: "tickets", label: "Звернення", icon: MessageSquare, count: openTickets },
     { id: "payments", label: "Платежі", icon: CreditCard, count: pendingPayments?.length },
     { id: "users", label: "Користувачі", icon: Users },
+    { id: "vpn", label: "VPN", icon: Wifi },
     { id: "coupons", label: "Купони", icon: Ticket },
     { id: "banners", label: "Банери", icon: Megaphone },
     { id: "email", label: "Email", icon: Mail },
@@ -1761,6 +1976,8 @@ export default function Admin() {
               </Card>
             </motion.div>
           )}
+
+          {activeTab === "vpn" && <AdminVpnPanel />}
 
           {activeTab === "coupons" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">

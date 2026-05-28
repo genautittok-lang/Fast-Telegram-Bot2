@@ -3830,7 +3830,12 @@ ${faqText}`;
     const tier = (user.tier || "FREE").toUpperCase();
     const limit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : tier === "PRO" ? 2 : 0;
     const countriesLabel = tier === "PRO" ? "7" : (tier === "ENTERPRISE" || tier === "GROUPS") ? "20+" : "0";
-    const expiresAt = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
+    // Source of truth: later of (VPN expiry, main subscription expiry) — they're kept in sync.
+    const vpnExp = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
+    const mainExp = (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt) : null;
+    const expiresAt = vpnExp && mainExp
+      ? (vpnExp.getTime() > mainExp.getTime() ? vpnExp : mainExp)
+      : (vpnExp || mainExp);
     const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000)) : null;
     let devices: any[] = [];
     try { devices = await storage.listVpnDevices(user.id); } catch {}

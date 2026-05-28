@@ -402,16 +402,71 @@ function rewriteClashYaml(text: string, tier?: string): string {
   return finalOut.join("\n");
 }
 
-// Rewrite sing-box JSON: rename `tag` fields in `outbounds` array
-function rewriteSingBoxJson(text: string): string {
+// Rewrite sing-box JSON: rename `tag` fields in `outbounds` AND drop outbounds whose
+// country is not allowed for the tier. Also clean up references in selector/urltest groups
+// (their `outbounds: ["tag", ...]` lists) so the config stays valid after the drop.
+function rewriteSingBoxJson(text: string, tier?: string): string {
   try {
     const obj = JSON.parse(text);
-    const renameTag = (item: any) => {
-      if (item && typeof item.tag === "string" && item.type && /^(vless|vmess|trojan|shadowsocks|ss)$/i.test(item.type)) {
-        item.tag = rebrandRemark(item.tag);
+    if (!Array.isArray(obj.outbounds)) return JSON.stringify(obj, null, 2);
+
+    const restricted = tier ? TIER_COUNTRIES[tier.toUpperCase()] != null : false;
+    const droppedTags = new Set<string>();
+    const renameMap = new Map<string, string>();
+
+    const isProxyType = (t?: string) =>
+      typeof t === "string" && /^(vless|vmess|trojan|shadowsocks|ss)$/i.test(t);
+
+    obj.outbounds = obj.outbounds.filter((item: any) => {
+      if (!item || typeof item.tag !== "string") return true;
+      if (!isProxyType(item.type)) return true;
+      const orig = item.tag;
+      if (restricted && !isAllowedForTier(orig, tier!)) {
+        droppedTags.add(orig);
+        return false;
       }
-    };
-    if (Array.isArray(obj.outbounds)) obj.outbounds.forEach(renameTag);
+      const newTag = rebrandRemark(orig);
+      if (newTag !== orig) {
+        renameMap.set(orig, newTag);
+        item.tag = newTag;
+      }
+      return true;
+    });
+
+    // Clean up selector/urltest outbounds references
+    for (const item of obj.outbounds) {
+      if (!item || !Array.isArray(item.outbounds)) continue;
+      if (!/^(selector|urltest)$/i.test(item.type || "")) continue;
+      const cleaned: string[] = [];
+      for (const ref of item.outbounds) {
+        if (typeof ref !== "string") { cleaned.push(ref); continue; }
+        if (droppedTags.has(ref)) continue;
+        cleaned.push(renameMap.get(ref) || ref);
+      }
+      if (cleaned.length === 0) cleaned.push("direct");
+      item.outbounds = cleaned;
+      if (typeof item.default === "string") {
+        if (droppedTags.has(item.default)) item.default = cleaned[0];
+        else if (renameMap.has(item.default)) item.default = renameMap.get(item.default);
+      }
+    }
+
+    // Clean up route.rules outbound references AND route.final (independently — `final` can
+    // exist without `rules`, and either alone can leave stale tags pointing to dropped outbounds).
+    if (obj.route) {
+      if (Array.isArray(obj.route.rules)) {
+        for (const rule of obj.route.rules) {
+          if (!rule || typeof rule.outbound !== "string") continue;
+          if (droppedTags.has(rule.outbound)) rule.outbound = "direct";
+          else if (renameMap.has(rule.outbound)) rule.outbound = renameMap.get(rule.outbound);
+        }
+      }
+      if (typeof obj.route.final === "string") {
+        if (droppedTags.has(obj.route.final)) obj.route.final = "direct";
+        else if (renameMap.has(obj.route.final)) obj.route.final = renameMap.get(obj.route.final);
+      }
+    }
+
     return JSON.stringify(obj, null, 2);
   } catch {
     return text;
@@ -429,7 +484,7 @@ function rewriteBody(text: string, tier?: string): string {
 
   // Sing-box JSON
   if (trimmed.startsWith("{") && /"outbounds"\s*:/.test(trimmed)) {
-    return rewriteSingBoxJson(text);
+    return rewriteSingBoxJson(text, tier);
   }
 
   // Clash YAML
