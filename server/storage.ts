@@ -20,6 +20,7 @@ export interface IStorage {
   getUserByTgId(tgId: string): Promise<User | undefined>;
   getUserByRefCode(refCode: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | null>;
+  getUserByAlorVpnToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserLogin(id: number): Promise<void>;
@@ -191,6 +192,12 @@ export class DatabaseStorage implements IStorage {
     if (!db) throw new Error("Database not available");
     const result = await db.select().from(users).where(sql`LOWER(${users.username}) = LOWER(${username})`).limit(1);
     return result[0] || null;
+  }
+
+  async getUserByAlorVpnToken(token: string): Promise<User | undefined> {
+    if (!db) throw new Error("Database not available");
+    const [user] = await db.select().from(users).where(eq((users as any).alorVpnToken, token)).limit(1);
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -1005,6 +1012,10 @@ export class MemStorage implements IStorage {
       u.username?.toLowerCase() === username.toLowerCase()
     );
     return user || null;
+  }
+
+  async getUserByAlorVpnToken(token: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => (u as any).alorVpnToken === token);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

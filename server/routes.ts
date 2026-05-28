@@ -19,6 +19,7 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import { registerVpnRoutes } from "./vpn";
 import { registerAlorVpnRoutes, autoProvisionAlorVpn } from "./alorVpnRoutes";
+import { registerVpnProxy } from "./vpnProxy";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -576,6 +577,8 @@ ${urlEntries}
   registerVpnRoutes(app, loadUser, requireAuth);
   // AlorVPN B2B routes
   registerAlorVpnRoutes(app, loadUser, requireAuth);
+  // Public white-label VPN subscription proxy (DarkShare VPN rebranding)
+  registerVpnProxy(app);
   registerApiV1(app);
   registerSeoRoutes(app);
 

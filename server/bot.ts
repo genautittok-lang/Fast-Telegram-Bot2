@@ -3665,7 +3665,8 @@ ${faqText}`;
 
     const hasVpn = Boolean((user as any).alorVpnToken);
     const vpnExpiry = (user as any).alorVpnExpiresAt;
-    const vpnUrl = (user as any).alorVpnSubscriptionUrl;
+    const vpnToken = (user as any).alorVpnToken;
+    const vpnUrl = vpnToken ? `${webUrl}/vpn/sub/${vpnToken}` : null;
 
     if (hasVpn && vpnUrl) {
       const expiryStr = vpnExpiry ? new Date(vpnExpiry).toLocaleDateString("uk-UA") : "—";
@@ -3706,11 +3707,12 @@ ${faqText}`;
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
     if (!user) return ctx.answerCbQuery("⛔");
-    const vpnUrl = (user as any).alorVpnSubscriptionUrl;
-    if (!vpnUrl) {
+    const vpnToken = (user as any).alorVpnToken;
+    if (!vpnToken) {
       await ctx.answerCbQuery(vpnT(lang, "noSubscription"), { show_alert: true });
       return showVpnMenu(ctx, tgId, true);
     }
+    const vpnUrl = `${webUrl}/vpn/sub/${vpnToken}`;
     await ctx.answerCbQuery();
     const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "subUrl"))}</b>\n\n<code>${escHtml(vpnUrl)}</code>\n\n<i>${escHtml(vpnT(lang, "instruction") === vpnT(lang, "instruction") ? (lang === "uk" ? "Скопіюй та вставте в застосунок VPN" : lang === "ru" ? "Скопируй и вставь в приложение VPN" : "Copy and paste into your VPN app") : "")}</i>`;
     const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "instruction"), "vpn_instruction", "primary", E.eye), cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)]]);

@@ -8,9 +8,15 @@ import {
   vpnDeviceLimit,
   vpnPlanDays,
 } from "./alorVpn";
+import { buildPublicSubUrl } from "./vpnProxy";
 
 interface AuthReq extends Request {
   user?: { id: number; tier?: string | null; tgId?: string | null } & any;
+}
+
+function publicSubUrl(req: Request, token: string | null | undefined): string | null {
+  if (!token) return null;
+  return buildPublicSubUrl(req, token);
 }
 
 export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: any) {
@@ -34,7 +40,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       let isActive = false;
       let expiresAt = user.alorVpnExpiresAt;
-      let subscriptionUrl = user.alorVpnSubscriptionUrl;
+      const subscriptionUrl = publicSubUrl(req, user.alorVpnToken);
 
       if (configured && user.alorVpnToken) {
         try {
@@ -89,7 +95,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
             return res.json({
               ok: true,
               alreadyActive: true,
-              subscriptionUrl: user.alorVpnSubscriptionUrl,
+              subscriptionUrl: publicSubUrl(req, user.alorVpnToken),
               expiresAt: status.expires_at,
               uuid: user.alorVpnUuid,
             });
@@ -100,7 +106,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
           return res.json({
             ok: true,
             reactivated: true,
-            subscriptionUrl: user.alorVpnSubscriptionUrl,
+            subscriptionUrl: publicSubUrl(req, user.alorVpnToken),
             expiresAt: newExpiry.toISOString(),
             uuid: user.alorVpnUuid,
           });
@@ -127,7 +133,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       return res.json({
         ok: true,
-        subscriptionUrl: sub.subscription_url,
+        subscriptionUrl: publicSubUrl(req, sub.token),
         expiresAt: sub.expires_at,
         uuid: sub.uuid,
       });
@@ -153,7 +159,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
       return res.json({
         ok: true,
         isActive: status.is_active,
-        subscriptionUrl: user.alorVpnSubscriptionUrl,
+        subscriptionUrl: publicSubUrl(req, user.alorVpnToken),
         expiresAt: status.expires_at,
         uuid: user.alorVpnUuid,
       });
