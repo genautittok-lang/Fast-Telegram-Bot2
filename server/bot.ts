@@ -3616,11 +3616,11 @@ ${faqText}`;
       back: { uk: "◀️ Назад", ru: "◀️ Назад", en: "◀️ Back", es: "◀️ Atrás", de: "◀️ Zurück" },
       buyPro: { uk: "💎 Купити PRO з VPN", ru: "💎 Купить PRO с VPN", en: "💎 Get PRO with VPN", es: "💎 Obtener PRO con VPN", de: "💎 PRO mit VPN holen" },
       instructionText: {
-        uk: "📲 <b>Як підключитися до DarkShare VPN:</b>\n\n1. Встанови один з додатків:\n   • Android: <b>Happ</b>, v2rayNG або Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ або Streisand\n   • Windows/Mac: <b>Happ</b> або Clash Verge\n\n2. Відкрий додаток → «Додати підписку» або «Імпортувати за URL»\n3. Встав <b>посилання підписки</b>\n4. Вибери сервер → Підключитись\n\n✅ Готово! Трафік зашифровано.",
-        ru: "📲 <b>Как подключиться к DarkShare VPN:</b>\n\n1. Установи одно из приложений:\n   • Android: <b>Happ</b>, v2rayNG или Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ или Streisand\n   • Windows/Mac: <b>Happ</b> или Clash Verge\n\n2. Открой приложение → «Добавить подписку» или «Импорт по URL»\n3. Вставь <b>ссылку подписки</b>\n4. Выбери сервер → Подключиться\n\n✅ Готово! Трафик зашифрован.",
-        en: "📲 <b>How to connect to DarkShare VPN:</b>\n\n1. Install one of these apps:\n   • Android: <b>Happ</b>, v2rayNG or Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ or Streisand\n   • Windows/Mac: <b>Happ</b> or Clash Verge\n\n2. Open the app → 'Add subscription' or 'Import from URL'\n3. Paste your <b>subscription link</b>\n4. Select a server → Connect\n\n✅ Done! Your traffic is encrypted.",
-        es: "📲 <b>Cómo conectarse a DarkShare VPN:</b>\n\n1. Instala una de estas apps:\n   • Android: <b>Happ</b>, v2rayNG o Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ o Streisand\n   • Windows/Mac: <b>Happ</b> o Clash Verge\n\n2. Abre la app → 'Agregar suscripción' o 'Importar desde URL'\n3. Pega tu <b>enlace de suscripción</b>\n4. Selecciona un servidor → Conectar\n\n✅ ¡Listo! Tu tráfico está cifrado.",
-        de: "📲 <b>So verbindest du dich mit DarkShare VPN:</b>\n\n1. Installiere eine dieser Apps:\n   • Android: <b>Happ</b>, v2rayNG oder Nekobox\n   • iPhone: <b>Shadowrocket</b>, Happ oder Streisand\n   • Windows/Mac: <b>Happ</b> oder Clash Verge\n\n2. App öffnen → 'Abo hinzufügen' oder 'URL importieren'\n3. Deinen <b>Abonnement-Link</b> einfügen\n4. Server auswählen → Verbinden\n\n✅ Fertig! Dein Traffic ist verschlüsselt.",
+        uk: "📲 <b>Як підключитися до DarkShare VPN:</b>\n\n1. Встанови один з додатків:\n   • Android: <b>Happ</b>, v2rayNG або Nekobox\n   • iPhone: <b>Shadowrocket</b> або Happ\n   • Windows/Mac: <b>Happ</b>, Clash Verge або v2rayN\n\n2. Відкрий додаток → «Додати підписку» або «Імпортувати за URL»\n3. Встав <b>посилання підписки</b>\n4. Вибери сервер → Підключитись\n\n✅ Готово! Трафік зашифровано.",
+        ru: "📲 <b>Как подключиться к DarkShare VPN:</b>\n\n1. Установи одно из приложений:\n   • Android: <b>Happ</b>, v2rayNG или Nekobox\n   • iPhone: <b>Shadowrocket</b> или Happ\n   • Windows/Mac: <b>Happ</b>, Clash Verge или v2rayN\n\n2. Открой приложение → «Добавить подписку» или «Импорт по URL»\n3. Вставь <b>ссылку подписки</b>\n4. Выбери сервер → Подключиться\n\n✅ Готово! Трафик зашифрован.",
+        en: "📲 <b>How to connect to DarkShare VPN:</b>\n\n1. Install one of these apps:\n   • Android: <b>Happ</b>, v2rayNG or Nekobox\n   • iPhone: <b>Shadowrocket</b> or Happ\n   • Windows/Mac: <b>Happ</b>, Clash Verge or v2rayN\n\n2. Open the app → 'Add subscription' or 'Import from URL'\n3. Paste your <b>subscription link</b>\n4. Select a server → Connect\n\n✅ Done! Your traffic is encrypted.",
+        es: "📲 <b>Cómo conectarse a DarkShare VPN:</b>\n\n1. Instala una de estas apps:\n   • Android: <b>Happ</b>, v2rayNG o Nekobox\n   • iPhone: <b>Shadowrocket</b> o Happ\n   • Windows/Mac: <b>Happ</b>, Clash Verge o v2rayN\n\n2. Abre la app → 'Agregar suscripción' o 'Importar desde URL'\n3. Pega tu <b>enlace de suscripción</b>\n4. Selecciona un servidor → Conectar\n\n✅ ¡Listo! Tu tráfico está cifrado.",
+        de: "📲 <b>So verbindest du dich mit DarkShare VPN:</b>\n\n1. Installiere eine dieser Apps:\n   • Android: <b>Happ</b>, v2rayNG oder Nekobox\n   • iPhone: <b>Shadowrocket</b> oder Happ\n   • Windows/Mac: <b>Happ</b>, Clash Verge oder v2rayN\n\n2. App öffnen → 'Abo hinzufügen' oder 'URL importieren'\n3. Deinen <b>Abonnement-Link</b> einfügen\n4. Server auswählen → Verbinden\n\n✅ Fertig! Dein Traffic ist verschlüsselt.",
       },
       activating: {
         uk: "⏳ Активую підписку...",
@@ -3911,8 +3911,7 @@ ${faqText}`;
     const kb = Markup.inlineKeyboard([
       [urlS(`⭐ ${openInLabel} Happ`, bridge("happ"), "success")],
       [urlS(`🍎 Shadowrocket (iOS)`, bridge("shadowrocket"), "primary"), urlS(`🤖 v2rayNG (Android)`, bridge("v2rayng"), "primary")],
-      [urlS(`🌐 Hiddify`, bridge("hiddify"), "primary"), urlS(`💎 Streisand (iOS)`, bridge("streisand"), "primary")],
-      [urlS(`💻 Clash Verge`, bridge("clashverge"), "primary"), urlS(`🦊 FoXray (iOS)`, bridge("foxray"), "primary")],
+      [urlS(`💻 Clash Verge`, bridge("clashverge"), "primary"), urlS(`🪟 v2rayN (Win)`, bridge("v2rayn"), "primary")],
       [
         cb(`📷 QR`, "vpn_qr", "default"),
         cb(`🔗 ${c.lang === "uk" ? "Лінк" : c.lang === "ru" ? "Линк" : "Link"}`, "vpn_copy_link", "default"),
@@ -4068,8 +4067,8 @@ ${faqText}`;
       lang === "uk"
         ? `${pe("lock")} <b>Як підключити DarkShare VPN</b>\n\n` +
           `<b>1.</b> Встанови застосунок під свою систему:\n` +
-          `   • <b>iPhone:</b> Happ, Shadowrocket, Streisand\n` +
-          `   • <b>Android:</b> Happ, v2rayNG, Hiddify\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Nekobox\n` +
           `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
           `<b>2.</b> Натисни «${escHtml("Get config")}» в боті — отримаєш QR + кнопки.\n\n` +
           `<b>3.</b> Натисни кнопку свого застосунку — підписка імпортується автоматично. Або відскануй QR.\n\n` +
@@ -4078,8 +4077,8 @@ ${faqText}`;
         : lang === "ru"
         ? `${pe("lock")} <b>Как подключить DarkShare VPN</b>\n\n` +
           `<b>1.</b> Установи приложение для своей системы:\n` +
-          `   • <b>iPhone:</b> Happ, Shadowrocket, Streisand\n` +
-          `   • <b>Android:</b> Happ, v2rayNG, Hiddify\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Nekobox\n` +
           `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
           `<b>2.</b> Нажми «${escHtml("Get config")}» в боте — получишь QR + кнопки.\n\n` +
           `<b>3.</b> Нажми кнопку своего приложения — подписка импортируется автоматически. Или отсканируй QR.\n\n` +
@@ -4087,8 +4086,8 @@ ${faqText}`;
           `${pe("check")} Готово — трафик зашифрован.`
         : `${pe("lock")} <b>How to connect DarkShare VPN</b>\n\n` +
           `<b>1.</b> Install an app for your platform:\n` +
-          `   • <b>iPhone:</b> Happ, Shadowrocket, Streisand\n` +
-          `   • <b>Android:</b> Happ, v2rayNG, Hiddify\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Nekobox\n` +
           `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
           `<b>2.</b> Tap «Get config» in the bot — you'll get a QR + buttons.\n\n` +
           `<b>3.</b> Tap your app's button — the subscription imports automatically. Or scan the QR.\n\n` +

@@ -51,12 +51,9 @@ function deviceNameFromUA(ua: string): string {
   // App detection (order matters — most specific first)
   if (u.includes("happ")) return "Happ";
   if (u.includes("shadowrocket")) return "Shadowrocket";
-  if (u.includes("streisand")) return "Streisand";
   if (u.includes("v2rayng") || u.includes("v2rayn")) return "v2rayNG";
-  if (u.includes("hiddify")) return "Hiddify";
   if (u.includes("clash")) return "Clash";
   if (u.includes("nekobox") || u.includes("nekoray")) return "Nekobox";
-  if (u.includes("foxray")) return "FoXray";
   if (u.includes("singbox") || u.includes("sing-box")) return "sing-box";
   if (u.includes("loon")) return "Loon";
   if (u.includes("quantumult")) return "Quantumult";

@@ -719,7 +719,7 @@ function applyVpnSeo() {
     el.setAttribute("content", value);
   };
   setMeta('meta[name="description"]', "name", "description", desc);
-  setMeta('meta[name="keywords"]', "name", "keywords", "DarkShare VPN, Trojan Reality VPN, zero-log VPN, DPI bypass, censorship bypass, OSINT VPN, secure VPN subscription, V2Ray, sing-box, Happ, Shadowrocket, v2rayNG, Hiddify, Clash Verge");
+  setMeta('meta[name="keywords"]', "name", "keywords", "DarkShare VPN, Trojan Reality VPN, zero-log VPN, DPI bypass, censorship bypass, OSINT VPN, secure VPN subscription, V2Ray, Happ, Shadowrocket, v2rayNG, v2rayN, Nekobox, Clash Verge");
   setMeta('meta[property="og:title"]', "property", "og:title", title);
   setMeta('meta[property="og:description"]', "property", "og:description", desc);
   setMeta('meta[property="og:url"]', "property", "og:url", canonical);
@@ -765,7 +765,7 @@ function applyVpnSeo() {
         mainEntity: [
           { "@type": "Question", name: "What protocol does DarkShare VPN use?", acceptedAnswer: { "@type": "Answer", text: "Trojan Reality — a modern protocol that disguises VPN traffic as regular HTTPS, bypassing DPI and censorship in restrictive networks." } },
           { "@type": "Question", name: "Does DarkShare VPN keep logs?", acceptedAnswer: { "@type": "Answer", text: "No. We do not log browsing activity or connection metadata. Your traffic stays private." } },
-          { "@type": "Question", name: "Which apps work with DarkShare VPN?", acceptedAnswer: { "@type": "Answer", text: "Any V2Ray-compatible client: Happ (recommended), Shadowrocket, v2rayNG, Hiddify, Clash Verge, Streisand, FoXray, NekoBox, v2rayN." } },
+          { "@type": "Question", name: "Which apps work with DarkShare VPN?", acceptedAnswer: { "@type": "Answer", text: "Officially tested clients: Happ (recommended), Shadowrocket (iOS), v2rayNG (Android), NekoBox (Android/Win), Clash Verge (desktop), v2rayN (Windows)." } },
           { "@type": "Question", name: "How many devices can I connect?", acceptedAnswer: { "@type": "Answer", text: "PRO supports 2 devices; ENTERPRISE and GROUPS support 5 devices each." } },
           { "@type": "Question", name: "How many countries are available?", acceptedAnswer: { "@type": "Answer", text: "PRO unlocks 7 countries (Germany, Netherlands, Finland, France, Poland, Ukraine, USA). ENTERPRISE and GROUPS unlock 20+ global locations." } },
         ],

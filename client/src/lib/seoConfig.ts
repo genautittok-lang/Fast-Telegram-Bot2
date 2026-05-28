@@ -44,7 +44,7 @@ const vpnSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
   name: "DarkShare VPN",
-  description: "Modern privacy VPN built on Trojan Reality protocol. Bypasses DPI and censorship, zero logs, 20+ global server locations. Works on iOS, Android, Windows, macOS and Linux via Happ, Shadowrocket, Hiddify, v2rayNG, sing-box, Clash Verge, NekoBox, Streisand and FoXray.",
+  description: "Modern privacy VPN built on Trojan Reality protocol. Bypasses DPI and censorship, zero logs, 20+ global server locations. Works on iOS, Android, Windows, macOS and Linux via Happ, Shadowrocket, v2rayNG, v2rayN, NekoBox and Clash Verge.",
   brand: { "@type": "Brand", name: "DarkShare" },
   image: `${ORIGIN}/og-image.png`,
   category: "VPN service",
@@ -85,7 +85,7 @@ export const SEO_CONFIG: Record<string, PageSeo> = {
   "/vpn": {
     title: "DarkShare VPN — Trojan Reality, 20+ countries, zero logs",
     description: "Modern VPN built into your DarkShare plan. Trojan Reality protocol bypasses DPI and censorship. Zero logs, 20+ global server locations, works on iOS, Android, Windows, macOS, Linux. PRO from $9/mo.",
-    keywords: "DarkShare VPN, Trojan Reality VPN, zero logs VPN, DPI bypass VPN, censorship bypass, V2Ray subscription, sing-box, Happ, Shadowrocket, Hiddify, Clash Verge",
+    keywords: "DarkShare VPN, Trojan Reality VPN, zero logs VPN, DPI bypass VPN, censorship bypass, V2Ray subscription, Happ, Shadowrocket, v2rayNG, Nekobox, Clash Verge",
     type: "product",
     jsonLd: vpnSchema,
   },

@@ -60,27 +60,6 @@ export function buildDeepLinks(subUrl: string): AppDeepLink[] {
       recommended: true,
     },
     {
-      id: "streisand",
-      name: "Streisand",
-      platforms: ["ios"],
-      deepLink: `streisand://import/${encoded}`,
-      storeUrl: "https://apps.apple.com/app/streisand/id6450534064",
-    },
-    {
-      id: "foxray",
-      name: "FoXray",
-      platforms: ["ios"],
-      deepLink: `foxray://install-sub?url=${encoded}`,
-      storeUrl: "https://apps.apple.com/app/foxray/id6448898396",
-    },
-    {
-      id: "hiddify",
-      name: "Hiddify",
-      platforms: ["ios", "android", "windows", "macos", "linux"],
-      deepLink: `hiddify://install-config?url=${encoded}`,
-      storeUrl: "https://hiddify.com",
-    },
-    {
       id: "nekobox",
       name: "NekoBox",
       platforms: ["android", "windows"],
