@@ -3829,6 +3829,9 @@ ${faqText}`;
     const lang = getUserLang(user?.lang);
     const tier = (user.tier || "FREE").toUpperCase();
     const limit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : tier === "PRO" ? 2 : 0;
+    const countriesLabel = tier === "PRO" ? "7" : (tier === "ENTERPRISE" || tier === "GROUPS") ? "20+" : "0";
+    const expiresAt = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
+    const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000)) : null;
     let devices: any[] = [];
     try { devices = await storage.listVpnDevices(user.id); } catch {}
     const active = devices.filter((d) => !d.revokedAt);
@@ -3836,6 +3839,10 @@ ${faqText}`;
     const T = {
       title: { uk: "Підключені пристрої", ru: "Подключённые устройства", en: "Connected devices" } as any,
       slots: { uk: "слотів зайнято", ru: "слотов занято", en: "slots used" } as any,
+      plan: { uk: "Тариф", ru: "Тариф", en: "Plan" } as any,
+      countries: { uk: "країн доступно", ru: "стран доступно", en: "countries available" } as any,
+      daysLeft: { uk: "днів до завершення", ru: "дней до окончания", en: "days left" } as any,
+      noSub: { uk: "Підписка неактивна", ru: "Подписка неактивна", en: "Subscription inactive" } as any,
       empty: {
         uk: "Поки що жодних пристроїв.\nІмпортуй підписку у VPN-застосунку — пристрій з'явиться тут автоматично.",
         ru: "Пока нет устройств.\nИмпортируй подписку в VPN-приложении — устройство появится здесь автоматически.",
@@ -3854,6 +3861,14 @@ ${faqText}`;
 
     let text = `📱 <b>${escHtml(tt("title"))}</b>\n`;
     text += `<code>─────────────</code>\n`;
+    text += `💎 <b>${escHtml(tt("plan"))}:</b> DarkShare ${tier}\n`;
+    text += `🌍 <b>${countriesLabel}</b> ${escHtml(tt("countries"))}\n`;
+    if (daysLeft !== null && daysLeft > 0) {
+      const dayIcon = daysLeft <= 3 ? "⚠️" : daysLeft <= 7 ? "🟡" : "🟢";
+      text += `${dayIcon} <b>${daysLeft}</b> ${escHtml(tt("daysLeft"))}\n`;
+    } else {
+      text += `⚫️ <i>${escHtml(tt("noSub"))}</i>\n`;
+    }
     const slotsClass = active.length >= limit ? "⚠️" : "✅";
     text += `${slotsClass} <b>${active.length} / ${limit}</b> ${escHtml(tt("slots"))}\n\n`;
 

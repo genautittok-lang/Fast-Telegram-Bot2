@@ -196,35 +196,210 @@ function filterByTier(text: string, tier: string): string {
     .join("\n");
 }
 
-// Rewrite Clash YAML: every `name: <something>` or `- name: <something>` under proxies
+// Rewrite Clash YAML: rename every proxy + DROP proxy blocks restricted by tier,
+// then strip those names from proxy-groups references.
 function rewriteClashYaml(text: string, tier?: string): string {
-  const allowList = tier ? TIER_COUNTRIES[tier.toUpperCase()] : null;
+  const restricted = tier ? TIER_COUNTRIES[tier.toUpperCase()] != null : false;
   const lines = text.split(/\r?\n/);
   const out: string[] = [];
-  for (const line of lines) {
-    // Match `  - name: "Manchester"` / `  name: Manchester` / `  name: 'Foo'`
-    const m = line.match(/^(\s*-?\s*name:\s*)(["']?)(.*?)(\2)\s*(#.*)?$/);
-    if (m) {
-      const prefix = m[1];
-      const quote = m[2] || '"';
-      const orig = m[3];
-      const trailing = m[5] ? ` ${m[5]}` : "";
-      // Tier filter: drop the entire proxy block by skipping this name line is risky for YAML structure.
-      // Instead, only drop if it's clearly the standalone proxy entry — keep entry but rename.
-      if (allowList && !isAllowedForTier(orig, tier!)) {
-        // Mark with a hidden flag so user knows it's restricted? Simpler: still rename to DarkShare so it looks branded,
-        // but server-side filter is best-effort for YAML; line-based filterByTier already covers vless:// URI lists.
+
+  // Pass 1: walk top-level sections; in `proxies:` collect blocks and selectively drop.
+  const droppedOriginal = new Set<string>(); // original (pre-rename) names that we dropped
+  const renameMap = new Map<string, string>(); // original → new (DarkShare-branded) name
+
+  let i = 0;
+  const len = lines.length;
+
+  // Helper: get indent (leading spaces) length
+  const indentOf = (s: string) => (s.match(/^ */)?.[0].length ?? 0);
+  const isBlank = (s: string) => /^\s*$/.test(s);
+  const isCommentOrBlank = (s: string) => isBlank(s) || /^\s*#/.test(s);
+
+  while (i < len) {
+    const line = lines[i];
+
+    // Detect `proxies:` top-level
+    if (/^proxies\s*:\s*(#.*)?$/.test(line)) {
+      out.push(line);
+      i++;
+      // Process proxy blocks until we leave the section
+      while (i < len) {
+        const cur = lines[i];
+        if (cur === undefined) break;
+        // Section ends when a non-indented, non-blank, non-comment line appears
+        if (!isCommentOrBlank(cur) && indentOf(cur) === 0) break;
+
+        // A new proxy block starts with `  - name: ...` (any 2+ indent)
+        const startMatch = cur.match(/^(\s+)-\s+name:\s*(["']?)(.*?)\2\s*(#.*)?$/);
+        if (startMatch) {
+          const blockIndent = indentOf(cur);
+          const dashIndent = startMatch[1];
+          const originalName = startMatch[3];
+          const newName = rebrandRemark(originalName);
+          renameMap.set(originalName, newName);
+
+          // Capture the full block: this line + all following lines whose indent > blockIndent
+          // until next `- name:` at same indent or end of section
+          const block: string[] = [];
+          // First line — rewrite name
+          const safe = newName.replace(/"/g, '\\"');
+          block.push(`${dashIndent}- name: "${safe}"`);
+          i++;
+          while (i < len) {
+            const nxt = lines[i];
+            if (nxt === undefined) break;
+            if (!isCommentOrBlank(nxt) && indentOf(nxt) === 0) break;
+            // Next sibling proxy block at same indent
+            if (indentOf(nxt) === blockIndent && /^\s+-\s/.test(nxt)) break;
+            block.push(nxt);
+            i++;
+          }
+
+          const allowed = !restricted || isAllowedForTier(originalName, tier!);
+          if (allowed) {
+            out.push(...block);
+          } else {
+            droppedOriginal.add(originalName);
+            // skip block (don't push)
+          }
+          continue;
+        }
+
+        // Anything else inside the proxies section (blank/comment) — keep
+        out.push(cur);
+        i++;
       }
-      const newName = rebrandRemark(orig);
-      // Use safe double quotes; escape inner double quotes if any
-      const safe = newName.replace(/"/g, '\\"');
-      out.push(`${prefix}"${safe}"${trailing}`);
       continue;
     }
-    // Match `proxy-groups: - name:` entries similarly — they reference proxies by name; leave groups as-is.
+
+    // Standalone `- name:` outside of proxies (shouldn't normally happen) — still rename
+    const standalone = line.match(/^(\s*-?\s*name:\s*)(["']?)(.*?)\2\s*(#.*)?$/);
+    if (standalone) {
+      const prefix = standalone[1];
+      const orig = standalone[3];
+      const trail = standalone[4] ? ` ${standalone[4]}` : "";
+      const newName = rebrandRemark(orig);
+      renameMap.set(orig, newName);
+      const safe = newName.replace(/"/g, '\\"');
+      out.push(`${prefix}"${safe}"${trail}`);
+      i++;
+      continue;
+    }
+
     out.push(line);
+    i++;
   }
-  return out.join("\n");
+
+  // Pass 2: rewrite list-item references (e.g. inside `proxy-groups[*].proxies`) — drop or rename.
+  const pass2: string[] = [];
+  for (const ln of out) {
+    const ref = ln.match(/^(\s+-\s+)(["']?)(.+?)\2\s*(#.*)?$/);
+    if (ref && !ref[3].includes(":")) {
+      const name = ref[3];
+      if (droppedOriginal.has(name)) continue; // drop reference
+      if (renameMap.has(name)) {
+        const newName = renameMap.get(name)!;
+        const safe = newName.replace(/"/g, '\\"');
+        const trail = ref[4] ? ` ${ref[4]}` : "";
+        pass2.push(`${ref[1]}"${safe}"${trail}`);
+        continue;
+      }
+    }
+    pass2.push(ln);
+  }
+
+  // Pass 3: rewrite composite refs in `rules:` (e.g. `- MATCH,Manchester` or `- DOMAIN,a.com,Manchester,no-resolve`)
+  // Policy target is conventionally the last non-flag token; we remap/drop it.
+  const POLICY_FLAGS = new Set(["no-resolve", "force-remote-dns"]);
+  const pass3: string[] = [];
+  let inRules = false;
+  for (const ln of pass2) {
+    if (/^rules\s*:\s*(#.*)?$/.test(ln)) { inRules = true; pass3.push(ln); continue; }
+    if (inRules && /^\S/.test(ln) && !/^\s/.test(ln) && !/^\s*#/.test(ln) && !/^rules/.test(ln)) {
+      // Left rules section
+      inRules = false;
+    }
+    if (inRules) {
+      const rm = ln.match(/^(\s*-\s+)(.*?)(\s*#.*)?$/);
+      if (rm) {
+        const parts = rm[2].split(",").map((p) => p.trim());
+        if (parts.length >= 2) {
+          // Find policy target: last token not in POLICY_FLAGS
+          let targetIdx = parts.length - 1;
+          while (targetIdx > 0 && POLICY_FLAGS.has(parts[targetIdx])) targetIdx--;
+          const target = parts[targetIdx];
+          if (droppedOriginal.has(target)) {
+            parts[targetIdx] = "DIRECT";
+          } else if (renameMap.has(target)) {
+            parts[targetIdx] = renameMap.get(target)!;
+          }
+          const trail = rm[3] || "";
+          pass3.push(`${rm[1]}${parts.join(",")}${trail}`);
+          continue;
+        }
+      }
+    }
+    pass3.push(ln);
+  }
+
+  // Pass 4: prevent empty proxy-groups (would break Clash). If a group's `proxies:` list is empty, inject DIRECT.
+  const finalOut: string[] = [];
+  let inProxyGroups = false;
+  let i2 = 0;
+  while (i2 < pass3.length) {
+    const ln = pass3[i2];
+    if (/^proxy-groups\s*:\s*(#.*)?$/.test(ln)) {
+      inProxyGroups = true; finalOut.push(ln); i2++; continue;
+    }
+    if (inProxyGroups && /^\S/.test(ln) && !/^\s/.test(ln) && !/^\s*#/.test(ln)) {
+      inProxyGroups = false;
+    }
+    if (inProxyGroups) {
+      // Detect `    proxies:` line — could be followed by inline `[...]` or block list
+      const pm = ln.match(/^(\s+)proxies\s*:\s*(\[.*\])?\s*(#.*)?$/);
+      if (pm) {
+        const proxiesIndent = indentOf(ln);
+        // Inline form: proxies: [A, B]
+        const inline = pm[2];
+        if (inline !== undefined) {
+          const inner = inline.replace(/^\[|\]$/g, "").trim();
+          if (!inner) {
+            finalOut.push(`${pm[1]}proxies: [DIRECT]`);
+            i2++;
+            continue;
+          }
+          finalOut.push(ln); i2++; continue;
+        }
+        // Block form: collect following indented `- xxx` items
+        finalOut.push(ln); i2++;
+        const items: string[] = [];
+        let dashIndent = "";
+        while (i2 < pass3.length) {
+          const nxt = pass3[i2];
+          if (!isCommentOrBlank(nxt) && indentOf(nxt) <= proxiesIndent) break;
+          const isItem = /^\s+-\s/.test(nxt);
+          if (isItem) {
+            if (!dashIndent) dashIndent = nxt.match(/^(\s+)-/)?.[1] || `${pm[1]}  `;
+            items.push(nxt);
+          } else if (!isCommentOrBlank(nxt)) {
+            // not a list item but still indented (mapping under proxies?) — break
+            break;
+          }
+          i2++;
+        }
+        if (items.length === 0) {
+          finalOut.push(`${dashIndent || `${pm[1]}  `}- DIRECT`);
+        } else {
+          finalOut.push(...items);
+        }
+        continue;
+      }
+    }
+    finalOut.push(ln);
+    i2++;
+  }
+
+  return finalOut.join("\n");
 }
 
 // Rewrite sing-box JSON: rename `tag` fields in `outbounds` array

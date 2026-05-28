@@ -189,7 +189,7 @@ interface DeviceEntry {
 
 function DevicesPanel({ deviceLimit }: { deviceLimit: number }) {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery<{ devices: DeviceEntry[]; activeCount: number; deviceLimit: number }>({
+  const { data, isLoading } = useQuery<{ devices: DeviceEntry[]; activeCount: number; deviceLimit: number; tier?: string; daysLeft?: number | null; expiresAt?: string | null }>({
     queryKey: ["/api/alor-vpn/devices"],
     refetchInterval: 30000,
   });
@@ -211,7 +211,14 @@ function DevicesPanel({ deviceLimit }: { deviceLimit: number }) {
             <span className={slotsUsed >= deviceLimit ? "text-amber-400" : "text-zinc-400"}>
               {slotsUsed} / {deviceLimit}
             </span>{" "}
-            slots used. Revoke any device to free a slot.
+            slots used · {data?.tier ? `DarkShare ${data.tier}` : "—"}
+            {typeof data?.daysLeft === "number" && data.daysLeft > 0 ? (
+              <span className={data.daysLeft <= 3 ? "ml-2 text-amber-400" : "ml-2 text-emerald-400"}>
+                · {data.daysLeft} days left
+              </span>
+            ) : data?.expiresAt ? (
+              <span className="ml-2 text-rose-400">· Expired</span>
+            ) : null}
           </p>
         </div>
         <div className="text-[11px] text-zinc-600">

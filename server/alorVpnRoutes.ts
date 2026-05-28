@@ -187,10 +187,15 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
       const tier = (user?.tier || "FREE").toUpperCase();
       const limit = vpnDeviceLimit(tier);
       const active = devices.filter((d: any) => !d.revokedAt);
+      const expiresAt = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
+      const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000)) : null;
       res.json({
         ok: true,
         deviceLimit: limit,
         activeCount: active.length,
+        tier,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        daysLeft,
         devices: devices.map((d: any) => ({
           id: d.id,
           name: d.deviceName || "VPN client",
