@@ -448,6 +448,24 @@ async function ensureTablesExist() {
     }
     console.log(`Verified ${alorVpnCols.length} AlorVPN columns on ds_users`);
 
+    // AlorVPN device tracking table (added May 2026) — idempotent
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ds_vpn_devices (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES ds_users(id),
+        fingerprint TEXT NOT NULL,
+        device_name TEXT,
+        user_agent TEXT,
+        ip_prefix TEXT,
+        first_seen TIMESTAMP DEFAULT NOW(),
+        last_seen TIMESTAMP DEFAULT NOW(),
+        revoked_at TIMESTAMP
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vpn_devices_user_id ON ds_vpn_devices(user_id)`);
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_vpn_devices_user_fp ON ds_vpn_devices(user_id, fingerprint)`);
+    console.log("Verified ds_vpn_devices table");
+
     console.log("Database tables ready!");
   } catch (error: any) {
     // Robust error logging — error.message can be empty for AggregateError/ETIMEDOUT
