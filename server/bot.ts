@@ -3558,11 +3558,11 @@ ${faqText}`;
         de: "Trojan Reality · keine Logs · viele Standorte",
       },
       proRequired: {
-        uk: "🔐 DarkShare VPN доступний на тарифах PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 пристрої · 7 країн\n• ENTERPRISE — 5 пристроїв · 20+ країн\n• GROUPS — 5 пристроїв на учасника · 20+ країн · керування командою\n\nПротокол Trojan Reality · нуль логів · iOS, Android, Windows, macOS, Linux.\n\nПісля покупки підписка активується автоматично.",
-        ru: "🔐 DarkShare VPN доступен на тарифах PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 устройства · 7 стран\n• ENTERPRISE — 5 устройств · 20+ стран\n• GROUPS — 5 устройств на участника · 20+ стран · управление командой\n\nПротокол Trojan Reality · ноль логов · iOS, Android, Windows, macOS, Linux.\n\nПосле покупки подписка активируется автоматически.",
-        en: "🔐 DarkShare VPN is available on PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 devices · 7 countries\n• ENTERPRISE — 5 devices · 20+ countries\n• GROUPS — 5 devices/member · 20+ countries · team management\n\nTrojan Reality protocol · zero logs · iOS, Android, Windows, macOS, Linux.\n\nSubscription activates automatically after purchase.",
-        es: "🔐 DarkShare VPN disponible en PRO / ENTERPRISE / GROUPS\n\n• PRO — 2 dispositivos · 7 países\n• ENTERPRISE — 5 dispositivos · 20+ países\n• GROUPS — 5 dispositivos/miembro · 20+ países · gestión de equipo\n\nProtocolo Trojan Reality · cero logs · iOS, Android, Windows, macOS, Linux.\n\nLa suscripción se activa automáticamente.",
-        de: "🔐 DarkShare VPN in PRO / ENTERPRISE / GROUPS verfügbar\n\n• PRO — 2 Geräte · 7 Länder\n• ENTERPRISE — 5 Geräte · 20+ Länder\n• GROUPS — 5 Geräte/Mitglied · 20+ Länder · Team-Verwaltung\n\nTrojan-Reality-Protokoll · keine Logs · iOS, Android, Windows, macOS, Linux.\n\nAbo wird nach Kauf automatisch aktiviert.",
+        uk: "🔐 DarkShare VPN доступний на тарифах PRO / ENTERPRISE / GROUPS\n\nУсі тарифи: 20+ країн · Trojan Reality · нуль логів\n\n• PRO — 2 пристрої · $9/міс\n• ENTERPRISE — 5 пристроїв · $29/міс\n• GROUPS — 5 пристроїв/учасник · керування командою · $55/міс\n\nПрацює на iOS, Android, Windows, macOS, Linux.\n\nПісля покупки підписка активується автоматично.",
+        ru: "🔐 DarkShare VPN доступен на тарифах PRO / ENTERPRISE / GROUPS\n\nВсе тарифы: 20+ стран · Trojan Reality · ноль логов\n\n• PRO — 2 устройства · $9/мес\n• ENTERPRISE — 5 устройств · $29/мес\n• GROUPS — 5 устройств/участник · управление командой · $55/мес\n\nРаботает на iOS, Android, Windows, macOS, Linux.\n\nПосле покупки подписка активируется автоматически.",
+        en: "🔐 DarkShare VPN is available on PRO / ENTERPRISE / GROUPS\n\nAll plans: 20+ countries · Trojan Reality · zero logs\n\n• PRO — 2 devices · $9/mo\n• ENTERPRISE — 5 devices · $29/mo\n• GROUPS — 5 devices/member · team management · $55/mo\n\nWorks on iOS, Android, Windows, macOS, Linux.\n\nSubscription activates automatically after purchase.",
+        es: "🔐 DarkShare VPN disponible en PRO / ENTERPRISE / GROUPS\n\nTodos los planes: 20+ países · Trojan Reality · cero logs\n\n• PRO — 2 dispositivos · $9/mes\n• ENTERPRISE — 5 dispositivos · $29/mes\n• GROUPS — 5 dispositivos/miembro · gestión de equipo · $55/mes\n\nFunciona en iOS, Android, Windows, macOS, Linux.\n\nLa suscripción se activa automáticamente.",
+        de: "🔐 DarkShare VPN in PRO / ENTERPRISE / GROUPS verfügbar\n\nAlle Pläne: 20+ Länder · Trojan Reality · keine Logs\n\n• PRO — 2 Geräte · $9/Mo\n• ENTERPRISE — 5 Geräte · $29/Mo\n• GROUPS — 5 Geräte/Mitglied · Team-Verwaltung · $55/Mo\n\nLäuft auf iOS, Android, Windows, macOS, Linux.\n\nAbo wird nach Kauf automatisch aktiviert.",
       },
       hasSubscription: {
         uk: "✅ Підписка активна",
@@ -3672,41 +3672,75 @@ ${faqText}`;
     const vpnToken = (user as any).alorVpnToken;
     const vpnUrl = vpnToken ? `${webUrl}/vpn/sub/${vpnToken}` : null;
 
-    // Professional card layout: header + status block + info table + actions
-    const dim = lang === "uk" ? "─────────────" : lang === "ru" ? "─────────────" : "─────────────";
+    // Live device count (graceful fallback if the table is missing on a stale deploy)
+    let activeDevices = 0;
+    try {
+      const devs = await storage.listVpnDevices(user.id);
+      activeDevices = devs.filter((d: any) => !d.revokedAt).length;
+    } catch {}
+
     let text = `🛡️ <b>DARKSHARE VPN</b>\n`;
     text += `<i>${escHtml(vpnT(lang, "tagline"))}</i>\n`;
-    text += `<code>${dim}</code>\n\n`;
+    text += `\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n`;
 
     if (hasVpn && vpnUrl) {
       const expiryDate = vpnExpiry ? new Date(vpnExpiry) : null;
       const daysLeft = expiryDate ? Math.max(0, Math.ceil((expiryDate.getTime() - Date.now()) / 86400000)) : null;
       const expiryStr = expiryDate ? expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-GB") : "—";
-      const statusEmoji = daysLeft !== null && daysLeft > 0 ? "🟢" : "🔴";
-      const statusLabel = lang === "uk" ? (daysLeft && daysLeft > 0 ? "Активна" : "Закінчилась") : lang === "ru" ? (daysLeft && daysLeft > 0 ? "Активна" : "Истекла") : (daysLeft && daysLeft > 0 ? "Active" : "Expired");
+      const isActive = daysLeft !== null && daysLeft > 0;
+      const statusDot = isActive ? "🟢" : "🔴";
+      const statusLabel = lang === "uk" ? (isActive ? "Активна" : "Закінчилась") : lang === "ru" ? (isActive ? "Активна" : "Истекла") : (isActive ? "Active" : "Expired");
 
-      text += `${statusEmoji} <b>${escHtml(statusLabel)}</b>\n\n`;
-      text += `${lang === "uk" ? "📦 <b>Тариф:</b>" : lang === "ru" ? "📦 <b>Тариф:</b>" : "📦 <b>Plan:</b>"} <code>${tier}</code>\n`;
-      text += `${lang === "uk" ? "📱 <b>Пристроїв:</b>" : lang === "ru" ? "📱 <b>Устройств:</b>" : "📱 <b>Devices:</b>"} до <code>${deviceLimit}</code>\n`;
-      text += `${lang === "uk" ? "📅 <b>До:</b>" : lang === "ru" ? "📅 <b>До:</b>" : "📅 <b>Until:</b>"} <code>${expiryStr}</code>`;
-      if (daysLeft !== null) text += ` <i>(${daysLeft}${lang === "uk" ? " днів" : lang === "ru" ? " дней" : "d"})</i>`;
-      text += `\n${lang === "uk" ? "🌍 <b>Серверів:</b>" : lang === "ru" ? "🌍 <b>Серверов:</b>" : "🌍 <b>Servers:</b>"} <code>20+</code> ${lang === "uk" ? "країн" : lang === "ru" ? "стран" : "countries"}\n\n`;
-      text += `<code>${dim}</code>\n`;
-      text += lang === "uk"
-        ? `💡 Натисни «Підключити» — отримаєш QR і кнопки одним кліком.`
-        : lang === "ru"
-        ? `💡 Нажми «Подключить» — получишь QR и кнопки одним кликом.`
-        : `💡 Tap "Connect" — get the QR + one-tap install buttons.`;
+      const slotsFull = activeDevices >= deviceLimit;
+      const slotEmoji = activeDevices === 0 ? "⚪" : slotsFull ? "🟠" : "🟢";
+      const daysEmoji = (daysLeft ?? 0) <= 3 ? "🟠" : (daysLeft ?? 0) <= 7 ? "🟡" : "🟢";
+
+      const L = {
+        plan:     lang === "uk" ? "Тариф"      : lang === "ru" ? "Тариф"      : "Plan",
+        status:   lang === "uk" ? "Статус"     : lang === "ru" ? "Статус"     : "Status",
+        devices:  lang === "uk" ? "Пристрої"   : lang === "ru" ? "Устройства" : "Devices",
+        used:     lang === "uk" ? "зайнято"    : lang === "ru" ? "занято"     : "used",
+        until:    lang === "uk" ? "Діє до"     : lang === "ru" ? "Активна до" : "Until",
+        days:     lang === "uk" ? "залишилось" : lang === "ru" ? "осталось"   : "left",
+        countries:lang === "uk" ? "Локацій"    : lang === "ru" ? "Локаций"    : "Locations",
+        tech:     lang === "uk" ? "Протокол"   : lang === "ru" ? "Протокол"   : "Protocol",
+        logs:     lang === "uk" ? "Логи"       : lang === "ru" ? "Логи"       : "Logs",
+        noLogs:   lang === "uk" ? "нуль"       : lang === "ru" ? "ноль"       : "zero",
+      };
+
+      text += `${statusDot} <b>${L.status}:</b> ${escHtml(statusLabel)}\n`;
+      text += `💎 <b>${L.plan}:</b> <code>${tier}</code>\n`;
+      text += `${slotEmoji} <b>${L.devices}:</b> <code>${activeDevices}/${deviceLimit}</code> ${L.used}\n`;
+      text += `🌍 <b>${L.countries}:</b> <code>20+</code> ${lang === "uk" ? "країн" : lang === "ru" ? "стран" : "countries"}\n`;
+      text += `🔒 <b>${L.tech}:</b> Trojan Reality · <b>${L.logs}:</b> ${L.noLogs}\n`;
+      text += `📅 <b>${L.until}:</b> <code>${expiryStr}</code>`;
+      if (daysLeft !== null) text += ` ${daysEmoji} <i>(${daysLeft}${lang === "uk" ? " дн." : lang === "ru" ? " дн." : "d"} ${L.days})</i>`;
+      text += `\n\n`;
+
+      if (slotsFull) {
+        text += lang === "uk"
+          ? `⚠️ <b>Усі слоти зайняті.</b> Звільни пристрій у «Пристрої» щоб додати новий.\n`
+          : lang === "ru"
+          ? `⚠️ <b>Все слоты заняты.</b> Освободи устройство в «Устройства» чтобы добавить новое.\n`
+          : `⚠️ <b>All slots are full.</b> Free a device in "Devices" to add a new one.\n`;
+      } else {
+        text += lang === "uk"
+          ? `💡 Натисни <b>«📷 QR»</b> або <b>«🔗 Копіювати»</b> — і за 10 секунд VPN на твоєму пристрої.`
+          : lang === "ru"
+          ? `💡 Нажми <b>«📷 QR»</b> или <b>«🔗 Копировать»</b> — и за 10 секунд VPN на твоём устройстве.`
+          : `💡 Tap <b>"📷 QR"</b> or <b>"🔗 Copy"</b> — VPN on your device in 10 seconds.`;
+      }
     } else {
       text += `⚠️ <b>${lang === "uk" ? "Підписка ще не активована" : lang === "ru" ? "Подписка ещё не активирована" : "Subscription not yet activated"}</b>\n\n`;
-      text += `${lang === "uk" ? "📦 <b>Тариф:</b>" : lang === "ru" ? "📦 <b>Тариф:</b>" : "📦 <b>Plan:</b>"} <code>${tier}</code> ✓\n`;
-      text += `${lang === "uk" ? "📱 <b>Доступно:</b>" : lang === "ru" ? "📱 <b>Доступно:</b>" : "📱 <b>Available:</b>"} до <code>${deviceLimit}</code> ${lang === "uk" ? "пристроїв" : lang === "ru" ? "устройств" : "devices"}\n\n`;
-      text += `<code>${dim}</code>\n`;
+      text += `💎 <b>${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan"}:</b> <code>${tier}</code> ✓\n`;
+      text += `📱 <b>${lang === "uk" ? "Доступно" : lang === "ru" ? "Доступно" : "Available"}:</b> <code>${deviceLimit}</code> ${lang === "uk" ? "пристроїв" : lang === "ru" ? "устройств" : "devices"}\n`;
+      text += `🌍 <b>${lang === "uk" ? "Локацій" : lang === "ru" ? "Локаций" : "Locations"}:</b> <code>20+</code> ${lang === "uk" ? "країн" : lang === "ru" ? "стран" : "countries"}\n`;
+      text += `🔒 <b>${lang === "uk" ? "Протокол" : lang === "ru" ? "Протокол" : "Protocol"}:</b> Trojan Reality · ${lang === "uk" ? "нуль логів" : lang === "ru" ? "ноль логов" : "zero logs"}\n\n`;
       text += lang === "uk"
-        ? `🚀 Натисни «Активувати» — VPN буде готовий за 2 секунди.`
+        ? `🚀 Натисни <b>«Активувати»</b> — VPN буде готовий за 2 секунди.`
         : lang === "ru"
-        ? `🚀 Нажми «Активировать» — VPN будет готов за 2 секунды.`
-        : `🚀 Tap "Activate" — VPN ready in 2 seconds.`;
+        ? `🚀 Нажми <b>«Активировать»</b> — VPN будет готов за 2 секунды.`
+        : `🚀 Tap <b>"Activate"</b> — VPN ready in 2 seconds.`;
     }
 
     const rows: any[][] = [];

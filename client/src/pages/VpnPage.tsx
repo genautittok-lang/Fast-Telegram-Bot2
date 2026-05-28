@@ -118,6 +118,13 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
 function ActiveDashboard({ vpn, onRefresh, isRefreshing }: { vpn: VpnStatus; onRefresh: () => void; isRefreshing: boolean }) {
   const expiresAt = vpn.expiresAt ? new Date(vpn.expiresAt) : null;
   const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000)) : null;
+  const { data: devData } = useQuery<{ activeCount: number; deviceLimit: number }>({
+    queryKey: ["/api/alor-vpn/devices"],
+    refetchInterval: 30000,
+  });
+  const activeCount = devData?.activeCount ?? 0;
+  const daysAccent = daysLeft === null ? "" : daysLeft <= 3 ? "text-amber-400" : daysLeft <= 7 ? "text-yellow-400" : "";
+  const slotsAccent = activeCount >= vpn.deviceLimit ? "text-amber-400" : "";
 
   return (
     <div className="space-y-4">
@@ -130,7 +137,10 @@ function ActiveDashboard({ vpn, onRefresh, isRefreshing }: { vpn: VpnStatus; onR
             </div>
             <div>
               <div className="text-[15px] font-semibold text-white">DarkShare VPN</div>
-              <div className="text-[12px] text-zinc-500">DarkShare Secure Network</div>
+              <div className="text-[12px] text-zinc-500">
+                <span className="rounded bg-cyan-500/10 px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-cyan-400">{vpn.tier}</span>
+                <span className="ml-2">Trojan Reality · 20+ countries · zero logs</span>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -145,10 +155,11 @@ function ActiveDashboard({ vpn, onRefresh, isRefreshing }: { vpn: VpnStatus; onR
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <StatCard icon={Clock} label="Expires" value={expiresAt ? expiresAt.toLocaleDateString() : "—"} />
-          <StatCard icon={Globe2} label="Days left" value={daysLeft !== null ? `${daysLeft}d` : "—"} />
-          <StatCard icon={Users} label="Devices" value={`Up to ${vpn.deviceLimit}`} />
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard icon={Users} label="Devices used" value={<span className={slotsAccent}>{activeCount} / {vpn.deviceLimit}</span>} />
+          <StatCard icon={Clock} label="Days left" value={<span className={daysAccent}>{daysLeft !== null ? `${daysLeft}d` : "—"}</span>} />
+          <StatCard icon={Globe2} label="Locations" value="20+" />
+          <StatCard icon={Lock} label="Logs" value="zero" />
         </div>
       </div>
 
@@ -385,7 +396,7 @@ function Step({ n, children }: { n: number; children: ReactNode }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: string }) {
+function StatCard({ icon: Icon, label, value }: { icon: typeof Clock; label: string; value: ReactNode }) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-black/20 px-4 py-3">
       <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wider text-zinc-600">

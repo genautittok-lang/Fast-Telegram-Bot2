@@ -257,7 +257,7 @@ function PricingContent() {
       t('pricing.checksPerDay100'),
       t('pricing.aiAnalysis'),
       t('pricing.pdfReports'),
-      lang === "uk" ? "🛡️ DarkShare VPN — 7 країн, 2 пристрої, Trojan Reality" : lang === "ru" ? "🛡️ DarkShare VPN — 7 стран, 2 устройства, Trojan Reality" : lang === "es" ? "🛡️ DarkShare VPN — 7 países, 2 dispositivos, Trojan Reality" : lang === "de" ? "🛡️ DarkShare VPN — 7 Länder, 2 Geräte, Trojan Reality" : "🛡️ DarkShare VPN — 7 countries, 2 devices, Trojan Reality",
+      lang === "uk" ? "🛡️ DarkShare VPN — 20+ країн, 2 пристрої, Trojan Reality" : lang === "ru" ? "🛡️ DarkShare VPN — 20+ стран, 2 устройства, Trojan Reality" : lang === "es" ? "🛡️ DarkShare VPN — 20+ países, 2 dispositivos, Trojan Reality" : lang === "de" ? "🛡️ DarkShare VPN — 20+ Länder, 2 Geräte, Trojan Reality" : "🛡️ DarkShare VPN — 20+ countries, 2 devices, Trojan Reality",
       t('pricing.prioritySupport'),
       t('pricing.realTimeMonitoring'),
       t('pricing.apiBeta'),
@@ -701,7 +701,7 @@ function PricingContent() {
                     label: "DarkShare VPN",
                     values: {
                       FREE: false,
-                      PRO: lang === "uk" ? "2 пристрої · 7 країн" : lang === "ru" ? "2 устройства · 7 стран" : lang === "es" ? "2 dispositivos · 7 países" : lang === "de" ? "2 Geräte · 7 Länder" : "2 devices · 7 countries",
+                      PRO: lang === "uk" ? "2 пристрої · 20+ країн" : lang === "ru" ? "2 устройства · 20+ стран" : lang === "es" ? "2 dispositivos · 20+ países" : lang === "de" ? "2 Geräte · 20+ Länder" : "2 devices · 20+ countries",
                       ENTERPRISE: lang === "uk" ? "5 пристроїв · 20+ країн" : lang === "ru" ? "5 устройств · 20+ стран" : lang === "es" ? "5 dispositivos · 20+ países" : lang === "de" ? "5 Geräte · 20+ Länder" : "5 devices · 20+ countries",
                       GROUPS: lang === "uk" ? "5/учасник · 20+ країн" : lang === "ru" ? "5/участник · 20+ стран" : lang === "es" ? "5/miembro · 20+ países" : lang === "de" ? "5/Mitglied · 20+ Länder" : "5/member · 20+ countries",
                     },

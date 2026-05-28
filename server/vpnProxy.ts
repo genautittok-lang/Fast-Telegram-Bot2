@@ -3,11 +3,12 @@ import { createHash } from "crypto";
 import { storage } from "./storage";
 import { vpnDeviceLimit } from "./alorVpn";
 
-// Country access per tier: PRO sees a curated subset; ENTERPRISE/GROUPS see all.
-// Keys match the country names AlorVPN reports (lowercased) — see FLAG_BY_COUNTRY for full mapping.
+// Country access per tier. As of v2 product decision, ALL paid tiers receive every
+// AlorVPN country (20+). Tiers are differentiated by device limit only — see
+// `vpnDeviceLimit()` in alorVpn.ts. Keeping the map for future re-introduction.
 const TIER_COUNTRIES: Record<string, Set<string> | null> = {
-  PRO: new Set(["germany", "netherlands", "finland", "france", "poland", "ukraine", "usa"]),
-  ENTERPRISE: null, // null => no restriction
+  PRO: null,
+  ENTERPRISE: null,
   GROUPS: null,
 };
 

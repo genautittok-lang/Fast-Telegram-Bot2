@@ -49,7 +49,7 @@ const vpnSchema = {
   image: `${ORIGIN}/og-image.png`,
   category: "VPN service",
   offers: [
-    { "@type": "Offer", name: "PRO — 2 devices · 7 countries", price: "9", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=PRO`, availability: "https://schema.org/InStock" },
+    { "@type": "Offer", name: "PRO — 2 devices · 20+ countries", price: "9", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=PRO`, availability: "https://schema.org/InStock" },
     { "@type": "Offer", name: "ENTERPRISE — 5 devices · 20+ countries", price: "29", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=ENTERPRISE`, availability: "https://schema.org/InStock" },
     { "@type": "Offer", name: "GROUPS — 5 devices/member · 20+ countries · team management", price: "55", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=GROUPS`, availability: "https://schema.org/InStock" },
   ],
