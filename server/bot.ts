@@ -3706,6 +3706,10 @@ ${faqText}`;
           ? `${pe("warning")} VPN доступний на платних тарифах:\n\n• <b>PRO</b> — 2 пристрої · $9/міс\n• <b>ENTERPRISE</b> — 5 пристроїв · $29/міс\n• <b>GROUPS</b> — 5 пристроїв + керування командою · $55/міс\n\nПісля оплати VPN активується автоматично.`
           : lang === "ru"
           ? `${pe("warning")} VPN доступен на платных тарифах:\n\n• <b>PRO</b> — 2 устройства · $9/мес\n• <b>ENTERPRISE</b> — 5 устройств · $29/мес\n• <b>GROUPS</b> — 5 устройств + управление командой · $55/мес\n\nПосле оплаты VPN активируется автоматически.`
+          : lang === "es"
+          ? `${pe("warning")} VPN disponible en planes de pago:\n\n• <b>PRO</b> — 2 dispositivos · $9/mes\n• <b>ENTERPRISE</b> — 5 dispositivos · $29/mes\n• <b>GROUPS</b> — 5 dispositivos + gestión de equipo · $55/mes\n\nLa VPN se activa automáticamente tras el pago.`
+          : lang === "de"
+          ? `${pe("warning")} VPN ist in den kostenpflichtigen Tarifen verfügbar:\n\n• <b>PRO</b> — 2 Geräte · $9/Monat\n• <b>ENTERPRISE</b> — 5 Geräte · $29/Monat\n• <b>GROUPS</b> — 5 Geräte + Teamverwaltung · $55/Monat\n\nVPN wird nach dem Kauf automatisch aktiviert.`
           : `${pe("warning")} VPN is available on paid plans:\n\n• <b>PRO</b> — 2 devices · $9/mo\n• <b>ENTERPRISE</b> — 5 devices · $29/mo\n• <b>GROUPS</b> — 5 devices + team management · $55/mo\n\nVPN auto-activates after purchase.`);
       const buyInBot = lang === "uk" ? "купити в боті" : lang === "ru" ? "купить в боте" : lang === "es" ? "comprar en el bot" : lang === "de" ? "im Bot kaufen" : "buy in bot";
       const kb = Markup.inlineKeyboard([
@@ -3758,81 +3762,95 @@ ${faqText}`;
     if (hasVpn && vpnUrl) {
       const expiryDate = vpnExpiry ? new Date(vpnExpiry) : null;
       const daysLeft = expiryDate ? Math.max(0, Math.ceil((expiryDate.getTime() - Date.now()) / 86400000)) : null;
-      const expiryStr = expiryDate ? expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-GB") : "—";
+      const expiryStr = expiryDate ? expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-GB") : "—";
       const isActive = daysLeft !== null && daysLeft > 0;
       const statusDot = isActive ? "🟢" : "🔴";
-      const statusLabel = lang === "uk" ? (isActive ? "Активна" : "Закінчилась") : lang === "ru" ? (isActive ? "Активна" : "Истекла") : (isActive ? "Active" : "Expired");
 
       const slotsFull = activeDevices >= deviceLimit;
       const slotEmoji = activeDevices === 0 ? "⚪" : slotsFull ? "🟠" : "🟢";
       const daysEmoji = (daysLeft ?? 0) <= 3 ? "🟠" : (daysLeft ?? 0) <= 7 ? "🟡" : "🟢";
 
+      const pick = <T extends Record<string, string>>(o: T): string =>
+        (o as any)[lang] ?? o.en;
       const L = {
-        plan:     lang === "uk" ? "Тариф"      : lang === "ru" ? "Тариф"      : "Plan",
-        status:   lang === "uk" ? "Статус"     : lang === "ru" ? "Статус"     : "Status",
-        devices:  lang === "uk" ? "Пристрої"   : lang === "ru" ? "Устройства" : "Devices",
-        used:     lang === "uk" ? "зайнято"    : lang === "ru" ? "занято"     : "used",
-        until:    lang === "uk" ? "Діє до"     : lang === "ru" ? "Активна до" : "Until",
-        days:     lang === "uk" ? "залишилось" : lang === "ru" ? "осталось"   : "left",
-        countries:lang === "uk" ? "Локацій"    : lang === "ru" ? "Локаций"    : "Locations",
-        tech:     lang === "uk" ? "Протокол"   : lang === "ru" ? "Протокол"   : "Protocol",
-        logs:     lang === "uk" ? "Логи"       : lang === "ru" ? "Логи"       : "Logs",
-        noLogs:   lang === "uk" ? "нуль"       : lang === "ru" ? "ноль"       : "zero",
+        plan:           pick({ uk: "Тариф",        ru: "Тариф",        es: "Plan",         de: "Tarif",      en: "Plan" }),
+        status:         pick({ uk: "Статус",       ru: "Статус",       es: "Estado",       de: "Status",     en: "Status" }),
+        devices:        pick({ uk: "Пристрої",     ru: "Устройства",   es: "Dispositivos", de: "Geräte",     en: "Devices" }),
+        used:           pick({ uk: "зайнято",      ru: "занято",       es: "en uso",       de: "belegt",     en: "used" }),
+        until:          pick({ uk: "Діє до",       ru: "Активна до",   es: "Hasta",        de: "Bis",        en: "Until" }),
+        days:           pick({ uk: "залишилось",   ru: "осталось",     es: "restantes",    de: "verbleibend",en: "left" }),
+        countriesLbl:   pick({ uk: "Локацій",      ru: "Локаций",      es: "Ubicaciones",  de: "Standorte",  en: "Locations" }),
+        countriesWord:  pick({ uk: "країн",        ru: "стран",        es: "países",       de: "Länder",     en: "countries" }),
+        tech:           pick({ uk: "Протокол",     ru: "Протокол",     es: "Protocolo",    de: "Protokoll",  en: "Protocol" }),
+        logs:           pick({ uk: "Логи",         ru: "Логи",         es: "Registros",    de: "Logs",       en: "Logs" }),
+        noLogs:         pick({ uk: "нуль",         ru: "ноль",         es: "cero",         de: "keine",      en: "zero" }),
+        daysShort:      pick({ uk: " дн.",         ru: " дн.",         es: " d",           de: " T",         en: "d" }),
       };
+      const statusLabel = isActive
+        ? pick({ uk: "Активна", ru: "Активна", es: "Activa",  de: "Aktiv",   en: "Active" })
+        : pick({ uk: "Закінчилась", ru: "Истекла", es: "Expirada", de: "Abgelaufen", en: "Expired" });
 
       text += `${statusDot} <b>${L.status}:</b> ${escHtml(statusLabel)}\n`;
       text += `💎 <b>${L.plan}:</b> <code>${tier}</code>\n`;
       text += `${slotEmoji} <b>${L.devices}:</b> <code>${activeDevices}/${deviceLimit}</code> ${L.used}\n`;
-      text += `🌍 <b>${L.countries}:</b> <code>20+</code> ${lang === "uk" ? "країн" : lang === "ru" ? "стран" : "countries"}\n`;
+      text += `🌍 <b>${L.countriesLbl}:</b> <code>20+</code> ${L.countriesWord}\n`;
       text += `🔒 <b>${L.tech}:</b> Trojan Reality · <b>${L.logs}:</b> ${L.noLogs}\n`;
       text += `📅 <b>${L.until}:</b> <code>${expiryStr}</code>`;
-      if (daysLeft !== null) text += ` ${daysEmoji} <i>(${daysLeft}${lang === "uk" ? " дн." : lang === "ru" ? " дн." : "d"} ${L.days})</i>`;
+      if (daysLeft !== null) text += ` ${daysEmoji} <i>(${daysLeft}${L.daysShort} ${L.days})</i>`;
       text += `\n\n`;
 
       if (slotsFull) {
-        text += lang === "uk"
-          ? `⚠️ <b>Усі слоти зайняті.</b> Звільни пристрій у «Пристрої» щоб додати новий.\n`
-          : lang === "ru"
-          ? `⚠️ <b>Все слоты заняты.</b> Освободи устройство в «Устройства» чтобы добавить новое.\n`
-          : `⚠️ <b>All slots are full.</b> Free a device in "Devices" to add a new one.\n`;
+        text += pick({
+          uk: `⚠️ <b>Усі слоти зайняті.</b> Звільни пристрій у «Пристрої» щоб додати новий.\n`,
+          ru: `⚠️ <b>Все слоты заняты.</b> Освободи устройство в «Устройства» чтобы добавить новое.\n`,
+          es: `⚠️ <b>Todos los slots están ocupados.</b> Libera un dispositivo en «Dispositivos» para añadir uno nuevo.\n`,
+          de: `⚠️ <b>Alle Slots sind belegt.</b> Gib ein Gerät in „Geräte" frei, um ein neues hinzuzufügen.\n`,
+          en: `⚠️ <b>All slots are full.</b> Free a device in "Devices" to add a new one.\n`,
+        });
       } else {
-        text += lang === "uk"
-          ? `💡 Натисни <b>«📷 QR»</b> або <b>«🔗 Копіювати»</b> — і за 10 секунд VPN на твоєму пристрої.`
-          : lang === "ru"
-          ? `💡 Нажми <b>«📷 QR»</b> или <b>«🔗 Копировать»</b> — и за 10 секунд VPN на твоём устройстве.`
-          : `💡 Tap <b>"📷 QR"</b> or <b>"🔗 Copy"</b> — VPN on your device in 10 seconds.`;
+        text += pick({
+          uk: `💡 Натисни <b>«📷 QR»</b> або <b>«🔗 Копіювати»</b> — і за 10 секунд VPN на твоєму пристрої.`,
+          ru: `💡 Нажми <b>«📷 QR»</b> или <b>«🔗 Копировать»</b> — и за 10 секунд VPN на твоём устройстве.`,
+          es: `💡 Pulsa <b>«📷 QR»</b> o <b>«🔗 Copiar»</b> — y en 10 segundos tendrás VPN en tu dispositivo.`,
+          de: `💡 Tippe auf <b>„📷 QR"</b> oder <b>„🔗 Kopieren"</b> — in 10 Sekunden hast du VPN auf deinem Gerät.`,
+          en: `💡 Tap <b>"📷 QR"</b> or <b>"🔗 Copy"</b> — VPN on your device in 10 seconds.`,
+        });
       }
     } else {
-      text += `⚠️ <b>${lang === "uk" ? "Підписка ще не активована" : lang === "ru" ? "Подписка ещё не активирована" : "Subscription not yet activated"}</b>\n\n`;
-      text += `💎 <b>${lang === "uk" ? "Тариф" : lang === "ru" ? "Тариф" : "Plan"}:</b> <code>${tier}</code> ✓\n`;
-      text += `📱 <b>${lang === "uk" ? "Доступно" : lang === "ru" ? "Доступно" : "Available"}:</b> <code>${deviceLimit}</code> ${lang === "uk" ? "пристроїв" : lang === "ru" ? "устройств" : "devices"}\n`;
-      text += `🌍 <b>${lang === "uk" ? "Локацій" : lang === "ru" ? "Локаций" : "Locations"}:</b> <code>20+</code> ${lang === "uk" ? "країн" : lang === "ru" ? "стран" : "countries"}\n`;
-      text += `🔒 <b>${lang === "uk" ? "Протокол" : lang === "ru" ? "Протокол" : "Protocol"}:</b> Trojan Reality · ${lang === "uk" ? "нуль логів" : lang === "ru" ? "ноль логов" : "zero logs"}\n\n`;
-      text += lang === "uk"
-        ? `🚀 Натисни <b>«Активувати»</b> — VPN буде готовий за 2 секунди.`
-        : lang === "ru"
-        ? `🚀 Нажми <b>«Активировать»</b> — VPN будет готов за 2 секунды.`
-        : `🚀 Tap <b>"Activate"</b> — VPN ready in 2 seconds.`;
+      const pickU = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
+      text += `⚠️ <b>${pickU({ uk: "Підписка ще не активована", ru: "Подписка ещё не активирована", es: "Suscripción aún no activada", de: "Abonnement noch nicht aktiviert", en: "Subscription not yet activated" })}</b>\n\n`;
+      text += `💎 <b>${pickU({ uk: "Тариф", ru: "Тариф", es: "Plan", de: "Tarif", en: "Plan" })}:</b> <code>${tier}</code> ✓\n`;
+      text += `📱 <b>${pickU({ uk: "Доступно", ru: "Доступно", es: "Disponibles", de: "Verfügbar", en: "Available" })}:</b> <code>${deviceLimit}</code> ${pickU({ uk: "пристроїв", ru: "устройств", es: "dispositivos", de: "Geräte", en: "devices" })}\n`;
+      text += `🌍 <b>${pickU({ uk: "Локацій", ru: "Локаций", es: "Ubicaciones", de: "Standorte", en: "Locations" })}:</b> <code>20+</code> ${pickU({ uk: "країн", ru: "стран", es: "países", de: "Länder", en: "countries" })}\n`;
+      text += `🔒 <b>${pickU({ uk: "Протокол", ru: "Протокол", es: "Protocolo", de: "Protokoll", en: "Protocol" })}:</b> Trojan Reality · ${pickU({ uk: "нуль логів", ru: "ноль логов", es: "cero registros", de: "keine Logs", en: "zero logs" })}\n\n`;
+      text += pickU({
+        uk: `🚀 Натисни <b>«Активувати»</b> — VPN буде готовий за 2 секунди.`,
+        ru: `🚀 Нажми <b>«Активировать»</b> — VPN будет готов за 2 секунды.`,
+        es: `🚀 Pulsa <b>«Activar»</b> — VPN listo en 2 segundos.`,
+        de: `🚀 Tippe auf <b>„Aktivieren"</b> — VPN in 2 Sekunden bereit.`,
+        en: `🚀 Tap <b>"Activate"</b> — VPN ready in 2 seconds.`,
+      });
     }
 
+    const pickB = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
     const rows: any[][] = [];
     if (hasVpn && vpnUrl) {
       rows.push([
-        cb(`📷 ${lang === "uk" ? "QR-код" : lang === "ru" ? "QR-код" : "QR code"}`, "vpn_qr", "success"),
-        cb(`🔗 ${lang === "uk" ? "Копіювати" : lang === "ru" ? "Скопировать" : "Copy link"}`, "vpn_copy_link", "success"),
+        cb(`📷 ${pickB({ uk: "QR-код", ru: "QR-код", es: "QR", de: "QR-Code", en: "QR code" })}`, "vpn_qr", "success"),
+        cb(`🔗 ${pickB({ uk: "Копіювати", ru: "Скопировать", es: "Copiar", de: "Kopieren", en: "Copy link" })}`, "vpn_copy_link", "success"),
       ]);
-      rows.push([cb(`📱 ${lang === "uk" ? "Застосунки (1-клік)" : lang === "ru" ? "Приложения (1-клик)" : "Apps (one-tap)"}`, "vpn_apps", "primary")]);
+      rows.push([cb(`📱 ${pickB({ uk: "Застосунки (1-клік)", ru: "Приложения (1-клик)", es: "Apps (1-clic)", de: "Apps (1-Klick)", en: "Apps (one-tap)" })}`, "vpn_apps", "primary")]);
       rows.push([
-        cb(`🖥️ ${lang === "uk" ? "Пристрої" : lang === "ru" ? "Устройства" : "Devices"}`, "vpn_devices", "primary"),
-        cb(`📲 ${lang === "uk" ? "Інструкція" : lang === "ru" ? "Инструкция" : "Help"}`, "vpn_instruction", "primary"),
+        cb(`🖥️ ${pickB({ uk: "Пристрої", ru: "Устройства", es: "Dispositivos", de: "Geräte", en: "Devices" })}`, "vpn_devices", "primary"),
+        cb(`📲 ${pickB({ uk: "Інструкція", ru: "Инструкция", es: "Ayuda", de: "Hilfe", en: "Help" })}`, "vpn_instruction", "primary"),
       ]);
       rows.push([
-        cb(`🔄 ${lang === "uk" ? "Оновити" : lang === "ru" ? "Обновить" : "Refresh"}`, "vpn_refresh", "primary", E.bolt),
-        urlS(`🌐 ${lang === "uk" ? "На сайті" : lang === "ru" ? "На сайте" : "Web"}`, `${webUrl}/vpn`, "default", E.globe),
+        cb(`🔄 ${pickB({ uk: "Оновити", ru: "Обновить", es: "Actualizar", de: "Aktualisieren", en: "Refresh" })}`, "vpn_refresh", "primary", E.bolt),
+        urlS(`🌐 ${pickB({ uk: "На сайті", ru: "На сайте", es: "En el sitio", de: "Im Web", en: "Web" })}`, `${webUrl}/vpn`, "default", E.globe),
       ]);
     } else {
-      rows.push([cb(`⚡ ${lang === "uk" ? "Активувати VPN" : lang === "ru" ? "Активировать VPN" : "Activate VPN"}`, "vpn_activate", "success")]);
-      rows.push([cb(`📲 ${lang === "uk" ? "Як це працює?" : lang === "ru" ? "Как это работает?" : "How it works?"}`, "vpn_instruction", "primary")]);
+      rows.push([cb(`⚡ ${pickB({ uk: "Активувати VPN", ru: "Активировать VPN", es: "Activar VPN", de: "VPN aktivieren", en: "Activate VPN" })}`, "vpn_activate", "success")]);
+      rows.push([cb(`📲 ${pickB({ uk: "Як це працює?", ru: "Как это работает?", es: "¿Cómo funciona?", de: "Wie funktioniert es?", en: "How it works?" })}`, "vpn_instruction", "primary")]);
     }
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
@@ -3863,7 +3881,7 @@ ${faqText}`;
     partnerSubCache.delete(tgId);
     const ok = await isSubscribedToPartner(ctx, tgId);
     if (ok) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : "✅ Thanks!"); } catch {}
+      try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : lang === "es" ? "✅ ¡Gracias!" : lang === "de" ? "✅ Danke!" : "✅ Thanks!"); } catch {}
       await showVpnMenu(ctx, tgId, true);
     } else {
       try {
@@ -3887,7 +3905,7 @@ ${faqText}`;
     const lang = getUserLang(user?.lang);
     if (!user) { try { await ctx.answerCbQuery("⛔"); } catch {} return; }
     try {
-      await ctx.answerCbQuery(lang === "uk" ? "🔄 Оновлюю…" : lang === "ru" ? "🔄 Обновляю…" : "🔄 Refreshing…");
+      await ctx.answerCbQuery(lang === "uk" ? "🔄 Оновлюю…" : lang === "ru" ? "🔄 Обновляю…" : lang === "es" ? "🔄 Actualizando…" : lang === "de" ? "🔄 Aktualisiere…" : "🔄 Refreshing…");
     } catch {}
     const token = (user as any).alorVpnToken;
     if (token) {
@@ -3920,7 +3938,7 @@ ${faqText}`;
     }
     // Partner channel gate (same as showVpnMenu) — block direct action access.
     if (!(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
       await showVpnMenu(ctx, tgId, true);
       return null;
     }
@@ -3945,6 +3963,10 @@ ${faqText}`;
       ? `📷 <b>QR-код підписки DarkShare VPN</b>\n\n1) Відкрий VPN-застосунок\n2) <b>«Додати підписку» → «Сканувати QR»</b>\n3) Націль камеру на код вище\n4) Обери сервер → <b>Connect</b>\n\n<i>Не працює QR? Натисни «🔗 Копіювати посилання» і встав вручну.</i>`
       : c.lang === "ru"
       ? `📷 <b>QR-код подписки DarkShare VPN</b>\n\n1) Открой VPN-приложение\n2) <b>«Добавить подписку» → «Сканировать QR»</b>\n3) Наведи камеру на код выше\n4) Выбери сервер → <b>Connect</b>\n\n<i>Не работает QR? Нажми «🔗 Скопировать ссылку» и вставь вручную.</i>`
+      : c.lang === "es"
+      ? `📷 <b>QR de suscripción DarkShare VPN</b>\n\n1) Abre tu app VPN\n2) <b>«Añadir suscripción» → «Escanear QR»</b>\n3) Apunta la cámara al código de arriba\n4) Elige un servidor → <b>Connect</b>\n\n<i>¿El QR no funciona? Pulsa «🔗 Copiar enlace» y pégalo manualmente.</i>`
+      : c.lang === "de"
+      ? `📷 <b>DarkShare VPN — Abonnement-QR</b>\n\n1) Öffne deine VPN-App\n2) <b>„Abonnement hinzufügen" → „QR scannen"</b>\n3) Richte die Kamera auf den Code oben\n4) Wähle einen Server → <b>Connect</b>\n\n<i>QR funktioniert nicht? Tippe auf „🔗 Link kopieren" und füge ihn manuell ein.</i>`
       : `📷 <b>DarkShare VPN — Subscription QR</b>\n\n1) Open your VPN app\n2) <b>"Add subscription" → "Scan QR"</b>\n3) Point the camera at the code above\n4) Pick a server → <b>Connect</b>\n\n<i>QR not working? Tap "🔗 Copy link" and paste manually.</i>`;
     try { await ctx.deleteMessage(); } catch {}
     try {
@@ -3955,11 +3977,13 @@ ${faqText}`;
   }
 
   function backToConnectKb(lang: string) {
+    const link = lang === "uk" ? "Лінк" : lang === "ru" ? "Линк" : lang === "es" ? "Enlace" : lang === "de" ? "Link" : "Link";
+    const apps = lang === "uk" ? "Апи" : lang === "ru" ? "Прил." : lang === "es" ? "Apps" : lang === "de" ? "Apps" : "Apps";
     return Markup.inlineKeyboard([
       [
-        cb(`📷 ${lang === "uk" ? "QR" : lang === "ru" ? "QR" : "QR"}`, "vpn_qr", "primary"),
-        cb(`🔗 ${lang === "uk" ? "Лінк" : lang === "ru" ? "Линк" : "Link"}`, "vpn_copy_link", "primary"),
-        cb(`📱 ${lang === "uk" ? "Апи" : lang === "ru" ? "Прил." : "Apps"}`, "vpn_apps", "primary"),
+        cb(`📷 QR`, "vpn_qr", "primary"),
+        cb(`🔗 ${link}`, "vpn_copy_link", "primary"),
+        cb(`📱 ${apps}`, "vpn_apps", "primary"),
       ],
       [cb(vpnT(lang as any, "back"), "vpn_menu", "danger", E.back)],
     ]);
@@ -3976,6 +4000,10 @@ ${faqText}`;
       ? `🔗 <b>Посилання підписки DarkShare VPN</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Тапни на код вище — він скопіюється. Потім у VPN-застосунку: «Додати підписку» → «Імпорт з URL» → встав.</i>`
       : c.lang === "ru"
       ? `🔗 <b>Ссылка подписки DarkShare VPN</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Тапни на код выше — он скопируется. Потом в VPN-приложении: «Добавить подписку» → «Импорт по URL» → вставь.</i>`
+      : c.lang === "es"
+      ? `🔗 <b>Enlace de suscripción DarkShare VPN</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Pulsa el código de arriba para copiarlo. Luego en tu app VPN: «Añadir suscripción» → «Importar desde URL» → pega.</i>`
+      : c.lang === "de"
+      ? `🔗 <b>DarkShare VPN — Abonnement-Link</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Tippe oben auf den Code, um ihn zu kopieren. Dann in deiner VPN-App: „Abonnement hinzufügen" → „Aus URL importieren" → einfügen.</i>`
       : `🔗 <b>DarkShare VPN subscription link</b>\n\n<code>${escHtml(c.vpnUrl)}</code>\n\n<i>Tap the code above to copy it. Then in your VPN app: "Add subscription" → "Import from URL" → paste.</i>`;
     try { await ctx.deleteMessage(); } catch {}
     await ctx.reply(text, { parse_mode: "HTML", ...backToConnectKb(c.lang) });
@@ -3984,11 +4012,15 @@ ${faqText}`;
   bot.action("vpn_apps", async (ctx) => {
     const c = await getVpnCtx(ctx); if (!c) return;
     const bridge = (appId: string) => `${c.webUrl}/vpn/open/${appId}/${c.vpnToken}`;
-    const openInLabel = c.lang === "uk" ? "Відкрити в" : c.lang === "ru" ? "Открыть в" : "Open in";
+    const openInLabel = c.lang === "uk" ? "Відкрити в" : c.lang === "ru" ? "Открыть в" : c.lang === "es" ? "Abrir en" : c.lang === "de" ? "Öffnen in" : "Open in";
     const text = c.lang === "uk"
       ? `📱 <b>Підключення в один клік</b>\n\nОбери свій застосунок нижче — підписка імпортується автоматично.\n\n<i>Спершу встанови потрібний застосунок (посилання у каталозі happ.su, App Store, Google Play).</i>\n\n💡 <b>Рекомендуємо:</b> Happ — працює на iOS, Android, Windows, macOS.`
       : c.lang === "ru"
       ? `📱 <b>Подключение в один клик</b>\n\nВыбери своё приложение ниже — подписка импортируется автоматически.\n\n<i>Сначала установи нужное приложение (ссылки в каталоге happ.su, App Store, Google Play).</i>\n\n💡 <b>Рекомендуем:</b> Happ — работает на iOS, Android, Windows, macOS.`
+      : c.lang === "es"
+      ? `📱 <b>Conexión en un clic</b>\n\nElige tu app abajo — la suscripción se importa automáticamente.\n\n<i>Primero instala la app si aún no la tienes (enlaces: happ.su, App Store, Google Play).</i>\n\n💡 <b>Recomendado:</b> Happ — funciona en iOS, Android, Windows, macOS.`
+      : c.lang === "de"
+      ? `📱 <b>Ein-Klick-Verbindung</b>\n\nWähle deine App unten — das Abonnement wird automatisch importiert.\n\n<i>Installiere die App zuerst, falls noch nicht vorhanden (Links: happ.su, App Store, Google Play).</i>\n\n💡 <b>Empfohlen:</b> Happ — funktioniert auf iOS, Android, Windows, macOS.`
       : `📱 <b>One-tap install</b>\n\nPick your app below — the subscription imports automatically.\n\n<i>Install the app first if you don't have it (links: happ.su, App Store, Google Play).</i>\n\n💡 <b>Recommended:</b> Happ — works on iOS, Android, Windows, macOS.`;
     const kb = Markup.inlineKeyboard([
       [urlS(`⭐ ${openInLabel} Happ`, bridge("happ"), "success")],
@@ -3996,7 +4028,7 @@ ${faqText}`;
       [urlS(`💻 Clash Verge`, bridge("clashverge"), "primary"), urlS(`🪟 v2rayN (Win)`, bridge("v2rayn"), "primary")],
       [
         cb(`📷 QR`, "vpn_qr", "default"),
-        cb(`🔗 ${c.lang === "uk" ? "Лінк" : c.lang === "ru" ? "Линк" : "Link"}`, "vpn_copy_link", "default"),
+        cb(`🔗 ${c.lang === "uk" ? "Лінк" : c.lang === "ru" ? "Линк" : c.lang === "es" ? "Enlace" : c.lang === "de" ? "Link" : "Link"}`, "vpn_copy_link", "default"),
       ],
       [cb(vpnT(c.lang as any, "back"), "vpn_menu", "danger", E.back)],
     ]);
@@ -4016,7 +4048,7 @@ ${faqText}`;
     }
     // Partner channel gate — must subscribe to @AlorVPN before provisioning.
     if (!(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
       return showVpnMenu(ctx, tgId, true);
     }
 
@@ -4061,25 +4093,29 @@ ${faqText}`;
     const active = devices.filter((d) => !d.revokedAt);
 
     const T = {
-      title: { uk: "Підключені пристрої", ru: "Подключённые устройства", en: "Connected devices" } as any,
-      slots: { uk: "слотів зайнято", ru: "слотов занято", en: "slots used" } as any,
-      plan: { uk: "Тариф", ru: "Тариф", en: "Plan" } as any,
-      countries: { uk: "країн доступно", ru: "стран доступно", en: "countries available" } as any,
-      daysLeft: { uk: "днів до завершення", ru: "дней до окончания", en: "days left" } as any,
-      noSub: { uk: "Підписка неактивна", ru: "Подписка неактивна", en: "Subscription inactive" } as any,
+      title: { uk: "Підключені пристрої", ru: "Подключённые устройства", es: "Dispositivos conectados", de: "Verbundene Geräte", en: "Connected devices" } as any,
+      slots: { uk: "слотів зайнято", ru: "слотов занято", es: "slots en uso", de: "Slots belegt", en: "slots used" } as any,
+      plan: { uk: "Тариф", ru: "Тариф", es: "Plan", de: "Tarif", en: "Plan" } as any,
+      countries: { uk: "країн доступно", ru: "стран доступно", es: "países disponibles", de: "Länder verfügbar", en: "countries available" } as any,
+      daysLeft: { uk: "днів до завершення", ru: "дней до окончания", es: "días restantes", de: "Tage verbleibend", en: "days left" } as any,
+      noSub: { uk: "Підписка неактивна", ru: "Подписка неактивна", es: "Suscripción inactiva", de: "Abonnement inaktiv", en: "Subscription inactive" } as any,
       empty: {
         uk: "Поки що жодних пристроїв.\nІмпортуй підписку у VPN-застосунку — пристрій з'явиться тут автоматично.",
         ru: "Пока нет устройств.\nИмпортируй подписку в VPN-приложении — устройство появится здесь автоматически.",
+        es: "Aún no hay dispositivos.\nImporta la suscripción en tu app VPN — el dispositivo aparecerá aquí automáticamente.",
+        de: "Noch keine Geräte.\nImportiere das Abonnement in deine VPN-App — das Gerät erscheint hier automatisch.",
         en: "No devices yet.\nImport the subscription in your VPN app — it appears here automatically.",
       } as any,
       hint: {
         uk: "💡 Один слот = один застосунок + мережа. Відкликай старі, щоб звільнити місце.",
         ru: "💡 Один слот = одно приложение + сеть. Отзывай старые, чтобы освободить место.",
+        es: "💡 Un slot = una app en una red. Revoca los antiguos para liberar espacio.",
+        de: "💡 Ein Slot = eine App in einem Netzwerk. Widerrufe alte, um Platz freizugeben.",
         en: "💡 One slot = one app on one network. Revoke old ones to free up space.",
       } as any,
-      revoke: { uk: "Відкликати", ru: "Отозвать", en: "Revoke" } as any,
-      revoked: { uk: "Відкликано", ru: "Отозвано", en: "Revoked" } as any,
-      lastSeen: { uk: "Останнє з'єднання", ru: "Последнее подключение", en: "Last seen" } as any,
+      revoke: { uk: "Відкликати", ru: "Отозвать", es: "Revocar", de: "Widerrufen", en: "Revoke" } as any,
+      revoked: { uk: "Відкликано", ru: "Отозвано", es: "Revocado", de: "Widerrufen", en: "Revoked" } as any,
+      lastSeen: { uk: "Останнє з'єднання", ru: "Последнее подключение", es: "Última conexión", de: "Zuletzt gesehen", en: "Last seen" } as any,
     };
     const tt = (k: keyof typeof T) => T[k][lang] || T[k].en;
 
@@ -4102,7 +4138,7 @@ ${faqText}`;
     } else {
       const top = devices.slice(0, 10);
       for (const d of top) {
-        const lastStr = d.lastSeen ? new Date(d.lastSeen).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : "en-GB", { dateStyle: "short", timeStyle: "short" }) : "—";
+        const lastStr = d.lastSeen ? new Date(d.lastSeen).toLocaleString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-GB", { dateStyle: "short", timeStyle: "short" }) : "—";
         const dot = d.revokedAt ? "⚫️" : "🟢";
         const ipStr = d.ipPrefix ? ` · <code>${escHtml(d.ipPrefix)}.x</code>` : "";
         text += `${dot} <b>${escHtml(d.deviceName || "VPN")}</b>${ipStr}\n`;
@@ -4129,7 +4165,7 @@ ${faqText}`;
     const lang = getUserLang(user?.lang);
     // Partner channel gate — protects against stale-button bypass.
     if ((user as any).alorVpnToken && !(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
       return showVpnMenu(ctx, tgId, true);
     }
     try { await ctx.answerCbQuery(); } catch {}
@@ -4143,13 +4179,13 @@ ${faqText}`;
     const lang = getUserLang(user?.lang);
     // Partner channel gate.
     if ((user as any).alorVpnToken && !(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
+      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
       return showVpnMenu(ctx, tgId, true);
     }
     const id = parseInt((ctx.match as any)[1], 10);
     try {
       await storage.revokeVpnDevice(id, user.id);
-      await ctx.answerCbQuery(lang === "uk" ? "✅ Відкликано" : lang === "ru" ? "✅ Отозвано" : "✅ Revoked");
+      await ctx.answerCbQuery(lang === "uk" ? "✅ Відкликано" : lang === "ru" ? "✅ Отозвано" : lang === "es" ? "✅ Revocado" : lang === "de" ? "✅ Widerrufen" : "✅ Revoked");
     } catch {
       try { await ctx.answerCbQuery("⚠️"); } catch {}
     }
@@ -4182,6 +4218,26 @@ ${faqText}`;
           `<b>3.</b> Нажми кнопку своего приложения — подписка импортируется автоматически. Или отсканируй QR.\n\n` +
           `<b>4.</b> Выбери любой сервер и нажми <b>Connect</b>.\n\n` +
           `${pe("check")} Готово — трафик зашифрован.`
+        : lang === "es"
+        ? `${pe("lock")} <b>Cómo conectar DarkShare VPN</b>\n\n` +
+          `<b>1.</b> Instala una app para tu plataforma:\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Nekobox\n` +
+          `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
+          `<b>2.</b> Pulsa «${escHtml("Get config")}» en el bot — recibirás un QR + botones.\n\n` +
+          `<b>3.</b> Pulsa el botón de tu app — la suscripción se importa automáticamente. O escanea el QR.\n\n` +
+          `<b>4.</b> Elige cualquier servidor y pulsa <b>Connect</b>.\n\n` +
+          `${pe("check")} Listo — tu tráfico está cifrado.`
+        : lang === "de"
+        ? `${pe("lock")} <b>DarkShare VPN verbinden</b>\n\n` +
+          `<b>1.</b> Installiere eine App für deine Plattform:\n` +
+          `   • <b>iPhone:</b> Happ, Shadowrocket\n` +
+          `   • <b>Android:</b> Happ, v2rayNG, Nekobox\n` +
+          `   • <b>Windows / Mac:</b> Happ, Clash Verge, v2rayN\n\n` +
+          `<b>2.</b> Tippe im Bot auf „${escHtml("Get config")}" — du erhältst einen QR + Buttons.\n\n` +
+          `<b>3.</b> Tippe auf den Button deiner App — das Abonnement wird automatisch importiert. Oder scanne den QR.\n\n` +
+          `<b>4.</b> Wähle einen beliebigen Server und tippe auf <b>Connect</b>.\n\n` +
+          `${pe("check")} Fertig — dein Datenverkehr ist verschlüsselt.`
         : `${pe("lock")} <b>How to connect DarkShare VPN</b>\n\n` +
           `<b>1.</b> Install an app for your platform:\n` +
           `   • <b>iPhone:</b> Happ, Shadowrocket\n` +
@@ -4193,10 +4249,10 @@ ${faqText}`;
           `${pe("check")} Done — your traffic is encrypted.`;
     const kb = Markup.inlineKeyboard([
       [
-        cb(`📷 ${lang === "uk" ? "QR-код" : lang === "ru" ? "QR-код" : "QR"}`, "vpn_qr", "success"),
-        cb(`🔗 ${lang === "uk" ? "Копіювати" : lang === "ru" ? "Скопировать" : "Copy link"}`, "vpn_copy_link", "success"),
+        cb(`📷 ${lang === "uk" ? "QR-код" : lang === "ru" ? "QR-код" : lang === "es" ? "QR" : lang === "de" ? "QR-Code" : "QR"}`, "vpn_qr", "success"),
+        cb(`🔗 ${lang === "uk" ? "Копіювати" : lang === "ru" ? "Скопировать" : lang === "es" ? "Copiar" : lang === "de" ? "Kopieren" : "Copy link"}`, "vpn_copy_link", "success"),
       ],
-      [cb(`📱 ${lang === "uk" ? "Застосунки" : lang === "ru" ? "Приложения" : "Apps"}`, "vpn_apps", "primary")],
+      [cb(`📱 ${lang === "uk" ? "Застосунки" : lang === "ru" ? "Приложения" : lang === "es" ? "Apps" : lang === "de" ? "Apps" : "Apps"}`, "vpn_apps", "primary")],
       [cb(vpnT(lang, "back"), "vpn_menu", "primary", E.back)],
     ]);
     try { await ctx.deleteMessage(); } catch {}
@@ -7580,7 +7636,7 @@ ${feature.desc}
 
   // Multilingual VPN launch announcement — sent on-demand by /vpn_announce admin command.
   // Goes to ALL eligible users in their preferred language (uk/ru/en).
-  function buildVpnAnnouncement(lang: "uk" | "ru" | "en"): { text: string; kb: any } {
+  function buildVpnAnnouncement(lang: Language): { text: string; kb: any } {
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
     const text = lang === "uk"
       ? `🛡️ *DarkShare VPN — вже у твоєму тарифі!*\n\n` +
@@ -7608,6 +7664,32 @@ ${feature.desc}
         `👑 *ENTERPRISE* — 5 устройств · 20+ стран\n` +
         `👥 *GROUPS* — 5 устройств · 20+ стран · управление командой\n\n` +
         `Нажми /vpn в боте или открой дашборд на сайте — подключение за 30 секунд.`
+      : lang === "es"
+      ? `🛡️ *DarkShare VPN — ¡ya incluida en tu plan!*\n\n` +
+        `Hemos lanzado nuestra propia red VPN, totalmente integrada en DarkShare.\n\n` +
+        `*Qué obtienes:*\n` +
+        `• Cifrado de grado militar (Trojan Reality)\n` +
+        `• Evasión de DPI y censura con un clic\n` +
+        `• Cero registros — tu tráfico es privado\n` +
+        `• Funciona en iOS, Android, Windows, macOS, Linux\n\n` +
+        `*Planes con VPN:*\n` +
+        `⭐ *PRO* — 2 dispositivos · 7 países (DE, NL, FI, FR, PL, UA, USA)\n` +
+        `👑 *ENTERPRISE* — 5 dispositivos · 20+ países\n` +
+        `👥 *GROUPS* — 5 dispositivos · 20+ países · gestión de equipo\n\n` +
+        `Pulsa /vpn en el bot o abre el panel web — conexión en 30 segundos.`
+      : lang === "de"
+      ? `🛡️ *DarkShare VPN — bereits in deinem Tarif!*\n\n` +
+        `Wir haben unser eigenes VPN-Netzwerk gestartet, vollständig in DarkShare integriert.\n\n` +
+        `*Was du bekommst:*\n` +
+        `• Verschlüsselung auf Militärniveau (Trojan Reality)\n` +
+        `• DPI- und Zensur-Umgehung mit einem Klick\n` +
+        `• Keine Logs — dein Datenverkehr bleibt privat\n` +
+        `• Funktioniert auf iOS, Android, Windows, macOS, Linux\n\n` +
+        `*Tarife mit VPN:*\n` +
+        `⭐ *PRO* — 2 Geräte · 7 Länder (DE, NL, FI, FR, PL, UA, USA)\n` +
+        `👑 *ENTERPRISE* — 5 Geräte · 20+ Länder\n` +
+        `👥 *GROUPS* — 5 Geräte · 20+ Länder · Teamverwaltung\n\n` +
+        `Tippe /vpn im Bot oder öffne das Web-Dashboard — Verbindung in 30 Sekunden.`
       : `🛡️ *DarkShare VPN — already in your plan!*\n\n` +
         `We launched our own VPN network, fully integrated into DarkShare.\n\n` +
         `*What you get:*\n` +
@@ -7621,8 +7703,8 @@ ${feature.desc}
         `👥 *GROUPS* — 5 devices · 20+ countries · team management\n\n` +
         `Tap /vpn in the bot or open the web dashboard — connect in 30 seconds.`;
     const kb = Markup.inlineKeyboard([
-      [cb(lang === "uk" ? "🛡️ Відкрити VPN" : lang === "ru" ? "🛡️ Открыть VPN" : "🛡️ Open VPN", "vpn_menu", "success")],
-      [urlS(lang === "uk" ? "🌐 Дашборд на сайті" : lang === "ru" ? "🌐 Дашборд на сайте" : "🌐 Web dashboard", `${webUrl}/vpn`, "primary")],
+      [cb(lang === "uk" ? "🛡️ Відкрити VPN" : lang === "ru" ? "🛡️ Открыть VPN" : lang === "es" ? "🛡️ Abrir VPN" : lang === "de" ? "🛡️ VPN öffnen" : "🛡️ Open VPN", "vpn_menu", "success")],
+      [urlS(lang === "uk" ? "🌐 Дашборд на сайті" : lang === "ru" ? "🌐 Дашборд на сайте" : lang === "es" ? "🌐 Panel en el sitio" : lang === "de" ? "🌐 Web-Dashboard" : "🌐 Web dashboard", `${webUrl}/vpn`, "primary")],
     ]);
     return { text, kb };
   }
@@ -7637,7 +7719,7 @@ ${feature.desc}
     const eligibleUsers = allUsers.filter(u => !u.blocked && u.notifsOn !== false && u.tgId && !u.tgId.startsWith("replit:"));
     let sent = 0, throttled = 0;
     for (const u of eligibleUsers) {
-      const lang = getUserLang(u.lang) as "uk" | "ru" | "en";
+      const lang = getUserLang(u.lang);
       const { text, kb } = buildVpnAnnouncement(lang);
       try {
         await bot.telegram.sendMessage(u.tgId!, text, { parse_mode: "Markdown", ...kb });
