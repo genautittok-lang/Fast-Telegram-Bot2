@@ -90,7 +90,9 @@ export async function setupBot(storage: IStorage) {
   }
   console.log("Token found, creating bot instance...");
 
-  const bot = new Telegraf<BotContext>(token);
+  // handlerTimeout: long-running handlers (e.g. mass broadcasts to thousands of
+  // users) can exceed Telegraf's default 90s limit and log spurious TimeoutErrors.
+  const bot = new Telegraf<BotContext>(token, { handlerTimeout: 3_600_000 });
   botInstance = bot;
 
   const telegraphUrls: Record<string, string> = {};
@@ -5276,7 +5278,6 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
         successCount++;
       } catch (e: any) {
         failCount++;
-        const code = e?.response?.error_code;
         const desc = (e?.response?.description || e?.message || "").toLowerCase();
         if (desc.includes("can't initiate") || desc.includes("cant initiate") || desc.includes("can't be initiated")) {
           neverStartedCount++;
@@ -5286,8 +5287,6 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
           blockedCount++;
         } else if (desc.includes("chat not found") || desc.includes("peer_id_invalid") || desc.includes("user not found")) {
           neverStartedCount++;
-        } else if (code === 403) {
-          blockedCount++;
         } else {
           otherErrorCount++;
         }
