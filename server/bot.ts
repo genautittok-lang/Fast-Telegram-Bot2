@@ -5047,6 +5047,37 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     await showBroadcastPreview(ctx, tgId, lang, state.data);
   });
 
+  bot.action("admin_broadcast_toggle_new", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    if (!isAdmin(tgId)) return ctx.answerCbQuery(t(lang, "admin.accessDenied"));
+
+    const state = userStates.get(tgId);
+    if (!state?.data) return ctx.answerCbQuery();
+
+    const newOnly = !state.data.newOnly;
+    const updatedData = { ...state.data, newOnly };
+    userStates.set(tgId, { ...state, step: "confirm", data: updatedData });
+
+    // Show count preview
+    const allUsers = await storage.getAllUsers();
+    let targetCount = allUsers.filter(u => !u.blocked).length;
+    if (newOnly) {
+      const lastSentRaw = await storage.getAdminSetting("daily_broadcast_last_sent");
+      const lastSent = lastSentRaw ? new Date(lastSentRaw) : null;
+      if (lastSent) {
+        targetCount = allUsers.filter(u => !u.blocked && u.createdAt && new Date(u.createdAt) > lastSent).length;
+      }
+    }
+
+    const hint = newOnly
+      ? (lang === "uk" ? `✅ Тільки нові: ${targetCount} юзерів` : lang === "ru" ? `✅ Только новые: ${targetCount} пользователей` : `✅ New only: ${targetCount} users`)
+      : (lang === "uk" ? `👥 Всі: ${targetCount} юзерів` : lang === "ru" ? `👥 Все: ${targetCount} пользователей` : `👥 All: ${targetCount} users`);
+
+    await ctx.answerCbQuery(hint);
+    await showBroadcastPreview(ctx, tgId, lang, updatedData);
+  });
+
   bot.action("admin_broadcast_remove_btn", async (ctx) => {
     const tgId = ctx.from!.id.toString();
     const lang = await getLang(tgId);
@@ -5070,8 +5101,13 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       ? (lang === "uk" ? "📷 Фото + підпис" : lang === "ru" ? "📷 Фото + подпись" : "📷 Photo + caption")
       : (lang === "uk" ? "📝 Текст" : lang === "ru" ? "📝 Текст" : "📝 Text");
 
+    const audienceLabel = data.newOnly
+      ? (lang === "uk" ? "🆕 Тільки нові (після останньої розсилки)" : lang === "ru" ? "🆕 Только новые (после последней рассылки)" : "🆕 New only (since last broadcast)")
+      : (lang === "uk" ? "👥 Всі користувачі" : lang === "ru" ? "👥 Все пользователи" : "👥 All users");
+
     const previewText = `👁 *${lang === "uk" ? "Попередній перегляд" : lang === "ru" ? "Предпросмотр" : "Preview"}*\n\n` +
-      `${lang === "uk" ? "Тип" : lang === "ru" ? "Тип" : "Type"}: ${typeLabel}\n\n` +
+      `${lang === "uk" ? "Тип" : lang === "ru" ? "Тип" : "Type"}: ${typeLabel}\n` +
+      `${lang === "uk" ? "Аудиторія" : lang === "ru" ? "Аудитория" : "Audience"}: ${audienceLabel}\n\n` +
       `${lang === "uk" ? "Повідомлення" : lang === "ru" ? "Сообщение" : "Message"}:\n${data.message || (lang === "uk" ? "(без тексту)" : lang === "ru" ? "(без текста)" : "(no text)")}` +
       btnsText + "\n\n" +
       `${lang === "uk" ? "Підтвердити відправку?" : lang === "ru" ? "Подтвердить отправку?" : "Confirm sending?"}`;
@@ -5083,6 +5119,11 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     if (data.buttons?.length > 0) {
       keyboardRows.push([cb((lang === "uk" ? "Видалити останню" : lang === "ru" ? "Удалить последнюю" : "Remove Last"), "admin_broadcast_remove_btn", "danger", E.trash)]);
     }
+    // New-users-only toggle
+    const newOnlyLabel = data.newOnly
+      ? (lang === "uk" ? "🆕 Тільки нові ✅" : lang === "ru" ? "🆕 Только новые ✅" : "🆕 New only ✅")
+      : (lang === "uk" ? "👥 Всі користувачі" : lang === "ru" ? "👥 Все пользователи" : "👥 All users");
+    keyboardRows.push([cb(newOnlyLabel, "admin_broadcast_toggle_new", "primary", E.bolt)]);
     keyboardRows.push([
       cb(t(lang, "admin.send"), "admin_broadcast_confirm", "success", E.check),
       cb(t(lang, "admin.cancel"), "admin_broadcast_cancel", "danger", E.back)
@@ -5160,12 +5201,31 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     
     const data = state.data;
     userStates.delete(tgId);
-    
-    const allUsers = await storage.getAllUsers();
+
+    // Answer callback query immediately to prevent Telegram 90s timeout
+    await ctx.answerCbQuery(lang === "uk" ? "⏳ Розсилка запущена..." : lang === "ru" ? "⏳ Рассылка запущена..." : "⏳ Broadcast started...");
+
+    let allUsers = await storage.getAllUsers();
+
+    // Filter to new users only if requested
+    if (data.newOnly) {
+      const lastSentRaw = await storage.getAdminSetting("daily_broadcast_last_sent");
+      const lastSent = lastSentRaw ? new Date(lastSentRaw) : null;
+      if (lastSent) {
+        allUsers = allUsers.filter(u => u.createdAt && new Date(u.createdAt) > lastSent);
+      }
+    }
+
     let successCount = 0;
     let failCount = 0;
     
-    await ctx.editMessageText(t(lang, "admin.broadcastStarted"));
+    try {
+      await ctx.editMessageText(
+        `${lang === "uk" ? "📤 Розсилка запущена..." : lang === "ru" ? "📤 Рассылка запущена..." : "📤 Broadcast started..."}\n` +
+        `${lang === "uk" ? "Одержувачів" : lang === "ru" ? "Получателей" : "Recipients"}: *${allUsers.filter(u => !u.blocked).length}*`,
+        { parse_mode: "Markdown" }
+      );
+    } catch {}
 
     const inlineButtons = data.buttons?.length
       ? data.buttons.map((b: any) => [Markup.button.url(b.text, b.url)])
