@@ -5225,6 +5225,9 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
 
     let successCount = 0;
     let failCount = 0;
+    let blockedCount = 0;
+    let notFoundCount = 0;
+    let otherErrorCount = 0;
     
     try {
       await ctx.editMessageText(
@@ -5255,14 +5258,28 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
           });
         }
         successCount++;
-      } catch (e) {
+      } catch (e: any) {
         failCount++;
+        const code = e?.response?.error_code;
+        const desc = (e?.response?.description || e?.message || "").toLowerCase();
+        if (code === 403 || desc.includes("blocked") || desc.includes("deactivated") || desc.includes("user is deactivated")) {
+          blockedCount++;
+        } else if (code === 400 && (desc.includes("chat not found") || desc.includes("peer_id_invalid"))) {
+          notFoundCount++;
+        } else {
+          otherErrorCount++;
+        }
       }
       
       await new Promise(resolve => setTimeout(resolve, 50));
     }
-    
-    await ctx.reply(`${t(lang, "admin.broadcastComplete")}\n\n${t(lang, "admin.sent")} ${successCount}\n${t(lang, "admin.errors")} ${failCount}`, {
+
+    const breakdown =
+      `${lang === "uk" ? "🚫 Заблокували бота" : lang === "ru" ? "🚫 Заблокировали бота" : "🚫 Blocked the bot"}: ${blockedCount}\n` +
+      `${lang === "uk" ? "👻 Видалені/не знайдені" : lang === "ru" ? "👻 Удалённые/не найдены" : "👻 Deleted/not found"}: ${notFoundCount}\n` +
+      `${lang === "uk" ? "⚠️ Інші помилки" : lang === "ru" ? "⚠️ Другие ошибки" : "⚠️ Other errors"}: ${otherErrorCount}`;
+
+    await ctx.reply(`${t(lang, "admin.broadcastComplete")}\n\n${t(lang, "admin.sent")} ${successCount}\n${t(lang, "admin.errors")} ${failCount}\n\n${breakdown}`, {
       parse_mode: "Markdown",
       ...Markup.inlineKeyboard([[cb(t(lang, "admin.back"), "admin_back", "danger", E.back)]])
     });
