@@ -5059,14 +5059,15 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     const updatedData = { ...state.data, newOnly };
     userStates.set(tgId, { ...state, step: "confirm", data: updatedData });
 
-    // Show count preview
+    // Show count preview (only real Telegram users, not Google OAuth replit: ones)
     const allUsers = await storage.getAllUsers();
-    let targetCount = allUsers.filter(u => !u.blocked).length;
+    const tgUsers = allUsers.filter(u => !u.blocked && !u.tgId.startsWith("replit:"));
+    let targetCount = tgUsers.length;
     if (newOnly) {
       const lastSentRaw = await storage.getAdminSetting("daily_broadcast_last_sent");
       const lastSent = lastSentRaw ? new Date(lastSentRaw) : null;
       if (lastSent) {
-        targetCount = allUsers.filter(u => !u.blocked && u.createdAt && new Date(u.createdAt) > lastSent).length;
+        targetCount = tgUsers.filter(u => u.createdAt && new Date(u.createdAt) > lastSent).length;
       }
     }
 
@@ -5207,6 +5208,9 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
 
     let allUsers = await storage.getAllUsers();
 
+    // Only keep real Telegram users (skip Google OAuth users with replit: prefix)
+    allUsers = allUsers.filter(u => !u.tgId.startsWith("replit:"));
+
     // Filter to new users only if requested
     if (data.newOnly) {
       const lastSentRaw = await storage.getAdminSetting("daily_broadcast_last_sent");
@@ -5216,13 +5220,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       }
     }
 
+    // Exclude blocked users
+    allUsers = allUsers.filter(u => !u.blocked);
+
     let successCount = 0;
     let failCount = 0;
     
     try {
       await ctx.editMessageText(
         `${lang === "uk" ? "📤 Розсилка запущена..." : lang === "ru" ? "📤 Рассылка запущена..." : "📤 Broadcast started..."}\n` +
-        `${lang === "uk" ? "Одержувачів" : lang === "ru" ? "Получателей" : "Recipients"}: *${allUsers.filter(u => !u.blocked).length}*`,
+        `${lang === "uk" ? "Одержувачів" : lang === "ru" ? "Получателей" : "Recipients"}: *${allUsers.length}*`,
         { parse_mode: "Markdown" }
       );
     } catch {}
@@ -5233,7 +5240,6 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     const replyMarkup = inlineButtons ? Markup.inlineKeyboard(inlineButtons).reply_markup : undefined;
     
     for (const u of allUsers) {
-      if (u.blocked) continue;
       
       try {
         if (data.type === "photo" && data.photoId) {
