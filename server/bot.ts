@@ -4791,6 +4791,12 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     const enterpriseUsers = allUsers.filter(u => u.tier === "ENTERPRISE").length;
     const groupsUsers = allUsers.filter(u => u.tier === "GROUPS").length;
     const blockedUsers = allUsers.filter(u => u.blocked).length;
+
+    // Broadcast audience breakdown
+    const webUsers = allUsers.filter(u => u.tgId && u.tgId.startsWith("replit:")).length;
+    const tgUsers = allUsers.filter(u => u.tgId && !u.tgId.startsWith("replit:")).length;
+    const notifsOffUsers = allUsers.filter(u => u.notifsOn === false).length;
+    const reachableUsers = allUsers.filter(u => u.tgId && !u.tgId.startsWith("replit:") && !u.blocked && u.notifsOn !== false).length;
     
     const totalPaid = proUsers + enterpriseUsers + groupsUsers;
     const conversionRate = allUsers.length > 0 ? ((totalPaid / allUsers.length) * 100).toFixed(1) : "0";
@@ -4827,7 +4833,12 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       `├ ${lang === "uk" ? "Всього" : lang === "ru" ? "Всего" : "Total"}: *${allUsers.length}*\n` +
       `├ ${lang === "uk" ? "Сьогодні" : lang === "ru" ? "Сегодня" : "Today"}: +${todayUsers}\n` +
       `├ ${lang === "uk" ? "За тиждень" : lang === "ru" ? "За неделю" : "This week"}: +${weekUsers}\n` +
-      `└ 🚫 ${lang === "uk" ? "Заблоковано" : lang === "ru" ? "Заблокировано" : "Blocked"}: ${blockedUsers}\n\n` +
+      `└ 🚫 ${lang === "uk" ? "Заблоковано (адмін)" : lang === "ru" ? "Заблокировано (админ)" : "Blocked (admin)"}: ${blockedUsers}\n\n` +
+      `📡 *${lang === "uk" ? "Аудиторія розсилки" : lang === "ru" ? "Аудитория рассылки" : "Broadcast Audience"}*\n` +
+      `├ 💬 ${lang === "uk" ? "Telegram-юзери" : lang === "ru" ? "Telegram-юзеры" : "Telegram users"}: ${tgUsers}\n` +
+      `├ 🌐 ${lang === "uk" ? "Сайт (Google)" : lang === "ru" ? "Сайт (Google)" : "Web (Google)"}: ${webUsers}\n` +
+      `├ 🔕 ${lang === "uk" ? "Сповіщення вимкнено" : lang === "ru" ? "Уведомления выкл" : "Notifs off"}: ${notifsOffUsers}\n` +
+      `└ ✅ ${lang === "uk" ? "Реально дістанемо" : lang === "ru" ? "Реально достанем" : "Reachable"}: *${reachableUsers}*\n\n` +
       `⭐ *${lang === "uk" ? "Тарифи" : lang === "ru" ? "Тарифы" : "Tiers"}*\n` +
       `├ 🆓 FREE: ${freeUsers} [${makeBar(freeUsers, allUsers.length)}]\n` +
       `├ ⭐ PRO: ${proUsers} [${makeBar(proUsers, allUsers.length)}]\n` +
