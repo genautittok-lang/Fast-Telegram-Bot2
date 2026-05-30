@@ -364,7 +364,11 @@ export async function setupBot(storage: IStorage) {
   }
 
   bot.use(async (ctx, next) => {
-    if (ctx.from) {
+    // Only create users from PRIVATE chats. Interactions in groups/channels
+    // (or inline queries) do NOT grant the bot permission to DM the user, so
+    // creating a user row there produces "ghost" users the bot can never reach
+    // in broadcasts (Telegram: "bot can't initiate conversation with a user").
+    if (ctx.from && ctx.chat?.type === "private") {
       const tgId = ctx.from.id.toString();
       let user = await storage.getUserByTgId(tgId);
       if (!user) {
@@ -5237,6 +5241,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     let successCount = 0;
     let failCount = 0;
     let blockedCount = 0;
+    let neverStartedCount = 0;
     let notFoundCount = 0;
     let otherErrorCount = 0;
     
@@ -5273,10 +5278,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
         failCount++;
         const code = e?.response?.error_code;
         const desc = (e?.response?.description || e?.message || "").toLowerCase();
-        if (code === 403 || desc.includes("blocked") || desc.includes("deactivated") || desc.includes("user is deactivated")) {
-          blockedCount++;
-        } else if (code === 400 && (desc.includes("chat not found") || desc.includes("peer_id_invalid"))) {
+        if (desc.includes("can't initiate") || desc.includes("cant initiate") || desc.includes("can't be initiated")) {
+          neverStartedCount++;
+        } else if (desc.includes("deactivated")) {
           notFoundCount++;
+        } else if (desc.includes("blocked")) {
+          blockedCount++;
+        } else if (desc.includes("chat not found") || desc.includes("peer_id_invalid") || desc.includes("user not found")) {
+          neverStartedCount++;
+        } else if (code === 403) {
+          blockedCount++;
         } else {
           otherErrorCount++;
         }
@@ -5287,7 +5298,8 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
 
     const breakdown =
       `${lang === "uk" ? "🚫 Заблокували бота" : lang === "ru" ? "🚫 Заблокировали бота" : "🚫 Blocked the bot"}: ${blockedCount}\n` +
-      `${lang === "uk" ? "👻 Видалені/не знайдені" : lang === "ru" ? "👻 Удалённые/не найдены" : "👻 Deleted/not found"}: ${notFoundCount}\n` +
+      `${lang === "uk" ? "👤 Не починали чат з ботом" : lang === "ru" ? "👤 Не начинали чат с ботом" : "👤 Never started a chat"}: ${neverStartedCount}\n` +
+      `${lang === "uk" ? "👻 Видалені акаунти" : lang === "ru" ? "👻 Удалённые аккаунты" : "👻 Deleted accounts"}: ${notFoundCount}\n` +
       `${lang === "uk" ? "⚠️ Інші помилки" : lang === "ru" ? "⚠️ Другие ошибки" : "⚠️ Other errors"}: ${otherErrorCount}`;
 
     await ctx.reply(`${t(lang, "admin.broadcastComplete")}\n\n${t(lang, "admin.sent")} ${successCount}\n${t(lang, "admin.errors")} ${failCount}\n\n${breakdown}`, {
