@@ -448,6 +448,24 @@ async function ensureTablesExist() {
     }
     console.log(`Verified ${alorVpnCols.length} AlorVPN columns on ds_users`);
 
+    // VPN free-trial / referral-day columns — idempotent.
+    // Backfill: mark existing rows so old users are treated as "already prompted"
+    // (the soft partner prompt is for NEW bot users only).
+    const vpnTrialCols = [
+      ["vpn_trial_used",           "BOOLEAN DEFAULT FALSE"],
+      ["vpn_trial_activated_at",   "TIMESTAMP"],
+      ["vpn_trial_expiry_notified","BOOLEAN DEFAULT FALSE"],
+      ["vpn_referral_days_granted","INTEGER DEFAULT 0"],
+    ] as const;
+    for (const [name, type] of vpnTrialCols) {
+      try {
+        await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS ${name} ${type}`);
+      } catch (e: any) {
+        console.error(`Failed to add ds_users.${name}:`, e?.message || e);
+      }
+    }
+    console.log(`Verified ${vpnTrialCols.length} VPN trial columns on ds_users`);
+
     // AlorVPN device tracking table (added May 2026) — idempotent
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ds_vpn_devices (

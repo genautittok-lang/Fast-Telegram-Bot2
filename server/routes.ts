@@ -2877,6 +2877,59 @@ ${urlEntries}
           console.error(`Failed to send reminder to user ${user.id}:`, err);
         }
       }
+
+      // --- Free VPN trial / referral-day expiry notification ---
+      // When a FREE user's VPN day is about to end, nudge them once to either
+      // buy a DarkShare subscription or invite 3 friends for +1 day.
+      const vpnEndResult = await pool.query(
+        `SELECT * FROM ds_users
+         WHERE tier = 'FREE'
+           AND alor_vpn_token IS NOT NULL
+           AND vpn_trial_expiry_notified = false
+           AND alor_vpn_expires_at IS NOT NULL
+           AND alor_vpn_expires_at > NOW()
+           AND alor_vpn_expires_at <= NOW() + INTERVAL '6 hours'`
+      );
+      let botUsernameForVpn = "";
+      if (vpnEndResult.rows.length > 0 && botInstance) {
+        try { botUsernameForVpn = (await botInstance.telegram.getMe()).username || ""; } catch {}
+      }
+      for (const user of vpnEndResult.rows) {
+        try {
+          if (botInstance && user.tg_id) {
+            const lang = user.lang || "uk";
+            const refLink = botUsernameForVpn && user.ref_code
+              ? `https://t.me/${botUsernameForVpn}?start=ref_${user.ref_code}`
+              : `https://www.darkshare.store`;
+            const vpnEndTexts: Record<string, string> = {
+              uk: `⏳ <b>Безкоштовний день VPN добігає кінця</b>\n\nЩоб не втратити доступ:\n• 💎 Оформи підписку DARKSHARE\n• 👥 Або запроси <b>3 друзів</b> і отримай ще <b>+1 день</b> безкоштовно`,
+              ru: `⏳ <b>Бесплатный день VPN подходит к концу</b>\n\nЧтобы не потерять доступ:\n• 💎 Оформи подписку DARKSHARE\n• 👥 Или пригласи <b>3 друзей</b> и получи ещё <b>+1 день</b> бесплатно`,
+              en: `⏳ <b>Your free VPN day is ending</b>\n\nTo keep access:\n• 💎 Subscribe to DARKSHARE\n• 👥 Or invite <b>3 friends</b> for <b>+1 more day</b> free`,
+              es: `⏳ <b>Tu día gratis de VPN está terminando</b>\n\nPara mantener el acceso:\n• 💎 Suscríbete a DARKSHARE\n• 👥 O invita a <b>3 amigos</b> y obtén <b>+1 día</b> gratis`,
+              de: `⏳ <b>Dein Gratis-VPN-Tag endet bald</b>\n\nUm den Zugang zu behalten:\n• 💎 DARKSHARE-Abo abschließen\n• 👥 Oder lade <b>3 Freunde</b> ein für <b>+1 Tag</b> gratis`,
+            };
+            const inviteBtn: Record<string, string> = {
+              uk: "👥 Запросити друзів", ru: "👥 Пригласить друзей", en: "👥 Invite friends", es: "👥 Invitar amigos", de: "👥 Freunde einladen",
+            };
+            const buyBtn: Record<string, string> = {
+              uk: "💎 Оформити підписку", ru: "💎 Оформить подписку", en: "💎 Subscribe", es: "💎 Suscribirse", de: "💎 Abo abschließen",
+            };
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🛡️ DARKSHARE VPN")}`;
+            await botInstance.telegram.sendMessage(user.tg_id, vpnEndTexts[lang] || vpnEndTexts["en"], {
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: (inviteBtn[lang] || inviteBtn["en"]), url: shareUrl }],
+                  [{ text: (buyBtn[lang] || buyBtn["en"]), url: "https://www.darkshare.store/pricing?src=vpn_expiry" }],
+                ],
+              },
+            });
+          }
+          await pool.query(`UPDATE ds_users SET vpn_trial_expiry_notified = true WHERE id = $1`, [user.id]);
+        } catch (e) {
+          console.error(`Failed to send VPN expiry notice to user ${user.id}:`, e);
+        }
+      }
     } catch (err) {
       console.error("Subscription expiry checker error:", err);
     }

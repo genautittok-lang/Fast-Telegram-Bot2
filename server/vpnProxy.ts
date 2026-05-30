@@ -524,6 +524,30 @@ function rewriteProfileTitleHeader(value: string | undefined): string {
   return BRAND;
 }
 
+// HUBB-style branded info shown INSIDE the VPN app's profile title:
+//   "DarkShare VPN · @nick · 3d" — combines our brand, the user's handle and
+//   the days remaining. Encoded base64 when the upstream used base64 so apps
+//   like Happ render the full string (incl. emoji) correctly.
+function buildBrandedProfileTitle(user: any, upstreamValue: string | undefined): string {
+  const parts: string[] = [BRAND];
+  const nick = user?.username ? `@${String(user.username).replace(/^@/, "")}` : null;
+  if (nick) parts.push(nick);
+
+  const vpnExp = user?.alorVpnExpiresAt ? new Date(user.alorVpnExpiresAt).getTime() : 0;
+  const subExp = user?.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).getTime() : 0;
+  const eff = Math.max(vpnExp, subExp);
+  if (eff > Date.now()) {
+    const days = Math.max(0, Math.ceil((eff - Date.now()) / 86400000));
+    parts.push(`${days}d`);
+  }
+  const title = parts.join(" · ");
+  // Match upstream encoding so the app decodes it the same way.
+  if (!upstreamValue || upstreamValue.startsWith("base64:")) {
+    return `base64:${Buffer.from(title).toString("base64")}`;
+  }
+  return title;
+}
+
 export function buildPublicSubUrl(req: Request, token: string): string {
   const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
   const host = (req.headers["x-forwarded-host"] as string) || req.get("host");
@@ -541,7 +565,13 @@ export function registerVpnProxy(app: Express) {
       // Device tracking & per-tier limit enforcement
       if (user?.id) {
         const tier = String(user.tier || "FREE").toUpperCase();
-        const limit = vpnDeviceLimit(tier);
+        // FREE users with an active VPN entitlement (free trial / referral days)
+        // get a 2-device cap — same as PRO — while their day(s) last. Otherwise
+        // vpnDeviceLimit("FREE") = 0 would mean "unlimited" here (limit>0 guard).
+        const _vExp = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt).getTime() : 0;
+        const _sExp = (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt).getTime() : 0;
+        const freeActive = vpnDeviceLimit(tier) === 0 && Math.max(_vExp, _sExp) > Date.now();
+        const limit = freeActive ? 2 : vpnDeviceLimit(tier);
         const { fp, ipPrefix, uaShort } = fingerprint(req);
         try {
           const devices = await storage.listVpnDevices(user.id);
@@ -643,14 +673,40 @@ export function registerVpnProxy(app: Express) {
       const ctype = upstreamRes.headers.get("content-type") || "text/plain; charset=utf-8";
       const subUserinfo = upstreamRes.headers.get("subscription-userinfo");
       const profileUpdate = upstreamRes.headers.get("profile-update-interval") || "24";
-      const profileTitle = rewriteProfileTitleHeader(upstreamRes.headers.get("profile-title") || undefined);
+      const upstreamTitle = upstreamRes.headers.get("profile-title") || undefined;
+      // HUBB-style branded info: brand + user nick + days left, shown inside the app.
+      const profileTitle = user
+        ? buildBrandedProfileTitle(user, upstreamTitle)
+        : rewriteProfileTitleHeader(upstreamTitle);
 
       res.setHeader("Content-Type", ctype);
       res.setHeader("Profile-Title", profileTitle);
       res.setHeader("Profile-Update-Interval", profileUpdate);
       res.setHeader("Profile-Web-Page-Url", `${req.protocol}://${req.get("host")}/vpn`);
       res.setHeader("Support-Url", `${req.protocol}://${req.get("host")}/contact`);
-      if (subUserinfo) res.setHeader("Subscription-Userinfo", subUserinfo);
+      // Prefer our own DarkShare expiry so the app shows the correct "days left"
+      // for trial / referral days (synthesise the header if upstream omitted it).
+      const ourExpMs = Math.max(
+        (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt).getTime() : 0,
+        (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt).getTime() : 0,
+      );
+      if (ourExpMs > 0) {
+        const expireSec = Math.floor(ourExpMs / 1000);
+        if (subUserinfo) {
+          // Replace/insert the expire= field, keep upstream upload/download/total.
+          const hasExpire = /(^|;\s*)expire=/.test(subUserinfo);
+          res.setHeader(
+            "Subscription-Userinfo",
+            hasExpire
+              ? subUserinfo.replace(/expire=\d+/i, `expire=${expireSec}`)
+              : `${subUserinfo}; expire=${expireSec}`,
+          );
+        } else {
+          res.setHeader("Subscription-Userinfo", `upload=0; download=0; total=0; expire=${expireSec}`);
+        }
+      } else if (subUserinfo) {
+        res.setHeader("Subscription-Userinfo", subUserinfo);
+      }
       res.setHeader("Cache-Control", "no-store");
 
       return res.status(upstreamRes.status).send(rewritten);

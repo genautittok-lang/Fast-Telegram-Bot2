@@ -355,6 +355,7 @@ export async function setupBot(storage: IStorage) {
         await storage.updateUser(referrer.id, {
           requestsLeft: (referrer.requestsLeft || 3) + 2
         });
+        await grantReferralVpnDays(referrer);
         console.log(`Referral credited after first check: ${user.pendingRefCode} -> user ${user.id}`);
       } else {
         await storage.updateUser(user.id, { pendingRefCode: null });
@@ -362,6 +363,55 @@ export async function setupBot(storage: IStorage) {
     } catch (e) {
       console.log(`Referral credit failed: ${user.pendingRefCode} -> user ${user.id}`, e);
       await storage.updateUser(user.id, { pendingRefCode: null }).catch(() => {});
+    }
+  }
+
+  // Referral milestone: every 3 successful invites grants the referrer +1 free
+  // VPN day. Since AlorVPN has no "extend" endpoint, we (re)create a subscription
+  // covering (remaining days + newly granted days). FREE users only — paid users
+  // already have full VPN access.
+  async function grantReferralVpnDays(referrer: any) {
+    try {
+      if (!referrer?.id) return;
+      const tier = String(referrer.tier || "FREE").toUpperCase();
+      if (isProTier(tier)) return;
+
+      const stats = await storage.getReferralStats(referrer.id);
+      const eligible = Math.floor((stats.count || 0) / 3);
+      const already = Number(referrer.vpnReferralDaysGranted || 0);
+      const newDays = eligible - already;
+      if (newDays <= 0) return;
+
+      const expMs = referrer.alorVpnExpiresAt ? new Date(referrer.alorVpnExpiresAt).getTime() : 0;
+      const remainingDays = expMs > Date.now() ? Math.ceil((expMs - Date.now()) / 86400000) : 0;
+      const planDays = remainingDays + newDays;
+
+      const { createAlorSubscription } = await import("./alorVpn");
+      const sub = await createAlorSubscription(planDays);
+      await storage.updateUser(referrer.id, {
+        alorVpnToken: sub.token,
+        alorVpnUuid: sub.uuid,
+        alorVpnSubscriptionUrl: sub.subscription_url,
+        alorVpnExpiresAt: new Date(sub.expires_at),
+        vpnReferralDaysGranted: eligible,
+        vpnTrialExpiryNotified: false,
+      } as any);
+
+      if (referrer.tgId) {
+        const rlang = getUserLang(referrer.lang);
+        const p = <T extends Record<string, string>>(o: T): string => (o as any)[rlang] ?? o.en;
+        const msg = p({
+          uk: `🎁 <b>+${newDays} день VPN!</b>\n\nДякуємо, що запрошуєш друзів. Тобі нараховано <b>+${newDays}</b> безкоштовний день DARKSHARE VPN.\n\nВідкрий меню VPN, щоб під'єднатися 🛡️`,
+          ru: `🎁 <b>+${newDays} день VPN!</b>\n\nСпасибо, что приглашаешь друзей. Тебе начислено <b>+${newDays}</b> бесплатный день DARKSHARE VPN.\n\nОткрой меню VPN, чтобы подключиться 🛡️`,
+          es: `🎁 <b>+${newDays} día de VPN!</b>\n\nGracias por invitar amigos. Recibiste <b>+${newDays}</b> día gratis de DARKSHARE VPN.\n\nAbre el menú VPN para conectarte 🛡️`,
+          de: `🎁 <b>+${newDays} Tag VPN!</b>\n\nDanke, dass du Freunde einlädst. Du hast <b>+${newDays}</b> Gratis-Tag DARKSHARE VPN erhalten.\n\nÖffne das VPN-Menü zum Verbinden 🛡️`,
+          en: `🎁 <b>+${newDays} VPN day!</b>\n\nThanks for inviting friends. You earned <b>+${newDays}</b> free day of DARKSHARE VPN.\n\nOpen the VPN menu to connect 🛡️`,
+        });
+        try { await bot.telegram.sendMessage(referrer.tgId, msg, { parse_mode: "HTML" }); } catch {}
+      }
+      console.log(`[VPN] Granted +${newDays} referral VPN day(s) to user ${referrer.id} (eligible=${eligible})`);
+    } catch (e) {
+      console.error("[VPN] grantReferralVpnDays failed:", e);
     }
   }
 
@@ -506,6 +556,7 @@ export async function setupBot(storage: IStorage) {
             await storage.updateUser(referrer.id, {
               requestsLeft: (referrer.requestsLeft || 3) + 2
             });
+            await grantReferralVpnDays(referrer);
             user = await storage.getUserByTgId(tgId);
             console.log(`Referral processed: ${refCode} -> ${tgId}`);
           } catch (e) {
@@ -691,6 +742,30 @@ ${t(lang, "startWelcome.selectLang")}`;
     await ctx.editMessageText(startText, 
       Markup.inlineKeyboard([[cb(langCode === "uk" ? "Увійти в панель" : langCode === "ru" ? "Войти в панель" : langCode === "es" ? "Entrar al panel" : langCode === "de" ? "Panel öffnen" : "Enter Panel", "enter_panel_first", "success", E.rocket)]])
     );
+
+    // Soft, one-time partner prompt for NEW bot users only. Informational —
+    // it does NOT block usage (the VPN itself is no longer gated by this).
+    try {
+      const softText =
+        langCode === "uk"
+          ? `🤝 <b>До речі…</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>AlorVPN</b>. Підпишись на їхній канал, щоб першим дізнаватись про нові локації та апдейти — це не обов'язково, але приємний бонус 🎁`
+          : langCode === "ru"
+          ? `🤝 <b>Кстати…</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>AlorVPN</b>. Подпишись на их канал, чтобы первым узнавать о новых локациях и апдейтах — это необязательно, но приятный бонус 🎁`
+          : langCode === "es"
+          ? `🤝 <b>Por cierto…</b>\n\nDARKSHARE VPN funciona sobre la infraestructura de nuestro socio <b>AlorVPN</b>. Suscríbete a su canal para enterarte primero de nuevas ubicaciones y novedades — opcional, pero un buen extra 🎁`
+          : langCode === "de"
+          ? `🤝 <b>Übrigens…</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>AlorVPN</b>. Abonniere ihren Kanal, um neue Standorte und Updates zuerst zu erfahren — optional, aber ein netter Bonus 🎁`
+          : `🤝 <b>By the way…</b>\n\nDARKSHARE VPN runs on our partner <b>AlorVPN</b>'s infrastructure. Subscribe to their channel to be first to hear about new locations and updates — optional, but a nice bonus 🎁`;
+      await ctx.reply(softText, {
+        parse_mode: "HTML",
+        ...Markup.inlineKeyboard([
+          [urlS(
+            langCode === "uk" ? "📢 Відкрити канал AlorVPN" : langCode === "ru" ? "📢 Открыть канал AlorVPN" : langCode === "es" ? "📢 Abrir canal AlorVPN" : langCode === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel",
+            PARTNER_CHANNEL_URL, "primary",
+          )],
+        ]),
+      });
+    } catch {}
   });
 
   function generateProgressBar(current: number, max: number, length: number = 10): string {
@@ -3706,39 +3781,51 @@ ${faqText}`;
 
     const tier = (user.tier || "FREE").toUpperCase();
 
-    if (!isProTier(tier)) {
-      const text = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n<i>${escHtml(vpnT(lang, "tagline"))}</i>\n\n` +
-        (lang === "uk"
-          ? `${pe("warning")} VPN доступний на платних тарифах:\n\n• <b>PRO</b> — 2 пристрої · $9/міс\n• <b>ENTERPRISE</b> — 5 пристроїв · $29/міс\n• <b>GROUPS</b> — 5 пристроїв + керування командою · $55/міс\n\nПісля оплати VPN активується автоматично.`
-          : lang === "ru"
-          ? `${pe("warning")} VPN доступен на платных тарифах:\n\n• <b>PRO</b> — 2 устройства · $9/мес\n• <b>ENTERPRISE</b> — 5 устройств · $29/мес\n• <b>GROUPS</b> — 5 устройств + управление командой · $55/мес\n\nПосле оплаты VPN активируется автоматически.`
-          : lang === "es"
-          ? `${pe("warning")} VPN disponible en planes de pago:\n\n• <b>PRO</b> — 2 dispositivos · $9/mes\n• <b>ENTERPRISE</b> — 5 dispositivos · $29/mes\n• <b>GROUPS</b> — 5 dispositivos + gestión de equipo · $55/mes\n\nLa VPN se activa automáticamente tras el pago.`
-          : lang === "de"
-          ? `${pe("warning")} VPN ist in den kostenpflichtigen Tarifen verfügbar:\n\n• <b>PRO</b> — 2 Geräte · $9/Monat\n• <b>ENTERPRISE</b> — 5 Geräte · $29/Monat\n• <b>GROUPS</b> — 5 Geräte + Teamverwaltung · $55/Monat\n\nVPN wird nach dem Kauf automatisch aktiviert.`
-          : `${pe("warning")} VPN is available on paid plans:\n\n• <b>PRO</b> — 2 devices · $9/mo\n• <b>ENTERPRISE</b> — 5 devices · $29/mo\n• <b>GROUPS</b> — 5 devices + team management · $55/mo\n\nVPN auto-activates after purchase.`);
-      const buyInBot = lang === "uk" ? "купити в боті" : lang === "ru" ? "купить в боте" : lang === "es" ? "comprar en el bot" : lang === "de" ? "im Bot kaufen" : "buy in bot";
-      const kb = Markup.inlineKeyboard([
-        [cb(`💎 PRO · $10 · ${buyInBot}`, "bot_pay_tier_PRO", "success", E.star)],
-        [cb(`🏢 ENTERPRISE · $35 · ${buyInBot}`, "bot_pay_tier_ENTERPRISE", "success", E.crown)],
-        [cb(`👥 GROUPS · $55 · ${buyInBot}`, "bot_pay_tier_GROUPS", "success", E.money)],
-        [urlS(lang === "uk" ? "🌐 Або оплатити на сайті" : lang === "ru" ? "🌐 Или оплатить на сайте" : lang === "es" ? "🌐 O pagar en el sitio" : lang === "de" ? "🌐 Oder auf der Website zahlen" : "🌐 Or pay on the website", `${webUrl}/pricing?src=bot_vpn`, "primary", E.globe)],
-        [cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)],
-      ]);
+    // Active VPN = token present AND effective expiry (VPN or main sub) still in the future.
+    // Covers FREE-tier users who activated the free trial day.
+    const _vpnExp0 = (user as any).alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt).getTime() : 0;
+    const _subExp0 = (user as any).subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt).getTime() : 0;
+    const hasActiveVpn = Boolean((user as any).alorVpnToken) && Math.max(_vpnExp0, _subExp0) > Date.now();
+
+    // FREE / no active subscription → offer the free 1-day trial (once),
+    // or, if already used, the buy + referral ("+1 day") path.
+    if (!hasActiveVpn && !isProTier(tier)) {
+      const p = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
+      const trialUsed = Boolean((user as any).vpnTrialUsed);
+      const rows: any[][] = [];
+      let text = `🛡️ <b>DARKSHARE VPN</b>\n<i>${escHtml(vpnT(lang, "tagline"))}</i>\n${"─".repeat(13)}\n\n`;
+      if (!trialUsed) {
+        text += p({
+          uk: `🎁 <b>Безкоштовний 1 день VPN</b>\n\nСпробуй DARKSHARE VPN безкоштовно — повний доступ до всіх локацій на 24 години. Активація разова.\n\nПісля закінчення: оформи підписку DARKSHARE або запроси 3 друзів і отримай ще +1 день.`,
+          ru: `🎁 <b>Бесплатный 1 день VPN</b>\n\nПопробуй DARKSHARE VPN бесплатно — полный доступ ко всем локациям на 24 часа. Активация разовая.\n\nПосле окончания: оформи подписку DARKSHARE или пригласи 3 друзей и получи ещё +1 день.`,
+          es: `🎁 <b>1 día de VPN gratis</b>\n\nPrueba DARKSHARE VPN gratis — acceso completo a todas las ubicaciones por 24 horas. Activación única.\n\nDespués: suscríbete a DARKSHARE o invita a 3 amigos y obtén +1 día.`,
+          de: `🎁 <b>1 Tag VPN gratis</b>\n\nTeste DARKSHARE VPN kostenlos — voller Zugriff auf alle Standorte für 24 Stunden. Einmalige Aktivierung.\n\nDanach: DARKSHARE-Abo abschließen oder 3 Freunde einladen für +1 Tag.`,
+          en: `🎁 <b>Free 1-day VPN</b>\n\nTry DARKSHARE VPN free — full access to all locations for 24 hours. One-time activation.\n\nAfter it ends: subscribe to DARKSHARE or invite 3 friends for +1 more day.`,
+        });
+        rows.push([cb(p({ uk: "🎁 Активувати безкоштовний день", ru: "🎁 Активировать бесплатный день", es: "🎁 Activar día gratis", de: "🎁 Gratis-Tag aktivieren", en: "🎁 Activate free day" }), "vpn_activate_trial", "success")]);
+      } else {
+        text += p({
+          uk: `⏳ <b>Безкоштовний день використано</b>\n\nЩоб користуватись VPN далі:\n• 💎 Оформи підписку DARKSHARE\n• 👥 Або запроси 3 друзів і отримай ще +1 день безкоштовно`,
+          ru: `⏳ <b>Бесплатный день использован</b>\n\nЧтобы пользоваться VPN дальше:\n• 💎 Оформи подписку DARKSHARE\n• 👥 Или пригласи 3 друзей и получи ещё +1 день бесплатно`,
+          es: `⏳ <b>Día gratis utilizado</b>\n\nPara seguir usando la VPN:\n• 💎 Suscríbete a DARKSHARE\n• 👥 O invita a 3 amigos y obtén +1 día gratis`,
+          de: `⏳ <b>Gratis-Tag verbraucht</b>\n\nUm das VPN weiter zu nutzen:\n• 💎 DARKSHARE-Abo abschließen\n• 👥 Oder 3 Freunde einladen für +1 Gratis-Tag`,
+          en: `⏳ <b>Free day used</b>\n\nTo keep using the VPN:\n• 💎 Subscribe to DARKSHARE\n• 👥 Or invite 3 friends for +1 free day`,
+        });
+        rows.push([cb(p({ uk: "👥 Запросити друзів (+1 день)", ru: "👥 Пригласить друзей (+1 день)", es: "👥 Invitar amigos (+1 día)", de: "👥 Freunde einladen (+1 Tag)", en: "👥 Invite friends (+1 day)" }), "referrals", "primary")]);
+      }
+      const buyInBot = p({ uk: "купити в боті", ru: "купить в боте", es: "comprar en el bot", de: "im Bot kaufen", en: "buy in bot" });
+      rows.push([cb(`💎 PRO · $10 · ${buyInBot}`, "bot_pay_tier_PRO", "success", E.star)]);
+      rows.push([cb(`🏢 ENTERPRISE · $35 · ${buyInBot}`, "bot_pay_tier_ENTERPRISE", "success", E.crown)]);
+      rows.push([cb(`👥 GROUPS · $55 · ${buyInBot}`, "bot_pay_tier_GROUPS", "success", E.money)]);
+      rows.push([urlS(p({ uk: "🌐 Або оплатити на сайті", ru: "🌐 Или оплатить на сайте", es: "🌐 O pagar en el sitio", de: "🌐 Oder auf der Website zahlen", en: "🌐 Or pay on the website" }), `${webUrl}/pricing?src=bot_vpn`, "primary", E.globe)]);
+      rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
+      const kb = Markup.inlineKeyboard(rows);
       try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
       return;
     }
 
-    // Partner channel gate — only for users who already have a VPN subscription.
-    // Unsubscribed users see the "buy" branch above and are NOT gated.
-    const hasVpnEarly = Boolean((user as any).alorVpnToken);
-    if (hasVpnEarly && !(await isSubscribedToPartner(ctx, tgId))) {
-      const text = partnerGateText(lang);
-      const kb = partnerGateKb(lang);
-      try { await ctx.deleteMessage(); } catch {}
-      await ctx.reply(text, { parse_mode: "HTML", disable_web_page_preview: false, ...kb });
-      return;
-    }
+    // NOTE: Partner-channel subscription is NO LONGER required to access the VPN.
+    // It is now shown once as a soft prompt to brand-new bot users during onboarding.
 
     const deviceLimit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : 2;
     const hasVpn = Boolean((user as any).alorVpnToken);
@@ -3942,12 +4029,6 @@ ${faqText}`;
       await showVpnMenu(ctx, tgId, true);
       return null;
     }
-    // Partner channel gate (same as showVpnMenu) — block direct action access.
-    if (!(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
-      await showVpnMenu(ctx, tgId, true);
-      return null;
-    }
     try { await ctx.answerCbQuery(); } catch {}
     const webUrl = process.env.WEB_DOMAIN || "https://www.darkshare.store";
     return {
@@ -4052,12 +4133,6 @@ ${faqText}`;
       await ctx.answerCbQuery("PRO required");
       return showVpnMenu(ctx, tgId, true);
     }
-    // Partner channel gate — must subscribe to @AlorVPN before provisioning.
-    if (!(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
-      return showVpnMenu(ctx, tgId, true);
-    }
-
     await ctx.answerCbQuery();
     const loadingText = `${pe("lock")} <b>${escHtml(vpnT(lang, "title"))}</b>\n\n⏳ ${escHtml(vpnT(lang, "activating"))}`;
     try { await ctx.editMessageText(loadingText, { parse_mode: "HTML" }); } catch {}
@@ -4082,11 +4157,68 @@ ${faqText}`;
     }
   });
 
+  // Free 1-day VPN trial — once per lifetime, counted only when actually activated.
+  bot.action("vpn_activate_trial", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    if (!user) return ctx.answerCbQuery("⛔");
+    const p = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
+
+    // Paid users already have full VPN — never overwrite their token via a stale
+    // "free trial" callback. Just re-render the menu.
+    if (isProTier((user.tier || "FREE").toUpperCase())) {
+      try { await ctx.answerCbQuery(); } catch {}
+      return showVpnMenu(ctx, tgId, true);
+    }
+
+    if ((user as any).vpnTrialUsed) {
+      try { await ctx.answerCbQuery(p({ uk: "Безкоштовний день уже використано", ru: "Бесплатный день уже использован", es: "Día gratis ya utilizado", de: "Gratis-Tag bereits verbraucht", en: "Free day already used" }), { show_alert: true }); } catch {}
+      return showVpnMenu(ctx, tgId, true);
+    }
+    // Already has an active VPN — nothing to activate.
+    const _vpnExp = (user as any).alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt).getTime() : 0;
+    const _subExp = (user as any).subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt).getTime() : 0;
+    if ((user as any).alorVpnToken && Math.max(_vpnExp, _subExp) > Date.now()) {
+      try { await ctx.answerCbQuery(); } catch {}
+      return showVpnMenu(ctx, tgId, true);
+    }
+
+    await ctx.answerCbQuery();
+    const loadingText = `🛡️ <b>DARKSHARE VPN</b>\n\n⏳ ${escHtml(vpnT(lang, "activating"))}`;
+    try { await ctx.editMessageText(loadingText, { parse_mode: "HTML" }); } catch {}
+
+    try {
+      const { createAlorSubscription } = await import("./alorVpn");
+      const sub = await createAlorSubscription(1);
+      await storage.updateUser(user.id, {
+        alorVpnToken: sub.token,
+        alorVpnUuid: sub.uuid,
+        alorVpnSubscriptionUrl: sub.subscription_url,
+        alorVpnExpiresAt: new Date(sub.expires_at),
+        vpnTrialUsed: true,
+        vpnTrialActivatedAt: new Date(),
+        vpnTrialExpiryNotified: false,
+      } as any);
+      await showVpnMenu(ctx, tgId, true);
+    } catch (err: any) {
+      console.error("[VPN Bot] Trial activation error:", err);
+      const errText = `${pe("warning")} ${escHtml(vpnT(lang, "activationError"))}`;
+      const kb = Markup.inlineKeyboard([[cb(vpnT(lang, "back"), "vpn_menu", "danger", E.back)]]);
+      try { await ctx.editMessageText(errText, { parse_mode: "HTML", ...kb }); } catch {}
+    }
+  });
+
   async function renderVpnDevices(ctx: any, user: any) {
     const lang = getUserLang(user?.lang);
     const tier = (user.tier || "FREE").toUpperCase();
-    const limit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : tier === "PRO" ? 2 : 0;
-    const countriesLabel = (tier === "PRO" || tier === "ENTERPRISE" || tier === "GROUPS") ? "20+" : "0";
+    // FREE users with an active VPN (free trial / referral days) get the same
+    // 2-device, all-locations access as PRO while their day(s) last.
+    const _vExp = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt).getTime() : 0;
+    const _sExp = (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt).getTime() : 0;
+    const trialActive = !isProTier(tier) && Boolean((user as any)?.alorVpnToken) && Math.max(_vExp, _sExp) > Date.now();
+    const limit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : (tier === "PRO" || trialActive) ? 2 : 0;
+    const countriesLabel = (tier === "PRO" || tier === "ENTERPRISE" || tier === "GROUPS" || trialActive) ? "20+" : "0";
     // Source of truth: later of (VPN expiry, main subscription expiry) — they're kept in sync.
     const vpnExp = (user as any)?.alorVpnExpiresAt ? new Date((user as any).alorVpnExpiresAt) : null;
     const mainExp = (user as any)?.subscriptionExpiresAt ? new Date((user as any).subscriptionExpiresAt) : null;
@@ -4169,11 +4301,6 @@ ${faqText}`;
     const user = await storage.getUserByTgId(tgId);
     if (!user) { try { await ctx.answerCbQuery("⛔"); } catch {} return; }
     const lang = getUserLang(user?.lang);
-    // Partner channel gate — protects against stale-button bypass.
-    if ((user as any).alorVpnToken && !(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
-      return showVpnMenu(ctx, tgId, true);
-    }
     try { await ctx.answerCbQuery(); } catch {}
     await renderVpnDevices(ctx, user);
   });
@@ -4183,11 +4310,6 @@ ${faqText}`;
     const user = await storage.getUserByTgId(tgId);
     if (!user) { try { await ctx.answerCbQuery(); } catch {} return; }
     const lang = getUserLang(user?.lang);
-    // Partner channel gate.
-    if ((user as any).alorVpnToken && !(await isSubscribedToPartner(ctx, tgId))) {
-      try { await ctx.answerCbQuery(lang === "uk" ? "📢 Підпишись на @AlorVPN" : lang === "ru" ? "📢 Подпишись на @AlorVPN" : lang === "es" ? "📢 Suscríbete a @AlorVPN" : lang === "de" ? "📢 Abonniere @AlorVPN" : "📢 Subscribe to @AlorVPN", { show_alert: true }); } catch {}
-      return showVpnMenu(ctx, tgId, true);
-    }
     const id = parseInt((ctx.match as any)[1], 10);
     try {
       await storage.revokeVpnDevice(id, user.id);

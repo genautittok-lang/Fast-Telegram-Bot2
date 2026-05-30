@@ -38,6 +38,10 @@ export const users = pgTable("ds_users", {
   alorVpnUuid: text("alor_vpn_uuid"),
   alorVpnSubscriptionUrl: text("alor_vpn_subscription_url"),
   alorVpnExpiresAt: timestamp("alor_vpn_expires_at"),
+  vpnTrialUsed: boolean("vpn_trial_used").default(false),
+  vpnTrialActivatedAt: timestamp("vpn_trial_activated_at"),
+  vpnTrialExpiryNotified: boolean("vpn_trial_expiry_notified").default(false),
+  vpnReferralDaysGranted: integer("vpn_referral_days_granted").default(0),
 });
 
 export const reports = pgTable("ds_reports", {
