@@ -4129,7 +4129,7 @@ ${faqText}`;
 
   bot.action("vpn_apps", async (ctx) => {
     const c = await getVpnCtx(ctx); if (!c) return;
-    const bridge = (appId: string) => `${c.webUrl}/vpn/open/${appId}/${c.vpnToken}`;
+    const bridge = (appId: string) => `${c.webUrl}/vpn/open/${appId}/${c.vpnToken}?lang=${c.lang}`;
     const openInLabel = c.lang === "uk" ? "Відкрити в" : c.lang === "ru" ? "Открыть в" : c.lang === "es" ? "Abrir en" : c.lang === "de" ? "Öffnen in" : "Open in";
     const text = c.lang === "uk"
       ? `📱 <b>Підключення в один клік</b>\n\nОбери свій застосунок нижче — підписка імпортується автоматично.\n\n<i>Спершу встанови потрібний застосунок (посилання у каталозі happ.su, App Store, Google Play).</i>\n\n💡 <b>Рекомендуємо:</b> Happ — працює на iOS, Android, Windows, macOS.`
