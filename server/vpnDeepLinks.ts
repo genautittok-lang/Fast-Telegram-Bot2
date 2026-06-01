@@ -112,33 +112,72 @@ export function registerVpnDeepLinkRoutes(app: Express) {
 
       const escapedDeep = target.deepLink.replace(/"/g, "&quot;");
       const escapedStore = target.storeUrl.replace(/"/g, "&quot;");
+      const escapedSubUrl = subUrl.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const html = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>Opening ${target.name}…</title>
+<title>Connect to ${target.name}</title>
 <style>
-  body{margin:0;background:#0a0a0c;color:#e5e7eb;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
-  .card{max-width:380px;width:100%;background:#111114;border:1px solid #1f1f24;border-radius:16px;padding:24px;text-align:center}
-  h1{font-size:18px;margin:0 0 6px;color:#fff}
-  p{margin:0 0 16px;color:#9ca3af;font-size:13.5px}
-  .b{display:block;padding:12px 16px;border-radius:10px;background:#06b6d4;color:#000;font-weight:600;text-decoration:none;margin:8px 0}
-  .b.s{background:transparent;color:#a1a1aa;border:1px solid #27272a}
-  .muted{font-size:11.5px;color:#52525b;margin-top:14px}
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0a0c;color:#e5e7eb;font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:20px}
+  .card{max-width:400px;width:100%;background:#111114;border:1px solid #1f1f24;border-radius:18px;padding:28px 24px;text-align:center}
+  h1{font-size:19px;margin:0 0 8px;color:#fff;font-weight:700}
+  .sub{margin:0 0 22px;color:#9ca3af;font-size:13.5px;line-height:1.5}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 16px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;margin:8px 0;transition:opacity .15s}
+  .btn:active{opacity:.8}
+  .primary{background:#06b6d4;color:#000}
+  .secondary{background:transparent;color:#a1a1aa;border:1px solid #27272a;font-size:13px}
+  .divider{border:none;border-top:1px solid #1f1f24;margin:20px 0}
+  .fallback-title{font-size:13px;color:#6b7280;margin:0 0 10px}
+  .copy-box{background:#18181b;border:1px solid #27272a;border-radius:10px;padding:12px;font-size:11.5px;color:#a1a1aa;word-break:break-all;cursor:pointer;text-align:left;user-select:all;-webkit-user-select:all}
+  .copy-box:active{background:#222226}
+  .copy-hint{font-size:11px;color:#52525b;margin:6px 0 0}
+  .notice{font-size:11.5px;color:#52525b;margin-top:18px;line-height:1.5}
 </style></head><body>
 <div class="card">
-  <h1>Opening ${target.name}…</h1>
-  <p>If the app doesn't open automatically, tap the button below.</p>
-  <a class="b" href="${escapedDeep}" id="go">Open in ${target.name}</a>
-  <a class="b s" href="${escapedStore}" target="_blank" rel="noopener">Don't have it? Install ${target.name}</a>
-  <div class="muted">If nothing happens, install the app first, then return and tap again.</div>
+  <h1>Open in ${target.name}</h1>
+  <p class="sub">Tap the button to import your DarkShare VPN subscription directly into the app.</p>
+  <a class="btn primary" href="${escapedDeep}" id="go" onclick="onOpen()">
+    ▶ Open in ${target.name}
+  </a>
+  <a class="btn secondary" href="${escapedStore}" target="_blank" rel="noopener noreferrer">
+    Don't have ${target.name}? Install it
+  </a>
+  <hr class="divider">
+  <p class="fallback-title">Button not working? Copy the link and paste it into the app manually:</p>
+  <div class="copy-box" onclick="copyUrl(this)" title="Tap to copy">${escapedSubUrl}</div>
+  <p class="copy-hint" id="copy-status">Tap the box above to copy</p>
+  <p class="notice">If you opened this from Telegram, the button may not work inside the built-in browser.<br>Try opening the link in your regular browser, or use the copy method above.</p>
 </div>
 <script>
-  (function(){
-    var u = ${JSON.stringify(target.deepLink)};
-    try { window.location.replace(u); } catch(e) { window.location.href = u; }
-  })();
+function onOpen(){
+  setTimeout(function(){
+    var el=document.getElementById('go');
+    if(el) el.textContent='▶ Tap again if the app didn\\'t open';
+  },1800);
+}
+function copyUrl(el){
+  var url=${JSON.stringify(subUrl)};
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(function(){
+      document.getElementById('copy-status').textContent='✅ Copied!';
+    }).catch(function(){fallbackCopy(url)});
+  } else { fallbackCopy(url); }
+}
+function fallbackCopy(url){
+  try{
+    var ta=document.createElement('textarea');
+    ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('copy-status').textContent='✅ Copied!';
+  }catch(e){
+    document.getElementById('copy-status').textContent='Select and copy the text above';
+  }
+}
 </script>
 </body></html>`;
       res.setHeader("Content-Type", "text/html; charset=utf-8");
