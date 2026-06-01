@@ -438,6 +438,91 @@ export async function setupBot(storage: IStorage) {
     return next();
   });
 
+  // === MANDATORY partner-channel gate ===
+  // Every private-chat interaction (command, message, callback) is blocked
+  // until the user is subscribed to @AlorVPN. Exempt: vpn_partner_check (so
+  // the user can confirm subscription), and admin users.
+  const _GATE_CHANNEL = "@AlorVPN";
+  const _GATE_CHANNEL_URL = "https://t.me/AlorVPN";
+  const _gateCache = new Map<string, { ok: boolean; at: number }>();
+  const _GATE_CACHE_MS = 10 * 60 * 1000; // 10 min
+
+  async function checkGateSub(ctx: any, tgId: string): Promise<boolean> {
+    const cached = _gateCache.get(tgId);
+    if (cached && Date.now() - cached.at < _GATE_CACHE_MS) return cached.ok;
+    try {
+      const member = await ctx.telegram.getChatMember(_GATE_CHANNEL, Number(tgId));
+      const ok = ["creator", "administrator", "member"].includes(member?.status);
+      _gateCache.set(tgId, { ok, at: Date.now() });
+      return ok;
+    } catch {
+      // Bot not in channel → fail-open (don't lock out users on misconfiguration)
+      _gateCache.set(tgId, { ok: true, at: Date.now() });
+      return true;
+    }
+  }
+
+  function gateText(lang: string): string {
+    const url = _GATE_CHANNEL_URL;
+    if (lang === "uk") return `🤝 <b>Обов'язкова підписка</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>AlorVPN</b>. Щоб користуватись ботом, підпишись на їхній канал — це обов'язкова умова.\n\n👉 ${url}\n\nПісля підписки натисни <b>«✅ Я підписався»</b>.`;
+    if (lang === "ru") return `🤝 <b>Обязательная подписка</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>AlorVPN</b>. Чтобы пользоваться ботом, подпишись на их канал — это обязательное условие.\n\n👉 ${url}\n\nПосле подписки нажми <b>«✅ Я подписался»</b>.`;
+    if (lang === "es") return `🤝 <b>Suscripción obligatoria</b>\n\nDARKSHARE VPN funciona en la infraestructura de nuestro socio <b>AlorVPN</b>. Para usar el bot, suscríbete a su canal — es un requisito obligatorio.\n\n👉 ${url}\n\nLuego pulsa <b>«✅ Ya me suscribí»</b>.`;
+    if (lang === "de") return `🤝 <b>Pflichtabonnement</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>AlorVPN</b>. Um den Bot zu nutzen, abonniere ihren Kanal — Pflichtbedingung.\n\n👉 ${url}\n\nDanach tippe auf <b>"✅ Abonniert"</b>.`;
+    return `🤝 <b>Mandatory subscription</b>\n\nDARKSHARE VPN runs on our partner <b>AlorVPN</b>'s infrastructure. To use the bot, subscribe to their channel — it's required.\n\n👉 ${url}\n\nThen tap <b>"✅ I subscribed"</b>.`;
+  }
+
+  bot.use(async (ctx, next) => {
+    // Only gate private chats (no action in groups/channels)
+    if (!ctx.from || ctx.chat?.type !== "private") return next();
+    const tgId = ctx.from.id.toString();
+    // Admins bypass the gate
+    if (isAdmin(tgId)) return next();
+    // Allow the "I subscribed" confirmation action through so user can unlock
+    const callbackData = (ctx as any).callbackQuery?.data as string | undefined;
+    if (callbackData === "bot_partner_gate_check") {
+      // Invalidate cache so we do a fresh API call
+      _gateCache.delete(tgId);
+      const ok = await checkGateSub(ctx, tgId);
+      const user = await storage.getUserByTgId(tgId);
+      const lang = getUserLang(user?.lang);
+      if (ok) {
+        try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : "✅ Thanks!"); } catch {}
+        return next();
+      } else {
+        try {
+          await ctx.answerCbQuery(
+            lang === "uk" ? "❗ Підписку не знайдено. Підпишись і спробуй знову."
+            : lang === "ru" ? "❗ Подписка не найдена. Подпишись и попробуй снова."
+            : "❗ Subscription not found. Subscribe and retry.",
+            { show_alert: true } as any
+          );
+        } catch {}
+        return; // keep showing the gate
+      }
+    }
+
+    const ok = await checkGateSub(ctx, tgId);
+    if (ok) return next();
+
+    // User not subscribed → show the gate and stop
+    const user = await storage.getUserByTgId(tgId);
+    const lang = getUserLang(user?.lang);
+    const subBtn = lang === "uk" ? "📢 Відкрити канал AlorVPN" : lang === "ru" ? "📢 Открыть канал AlorVPN" : lang === "es" ? "📢 Abrir canal AlorVPN" : lang === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel";
+    const okBtn = lang === "uk" ? "✅ Я підписався" : lang === "ru" ? "✅ Я подписался" : lang === "es" ? "✅ Ya me suscribí" : lang === "de" ? "✅ Abonniert" : "✅ I subscribed";
+    const kb = Markup.inlineKeyboard([
+      [Markup.button.url(subBtn, _GATE_CHANNEL_URL)],
+      [Markup.button.callback(okBtn, "bot_partner_gate_check")],
+    ]);
+    if (callbackData) {
+      try { await ctx.answerCbQuery(); } catch {}
+      try { await ctx.editMessageText(gateText(lang), { parse_mode: "HTML", ...kb }); } catch {
+        await ctx.reply(gateText(lang), { parse_mode: "HTML", ...kb });
+      }
+    } else {
+      await ctx.reply(gateText(lang), { parse_mode: "HTML", ...kb });
+    }
+  });
+
   // Anti-spam: per-user rate limiter for text/photo messages.
   // 20 messages per 30s window. Excess is silently dropped (no reply to avoid feedback loops).
   // Admins are exempt. Callback queries and commands bypass to preserve UX.
