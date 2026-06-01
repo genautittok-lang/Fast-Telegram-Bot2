@@ -343,20 +343,24 @@ export async function setupBot(storage: IStorage) {
     try {
       const referrer = await storage.getUserByRefCode(user.pendingRefCode);
       if (referrer && referrer.id !== user.id) {
-        await storage.createReferral({
+        const inserted = await storage.createReferral({
           referrerId: referrer.id,
           referredId: user.id,
           bonus: 5
         });
-        await storage.updateUser(user.id, { 
-          requestsLeft: (user.requestsLeft || 3) + 5,
+        // Always clear the pending code; only grant rewards when a NEW referral row
+        // was actually created (prevents double-credit on concurrent requests).
+        await storage.updateUser(user.id, {
+          requestsLeft: (user.requestsLeft || 3) + (inserted ? 5 : 0),
           pendingRefCode: null
         });
-        await storage.updateUser(referrer.id, {
-          requestsLeft: (referrer.requestsLeft || 3) + 2
-        });
-        await grantReferralVpnDays(referrer);
-        console.log(`Referral credited after first check: ${user.pendingRefCode} -> user ${user.id}`);
+        if (inserted) {
+          await storage.updateUser(referrer.id, {
+            requestsLeft: (referrer.requestsLeft || 3) + 2
+          });
+          await grantReferralVpnDays(referrer);
+          console.log(`Referral credited after first check: ${user.pendingRefCode} -> user ${user.id}`);
+        }
       } else {
         await storage.updateUser(user.id, { pendingRefCode: null });
       }
@@ -366,53 +370,12 @@ export async function setupBot(storage: IStorage) {
     }
   }
 
-  // Referral milestone: every 3 successful invites grants the referrer +1 free
-  // VPN day. Since AlorVPN has no "extend" endpoint, we (re)create a subscription
-  // covering (remaining days + newly granted days). FREE users only — paid users
-  // already have full VPN access.
+  // Referral milestone reward — delegates to the shared server/referralRewards
+  // module so the bot and the website grant identical bonuses (every 3 invites =
+  // +1 VPN day, all tiers). Notification is sent via the bot for Telegram users.
   async function grantReferralVpnDays(referrer: any) {
-    try {
-      if (!referrer?.id) return;
-      const tier = String(referrer.tier || "FREE").toUpperCase();
-      if (isProTier(tier)) return;
-
-      const stats = await storage.getReferralStats(referrer.id);
-      const eligible = Math.floor((stats.count || 0) / 3);
-      const already = Number(referrer.vpnReferralDaysGranted || 0);
-      const newDays = eligible - already;
-      if (newDays <= 0) return;
-
-      const expMs = referrer.alorVpnExpiresAt ? new Date(referrer.alorVpnExpiresAt).getTime() : 0;
-      const remainingDays = expMs > Date.now() ? Math.ceil((expMs - Date.now()) / 86400000) : 0;
-      const planDays = remainingDays + newDays;
-
-      const { createAlorSubscription } = await import("./alorVpn");
-      const sub = await createAlorSubscription(planDays);
-      await storage.updateUser(referrer.id, {
-        alorVpnToken: sub.token,
-        alorVpnUuid: sub.uuid,
-        alorVpnSubscriptionUrl: sub.subscription_url,
-        alorVpnExpiresAt: new Date(sub.expires_at),
-        vpnReferralDaysGranted: eligible,
-        vpnTrialExpiryNotified: false,
-      } as any);
-
-      if (referrer.tgId) {
-        const rlang = getUserLang(referrer.lang);
-        const p = <T extends Record<string, string>>(o: T): string => (o as any)[rlang] ?? o.en;
-        const msg = p({
-          uk: `🎁 <b>+${newDays} день VPN!</b>\n\nДякуємо, що запрошуєш друзів. Тобі нараховано <b>+${newDays}</b> безкоштовний день DARKSHARE VPN.\n\nВідкрий меню VPN, щоб під'єднатися 🛡️`,
-          ru: `🎁 <b>+${newDays} день VPN!</b>\n\nСпасибо, что приглашаешь друзей. Тебе начислено <b>+${newDays}</b> бесплатный день DARKSHARE VPN.\n\nОткрой меню VPN, чтобы подключиться 🛡️`,
-          es: `🎁 <b>+${newDays} día de VPN!</b>\n\nGracias por invitar amigos. Recibiste <b>+${newDays}</b> día gratis de DARKSHARE VPN.\n\nAbre el menú VPN para conectarte 🛡️`,
-          de: `🎁 <b>+${newDays} Tag VPN!</b>\n\nDanke, dass du Freunde einlädst. Du hast <b>+${newDays}</b> Gratis-Tag DARKSHARE VPN erhalten.\n\nÖffne das VPN-Menü zum Verbinden 🛡️`,
-          en: `🎁 <b>+${newDays} VPN day!</b>\n\nThanks for inviting friends. You earned <b>+${newDays}</b> free day of DARKSHARE VPN.\n\nOpen the VPN menu to connect 🛡️`,
-        });
-        try { await bot.telegram.sendMessage(referrer.tgId, msg, { parse_mode: "HTML" }); } catch {}
-      }
-      console.log(`[VPN] Granted +${newDays} referral VPN day(s) to user ${referrer.id} (eligible=${eligible})`);
-    } catch (e) {
-      console.error("[VPN] grantReferralVpnDays failed:", e);
-    }
+    const { grantReferralVpnDays: grant } = await import("./referralRewards");
+    await grant(referrer, (tgId, msg) => bot.telegram.sendMessage(tgId, msg, { parse_mode: "HTML" }));
   }
 
   bot.use(async (ctx, next) => {
@@ -631,20 +594,22 @@ export async function setupBot(storage: IStorage) {
           console.log(`Referral deferred until language selection: ${refCode} -> ${tgId}`);
         } else if (user) {
           try {
-            await storage.createReferral({
+            const inserted = await storage.createReferral({
               referrerId: referrer.id,
               referredId: user.id,
               bonus: 5
             });
-            await storage.updateUser(user.id, { 
-              requestsLeft: (user.requestsLeft || 3) + 5
-            });
-            await storage.updateUser(referrer.id, {
-              requestsLeft: (referrer.requestsLeft || 3) + 2
-            });
-            await grantReferralVpnDays(referrer);
-            user = await storage.getUserByTgId(tgId);
-            console.log(`Referral processed: ${refCode} -> ${tgId}`);
+            if (inserted) {
+              await storage.updateUser(user.id, {
+                requestsLeft: (user.requestsLeft || 3) + 5
+              });
+              await storage.updateUser(referrer.id, {
+                requestsLeft: (referrer.requestsLeft || 3) + 2
+              });
+              await grantReferralVpnDays(referrer);
+              user = await storage.getUserByTgId(tgId);
+              console.log(`Referral processed: ${refCode} -> ${tgId}`);
+            }
           } catch (e) {
             console.log(`Referral already exists or failed: ${refCode} -> ${tgId}`);
           }
@@ -4006,6 +3971,7 @@ ${faqText}`;
       rows.push([cb(`⚡ ${p({ uk: "Активувати VPN", ru: "Активировать VPN", es: "Activar VPN", de: "VPN aktivieren", en: "Activate VPN" })}`, "vpn_activate", "success")]);
       rows.push([cb(`📲 ${p({ uk: "Як це працює?", ru: "Как это работает?", es: "¿Cómo funciona?", de: "Wie funktioniert es?", en: "How it works?" })}`, "vpn_instruction", "primary")]);
     }
+    rows.push([cb(`🎁 ${p({ uk: "Запросити друзів (+дні VPN)", ru: "Пригласить друзей (+дни VPN)", es: "Invitar amigos (+días VPN)", de: "Freunde einladen (+VPN-Tage)", en: "Invite friends (+VPN days)" })}`, "vpn_referral", "success")]);
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
@@ -4022,6 +3988,52 @@ ${faqText}`;
     const tgId = ctx.from!.id.toString();
     await ctx.answerCbQuery();
     await showVpnMenu(ctx, tgId, true);
+  });
+
+  // Referral block reachable directly from the VPN menu: invite friends and earn
+  // free VPN days (every 3 invites = +1 day, all tiers) without leaving the VPN flow.
+  bot.action("vpn_referral", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    await ctx.answerCbQuery();
+    const user = await storage.getUserByTgId(tgId);
+    if (!user) return;
+    const lang = getUserLang(user.lang);
+    const p = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
+
+    let referralStats = { count: 0, pendingCount: 0, referredUsers: [] as any[] };
+    try { referralStats = await storage.getReferralStats(user.id); } catch {}
+
+    const botUserName = (await bot.telegram.getMe()).username || "DarkShare1Bot";
+    const refLink = `t.me/${botUserName}?start=ref_${user.refCode}`;
+    const count = referralStats.count || 0;
+    const vpnDaysEarned = Math.floor(count / 3);
+    const toNext = 3 - (count % 3);
+    const bonusChecks = count * 2;
+
+    const text = `🛡️ <b>${escHtml(p({ uk: "VPN за запрошення друзів", ru: "VPN за приглашение друзей", es: "VPN por invitar amigos", de: "VPN für eingeladene Freunde", en: "VPN for inviting friends" }))}</b>
+
+${escHtml(p({ uk: "Запрошуй друзів — за кожні 3 друга отримуй +1 день DARKSHARE VPN. Працює на всіх тарифах.", ru: "Приглашай друзей — за каждые 3 друга получай +1 день DARKSHARE VPN. Работает на всех тарифах.", es: "Invita amigos: por cada 3 amigos recibes +1 día de DARKSHARE VPN. Funciona en todos los planes.", de: "Lade Freunde ein — für je 3 Freunde gibt es +1 Tag DARKSHARE VPN. Gilt für alle Tarife.", en: "Invite friends — every 3 friends earns +1 day of DARKSHARE VPN. Works on all tiers." }))}
+
+📊 <b>${escHtml(p({ uk: "Твій прогрес", ru: "Твой прогресс", es: "Tu progreso", de: "Dein Fortschritt", en: "Your progress" }))}:</b>
+├ 👥 ${escHtml(p({ uk: "Друзів запрошено", ru: "Друзей приглашено", es: "Amigos invitados", de: "Eingeladene Freunde", en: "Friends invited" }))}: <b>${count}</b>
+├ 🎁 ${escHtml(p({ uk: "Днів VPN зароблено", ru: "Дней VPN заработано", es: "Días VPN ganados", de: "VPN-Tage verdient", en: "VPN days earned" }))}: <b>${vpnDaysEarned}</b>
+├ ⚡ ${escHtml(p({ uk: "Бонус запитів", ru: "Бонус запросов", es: "Consultas extra", de: "Bonus-Abfragen", en: "Bonus checks" }))}: <b>+${bonusChecks}</b>
+└ ⏳ ${escHtml(p({ uk: "До наступного дня VPN", ru: "До следующего дня VPN", es: "Para el próximo día VPN", de: "Bis zum nächsten VPN-Tag", en: "To next VPN day" }))}: <b>${toNext} ${escHtml(p({ uk: "друга", ru: "друга", es: "amigos", de: "Freunde", en: "friends" }))}</b>
+
+🔗 <b>${escHtml(p({ uk: "Твоє посилання", ru: "Твоя ссылка", es: "Tu enlace", de: "Dein Link", en: "Your link" }))}:</b>
+<code>${escHtml(refLink)}</code>
+${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділися з друзями.", ru: "Нажми, чтобы скопировать, и поделись с друзьями.", es: "Toca para copiar y comparte con tus amigos.", de: "Zum Kopieren tippen und mit Freunden teilen.", en: "Tap to copy and share with your friends." }))}`;
+
+    const shareCaption = p({ uk: "Приєднуйся до DARKSHARE — найкращої OSINT платформи! 🔍", ru: "Присоединяйся к DARKSHARE — лучшей OSINT-платформе! 🔍", es: "¡Únete a DARKSHARE, la mejor plataforma OSINT! 🔍", de: "Komm zu DARKSHARE — der besten OSINT-Plattform! 🔍", en: "Join DARKSHARE — the best OSINT platform! 🔍" });
+    const shareLabel = p({ uk: "Поділитись", ru: "Поделиться", es: "Compartir", de: "Teilen", en: "Share" });
+
+    const kb = Markup.inlineKeyboard([
+      [urlS(shareLabel, `https://t.me/share/url?url=${encodeURIComponent("https://" + refLink)}&text=${encodeURIComponent(shareCaption)}`, "success", E.link)],
+      [cb(p({ uk: "◀️ Назад до VPN", ru: "◀️ Назад в VPN", es: "◀️ Volver a VPN", de: "◀️ Zurück zu VPN", en: "◀️ Back to VPN" }), "vpn_menu", "danger", E.back)],
+    ]);
+
+    try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); }
+    catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
   });
 
   // Force-sync VPN subscription state from AlorVPN before re-rendering the menu.

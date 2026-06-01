@@ -2,3 +2,4 @@
 
 - [AlorVPN API limits](alorvpn-api.md) — external API only exposes create/status/toggle; no country/server/usage listing, so popularity rankings aren't possible.
 - [VPN tier device limits](vpn-device-limits.md) — vpnDeviceLimit("FREE")=0 means "no cap" in the proxy guard; FREE active-VPN users need an explicit cap.
+- [Referral credit idempotency](referral-credit-idempotency.md) — gate all referral rewards on createReferral's boolean insert (unique referred_id), not on "no error"; 3 paths race.

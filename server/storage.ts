@@ -53,7 +53,7 @@ export interface IStorage {
   // Referrals
   getReferralStats(userId: number): Promise<ReferralStats>;
   getReferralLeaderboard(period: "month" | "all", limit: number): Promise<Array<{ userId: number; username: string | null; tier: string | null; count: number; rank: number }>>;
-  createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void>;
+  createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<boolean>;
   
   // Stats
   getStats(): Promise<{ totalUsers: number, activeWatches: number, totalReports?: number, checksToday?: number, threatsBlocked?: number, pendingPayments?: number }>;
@@ -460,17 +460,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void> {
+  async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<boolean> {
     if (!db) throw new Error("Database not available");
     try {
-      await db.insert(referrals).values({
+      // A user can only be referred once (unique index on referred_id). ON CONFLICT
+      // DO NOTHING makes this idempotent, and returning rows tells the caller whether
+      // a NEW referral was created — so rewards are granted exactly once even under
+      // concurrent first-check/start requests.
+      const rows = await db.insert(referrals).values({
         referrerId: data.referrerId,
         referredId: data.referredId,
         paid: false,
-      });
+      }).onConflictDoNothing({ target: referrals.referredId }).returning({ id: referrals.id });
+      return rows.length > 0;
     } catch (err) {
-      // Ignore duplicate errors
-      console.warn("Referral creation error (likely duplicate):", (err as Error).message);
+      console.warn("Referral creation error:", (err as Error).message);
+      return false;
     }
   }
 
@@ -1278,8 +1283,9 @@ export class MemStorage implements IStorage {
     return [] as Array<{ userId: number; username: string | null; tier: string | null; count: number; rank: number }>;
   }
 
-  async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<void> {
+  async createReferral(data: { referrerId: number; referredId: number; bonus?: number }): Promise<boolean> {
     // No-op for memory storage
+    return false;
   }
 
   // Coupon methods - no-op for memory storage

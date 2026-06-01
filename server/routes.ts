@@ -4,6 +4,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { setupBot, botInstance, ADMIN_IDS } from "./bot";
+import { grantReferralVpnDays } from "./referralRewards";
 import { api } from "@shared/routes";
 import { performCheck, validateInput, extractExifFromBuffer } from "./checkService";
 import { SOURCES_COUNT } from "@shared/osintSources";
@@ -161,6 +162,85 @@ export async function registerRoutes(
   ];
   const LANGS = ["en", "uk", "ru", "es", "de"];
 
+  // ── Unified referral helpers (shared link works in bot AND website) ──────────
+  const readCookie = (req: Request, name: string): string | null => {
+    const raw = req.headers.cookie;
+    if (!raw) return null;
+    for (const part of raw.split(";")) {
+      const idx = part.indexOf("=");
+      if (idx === -1) continue;
+      if (part.slice(0, idx).trim() === name) return decodeURIComponent(part.slice(idx + 1).trim());
+    }
+    return null;
+  };
+
+  // When a brand-new web user is created, attach the referral code captured from
+  // the `ds_ref` cookie (set by GET /r/:code). The referral is credited on the
+  // user's first check — the same moment the bot credits its own pendingRefCode.
+  const captureReferralCookie = async (req: Request, res: Response, newUserId: number) => {
+    try {
+      const code = readCookie(req, "ds_ref");
+      if (!code) return;
+      try { res.clearCookie("ds_ref", { path: "/" }); } catch {}
+      const referrer = await storage.getUserByRefCode(code);
+      if (referrer && referrer.id !== newUserId) {
+        await storage.updateUser(newUserId, { pendingRefCode: code });
+      }
+    } catch {}
+  };
+
+  // One referral link for everywhere: t.me/<bot>?start=ref_CODE works in Telegram,
+  // and https://<site>/r/CODE lands here, stores the code, and offers both paths.
+  app.get("/r/:code", async (req: Request, res: Response) => {
+    const code = String(req.params.code || "").trim().toUpperCase();
+    if (!/^DARK-[A-Z0-9]{4,12}$/.test(code)) return res.redirect("/");
+    let referrer: any = null;
+    try { referrer = await storage.getUserByRefCode(code); } catch {}
+    if (!referrer) return res.redirect("/");
+
+    res.cookie("ds_ref", code, { maxAge: 30 * 24 * 60 * 60 * 1000, httpOnly: false, sameSite: "lax", path: "/" });
+
+    let botUserName = "DarkShare1Bot";
+    try { if (botInstance) botUserName = (await botInstance.telegram.getMe()).username || botUserName; } catch {}
+    const tgLink = `https://t.me/${botUserName}?start=ref_${code}`;
+
+    const raw = (String(req.query.lang || "") || String(req.headers["accept-language"] || "")).toLowerCase();
+    const lang = raw.startsWith("uk") || raw.startsWith("ua") ? "uk"
+      : raw.startsWith("ru") ? "ru"
+      : raw.startsWith("es") ? "es"
+      : raw.startsWith("de") ? "de" : "en";
+    const tr = (o: Record<string, string>) => o[lang] ?? o.en;
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+
+    const html = `<!DOCTYPE html><html lang="${lang}"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>DARKSHARE — ${esc(tr({ uk: "Запрошення", ru: "Приглашение", es: "Invitación", de: "Einladung", en: "Invitation" }))}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0E0E12;color:#E8E8EE;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{max-width:420px;width:100%;background:#16161D;border:1px solid #26262F;border-radius:20px;padding:32px 28px;text-align:center}
+.logo{font-size:13px;letter-spacing:.32em;color:#22D3EE;font-weight:700;margin-bottom:20px}
+h1{font-size:22px;line-height:1.3;margin-bottom:10px}
+p{font-size:15px;line-height:1.55;color:#A0A0B0;margin-bottom:24px}
+.gift{font-size:48px;margin-bottom:16px}
+a.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 20px;border-radius:12px;text-decoration:none;font-weight:600;font-size:16px;margin-bottom:12px}
+a.tg{background:#229ED9;color:#fff}
+a.web{background:transparent;color:#22D3EE;border:1px solid #2A3A40}
+.note{font-size:12px;color:#6A6A78;margin-top:8px}
+</style></head>
+<body><div class="card">
+<div class="logo">DARKSHARE</div>
+<div class="gift">🎁</div>
+<h1>${esc(tr({ uk: "Друг запрошує тебе до DARKSHARE", ru: "Друг приглашает тебя в DARKSHARE", es: "Un amigo te invita a DARKSHARE", de: "Ein Freund lädt dich zu DARKSHARE ein", en: "A friend invites you to DARKSHARE" }))}</h1>
+<p>${esc(tr({ uk: "Найкраща OSINT-платформа з безпеки. Приєднуйся — і ви обидва отримаєте бонуси та дні VPN.", ru: "Лучшая OSINT-платформа по безопасности. Присоединяйся — вы оба получите бонусы и дни VPN.", es: "La mejor plataforma OSINT de seguridad. Únete y ambos recibiréis bonos y días de VPN.", de: "Die beste OSINT-Sicherheitsplattform. Tritt bei — ihr beide erhaltet Boni und VPN-Tage.", en: "The best OSINT security platform. Join — you both get bonuses and VPN days." }))}</p>
+<a class="btn tg" href="${esc(tgLink)}">✈️ ${esc(tr({ uk: "Відкрити в Telegram", ru: "Открыть в Telegram", es: "Abrir en Telegram", de: "In Telegram öffnen", en: "Open in Telegram" }))}</a>
+<a class="btn web" href="/">🌐 ${esc(tr({ uk: "Продовжити на сайті", ru: "Продолжить на сайте", es: "Continuar en el sitio", de: "Auf der Website fortfahren", en: "Continue on the website" }))}</a>
+<div class="note">${esc(tr({ uk: "Бонус нараховується після першої перевірки.", ru: "Бонус начисляется после первой проверки.", es: "El bono se acredita tras tu primera consulta.", de: "Der Bonus wird nach deiner ersten Prüfung gutgeschrieben.", en: "Bonus is credited after your first check." }))}</div>
+</div></body></html>`;
+    res.type("html").send(html);
+  });
+
   app.get("/robots.txt", (_req, res) => {
     res.type("text/plain").send(
 `User-agent: *
@@ -273,6 +353,7 @@ ${urlEntries}
             refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           });
           storage.logActivity({ eventType: "registration", userId: dsUser.id, username: dsUser.username || null, details: `New user registered via Google/Replit`, meta: { provider: "replit" } }).catch(() => {});
+          await captureReferralCookie(req as Request, _res as Response, dsUser.id);
           if (email) {
             import("./emailService").then(({ sendWelcomeEmail }) => {
               sendWelcomeEmail(email, username || "друг").catch(() => {});
@@ -670,6 +751,7 @@ ${urlEntries}
           refCode: `DARK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         });
         storage.logActivity({ eventType: "registration", userId: user.id, username: user.username || null, details: `New user registered via Telegram`, meta: { provider: "telegram" } }).catch(() => {});
+        await captureReferralCookie(req as Request, res as Response, user.id);
       } else {
         await storage.updateUserLogin(user.id);
         storage.logActivity({ eventType: "login", userId: user.id, username: user.username || null, details: `User logged in via Telegram` }).catch(() => {});
@@ -1242,12 +1324,19 @@ ${urlEntries}
         try {
           const referrer = await storage.getUserByRefCode(authReq.user!.pendingRefCode);
           if (referrer && referrer.id !== authReq.user!.id) {
-            await storage.createReferral({ referrerId: referrer.id, referredId: authReq.user!.id, bonus: 5 });
-            // Re-fetch to avoid stale requestsLeft after earlier decrement
+            const inserted = await storage.createReferral({ referrerId: referrer.id, referredId: authReq.user!.id, bonus: 5 });
+            // Re-fetch to avoid stale requestsLeft after earlier decrement. Only grant
+            // rewards when a NEW referral row was created (idempotent under concurrency).
             const freshUser = await storage.getUser(authReq.user!.id);
-            const freshRef = await storage.getUser(referrer.id);
-            await storage.updateUser(authReq.user!.id, { requestsLeft: (freshUser?.requestsLeft || 0) + 5, pendingRefCode: null });
-            await storage.updateUser(referrer.id, { requestsLeft: (freshRef?.requestsLeft || 0) + 2 });
+            await storage.updateUser(authReq.user!.id, { requestsLeft: (freshUser?.requestsLeft || 0) + (inserted ? 5 : 0), pendingRefCode: null });
+            if (inserted) {
+              const freshRef = await storage.getUser(referrer.id);
+              await storage.updateUser(referrer.id, { requestsLeft: (freshRef?.requestsLeft || 0) + 2 });
+              // Same milestone reward the bot grants: every 3 invites = +1 VPN day (all tiers)
+              await grantReferralVpnDays(freshRef, (tgId, msg) =>
+                botInstance ? botInstance.telegram.sendMessage(tgId, msg, { parse_mode: "HTML" }) : Promise.resolve()
+              ).catch(() => {});
+            }
           } else {
             await storage.updateUser(authReq.user!.id, { pendingRefCode: null });
           }
