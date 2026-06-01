@@ -477,15 +477,21 @@ export async function setupBot(storage: IStorage) {
     const tgId = ctx.from.id.toString();
     // Admins bypass the gate
     if (isAdmin(tgId)) return next();
-    // Allow the "I subscribed" confirmation action through so user can unlock
+
+    const user = await storage.getUserByTgId(tgId);
+    // Existing users (partnerChannelSubscribed = true) always pass through
+    if (user?.partnerChannelSubscribed) return next();
+
+    const lang = getUserLang(user?.lang);
     const callbackData = (ctx as any).callbackQuery?.data as string | undefined;
+
+    // Handle the "I subscribed" button — do a fresh Telegram API check
     if (callbackData === "bot_partner_gate_check") {
-      // Invalidate cache so we do a fresh API call
       _gateCache.delete(tgId);
       const ok = await checkGateSub(ctx, tgId);
-      const user = await storage.getUserByTgId(tgId);
-      const lang = getUserLang(user?.lang);
       if (ok) {
+        // Persist to DB so they never see the gate again
+        if (user) await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
         try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : "✅ Thanks!"); } catch {}
         return next();
       } else {
@@ -501,12 +507,7 @@ export async function setupBot(storage: IStorage) {
       }
     }
 
-    const ok = await checkGateSub(ctx, tgId);
-    if (ok) return next();
-
-    // User not subscribed → show the gate and stop
-    const user = await storage.getUserByTgId(tgId);
-    const lang = getUserLang(user?.lang);
+    // New user with partnerChannelSubscribed = false → show gate
     const subBtn = lang === "uk" ? "📢 Відкрити канал AlorVPN" : lang === "ru" ? "📢 Открыть канал AlorVPN" : lang === "es" ? "📢 Abrir canal AlorVPN" : lang === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel";
     const okBtn = lang === "uk" ? "✅ Я підписався" : lang === "ru" ? "✅ Я подписался" : lang === "es" ? "✅ Ya me suscribí" : lang === "de" ? "✅ Abonniert" : "✅ I subscribed";
     const kb = Markup.inlineKeyboard([

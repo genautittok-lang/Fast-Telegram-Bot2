@@ -466,9 +466,11 @@ async function ensureTablesExist() {
     }
     console.log(`Verified ${vpnTrialCols.length} VPN trial columns on ds_users`);
 
-    // Partner channel subscription gate (mandatory for ALL users)
+    // Partner channel subscription gate (mandatory for NEW users only)
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS partner_channel_subscribed BOOLEAN DEFAULT false`);
-    console.log("Verified partner_channel_subscribed column on ds_users");
+    // Mark all pre-existing users as already verified so only brand-new accounts see the gate
+    await pool.query(`UPDATE ds_users SET partner_channel_subscribed = true WHERE partner_channel_subscribed = false OR partner_channel_subscribed IS NULL`);
+    console.log("Verified partner_channel_subscribed column on ds_users (existing users grandfathered)");
 
     // AlorVPN device tracking table (added May 2026) — idempotent
     await pool.query(`
