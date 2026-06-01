@@ -3954,6 +3954,9 @@ ${faqText}`;
       text += `\n`;
       text += `🌍 <b>${p({ uk: "Локацій", ru: "Локаций", es: "Ubicaciones", de: "Standorte", en: "Locations" })}:</b> 20+  ·  🔒 <b>Trojan Reality</b>  ·  📵 ${p({ uk: "нуль логів", ru: "ноль логов", es: "cero logs", de: "keine Logs", en: "zero logs" })}\n\n`;
 
+      text += `🔗 <b>${p({ uk: "Твоє посилання підписки", ru: "Твоя ссылка подписки", es: "Tu enlace de suscripción", de: "Dein Abo-Link", en: "Your subscription link" })}</b> <i>(${p({ uk: "тапни, щоб скопіювати", ru: "тапни, чтобы скопировать", es: "toca para copiar", de: "zum Kopieren tippen", en: "tap to copy" })})</i>\n`;
+      text += `<code>${escHtml(vpnUrl)}</code>\n\n`;
+
       if (slotsFull) {
         text += p({
           uk: `⚠️ <b>Усі слоти зайняті.</b>\nЗвільни пристрій у розділі «🖥️ Пристрої», потім підключи новий.`,
