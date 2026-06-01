@@ -3826,6 +3826,15 @@ ${faqText}`;
     }
 
     const tier = (user.tier || "FREE").toUpperCase();
+    const p = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
+    const SEP = "─".repeat(16);
+
+    // User identity shown in every VPN screen so users know which account is linked
+    const userNick = user.username ? `@${String(user.username).replace(/^@/, "")}` : null;
+    const userId = user.tgId || tgId;
+    const identityLine = userNick
+      ? `👤 <b>${escHtml(userNick)}</b> · <code>#${escHtml(userId)}</code>`
+      : `👤 <code>#${escHtml(userId)}</code>`;
 
     // Active VPN = token present AND effective expiry (VPN or main sub) still in the future.
     // Covers FREE-tier users who activated the free trial day.
@@ -3836,48 +3845,70 @@ ${faqText}`;
     // FREE / no active subscription → offer the free 1-day trial (once),
     // or, if already used, the buy + referral ("+1 day") path.
     if (!hasActiveVpn && !isProTier(tier)) {
-      const p = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
       const trialUsed = Boolean((user as any).vpnTrialUsed);
       const rows: any[][] = [];
-      let text = `🛡️ <b>DARKSHARE VPN</b>\n<i>${escHtml(vpnT(lang, "tagline"))}</i>\n${"─".repeat(13)}\n\n`;
+
+      const features = p({
+        uk: `✅ <b>20+ країн</b> — 🇩🇪🇳🇱🇺🇸🇬🇧🇫🇷🇫🇮🇵🇱🇺🇦 та інші\n✅ <b>Trojan Reality</b> — протокол нового покоління\n✅ <b>До 2 пристроїв</b> одночасно\n✅ <b>Нуль логів</b> · Необмежений трафік\n✅ iOS · Android · Windows · macOS`,
+        ru: `✅ <b>20+ стран</b> — 🇩🇪🇳🇱🇺🇸🇬🇧🇫🇷🇫🇮🇵🇱🇺🇦 и другие\n✅ <b>Trojan Reality</b> — протокол нового поколения\n✅ <b>До 2 устройств</b> одновременно\n✅ <b>Ноль логов</b> · Безлимитный трафик\n✅ iOS · Android · Windows · macOS`,
+        es: `✅ <b>20+ países</b> — 🇩🇪🇳🇱🇺🇸🇬🇧🇫🇷🇫🇮🇵🇱🇺🇦 y más\n✅ <b>Trojan Reality</b> — protocolo de nueva generación\n✅ <b>Hasta 2 dispositivos</b> simultáneos\n✅ <b>Cero registros</b> · Tráfico ilimitado\n✅ iOS · Android · Windows · macOS`,
+        de: `✅ <b>20+ Länder</b> — 🇩🇪🇳🇱🇺🇸🇬🇧🇫🇷🇫🇮🇵🇱🇺🇦 u.v.m.\n✅ <b>Trojan Reality</b> — Protokoll der neuen Generation\n✅ <b>Bis zu 2 Geräte</b> gleichzeitig\n✅ <b>Keine Logs</b> · Unbegrenzter Datenverkehr\n✅ iOS · Android · Windows · macOS`,
+        en: `✅ <b>20+ countries</b> — 🇩🇪🇳🇱🇺🇸🇬🇧🇫🇷🇫🇮🇵🇱🇺🇦 and more\n✅ <b>Trojan Reality</b> — next-gen protocol\n✅ <b>Up to 2 devices</b> simultaneously\n✅ <b>Zero logs</b> · Unlimited traffic\n✅ iOS · Android · Windows · macOS`,
+      });
+
+      let text = `🛡️ <b>DARKSHARE VPN</b>\n${SEP}\n${identityLine}\n\n`;
+
       if (!trialUsed) {
         text += p({
-          uk: `🎁 <b>Безкоштовний 1 день VPN</b>\n\nСпробуй DARKSHARE VPN безкоштовно — повний доступ до всіх локацій на 24 години. Активація разова.\n\nПісля закінчення: оформи підписку DARKSHARE або запроси 3 друзів і отримай ще +1 день.`,
-          ru: `🎁 <b>Бесплатный 1 день VPN</b>\n\nПопробуй DARKSHARE VPN бесплатно — полный доступ ко всем локациям на 24 часа. Активация разовая.\n\nПосле окончания: оформи подписку DARKSHARE или пригласи 3 друзей и получи ещё +1 день.`,
-          es: `🎁 <b>1 día de VPN gratis</b>\n\nPrueba DARKSHARE VPN gratis — acceso completo a todas las ubicaciones por 24 horas. Activación única.\n\nDespués: suscríbete a DARKSHARE o invita a 3 amigos y obtén +1 día.`,
-          de: `🎁 <b>1 Tag VPN gratis</b>\n\nTeste DARKSHARE VPN kostenlos — voller Zugriff auf alle Standorte für 24 Stunden. Einmalige Aktivierung.\n\nDanach: DARKSHARE-Abo abschließen oder 3 Freunde einladen für +1 Tag.`,
-          en: `🎁 <b>Free 1-day VPN</b>\n\nTry DARKSHARE VPN free — full access to all locations for 24 hours. One-time activation.\n\nAfter it ends: subscribe to DARKSHARE or invite 3 friends for +1 more day.`,
+          uk: `🎁 <b>БЕЗКОШТОВНИЙ ПРОБНИЙ ДЕНЬ</b>\n\nОтримай повний доступ до VPN на <b>24 години</b> — безкоштовно і без обмежень. Активація разова.\n\n`,
+          ru: `🎁 <b>БЕСПЛАТНЫЙ ПРОБНЫЙ ДЕНЬ</b>\n\nПолный доступ к VPN на <b>24 часа</b> — бесплатно, без ограничений. Активация разовая.\n\n`,
+          es: `🎁 <b>DÍA DE PRUEBA GRATUITO</b>\n\nAcceso completo a la VPN durante <b>24 horas</b> — gratis, sin límites. Activación única.\n\n`,
+          de: `🎁 <b>KOSTENLOSER PROBETAG</b>\n\nVollen VPN-Zugang für <b>24 Stunden</b> — kostenlos, ohne Einschränkungen. Einmalige Aktivierung.\n\n`,
+          en: `🎁 <b>FREE TRIAL DAY</b>\n\nFull VPN access for <b>24 hours</b> — free and unlimited. One-time activation.\n\n`,
         });
-        rows.push([cb(p({ uk: "🎁 Активувати безкоштовний день", ru: "🎁 Активировать бесплатный день", es: "🎁 Activar día gratis", de: "🎁 Gratis-Tag aktivieren", en: "🎁 Activate free day" }), "vpn_activate_trial", "success")]);
+        text += features + `\n\n`;
+        text += p({
+          uk: `<i>Після закінчення: підпишись або запроси 3 друзів → ще +1 день.</i>`,
+          ru: `<i>После окончания: оформи подписку или пригласи 3 друзей → ещё +1 день.</i>`,
+          es: `<i>Al terminar: suscríbete o invita a 3 amigos → otro +1 día.</i>`,
+          de: `<i>Danach: Abo abschließen oder 3 Freunde einladen → +1 Gratis-Tag.</i>`,
+          en: `<i>After it ends: subscribe or invite 3 friends → get +1 more day.</i>`,
+        });
+        rows.push([cb(p({ uk: "🎁 Активувати безкоштовний день", ru: "🎁 Активировать бесплатный день", es: "🎁 Activar día de prueba", de: "🎁 Probetag aktivieren", en: "🎁 Activate free day" }), "vpn_activate_trial", "success")]);
       } else {
         text += p({
-          uk: `⏳ <b>Безкоштовний день використано</b>\n\nЩоб користуватись VPN далі:\n• 💎 Оформи підписку DARKSHARE\n• 👥 Або запроси 3 друзів і отримай ще +1 день безкоштовно`,
-          ru: `⏳ <b>Бесплатный день использован</b>\n\nЧтобы пользоваться VPN дальше:\n• 💎 Оформи подписку DARKSHARE\n• 👥 Или пригласи 3 друзей и получи ещё +1 день бесплатно`,
-          es: `⏳ <b>Día gratis utilizado</b>\n\nPara seguir usando la VPN:\n• 💎 Suscríbete a DARKSHARE\n• 👥 O invita a 3 amigos y obtén +1 día gratis`,
-          de: `⏳ <b>Gratis-Tag verbraucht</b>\n\nUm das VPN weiter zu nutzen:\n• 💎 DARKSHARE-Abo abschließen\n• 👥 Oder 3 Freunde einladen für +1 Gratis-Tag`,
-          en: `⏳ <b>Free day used</b>\n\nTo keep using the VPN:\n• 💎 Subscribe to DARKSHARE\n• 👥 Or invite 3 friends for +1 free day`,
+          uk: `⏳ <b>Пробний день вже використано</b>\n\nЩоб продовжити користуватись VPN:\n\n`,
+          ru: `⏳ <b>Пробный день уже использован</b>\n\nЧтобы продолжить пользоваться VPN:\n\n`,
+          es: `⏳ <b>Día de prueba ya utilizado</b>\n\nPara seguir usando la VPN:\n\n`,
+          de: `⏳ <b>Probetag bereits verbraucht</b>\n\nUm das VPN weiter zu nutzen:\n\n`,
+          en: `⏳ <b>Free trial day already used</b>\n\nTo keep using the VPN:\n\n`,
+        });
+        text += features + `\n\n`;
+        text += p({
+          uk: `👥 <b>Запроси 3 друзів</b> → +1 день безкоштовно\n💎 Або оформи підписку нижче`,
+          ru: `👥 <b>Пригласи 3 друзей</b> → +1 день бесплатно\n💎 Или оформи подписку ниже`,
+          es: `👥 <b>Invita a 3 amigos</b> → +1 día gratis\n💎 O suscríbete abajo`,
+          de: `👥 <b>3 Freunde einladen</b> → +1 Tag gratis\n💎 Oder unten abonnieren`,
+          en: `👥 <b>Invite 3 friends</b> → +1 day free\n💎 Or subscribe below`,
         });
         rows.push([cb(p({ uk: "👥 Запросити друзів (+1 день)", ru: "👥 Пригласить друзей (+1 день)", es: "👥 Invitar amigos (+1 día)", de: "👥 Freunde einladen (+1 Tag)", en: "👥 Invite friends (+1 day)" }), "referrals", "primary")]);
       }
-      const buyInBot = p({ uk: "купити в боті", ru: "купить в боте", es: "comprar en el bot", de: "im Bot kaufen", en: "buy in bot" });
+      const buyInBot = p({ uk: "в боті", ru: "в боте", es: "en el bot", de: "im Bot", en: "in bot" });
       rows.push([cb(`💎 PRO · $10 · ${buyInBot}`, "bot_pay_tier_PRO", "success", E.star)]);
       rows.push([cb(`🏢 ENTERPRISE · $35 · ${buyInBot}`, "bot_pay_tier_ENTERPRISE", "success", E.crown)]);
       rows.push([cb(`👥 GROUPS · $55 · ${buyInBot}`, "bot_pay_tier_GROUPS", "success", E.money)]);
-      rows.push([urlS(p({ uk: "🌐 Або оплатити на сайті", ru: "🌐 Или оплатить на сайте", es: "🌐 O pagar en el sitio", de: "🌐 Oder auf der Website zahlen", en: "🌐 Or pay on the website" }), `${webUrl}/pricing?src=bot_vpn`, "primary", E.globe)]);
+      rows.push([urlS(p({ uk: "🌐 Оплатити на сайті", ru: "🌐 Оплатить на сайте", es: "🌐 Pagar en el sitio", de: "🌐 Auf der Website bezahlen", en: "🌐 Pay on website" }), `${webUrl}/pricing?src=bot_vpn`, "primary", E.globe)]);
       rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
       const kb = Markup.inlineKeyboard(rows);
-      try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch { await ctx.reply(text, { parse_mode: "HTML", ...kb }); }
+      try { await ctx.deleteMessage(); } catch {}
+      await ctx.reply(text, { parse_mode: "HTML", ...kb });
       return;
     }
 
-    // NOTE: Partner-channel subscription is NO LONGER required to access the VPN.
-    // It is now shown once as a soft prompt to brand-new bot users during onboarding.
-
+    // ── PRO+ WITH TOKEN (active or pending activation) ──────────────────────
     const deviceLimit = tier === "ENTERPRISE" || tier === "GROUPS" ? 5 : 2;
     const hasVpn = Boolean((user as any).alorVpnToken);
     // Source of truth: the LATER of VPN expiry and main subscription expiry.
-    // This prevents "stale" UI right after a Telegram-Stars/Monobank payment that
-    // updates `subscriptionExpiresAt` before AlorVPN renewal syncs `alorVpnExpiresAt`.
     const vpnExpRaw = (user as any).alorVpnExpiresAt;
     const subExpRaw = (user as any).subscriptionExpiresAt;
     const vpnExpMs = vpnExpRaw ? new Date(vpnExpRaw).getTime() : 0;
@@ -3887,115 +3918,94 @@ ${faqText}`;
     const vpnToken = (user as any).alorVpnToken;
     const vpnUrl = vpnToken ? `${webUrl}/vpn/sub/${vpnToken}` : null;
 
-    // Live device count (graceful fallback if the table is missing on a stale deploy)
     let activeDevices = 0;
     try {
       const devs = await storage.listVpnDevices(user.id);
       activeDevices = devs.filter((d: any) => !d.revokedAt).length;
     } catch {}
 
-    let text = `🛡️ <b>DARKSHARE VPN</b>\n`;
-    text += `<i>${escHtml(vpnT(lang, "tagline"))}</i>\n`;
-    text += `\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n`;
+    let text = `🛡️ <b>DARKSHARE VPN</b>\n${SEP}\n${identityLine}\n`;
+    text += `🏷️ ${p({ uk: "Тариф", ru: "Тариф", es: "Plan", de: "Tarif", en: "Plan" })}: <b>${tier}</b>\n\n`;
 
     if (hasVpn && vpnUrl) {
       const expiryDate = vpnExpiry ? new Date(vpnExpiry) : null;
       const daysLeft = expiryDate ? Math.max(0, Math.ceil((expiryDate.getTime() - Date.now()) / 86400000)) : null;
-      const expiryStr = expiryDate ? expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-GB") : "—";
+      const expiryStr = expiryDate
+        ? expiryDate.toLocaleDateString(lang === "uk" ? "uk-UA" : lang === "ru" ? "ru-RU" : lang === "es" ? "es-ES" : lang === "de" ? "de-DE" : "en-GB")
+        : "—";
       const isActive = daysLeft !== null && daysLeft > 0;
       const statusDot = isActive ? "🟢" : "🔴";
-
       const slotsFull = activeDevices >= deviceLimit;
       const slotEmoji = activeDevices === 0 ? "⚪" : slotsFull ? "🟠" : "🟢";
-      const daysEmoji = (daysLeft ?? 0) <= 3 ? "🟠" : (daysLeft ?? 0) <= 7 ? "🟡" : "🟢";
+      const daysEmoji = (daysLeft ?? 0) <= 3 ? "🔴" : (daysLeft ?? 0) <= 7 ? "🟡" : "🟢";
 
-      const pick = <T extends Record<string, string>>(o: T): string =>
-        (o as any)[lang] ?? o.en;
-      const L = {
-        plan:           pick({ uk: "Тариф",        ru: "Тариф",        es: "Plan",         de: "Tarif",      en: "Plan" }),
-        status:         pick({ uk: "Статус",       ru: "Статус",       es: "Estado",       de: "Status",     en: "Status" }),
-        devices:        pick({ uk: "Пристрої",     ru: "Устройства",   es: "Dispositivos", de: "Geräte",     en: "Devices" }),
-        used:           pick({ uk: "зайнято",      ru: "занято",       es: "en uso",       de: "belegt",     en: "used" }),
-        until:          pick({ uk: "Діє до",       ru: "Активна до",   es: "Hasta",        de: "Bis",        en: "Until" }),
-        days:           pick({ uk: "залишилось",   ru: "осталось",     es: "restantes",    de: "verbleibend",en: "left" }),
-        countriesLbl:   pick({ uk: "Локацій",      ru: "Локаций",      es: "Ubicaciones",  de: "Standorte",  en: "Locations" }),
-        countriesWord:  pick({ uk: "країн",        ru: "стран",        es: "países",       de: "Länder",     en: "countries" }),
-        tech:           pick({ uk: "Протокол",     ru: "Протокол",     es: "Protocolo",    de: "Protokoll",  en: "Protocol" }),
-        logs:           pick({ uk: "Логи",         ru: "Логи",         es: "Registros",    de: "Logs",       en: "Logs" }),
-        noLogs:         pick({ uk: "нуль",         ru: "ноль",         es: "cero",         de: "keine",      en: "zero" }),
-        daysShort:      pick({ uk: " дн.",         ru: " дн.",         es: " d",           de: " T",         en: "d" }),
-      };
       const statusLabel = isActive
-        ? pick({ uk: "Активна", ru: "Активна", es: "Activa",  de: "Aktiv",   en: "Active" })
-        : pick({ uk: "Закінчилась", ru: "Истекла", es: "Expirada", de: "Abgelaufen", en: "Expired" });
+        ? p({ uk: "Активна", ru: "Активна", es: "Activa", de: "Aktiv", en: "Active" })
+        : p({ uk: "Закінчилась", ru: "Истекла", es: "Expirada", de: "Abgelaufen", en: "Expired" });
 
-      text += `${statusDot} <b>${L.status}:</b> ${escHtml(statusLabel)}\n`;
-      text += `💎 <b>${L.plan}:</b> <code>${tier}</code>\n`;
-      text += `${slotEmoji} <b>${L.devices}:</b> <code>${activeDevices}/${deviceLimit}</code> ${L.used}\n`;
-      text += `🌍 <b>${L.countriesLbl}:</b> <code>20+</code> ${L.countriesWord}\n`;
-      text += `🔒 <b>${L.tech}:</b> Trojan Reality · <b>${L.logs}:</b> ${L.noLogs}\n`;
-      text += `📅 <b>${L.until}:</b> <code>${expiryStr}</code>`;
-      if (daysLeft !== null) text += ` ${daysEmoji} <i>(${daysLeft}${L.daysShort} ${L.days})</i>`;
-      text += `\n\n`;
+      text += `${statusDot} <b>${p({ uk: "Статус", ru: "Статус", es: "Estado", de: "Status", en: "Status" })}:</b> ${escHtml(statusLabel)}\n`;
+      text += `📅 <b>${p({ uk: "Діє до", ru: "Активна до", es: "Hasta", de: "Bis", en: "Until" })}:</b> <code>${expiryStr}</code>`;
+      if (daysLeft !== null) text += `  ${daysEmoji} <i>${daysLeft} ${p({ uk: "дн. залишилось", ru: "дн. осталось", es: "d restantes", de: "T verbleibend", en: "days left" })}</i>`;
+      text += `\n`;
+      text += `${slotEmoji} <b>${p({ uk: "Пристрої", ru: "Устройства", es: "Dispositivos", de: "Geräte", en: "Devices" })}:</b> <code>${activeDevices} / ${deviceLimit}</code>`;
+      text += slotsFull
+        ? `  ⚠️ <i>${p({ uk: "всі зайняті", ru: "все заняты", es: "todos ocupados", de: "alle belegt", en: "all full" })}</i>`
+        : `  <i>${p({ uk: "вільних", ru: "свободных", es: "libres", de: "frei", en: "free" })}: ${deviceLimit - activeDevices}</i>`;
+      text += `\n`;
+      text += `🌍 <b>${p({ uk: "Локацій", ru: "Локаций", es: "Ubicaciones", de: "Standorte", en: "Locations" })}:</b> 20+  ·  🔒 <b>Trojan Reality</b>  ·  📵 ${p({ uk: "нуль логів", ru: "ноль логов", es: "cero logs", de: "keine Logs", en: "zero logs" })}\n\n`;
 
       if (slotsFull) {
-        text += pick({
-          uk: `⚠️ <b>Усі слоти зайняті.</b> Звільни пристрій у «Пристрої» щоб додати новий.\n`,
-          ru: `⚠️ <b>Все слоты заняты.</b> Освободи устройство в «Устройства» чтобы добавить новое.\n`,
-          es: `⚠️ <b>Todos los slots están ocupados.</b> Libera un dispositivo en «Dispositivos» para añadir uno nuevo.\n`,
-          de: `⚠️ <b>Alle Slots sind belegt.</b> Gib ein Gerät in „Geräte" frei, um ein neues hinzuzufügen.\n`,
-          en: `⚠️ <b>All slots are full.</b> Free a device in "Devices" to add a new one.\n`,
+        text += p({
+          uk: `⚠️ <b>Усі слоти зайняті.</b>\nЗвільни пристрій у розділі «🖥️ Пристрої», потім підключи новий.`,
+          ru: `⚠️ <b>Все слоты заняты.</b>\nОсвободи устройство в разделе «🖥️ Устройства», затем подключи новое.`,
+          es: `⚠️ <b>Todos los slots ocupados.</b>\nLibera un dispositivo en «🖥️ Dispositivos» y luego conecta uno nuevo.`,
+          de: `⚠️ <b>Alle Slots belegt.</b>\nGib ein Gerät in „🖥️ Geräte" frei, dann verbinde ein neues.`,
+          en: `⚠️ <b>All slots full.</b>\nFree a device in "🖥️ Devices", then connect a new one.`,
         });
       } else {
-        text += pick({
-          uk: `💡 Натисни <b>«📷 QR»</b> або <b>«🔗 Копіювати»</b> — і за 10 секунд VPN на твоєму пристрої.`,
-          ru: `💡 Нажми <b>«📷 QR»</b> или <b>«🔗 Копировать»</b> — и за 10 секунд VPN на твоём устройстве.`,
-          es: `💡 Pulsa <b>«📷 QR»</b> o <b>«🔗 Copiar»</b> — y en 10 segundos tendrás VPN en tu dispositivo.`,
-          de: `💡 Tippe auf <b>„📷 QR"</b> oder <b>„🔗 Kopieren"</b> — in 10 Sekunden hast du VPN auf deinem Gerät.`,
-          en: `💡 Tap <b>"📷 QR"</b> or <b>"🔗 Copy"</b> — VPN on your device in 10 seconds.`,
+        text += p({
+          uk: `💡 Натисни <b>📷 QR</b> або <b>🔗 Копіювати</b> — підписка встановиться в застосунок за кілька секунд.`,
+          ru: `💡 Нажми <b>📷 QR</b> или <b>🔗 Копировать</b> — подписка установится в приложение за несколько секунд.`,
+          es: `💡 Pulsa <b>📷 QR</b> o <b>🔗 Copiar</b> — la suscripción se importa al app en segundos.`,
+          de: `💡 Tippe auf <b>📷 QR</b> oder <b>🔗 Kopieren</b> — Abo wird in Sekunden in die App importiert.`,
+          en: `💡 Tap <b>📷 QR</b> or <b>🔗 Copy</b> — subscription imports into the app in seconds.`,
         });
       }
     } else {
-      const pickU = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
-      text += `⚠️ <b>${pickU({ uk: "Підписка ще не активована", ru: "Подписка ещё не активирована", es: "Suscripción aún no activada", de: "Abonnement noch nicht aktiviert", en: "Subscription not yet activated" })}</b>\n\n`;
-      text += `💎 <b>${pickU({ uk: "Тариф", ru: "Тариф", es: "Plan", de: "Tarif", en: "Plan" })}:</b> <code>${tier}</code> ✓\n`;
-      text += `📱 <b>${pickU({ uk: "Доступно", ru: "Доступно", es: "Disponibles", de: "Verfügbar", en: "Available" })}:</b> <code>${deviceLimit}</code> ${pickU({ uk: "пристроїв", ru: "устройств", es: "dispositivos", de: "Geräte", en: "devices" })}\n`;
-      text += `🌍 <b>${pickU({ uk: "Локацій", ru: "Локаций", es: "Ubicaciones", de: "Standorte", en: "Locations" })}:</b> <code>20+</code> ${pickU({ uk: "країн", ru: "стран", es: "países", de: "Länder", en: "countries" })}\n`;
-      text += `🔒 <b>${pickU({ uk: "Протокол", ru: "Протокол", es: "Protocolo", de: "Protokoll", en: "Protocol" })}:</b> Trojan Reality · ${pickU({ uk: "нуль логів", ru: "ноль логов", es: "cero registros", de: "keine Logs", en: "zero logs" })}\n\n`;
-      text += pickU({
-        uk: `🚀 Натисни <b>«Активувати»</b> — VPN буде готовий за 2 секунди.`,
-        ru: `🚀 Нажми <b>«Активировать»</b> — VPN будет готов за 2 секунды.`,
-        es: `🚀 Pulsa <b>«Activar»</b> — VPN listo en 2 segundos.`,
-        de: `🚀 Tippe auf <b>„Aktivieren"</b> — VPN in 2 Sekunden bereit.`,
-        en: `🚀 Tap <b>"Activate"</b> — VPN ready in 2 seconds.`,
+      text += `⚙️ <b>${p({ uk: "VPN ще не активовано", ru: "VPN ещё не активирован", es: "VPN aún no activado", de: "VPN noch nicht aktiviert", en: "VPN not yet activated" })}</b>\n\n`;
+      text += `📱 ${p({ uk: "Доступно пристроїв", ru: "Доступно устройств", es: "Dispositivos disponibles", de: "Verfügbare Geräte", en: "Available devices" })}: <code>${deviceLimit}</code>\n`;
+      text += `🌍 ${p({ uk: "Локацій", ru: "Локаций", es: "Ubicaciones", de: "Standorte", en: "Locations" })}: <code>20+</code>  ·  🔒 Trojan Reality\n\n`;
+      text += p({
+        uk: `🚀 Натисни <b>«⚡ Активувати VPN»</b> — підписка буде готова за кілька секунд.`,
+        ru: `🚀 Нажми <b>«⚡ Активировать VPN»</b> — подписка будет готова за несколько секунд.`,
+        es: `🚀 Pulsa <b>«⚡ Activar VPN»</b> — la suscripción estará lista en segundos.`,
+        de: `🚀 Tippe auf <b>„⚡ VPN aktivieren"</b> — Abo in wenigen Sekunden bereit.`,
+        en: `🚀 Tap <b>"⚡ Activate VPN"</b> — subscription ready in seconds.`,
       });
     }
 
-    const pickB = <T extends Record<string, string>>(o: T): string => (o as any)[lang] ?? o.en;
     const rows: any[][] = [];
     if (hasVpn && vpnUrl) {
       rows.push([
-        cb(`📷 ${pickB({ uk: "QR-код", ru: "QR-код", es: "QR", de: "QR-Code", en: "QR code" })}`, "vpn_qr", "success"),
-        cb(`🔗 ${pickB({ uk: "Копіювати", ru: "Скопировать", es: "Copiar", de: "Kopieren", en: "Copy link" })}`, "vpn_copy_link", "success"),
+        cb(`📷 ${p({ uk: "QR-код", ru: "QR-код", es: "QR", de: "QR-Code", en: "QR code" })}`, "vpn_qr", "success"),
+        cb(`🔗 ${p({ uk: "Копіювати лінк", ru: "Скопировать", es: "Copiar enlace", de: "Link kopieren", en: "Copy link" })}`, "vpn_copy_link", "success"),
       ]);
-      rows.push([cb(`📱 ${pickB({ uk: "Застосунки (1-клік)", ru: "Приложения (1-клик)", es: "Apps (1-clic)", de: "Apps (1-Klick)", en: "Apps (one-tap)" })}`, "vpn_apps", "primary")]);
+      rows.push([cb(`📱 ${p({ uk: "Відкрити в застосунку (1-клік)", ru: "Открыть в приложении (1-клик)", es: "Abrir en app (1-clic)", de: "In App öffnen (1-Klick)", en: "Open in app (one-tap)" })}`, "vpn_apps", "primary")]);
       rows.push([
-        cb(`🖥️ ${pickB({ uk: "Пристрої", ru: "Устройства", es: "Dispositivos", de: "Geräte", en: "Devices" })}`, "vpn_devices", "primary"),
-        cb(`📲 ${pickB({ uk: "Інструкція", ru: "Инструкция", es: "Ayuda", de: "Hilfe", en: "Help" })}`, "vpn_instruction", "primary"),
+        cb(`🖥️ ${p({ uk: "Пристрої", ru: "Устройства", es: "Dispositivos", de: "Geräte", en: "Devices" })}`, "vpn_devices", "primary"),
+        cb(`📲 ${p({ uk: "Інструкція", ru: "Инструкция", es: "Guía", de: "Anleitung", en: "Setup guide" })}`, "vpn_instruction", "primary"),
       ]);
       rows.push([
-        cb(`🔄 ${pickB({ uk: "Оновити", ru: "Обновить", es: "Actualizar", de: "Aktualisieren", en: "Refresh" })}`, "vpn_refresh", "primary", E.bolt),
-        urlS(`🌐 ${pickB({ uk: "На сайті", ru: "На сайте", es: "En el sitio", de: "Im Web", en: "Web" })}`, `${webUrl}/vpn`, "default", E.globe),
+        cb(`🔄 ${p({ uk: "Оновити статус", ru: "Обновить статус", es: "Actualizar", de: "Aktualisieren", en: "Refresh status" })}`, "vpn_refresh", "primary", E.bolt),
+        urlS(`🌐 ${p({ uk: "Веб-кабінет", ru: "Веб-кабинет", es: "Panel web", de: "Web-Panel", en: "Web panel" })}`, `${webUrl}/vpn`, "default", E.globe),
       ]);
     } else {
-      rows.push([cb(`⚡ ${pickB({ uk: "Активувати VPN", ru: "Активировать VPN", es: "Activar VPN", de: "VPN aktivieren", en: "Activate VPN" })}`, "vpn_activate", "success")]);
-      rows.push([cb(`📲 ${pickB({ uk: "Як це працює?", ru: "Как это работает?", es: "¿Cómo funciona?", de: "Wie funktioniert es?", en: "How it works?" })}`, "vpn_instruction", "primary")]);
+      rows.push([cb(`⚡ ${p({ uk: "Активувати VPN", ru: "Активировать VPN", es: "Activar VPN", de: "VPN aktivieren", en: "Activate VPN" })}`, "vpn_activate", "success")]);
+      rows.push([cb(`📲 ${p({ uk: "Як це працює?", ru: "Как это работает?", es: "¿Cómo funciona?", de: "Wie funktioniert es?", en: "How it works?" })}`, "vpn_instruction", "primary")]);
     }
     rows.push([cb(vpnT(lang, "back"), "back_to_dashboard", "danger", E.back)]);
 
     const kb = Markup.inlineKeyboard(rows);
-    // Always send fresh (delete the previous message). Photo messages can't be edited
-    // into text, and inconsistent edit behaviour caused stale UI complaints from users.
     try { await ctx.deleteMessage(); } catch {}
     await ctx.reply(text, { parse_mode: "HTML", ...kb });
   }

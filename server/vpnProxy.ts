@@ -531,7 +531,9 @@ function rewriteProfileTitleHeader(value: string | undefined): string {
 function buildBrandedProfileTitle(user: any, upstreamValue: string | undefined): string {
   const parts: string[] = [BRAND];
   const nick = user?.username ? `@${String(user.username).replace(/^@/, "")}` : null;
+  const idTag = user?.tgId ? `#${String(user.tgId)}` : null;
   if (nick) parts.push(nick);
+  else if (idTag) parts.push(idTag);
 
   const vpnExp = user?.alorVpnExpiresAt ? new Date(user.alorVpnExpiresAt).getTime() : 0;
   const subExp = user?.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt).getTime() : 0;
