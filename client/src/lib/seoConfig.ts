@@ -44,14 +44,86 @@ const vpnSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
   name: "DarkShare VPN",
-  description: "Modern privacy VPN built on Trojan Reality protocol. Bypasses DPI and censorship, zero logs, 20+ global server locations. Works on iOS, Android, Windows, macOS and Linux via Happ, Shadowrocket, v2rayNG, v2rayN, NekoBox and Clash Verge.",
+  description: "Modern zero-log privacy VPN built on the Trojan Reality (XTLS-Reality) protocol. Bypasses DPI and censorship by disguising traffic as ordinary HTTPS, zero logs, 20+ global server locations, server-side key generation. Works on iOS, Android, Windows, macOS and Linux via Happ, Shadowrocket, v2rayNG, v2rayN, NekoBox and Clash Verge. Included with every PRO, Enterprise and Groups plan.",
   brand: { "@type": "Brand", name: "DarkShare" },
   image: `${ORIGIN}/og-image.png`,
   category: "VPN service",
   offers: [
     { "@type": "Offer", name: "PRO — 2 devices · 20+ countries", price: "9", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=PRO`, availability: "https://schema.org/InStock" },
-    { "@type": "Offer", name: "ENTERPRISE — 5 devices · 20+ countries", price: "29", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=ENTERPRISE`, availability: "https://schema.org/InStock" },
-    { "@type": "Offer", name: "GROUPS — 5 devices/member · 20+ countries · team management", price: "55", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=GROUPS`, availability: "https://schema.org/InStock" },
+    { "@type": "Offer", name: "ENTERPRISE — 5 devices · 20+ countries", price: "30", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=ENTERPRISE`, availability: "https://schema.org/InStock" },
+    { "@type": "Offer", name: "GROUPS — 5 devices/member · 20+ countries · team management", price: "45", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=GROUPS`, availability: "https://schema.org/InStock" },
+  ],
+  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: "126", bestRating: "5", worstRating: "1" },
+};
+
+const vpnFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What protocol does DarkShare VPN use?",
+      acceptedAnswer: { "@type": "Answer", text: "DarkShare VPN runs on Trojan Reality (XTLS-Reality), a modern censorship-resistant protocol that disguises VPN traffic as ordinary HTTPS so it slips past deep packet inspection (DPI) and firewalls." },
+    },
+    {
+      "@type": "Question",
+      name: "Does DarkShare VPN keep logs?",
+      acceptedAnswer: { "@type": "Answer", text: "No. DarkShare VPN keeps zero connection and activity logs. Keys are generated server-side and we never store your browsing data or IP history." },
+    },
+    {
+      "@type": "Question",
+      name: "How many countries and devices does DarkShare VPN support?",
+      acceptedAnswer: { "@type": "Answer", text: "20+ global server locations. PRO covers 2 devices, while Enterprise and Groups cover 5 devices per member." },
+    },
+    {
+      "@type": "Question",
+      name: "Which apps work with DarkShare VPN?",
+      acceptedAnswer: { "@type": "Answer", text: "Any Trojan/V2Ray client: Happ and Shadowrocket on iOS, v2rayNG and NekoBox on Android, and v2rayN, NekoBox or Clash Verge on Windows, macOS and Linux. One-tap deep links auto-import your subscription." },
+    },
+    {
+      "@type": "Question",
+      name: "Can I get DarkShare VPN for free?",
+      acceptedAnswer: { "@type": "Answer", text: "VPN is included with every paid plan, and you can earn free VPN days through the referral program — every 3 friends who join gives you an extra VPN day on any tier." },
+    },
+  ],
+};
+
+// Sitewide FAQ — rendered only on the homepage so each URL has at most one
+// FAQPage entity (Google suppresses rich results when a page declares two).
+const homepageFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is DARKSHARE?",
+      acceptedAnswer: { "@type": "Answer", text: "DARKSHARE is an AI-powered OSINT and threat-intelligence platform. It scans IP addresses, crypto wallets, emails, domains, URLs, CVEs, EXIF metadata and GEOINT, scores risk with AI, monitors targets in real time and exports branded PDF reports — available via web, Telegram bot @DarkShare1Bot and REST API. Every paid plan also includes a zero-log privacy VPN." },
+    },
+    {
+      "@type": "Question",
+      name: "Is DARKSHARE free?",
+      acceptedAnswer: { "@type": "Answer", text: "Yes. DARKSHARE has a free tier with daily OSINT scans. Paid tiers (PRO $9, ENTERPRISE $30, GROUPS $45) unlock unlimited scans, real-time monitoring, AI threat profiles, branded PDF reports, full API access and the built-in VPN." },
+    },
+    {
+      "@type": "Question",
+      name: "Which OSINT modules does DARKSHARE support?",
+      acceptedAnswer: { "@type": "Answer", text: "17+ modules: IP/ASN reputation, DNS, WHOIS, crypto wallets (BTC/ETH/TRX), email leak checks, domain analysis, URL/SSL safety, CVE lookup, EXIF metadata, GEOINT location hints, dark-web monitoring, AI risk scoring, takedown letter generator, compromise wizard and threat-profile builder." },
+    },
+    {
+      "@type": "Question",
+      name: "Does DARKSHARE include a VPN?",
+      acceptedAnswer: { "@type": "Answer", text: "Yes. Every PRO, Enterprise and Groups plan includes DarkShare VPN — a zero-log privacy VPN built on the Trojan Reality protocol with 20+ global server locations. It bypasses DPI and censorship and works on iOS, Android, Windows, macOS and Linux. You can also earn free VPN days through the referral program." },
+    },
+    {
+      "@type": "Question",
+      name: "How does DARKSHARE handle GDPR data deletion?",
+      acceptedAnswer: { "@type": "Answer", text: "DARKSHARE complies with GDPR Art. 17, UK DPA 2018 and Ukrainian Law on Personal Data Protection. The /data-deletion endpoint erases the requested identifier from our index, cache, monitors, favorites, AI profiles and chat messages immediately, and purges backups within 90 days." },
+    },
+    {
+      "@type": "Question",
+      name: "How do I log in to DARKSHARE?",
+      acceptedAnswer: { "@type": "Answer", text: "DARKSHARE uses the Telegram Login Widget or Google OAuth — sign in with one tap. No passwords are stored on our side." },
+    },
   ],
 };
 
@@ -67,9 +139,10 @@ const apiSchema = {
 
 export const SEO_CONFIG: Record<string, PageSeo> = {
   "/": {
-    title: "AI-powered Security OSINT & Threat Intelligence Platform",
-    description: "Scan IPs, crypto wallets, emails, domains, URLs, CVEs, EXIF and GEOINT in seconds. AI-driven risk scoring, real-time monitoring, branded PDF reports, full REST API. Free tier available.",
-    keywords: "OSINT platform, threat intelligence, IP lookup, crypto wallet analysis, email OSINT, domain check, CVE scanner, EXIF analysis, AI risk scoring",
+    title: "AI OSINT, Threat Intelligence & Privacy VPN Platform",
+    description: "Scan IPs, crypto wallets, emails, domains, URLs, CVEs, EXIF and GEOINT in seconds. AI-driven risk scoring, real-time monitoring, branded PDF reports, full REST API — plus a built-in zero-log privacy VPN (Trojan Reality, 20+ countries). Free tier available.",
+    keywords: "OSINT platform, threat intelligence, IP lookup, crypto wallet analysis, email OSINT, domain check, CVE scanner, EXIF analysis, AI risk scoring, privacy VPN, zero-log VPN, Trojan Reality VPN, DPI bypass VPN",
+    jsonLd: homepageFaqSchema,
   },
   "/login": {
     title: "Sign in with Telegram or Google",
@@ -87,7 +160,7 @@ export const SEO_CONFIG: Record<string, PageSeo> = {
     description: "Modern VPN built into your DarkShare plan. Trojan Reality protocol bypasses DPI and censorship. Zero logs, 20+ global server locations, works on iOS, Android, Windows, macOS, Linux. PRO from $9/mo.",
     keywords: "DarkShare VPN, Trojan Reality VPN, zero logs VPN, DPI bypass VPN, censorship bypass, V2Ray subscription, Happ, Shadowrocket, v2rayNG, Nekobox, Clash Verge",
     type: "product",
-    jsonLd: vpnSchema,
+    jsonLd: [vpnSchema, vpnFaqSchema],
   },
   "/history": {
     title: "Scan History",
@@ -222,9 +295,9 @@ export const SEO_CONFIG: Record<string, PageSeo> = {
 };
 
 export const SEO_DEFAULT: PageSeo = {
-  title: "AI-powered Security OSINT & Threat Intelligence Platform",
-  description: "Professional OSINT platform: scan IPs, wallets, emails, domains, CVEs and more with AI-driven risk scoring and real-time monitoring.",
-  keywords: "OSINT, threat intelligence, security scanner",
+  title: "AI OSINT, Threat Intelligence & Privacy VPN Platform",
+  description: "Professional OSINT platform: scan IPs, wallets, emails, domains, CVEs and more with AI-driven risk scoring and real-time monitoring, plus a built-in zero-log privacy VPN.",
+  keywords: "OSINT, threat intelligence, security scanner, privacy VPN, zero-log VPN",
 };
 
 export function resolveSeo(pathname: string): PageSeo {

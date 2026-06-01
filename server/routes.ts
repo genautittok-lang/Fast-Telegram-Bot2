@@ -145,7 +145,7 @@ export async function registerRoutes(
     { path: "/api-docs",       priority: "0.9", changefreq: "weekly" },
     { path: "/guide",          priority: "0.9", changefreq: "weekly" },
     { path: "/download",       priority: "0.8", changefreq: "weekly" },
-    { path: "/vpn",            priority: "0.8", changefreq: "monthly" },
+    { path: "/vpn",            priority: "0.9", changefreq: "weekly" },
     { path: "/exif",           priority: "0.8", changefreq: "monthly" },
     { path: "/geoint",         priority: "0.8", changefreq: "monthly" },
     { path: "/wizard",         priority: "0.7", changefreq: "monthly" },
