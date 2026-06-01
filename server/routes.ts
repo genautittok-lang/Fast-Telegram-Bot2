@@ -656,7 +656,9 @@ ${urlEntries}
         return res.status(403).json({ error: "Account is blocked. Contact support." });
       }
 
+      let isNewUser = false;
       if (!user) {
+        isNewUser = true;
         user = await storage.createUser({
           tgId,
           username,
@@ -729,6 +731,8 @@ ${urlEntries}
           refCode: finalUser.refCode,
           firstName,
           photoUrl,
+          partnerChannelSubscribed: (finalUser as any).partnerChannelSubscribed ?? false,
+          isNewUser,
         });
       });
     };
@@ -781,7 +785,41 @@ ${urlEntries}
       teamsWebhookUrl: (authReq.user as any).teamsWebhookUrl || null,
       payoutAddress: (authReq.user as any).payoutAddress || null,
       payoutCurrency: (authReq.user as any).payoutCurrency || null,
+      partnerChannelSubscribed: (authReq.user as any).partnerChannelSubscribed ?? false,
     });
+  });
+
+  // Verify partner channel subscription — called when user clicks "I subscribed"
+  app.post("/api/auth/verify-partner-sub", loadUser, requireAuth, async (req, res) => {
+    const authReq = req as AuthenticatedRequest;
+    const user = authReq.user!;
+    const PARTNER_CHANNEL = "@AlorVPN";
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const tgId = user.tgId;
+    const isReplitUser = tgId?.startsWith("replit:");
+
+    // Google OAuth users (no Telegram ID) — trust-based: just mark as subscribed
+    if (isReplitUser || !botToken || !tgId) {
+      await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
+      return res.json({ subscribed: true });
+    }
+
+    try {
+      const checkUrl = `https://api.telegram.org/bot${botToken}/getChatMember?chat_id=${encodeURIComponent(PARTNER_CHANNEL)}&user_id=${tgId}`;
+      const response = await fetch(checkUrl);
+      const data = await response.json() as any;
+      const status = data?.result?.status;
+      const subscribed = ["member", "administrator", "creator"].includes(status);
+      if (subscribed) {
+        await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
+        return res.json({ subscribed: true });
+      }
+      return res.json({ subscribed: false });
+    } catch (e) {
+      // Bot not in channel or API error — fail open (trust the user)
+      await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
+      return res.json({ subscribed: true });
+    }
   });
 
   app.patch("/api/user/settings", loadUser, requireAuth, async (req, res) => {

@@ -28,6 +28,8 @@ interface User {
   teamsWebhookUrl?: string | null;
   payoutAddress?: string | null;
   payoutCurrency?: string | null;
+  partnerChannelSubscribed?: boolean;
+  isNewUser?: boolean;
 }
 
 interface AuthContextType {
@@ -78,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             teamsWebhookUrl: data.teamsWebhookUrl || null,
             payoutAddress: data.payoutAddress || null,
             payoutCurrency: data.payoutCurrency || null,
+            partnerChannelSubscribed: data.partnerChannelSubscribed ?? false,
           });
           setRequiresTwoFactor(false);
         } else {
@@ -101,7 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRequiresTwoFactor(true);
         return;
       }
-      setUser(userData);
+      setUser({
+        ...userData,
+        partnerChannelSubscribed: userData.partnerChannelSubscribed ?? false,
+        isNewUser: userData.isNewUser ?? false,
+      });
       setRequiresTwoFactor(false);
     } else {
       throw new Error("Login failed");

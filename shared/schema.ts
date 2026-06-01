@@ -42,6 +42,7 @@ export const users = pgTable("ds_users", {
   vpnTrialActivatedAt: timestamp("vpn_trial_activated_at"),
   vpnTrialExpiryNotified: boolean("vpn_trial_expiry_notified").default(false),
   vpnReferralDaysGranted: integer("vpn_referral_days_granted").default(0),
+  partnerChannelSubscribed: boolean("partner_channel_subscribed").default(false),
 });
 
 export const reports = pgTable("ds_reports", {
