@@ -1512,9 +1512,9 @@ export const translations: Record<Language, TranslationSchema> = {
     landing: {
       hero: {
         badge: "{N}+ live OSINT sources · 14 leak databases · no signup",
-        title: "Find out what the internet knows",
-        titleHighlight: "about you.",
-        description: "Scan an email, phone, username, wallet, domain or IP across {N}+ open OSINT sources in seconds. No account required. Real findings, not theatre.",
+        title: "Been hacked? Is it a scam?",
+        titleHighlight: "Find out in seconds.",
+        description: "Drop in an email, phone, username, wallet, domain or IP and get a 0–100 risk score in seconds across {N}+ OSINT sources and 14 leak databases. No account, no fluff — real findings.",
       },
       features: {
         title: "Features",
@@ -2408,9 +2408,9 @@ export const translations: Record<Language, TranslationSchema> = {
     landing: {
       hero: {
         badge: "{N}+ живих OSINT-джерел · 14 баз витоків · без реєстрації",
-        title: "Дізнайся, що про тебе",
-        titleHighlight: "знає інтернет.",
-        description: "Перевір email, телефон, нікнейм, гаманець, домен або IP за {N}+ відкритими OSINT-джерелами за секунди. Без реєстрації. Реальні знахідки, без пустих обіцянок.",
+        title: "Тебе зламали? Це шахрай?",
+        titleHighlight: "Дізнайся за секунди.",
+        description: "Встав email, телефон, нікнейм, гаманець, домен або IP — і за секунди отримай оцінку ризику 0–100 за {N}+ OSINT-джерелами та 14 базами витоків. Без реєстрації, без зайвих слів — лише реальні знахідки.",
       },
       features: {
         title: "Можливості",
@@ -3304,9 +3304,9 @@ export const translations: Record<Language, TranslationSchema> = {
     landing: {
       hero: {
         badge: "{N}+ живых OSINT-источников · 14 баз утечек · без регистрации",
-        title: "Узнай, что о тебе",
-        titleHighlight: "знает интернет.",
-        description: "Проверь email, телефон, ник, кошелёк, домен или IP по {N}+ открытым OSINT-источникам за секунды. Без регистрации. Реальные находки, не пустые обещания.",
+        title: "Тебя взломали? Это мошенник?",
+        titleHighlight: "Узнай за секунды.",
+        description: "Вставь email, телефон, ник, кошелёк, домен или IP — и за секунды получи оценку риска 0–100 по {N}+ OSINT-источникам и 14 базам утечек. Без регистрации, без лишних слов — только реальные находки.",
       },
       features: {
         title: "Возможности",
@@ -4200,9 +4200,9 @@ export const translations: Record<Language, TranslationSchema> = {
     landing: {
       hero: {
         badge: "{N}+ fuentes OSINT en vivo · 14 bases de filtraciones · sin registro",
-        title: "Descubre qué sabe internet",
-        titleHighlight: "sobre ti.",
-        description: "Escanea un email, teléfono, usuario, wallet, dominio o IP en {N}+ fuentes OSINT abiertas en segundos. Sin cuenta. Hallazgos reales, sin teatro.",
+        title: "¿Te hackearon? ¿Es una estafa?",
+        titleHighlight: "Descúbrelo en segundos.",
+        description: "Pega un email, teléfono, usuario, wallet, dominio o IP y obtén una puntuación de riesgo 0–100 en segundos a través de {N}+ fuentes OSINT y 14 bases de filtraciones. Sin cuenta, sin relleno — hallazgos reales.",
       },
       features: {
         title: "Características",
@@ -5096,9 +5096,9 @@ export const translations: Record<Language, TranslationSchema> = {
     landing: {
       hero: {
         badge: "{N}+ Live-OSINT-Quellen · 14 Leak-Datenbanken · ohne Anmeldung",
-        title: "Finde heraus, was das Internet",
-        titleHighlight: "über dich weiß.",
-        description: "Scanne eine E-Mail, Telefon, Nutzername, Wallet, Domain oder IP in {N}+ offenen OSINT-Quellen in Sekunden. Kein Konto nötig. Echte Befunde, kein Theater.",
+        title: "Gehackt? Steckt ein Betrüger dahinter?",
+        titleHighlight: "Finde es in Sekunden heraus.",
+        description: "Gib eine E-Mail, Telefon, Nutzername, Wallet, Domain oder IP ein und erhalte in Sekunden einen Risiko-Score von 0–100 über {N}+ OSINT-Quellen und 14 Leak-Datenbanken. Ohne Konto, ohne Geschwätz — echte Befunde.",
       },
       features: {
         title: "Funktionen",

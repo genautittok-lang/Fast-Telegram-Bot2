@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import { getPseoSitemapGroups } from "./pseo";
 
 const SITE_URL = (process.env.WEB_DOMAIN || "https://www.darkshare.store").replace(/\/+$/, "");
 
@@ -27,8 +28,6 @@ const PAGES: Array<{ path: string; priority: number; changefreq: string }> = [
   { path: "/data-deletion", priority: 0.3, changefreq: "yearly" },
 ];
 
-const LANGS = ["en", "uk", "ru", "es", "de"];
-
 export function registerSeoRoutes(app: Express) {
   app.get("/robots.txt", (_req: Request, res: Response) => {
     const body = [
@@ -49,22 +48,44 @@ export function registerSeoRoutes(app: Express) {
 
   app.get("/sitemap.xml", (_req: Request, res: Response) => {
     const today = new Date().toISOString().split("T")[0];
-    const urls = PAGES.map((p) => {
+    // SPA pages: a single canonical URL serves all UI languages (client-side i18n),
+    // so we emit one entry each — no contradictory ?lang= hreflang alternates.
+    const spa = PAGES.map((p) => {
       const loc = `${SITE_URL}${p.path === "/" ? "" : p.path}`;
-      const alternates = LANGS.map(
-        (l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${loc}?lang=${l}"/>`,
-      ).join("\n");
       return [
         "  <url>",
         `    <loc>${loc}</loc>`,
         `    <lastmod>${today}</lastmod>`,
         `    <changefreq>${p.changefreq}</changefreq>`,
         `    <priority>${p.priority.toFixed(1)}</priority>`,
-        alternates,
-        `    <xhtml:link rel="alternate" hreflang="x-default" href="${loc}"/>`,
         "  </url>",
       ].join("\n");
-    }).join("\n");
+    });
+    // Programmatic SEO pages: genuine per-language URLs (/… and /uk/…) with hreflang.
+    const pseo: string[] = [];
+    for (const g of getPseoSitemapGroups()) {
+      const enLoc = `${SITE_URL}${g.en}`;
+      const ukLoc = `${SITE_URL}${g.uk}`;
+      const alternates = [
+        `    <xhtml:link rel="alternate" hreflang="en" href="${enLoc}"/>`,
+        `    <xhtml:link rel="alternate" hreflang="uk" href="${ukLoc}"/>`,
+        `    <xhtml:link rel="alternate" hreflang="x-default" href="${enLoc}"/>`,
+      ].join("\n");
+      for (const loc of [enLoc, ukLoc]) {
+        pseo.push(
+          [
+            "  <url>",
+            `    <loc>${loc}</loc>`,
+            `    <lastmod>${today}</lastmod>`,
+            `    <changefreq>${g.changefreq}</changefreq>`,
+            `    <priority>${g.priority.toFixed(1)}</priority>`,
+            alternates,
+            "  </url>",
+          ].join("\n"),
+        );
+      }
+    }
+    const urls = [...spa, ...pseo].join("\n");
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

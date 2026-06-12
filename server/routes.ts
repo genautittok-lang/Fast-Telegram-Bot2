@@ -10,6 +10,8 @@ import { performCheck, validateInput, extractExifFromBuffer } from "./checkServi
 import { SOURCES_COUNT } from "@shared/osintSources";
 import { registerApiV1, generateApiKey } from "./apiV1";
 import { registerSeoRoutes } from "./seo";
+import { registerPseoRoutes } from "./pseo";
+import { registerOgRoutes } from "./ogImage";
 import { generateDetailedPDF, generateFindings, generateMetadata } from "./pdfGenerator";
 import { verifyTelegramAuth, type AuthenticatedRequest } from "./auth";
 import type { User } from "@shared/schema";
@@ -665,6 +667,10 @@ ${urlEntries}
   registerVpnDeepLinkRoutes(app);
   registerApiV1(app);
   registerSeoRoutes(app);
+  // Dynamic OG images (share cards + per-page social previews)
+  registerOgRoutes(app);
+  // Programmatic SEO: server-rendered tool & IP-reputation landing pages + /scan share page
+  registerPseoRoutes(app);
 
   // Auto-seed demo VPN servers on first run so the /vpn flow has stock to show.
   // Endpoints/keys are placeholders — replace via /admin VPN panel when real boxes come online.

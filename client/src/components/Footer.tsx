@@ -10,6 +10,17 @@ export function Footer() {
   const dataDelLabel = lang === "uk" ? "Видалення даних (GDPR)" : lang === "ru" ? "Удаление данных (GDPR)" : lang === "es" ? "Eliminación de datos (GDPR)" : lang === "de" ? "Datenlöschung (DSGVO)" : "GDPR / Data Deletion";
   const cookieSettingsLabel = lang === "uk" ? "Налаштування cookie" : lang === "ru" ? "Настройки cookie" : lang === "es" ? "Configuración de cookies" : lang === "de" ? "Cookie-Einstellungen" : "Cookie settings";
 
+  // Programmatic-SEO hub links (plain <a> → full page load to server-rendered pages).
+  // uk has its own /uk/ tree; other UI languages fall back to the EN pages.
+  const pref = lang === "uk" ? "/uk" : "";
+  const popularLabel = lang === "uk" ? "Популярні перевірки" : lang === "ru" ? "Популярные проверки" : lang === "es" ? "Comprobaciones populares" : lang === "de" ? "Beliebte Checks" : "Popular checks";
+  const allChecksLabel = lang === "uk" ? "Усі перевірки" : lang === "ru" ? "Все проверки" : lang === "es" ? "Todas" : lang === "de" ? "Alle Checks" : "All checks";
+  const ipRepLabel = lang === "uk" ? "Репутація IP" : lang === "ru" ? "Репутация IP" : lang === "es" ? "Reputación IP" : lang === "de" ? "IP-Reputation" : "IP reputation";
+  const emailLabel = lang === "uk" ? "Перевірка email" : lang === "ru" ? "Проверка email" : lang === "es" ? "Verificar email" : lang === "de" ? "E-Mail prüfen" : "Email check";
+  const phoneLabel = lang === "uk" ? "Перевірка номера" : lang === "ru" ? "Проверка номера" : lang === "es" ? "Verificar teléfono" : lang === "de" ? "Telefon prüfen" : "Phone check";
+  const walletLabel = lang === "uk" ? "Перевірка гаманця" : lang === "ru" ? "Проверка кошелька" : lang === "es" ? "Verificar billetera" : lang === "de" ? "Wallet prüfen" : "Wallet check";
+  const domainLabel = lang === "uk" ? "Перевірка домену" : lang === "ru" ? "Проверка домена" : lang === "es" ? "Verificar dominio" : lang === "de" ? "Domain prüfen" : "Domain check";
+
   const openCookieSettings = () => {
     window.dispatchEvent(new CustomEvent("ds:open-cookie-settings"));
   };
@@ -56,6 +67,17 @@ export function Footer() {
                 @darkshare.store
                 <ExternalLink className="w-3 h-3" />
               </a>
+            </div>
+            <div className="pt-3">
+              <h4 className="font-semibold text-xs text-zinc-300 mb-2.5 uppercase tracking-wide">{popularLabel}</h4>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-400">
+                <a href={`${pref}/tools/check-email`} className="hover:text-cyan-400 transition-colors" data-testid="link-pseo-email">{emailLabel}</a>
+                <a href={`${pref}/tools/check-phone`} className="hover:text-cyan-400 transition-colors" data-testid="link-pseo-phone">{phoneLabel}</a>
+                <a href={`${pref}/tools/check-wallet`} className="hover:text-cyan-400 transition-colors" data-testid="link-pseo-wallet">{walletLabel}</a>
+                <a href={`${pref}/tools/check-domain`} className="hover:text-cyan-400 transition-colors" data-testid="link-pseo-domain">{domainLabel}</a>
+                <a href={`${pref}/ip-reputation`} className="hover:text-cyan-400 transition-colors" data-testid="link-pseo-ip">{ipRepLabel}</a>
+                <a href={`${pref}/tools`} className="text-cyan-400/90 hover:text-cyan-300 transition-colors" data-testid="link-pseo-all">{allChecksLabel} →</a>
+              </div>
             </div>
           </div>
 

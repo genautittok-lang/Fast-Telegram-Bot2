@@ -58,12 +58,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Search engine verification (replace placeholders after registering site) -->
-    <meta name="google-site-verification" content="REPLACE_WITH_GOOGLE_SEARCH_CONSOLE_TOKEN" />
-    <meta name="msvalidate.01" content="REPLACE_WITH_BING_WEBMASTER_TOKEN" />
-    <meta name="yandex-verification" content="REPLACE_WITH_YANDEX_WEBMASTER_TOKEN" />
-    <meta name="facebook-domain-verification" content="REPLACE_WITH_FACEBOOK_DOMAIN_TOKEN" />
-    <meta name="p:domain_verify" content="REPLACE_WITH_PINTEREST_TOKEN" />
+    <!-- Search engine verification tokens are injected at runtime from env vars
+         (GOOGLE_SITE_VERIFICATION, BING_SITE_VERIFICATION, YANDEX_VERIFICATION,
+         FACEBOOK_DOMAIN_VERIFICATION, PINTEREST_VERIFICATION). See server/static.ts. -->
+    <!--SEO_VERIFICATION-->
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -110,13 +108,6 @@
         { "@type": "Offer", "name": "ENTERPRISE", "price": "30", "priceCurrency": "USD" },
         { "@type": "Offer", "name": "GROUPS",     "price": "45", "priceCurrency": "USD" }
       ],
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "126",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
       "featureList": [
         "IP & DNS reputation analysis",
         "Crypto wallet OSINT (BTC, ETH, TRX)",

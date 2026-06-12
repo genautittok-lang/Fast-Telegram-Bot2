@@ -584,6 +584,17 @@ function HeroDemoCard() {
 }
 
 /* ─────────── Result + Paywall ─────────── */
+function maskShareTarget(type: string, raw: string): string {
+  const v = (raw || "").trim();
+  if (!v) return "—";
+  if (type === "email" && v.includes("@")) { const [u, d] = v.split("@"); return `${u.slice(0, 1)}${"*".repeat(Math.max(2, Math.min(u.length - 1, 4)))}@${d}`; }
+  if (type === "phone") { const dg = v.replace(/[^\d+]/g, ""); return dg.length > 4 ? `${dg.slice(0, 4)} *** ${dg.slice(-2)}` : "***"; }
+  if (type === "wallet" || type === "hash") return v.length > 14 ? `${v.slice(0, 6)}…${v.slice(-4)}` : v;
+  if (type === "ip") { if (v.includes(":")) return v.split(":").slice(0, 2).join(":") + ":***"; const p = v.split("."); return p.length === 4 ? `${p[0]}.${p[1]}.*.*` : v; }
+  if (type === "domain" || type === "url") return v.slice(0, 48);
+  return v.length > 10 ? `${v.slice(0, 4)}…${v.slice(-2)}` : v;
+}
+
 const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse }) {
   const meta = riskMeta(data.riskLevel);
   const hidden = data.findingsHidden ?? 4;
@@ -616,15 +627,24 @@ const ResultCard = memo(function ResultCard({ data }: { data: QuickCheckResponse
   };
 
   const handleShare = () => {
+    const masked = maskShareTarget(data.type, data.target);
+    const q = new URLSearchParams({
+      type: data.type,
+      t: masked,
+      score: String(data.riskScore),
+      level: data.riskLevel,
+      lang,
+    });
+    const shareUrl = `${window.location.origin}/scan?${q.toString()}`;
     const shareText = lang === "uk"
-      ? `Я перевірив свій цифровий слід на DarkShare! Рівень ризику: ${meta.label} (${data.riskScore}/100). Перевір свій: darkshare.store`
+      ? `Я перевірив свій цифровий слід на DARKSHARE! Рівень ризику: ${meta.label} (${data.riskScore}/100). Перевір свій:`
       : lang === "ru"
-      ? `Я проверил цифровой след на DarkShare! Уровень риска: ${meta.label} (${data.riskScore}/100). Проверь свой: darkshare.store`
-      : `I checked my digital footprint on DarkShare! Risk: ${meta.label} (${data.riskScore}/100). Check yours: darkshare.store`;
+      ? `Я проверил цифровой след на DARKSHARE! Уровень риска: ${meta.label} (${data.riskScore}/100). Проверь свой:`
+      : `I checked my digital footprint on DARKSHARE! Risk: ${meta.label} (${data.riskScore}/100). Check yours:`;
     if (navigator.share) {
-      navigator.share({ title: "DarkShare Scan", text: shareText, url: "https://darkshare.store" }).catch(() => {});
+      navigator.share({ title: "DARKSHARE", text: shareText, url: shareUrl }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(shareText).then(() => { setShared(true); setTimeout(() => setShared(false), 2500); }).catch(() => {});
+      navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => { setShared(true); setTimeout(() => setShared(false), 2500); }).catch(() => {});
     }
   };
 

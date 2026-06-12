@@ -22,7 +22,6 @@ const productSchema = {
     { "@type": "Offer", name: "ENTERPRISE", price: "30", priceCurrency: "USD", url: `${ORIGIN}/pricing`, availability: "https://schema.org/InStock" },
     { "@type": "Offer", name: "GROUPS", price: "45", priceCurrency: "USD", url: `${ORIGIN}/pricing`, availability: "https://schema.org/InStock" },
   ],
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: "126", bestRating: "5", worstRating: "1" },
 };
 
 const howToSchema = {
@@ -53,7 +52,6 @@ const vpnSchema = {
     { "@type": "Offer", name: "ENTERPRISE — 5 devices · 20+ countries", price: "30", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=ENTERPRISE`, availability: "https://schema.org/InStock" },
     { "@type": "Offer", name: "GROUPS — 5 devices/member · 20+ countries · team management", price: "45", priceCurrency: "USD", url: `${ORIGIN}/pricing?plan=GROUPS`, availability: "https://schema.org/InStock" },
   ],
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: "126", bestRating: "5", worstRating: "1" },
 };
 
 const vpnFaqSchema = {

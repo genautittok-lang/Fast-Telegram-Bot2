@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, cp } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -24,6 +24,7 @@ const allowlist = [
   "passport",
   "passport-local",
   "pg",
+  "satori",
   "stripe",
   "uuid",
   "ws",
@@ -59,6 +60,12 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  // Ship the satori OG-image fonts inside dist/ so deploy targets that only
+  // copy dist/ (e.g. the Docker runtime stage) can still render /og/*.png.
+  // loadFont() in server/ogImage.ts checks cwd/dist/fonts.
+  console.log("copying OG fonts...");
+  await cp("server/fonts", "dist/fonts", { recursive: true });
 }
 
 buildAll().catch((err) => {
