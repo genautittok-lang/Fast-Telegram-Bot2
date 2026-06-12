@@ -38,11 +38,14 @@ function isAllowedForTier(remark: string, tier: string): boolean {
 function fingerprint(req: Request): { fp: string; ipPrefix: string; uaShort: string } {
   const ua = (req.get("user-agent") || "").slice(0, 200);
   const ipRaw = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "0.0.0.0";
-  // Hash the /24 (IPv4) or /48 (IPv6) prefix so we don't pin the user to a specific session IP
+  // Keep the /24 (IPv4) or /48 (IPv6) prefix for display only — NOT part of the fingerprint.
   const ipPrefix = ipRaw.includes(":")
     ? ipRaw.split(":").slice(0, 3).join(":")
     : ipRaw.split(".").slice(0, 3).join(".");
-  const fp = createHash("sha256").update(`${ua}|${ipPrefix}`).digest("hex").slice(0, 32);
+  // Fingerprint on the User-Agent ONLY. Including the IP made a single phone look like a
+  // new "device" every time its mobile IP changed, quickly tripping the per-tier device
+  // limit and returning a 403 instead of the config (the "VPN shows an error" report).
+  const fp = createHash("sha256").update(ua).digest("hex").slice(0, 32);
   return { fp, ipPrefix, uaShort: ua };
 }
 
@@ -575,11 +578,20 @@ export function registerVpnProxy(app: Express) {
         const freeActive = vpnDeviceLimit(tier) === 0 && Math.max(_vExp, _sExp) > Date.now();
         const limit = freeActive ? 2 : vpnDeviceLimit(tier);
         const { fp, ipPrefix, uaShort } = fingerprint(req);
+        const thisName = deviceNameFromUA(uaShort);
         try {
           const devices = await storage.listVpnDevices(user.id);
-          const active = devices.filter((d: any) => !d.revokedAt);
-          const existing = devices.find((d: any) => d.fingerprint === fp);
-          if (!existing && limit > 0 && active.length >= limit) {
+          // Count by DISTINCT device NAME, not raw fingerprint rows. A single phone can
+          // accumulate several fingerprints over time (app/OS version bumps + legacy
+          // IP-based rows), and they must collapse to one slot so paying users aren't
+          // falsely locked out. A genuinely new device name at capacity is still blocked
+          // even if a revoked fingerprint row happens to exist for it.
+          const normName = (n: any) => (n && String(n).trim()) ? String(n).trim() : "VPN client";
+          const activeNames = new Set(
+            devices.filter((d: any) => !d.revokedAt).map((d: any) => normName(d.deviceName))
+          );
+          const nameKnown = activeNames.has(thisName);
+          if (limit > 0 && !nameKnown && activeNames.size >= limit) {
             res.setHeader("Content-Type", "text/plain; charset=utf-8");
             return res.status(403).send(
               `# DarkShare VPN — device limit reached\n# Your ${tier} plan allows up to ${limit} active devices.\n# Visit https://www.darkshare.store/vpn to revoke a device, then re-import.\n`
@@ -588,7 +600,7 @@ export function registerVpnProxy(app: Express) {
           await storage.upsertVpnDevice(user.id, fp, {
             userAgent: uaShort,
             ipPrefix,
-            deviceName: deviceNameFromUA(uaShort),
+            deviceName: thisName,
           });
         } catch (e: any) {
           // Don't break VPN service if device tracking fails (e.g., table missing on stale deploy)

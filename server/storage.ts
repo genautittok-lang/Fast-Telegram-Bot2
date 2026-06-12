@@ -211,28 +211,50 @@ export class DatabaseStorage implements IStorage {
 
   async upsertVpnDevice(userId: number, fingerprint: string, info: { userAgent?: string; ipPrefix?: string; deviceName?: string }): Promise<{ device: VpnDevice; isNew: boolean }> {
     if (!db) throw new Error("Database not available");
-    const [existing] = await db.select().from(vpnDevices)
+    const now = new Date();
+    // Pre-check is best-effort, only to report isNew. The actual write is atomic via
+    // onConflictDoUpdate on the (user_id, fingerprint) unique index, so concurrent
+    // subscription fetches from a VPN client can't trigger a duplicate-key error.
+    const [existing] = await db.select({ id: vpnDevices.id }).from(vpnDevices)
       .where(and(eq(vpnDevices.userId, userId), eq(vpnDevices.fingerprint, fingerprint))).limit(1);
-    if (existing) {
-      const [updated] = await db.update(vpnDevices)
-        .set({ lastSeen: new Date(), revokedAt: null })
-        .where(eq(vpnDevices.id, existing.id)).returning();
-      return { device: updated, isNew: false };
-    }
-    const [created] = await db.insert(vpnDevices).values({
+    const [device] = await db.insert(vpnDevices).values({
       userId,
       fingerprint,
       userAgent: info.userAgent || null,
       ipPrefix: info.ipPrefix || null,
       deviceName: info.deviceName || null,
-    } as any).returning();
-    return { device: created, isNew: true };
+      lastSeen: now,
+    } as any)
+      .onConflictDoUpdate({
+        target: [vpnDevices.userId, vpnDevices.fingerprint],
+        set: {
+          lastSeen: now,
+          revokedAt: null,
+          userAgent: info.userAgent || null,
+          ipPrefix: info.ipPrefix || null,
+          deviceName: info.deviceName || null,
+        },
+      })
+      .returning();
+    return { device, isNew: !existing };
   }
 
   async revokeVpnDevice(id: number, userId: number): Promise<void> {
     if (!db) throw new Error("Database not available");
-    await db.update(vpnDevices).set({ revokedAt: new Date() })
-      .where(and(eq(vpnDevices.id, id), eq(vpnDevices.userId, userId)));
+    const now = new Date();
+    const [target] = await db.select().from(vpnDevices)
+      .where(and(eq(vpnDevices.id, id), eq(vpnDevices.userId, userId))).limit(1);
+    if (!target) return;
+    // Device limits are enforced by distinct device NAME (a single phone can spawn
+    // several fingerprint rows over time, e.g. app/OS version bumps). Revoking must
+    // therefore clear every row sharing that name, otherwise the slot never frees.
+    if (target.deviceName) {
+      await db.update(vpnDevices).set({ revokedAt: now })
+        .where(and(eq(vpnDevices.userId, userId), eq(vpnDevices.deviceName, target.deviceName)));
+    } else {
+      await db.update(vpnDevices).set({ revokedAt: now })
+        .where(and(eq(vpnDevices.id, id), eq(vpnDevices.userId, userId)));
+    }
   }
 
   async countActiveVpnDevices(userId: number): Promise<number> {

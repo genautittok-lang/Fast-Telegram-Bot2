@@ -115,9 +115,17 @@ interface Coupon {
   createdAt: string;
 }
 
+interface PartnerChannel {
+  handle: string;
+  url: string;
+  name: string;
+}
+
 interface PaymentSettings {
   proPrice: string;
   enterprisePrice: string;
+  partnerGateEnabled?: boolean;
+  partnerChannels?: PartnerChannel[];
   dailyBroadcastEnabled?: boolean;
   dailyBroadcastLastSent?: string | null;
   dailyBroadcastLastReach?: number;
@@ -490,9 +498,16 @@ export default function Admin() {
     isActive: true,
   });
 
-  const [settingsForm, setSettingsForm] = useState({
+  const [settingsForm, setSettingsForm] = useState<{
+    proPrice: string;
+    enterprisePrice: string;
+    partnerGateEnabled: boolean;
+    partnerChannels: PartnerChannel[];
+  }>({
     proPrice: "10",
     enterprisePrice: "50",
+    partnerGateEnabled: true,
+    partnerChannels: [],
   });
 
   const bannerFileRef = useRef<HTMLInputElement>(null);
@@ -719,7 +734,12 @@ export default function Admin() {
 
   useEffect(() => {
     if (settings) {
-      setSettingsForm({ proPrice: settings.proPrice, enterprisePrice: settings.enterprisePrice });
+      setSettingsForm({
+        proPrice: settings.proPrice,
+        enterprisePrice: settings.enterprisePrice,
+        partnerGateEnabled: settings.partnerGateEnabled ?? true,
+        partnerChannels: settings.partnerChannels ?? [],
+      });
     }
   }, [settings]);
 
@@ -2837,6 +2857,127 @@ export default function Admin() {
                       </Button>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-white/10 bg-white/5">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-primary" />
+                    Обов'язкова підписка на партнерів
+                  </CardTitle>
+                  <CardDescription>
+                    Нові користувачі бота мають підписатися на всі вказані канали, щоб користуватись ботом. Тих, хто вже пройшов перевірку раніше, це не торкнеться.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className={`w-3 h-3 rounded-full ${settingsForm.partnerGateEnabled ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500'}`} />
+                      <span className="text-sm font-medium" data-testid="text-partner-gate-status">{settingsForm.partnerGateEnabled ? 'Увімкнено' : 'Вимкнено'}</span>
+                    </div>
+                    <Button
+                      variant={settingsForm.partnerGateEnabled ? "destructive" : "default"}
+                      size="sm"
+                      onClick={() => {
+                        const next = { ...settingsForm, partnerGateEnabled: !settingsForm.partnerGateEnabled };
+                        setSettingsForm(next);
+                        updateSettingsMutation.mutate(next);
+                      }}
+                      disabled={updateSettingsMutation.isPending}
+                      className="gap-2"
+                      data-testid="button-toggle-partner-gate"
+                    >
+                      {settingsForm.partnerGateEnabled ? <X className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+                      {settingsForm.partnerGateEnabled ? 'Вимкнути' : 'Увімкнути'}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {settingsForm.partnerChannels.length === 0 && (
+                      <p className="text-sm text-muted-foreground" data-testid="text-no-partner-channels">Каналів немає. Додайте хоча б один, щоб перевірка спрацювала.</p>
+                    )}
+                    {settingsForm.partnerChannels.map((ch, idx) => (
+                      <div key={idx} className="flex flex-col md:flex-row gap-2 md:items-center p-3 rounded-lg bg-white/5 border border-white/10" data-testid={`row-partner-channel-${idx}`}>
+                        <Input
+                          placeholder="Назва (напр. AlorVPN)"
+                          value={ch.name}
+                          onChange={(e) => {
+                            const list = [...settingsForm.partnerChannels];
+                            list[idx] = { ...list[idx], name: e.target.value };
+                            setSettingsForm({ ...settingsForm, partnerChannels: list });
+                          }}
+                          className="bg-white/5 border-white/10 md:flex-1"
+                          data-testid={`input-partner-name-${idx}`}
+                        />
+                        <Input
+                          placeholder="@username каналу"
+                          value={ch.handle}
+                          onChange={(e) => {
+                            const handle = e.target.value;
+                            const bare = handle.replace(/^@+/, "");
+                            const list = [...settingsForm.partnerChannels];
+                            const auto = !list[idx].url || /^https:\/\/t\.me\//i.test(list[idx].url);
+                            list[idx] = {
+                              ...list[idx],
+                              handle,
+                              url: auto && bare ? `https://t.me/${bare}` : list[idx].url,
+                            };
+                            setSettingsForm({ ...settingsForm, partnerChannels: list });
+                          }}
+                          className="bg-white/5 border-white/10 md:flex-1"
+                          data-testid={`input-partner-handle-${idx}`}
+                        />
+                        <Input
+                          placeholder="https://t.me/..."
+                          value={ch.url}
+                          onChange={(e) => {
+                            const list = [...settingsForm.partnerChannels];
+                            list[idx] = { ...list[idx], url: e.target.value };
+                            setSettingsForm({ ...settingsForm, partnerChannels: list });
+                          }}
+                          className="bg-white/5 border-white/10 md:flex-1"
+                          data-testid={`input-partner-url-${idx}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            const list = settingsForm.partnerChannels.filter((_, i) => i !== idx);
+                            setSettingsForm({ ...settingsForm, partnerChannels: list });
+                          }}
+                          className="text-red-400 hover:text-red-300 shrink-0"
+                          data-testid={`button-remove-partner-${idx}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSettingsForm({ ...settingsForm, partnerChannels: [...settingsForm.partnerChannels, { handle: "", url: "", name: "" }] })}
+                      className="gap-2"
+                      data-testid="button-add-partner-channel"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Додати канал
+                    </Button>
+                    <Button
+                      onClick={() => updateSettingsMutation.mutate(settingsForm)}
+                      disabled={updateSettingsMutation.isPending}
+                      className="gap-2"
+                      data-testid="button-save-partner-channels"
+                    >
+                      {updateSettingsMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Зберегти канали
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    @username має бути від 5 символів (літери, цифри, _). Якщо посилання порожнє — згенерується автоматично з @username.
+                  </p>
                 </CardContent>
               </Card>
 

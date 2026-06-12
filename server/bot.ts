@@ -401,37 +401,96 @@ export async function setupBot(storage: IStorage) {
     return next();
   });
 
-  // === MANDATORY partner-channel gate ===
-  // Every private-chat interaction (command, message, callback) is blocked
-  // until the user is subscribed to @AlorVPN. Exempt: vpn_partner_check (so
-  // the user can confirm subscription), and admin users.
-  const _GATE_CHANNEL = "@AlorVPN";
-  const _GATE_CHANNEL_URL = "https://t.me/AlorVPN";
+  // === MANDATORY partner-channel gate (admin-configurable) ===
+  // Every private-chat interaction (command, message, callback) from a NEW user is
+  // blocked until they're subscribed to ALL configured partner channels. Admins,
+  // and existing users who already passed (partnerChannelSubscribed = true), bypass.
+  // Config lives in ds_admin_settings: `partner_gate_enabled` ("true"/"false") and
+  // `partner_channels` (JSON array of {handle, url, name}). Manage it from the web admin.
+  type GateChannel = { handle: string; url: string; name: string };
+  const LEGACY_GATE_DEFAULT: GateChannel[] = [{ handle: "@AlorVPN", url: "https://t.me/AlorVPN", name: "AlorVPN" }];
+  // Per-(user, channel) membership cache so we don't hammer the Telegram API.
   const _gateCache = new Map<string, { ok: boolean; at: number }>();
   const _GATE_CACHE_MS = 10 * 60 * 1000; // 10 min
+  // Short-lived cache of the gate config itself (the middleware runs on every update).
+  let _gateCfgCache: { enabled: boolean; channels: GateChannel[]; at: number } | null = null;
+  const _GATE_CFG_TTL = 60 * 1000; // 60s
 
-  async function checkGateSub(ctx: any, tgId: string): Promise<boolean> {
-    const cached = _gateCache.get(tgId);
+  function normGateHandle(h: any): string {
+    let s = String(h || "").trim();
+    if (!s) return "";
+    if (!s.startsWith("@")) s = "@" + s.replace(/^@+/, "");
+    return s;
+  }
+
+  async function loadGateConfig(): Promise<{ enabled: boolean; channels: GateChannel[] }> {
+    if (_gateCfgCache && Date.now() - _gateCfgCache.at < _GATE_CFG_TTL) return _gateCfgCache;
+    let enabled = true;
+    let channels: GateChannel[] = [];
+    try {
+      const en = await storage.getAdminSetting("partner_gate_enabled");
+      enabled = en == null ? true : en === "true"; // default ON to preserve legacy behavior
+      const raw = await storage.getAdminSetting("partner_channels");
+      if (raw == null) {
+        // Never configured → keep the original @AlorVPN requirement.
+        channels = LEGACY_GATE_DEFAULT.slice();
+      } else {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          channels = parsed
+            .map((c: any) => {
+              const handle = normGateHandle(c?.handle);
+              const bare = handle.replace(/^@/, "");
+              return {
+                handle,
+                url: String(c?.url || (bare ? `https://t.me/${bare}` : "")).trim(),
+                name: String(c?.name || handle).trim() || handle,
+              };
+            })
+            .filter((c: GateChannel) => /^@[A-Za-z0-9_]{4,}$/.test(c.handle) && !!c.url);
+        }
+        // raw === "[]" (admin cleared the list) → channels stays empty → gate is inert.
+      }
+    } catch {
+      // On any error, fall back to legacy default so a config glitch can't open the gate.
+      channels = LEGACY_GATE_DEFAULT.slice();
+    }
+    _gateCfgCache = { enabled, channels, at: Date.now() };
+    return _gateCfgCache;
+  }
+
+  async function checkChannelSub(ctx: any, channel: GateChannel, tgId: string): Promise<boolean> {
+    const key = `${tgId}:${channel.handle}`;
+    const cached = _gateCache.get(key);
     if (cached && Date.now() - cached.at < _GATE_CACHE_MS) return cached.ok;
     try {
-      const member = await ctx.telegram.getChatMember(_GATE_CHANNEL, Number(tgId));
+      const member = await ctx.telegram.getChatMember(channel.handle, Number(tgId));
       const ok = ["creator", "administrator", "member"].includes(member?.status);
-      _gateCache.set(tgId, { ok, at: Date.now() });
+      _gateCache.set(key, { ok, at: Date.now() });
       return ok;
     } catch {
-      // Bot not in channel → fail-open (don't lock out users on misconfiguration)
-      _gateCache.set(tgId, { ok: true, at: Date.now() });
+      // Bot not in this channel → fail-open for THIS channel (don't lock users out on misconfig).
+      _gateCache.set(key, { ok: true, at: Date.now() });
       return true;
     }
   }
 
-  function gateText(lang: string): string {
-    const url = _GATE_CHANNEL_URL;
-    if (lang === "uk") return `🤝 <b>Обов'язкова підписка</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>AlorVPN</b>. Щоб користуватись ботом, підпишись на їхній канал — це обов'язкова умова.\n\n👉 ${url}\n\nПісля підписки натисни <b>«✅ Я підписався»</b>.`;
-    if (lang === "ru") return `🤝 <b>Обязательная подписка</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>AlorVPN</b>. Чтобы пользоваться ботом, подпишись на их канал — это обязательное условие.\n\n👉 ${url}\n\nПосле подписки нажми <b>«✅ Я подписался»</b>.`;
-    if (lang === "es") return `🤝 <b>Suscripción obligatoria</b>\n\nDARKSHARE VPN funciona en la infraestructura de nuestro socio <b>AlorVPN</b>. Para usar el bot, suscríbete a su canal — es un requisito obligatorio.\n\n👉 ${url}\n\nLuego pulsa <b>«✅ Ya me suscribí»</b>.`;
-    if (lang === "de") return `🤝 <b>Pflichtabonnement</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>AlorVPN</b>. Um den Bot zu nutzen, abonniere ihren Kanal — Pflichtbedingung.\n\n👉 ${url}\n\nDanach tippe auf <b>"✅ Abonniert"</b>.`;
-    return `🤝 <b>Mandatory subscription</b>\n\nDARKSHARE VPN runs on our partner <b>AlorVPN</b>'s infrastructure. To use the bot, subscribe to their channel — it's required.\n\n👉 ${url}\n\nThen tap <b>"✅ I subscribed"</b>.`;
+  async function checkAllSubs(ctx: any, channels: GateChannel[], tgId: string): Promise<boolean> {
+    for (const ch of channels) {
+      if (!(await checkChannelSub(ctx, ch, tgId))) return false;
+    }
+    return true;
+  }
+
+  function gateText(lang: string, channels: GateChannel[]): string {
+    // Channel name/url are admin-supplied — escape them so a stray < or " can't break
+    // HTML parse_mode and make ctx.reply throw for every gated user.
+    const list = channels.map((c) => `👉 <a href="${escHtml(c.url)}">${escHtml(c.name)}</a>`).join("\n");
+    if (lang === "uk") return `🤝 <b>Обов'язкова підписка</b>\n\nDARKSHARE працює разом із нашими партнерами. Щоб користуватись ботом, підпишись на ${channels.length > 1 ? "усі канали нижче" : "канал нижче"} — це обов'язкова умова.\n\n${list}\n\nПісля підписки натисни <b>«✅ Я підписався»</b>.`;
+    if (lang === "ru") return `🤝 <b>Обязательная подписка</b>\n\nDARKSHARE работает вместе с нашими партнёрами. Чтобы пользоваться ботом, подпишись на ${channels.length > 1 ? "все каналы ниже" : "канал ниже"} — это обязательное условие.\n\n${list}\n\nПосле подписки нажми <b>«✅ Я подписался»</b>.`;
+    if (lang === "es") return `🤝 <b>Suscripción obligatoria</b>\n\nDARKSHARE trabaja junto a nuestros socios. Para usar el bot, suscríbete a ${channels.length > 1 ? "todos los canales" : "el canal"} de abajo — es obligatorio.\n\n${list}\n\nLuego pulsa <b>«✅ Ya me suscribí»</b>.`;
+    if (lang === "de") return `🤝 <b>Pflichtabonnement</b>\n\nDARKSHARE arbeitet mit unseren Partnern zusammen. Um den Bot zu nutzen, abonniere ${channels.length > 1 ? "alle Kanäle" : "den Kanal"} unten — Pflichtbedingung.\n\n${list}\n\nDanach tippe auf <b>"✅ Abonniert"</b>.`;
+    return `🤝 <b>Mandatory subscription</b>\n\nDARKSHARE works together with our partners. To use the bot, subscribe to ${channels.length > 1 ? "all the channels" : "the channel"} below — it's required.\n\n${list}\n\nThen tap <b>"✅ I subscribed"</b>.`;
   }
 
   bot.use(async (ctx, next) => {
@@ -441,6 +500,10 @@ export async function setupBot(storage: IStorage) {
     // Admins bypass the gate
     if (isAdmin(tgId)) return next();
 
+    const cfg = await loadGateConfig();
+    // Gate disabled by admin, or no channels configured → nothing to enforce.
+    if (!cfg.enabled || cfg.channels.length === 0) return next();
+
     const user = await storage.getUserByTgId(tgId);
     // Existing users (partnerChannelSubscribed = true) always pass through
     if (user?.partnerChannelSubscribed) return next();
@@ -448,10 +511,10 @@ export async function setupBot(storage: IStorage) {
     const lang = getUserLang(user?.lang);
     const callbackData = (ctx as any).callbackQuery?.data as string | undefined;
 
-    // Handle the "I subscribed" button — do a fresh Telegram API check
+    // Handle the "I subscribed" button — do a fresh Telegram API check of ALL channels
     if (callbackData === "bot_partner_gate_check") {
-      _gateCache.delete(tgId);
-      const ok = await checkGateSub(ctx, tgId);
+      for (const ch of cfg.channels) _gateCache.delete(`${tgId}:${ch.handle}`);
+      const ok = await checkAllSubs(ctx, cfg.channels, tgId);
       if (ok) {
         // Persist to DB so they never see the gate again
         if (user) await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
@@ -460,9 +523,9 @@ export async function setupBot(storage: IStorage) {
       } else {
         try {
           await ctx.answerCbQuery(
-            lang === "uk" ? "❗ Підписку не знайдено. Підпишись і спробуй знову."
-            : lang === "ru" ? "❗ Подписка не найдена. Подпишись и попробуй снова."
-            : "❗ Subscription not found. Subscribe and retry.",
+            lang === "uk" ? "❗ Підписку не знайдено. Підпишись на всі канали і спробуй знову."
+            : lang === "ru" ? "❗ Подписка не найдена. Подпишись на все каналы и попробуй снова."
+            : "❗ Subscription not found. Subscribe to all channels and retry.",
             { show_alert: true } as any
           );
         } catch {}
@@ -470,20 +533,19 @@ export async function setupBot(storage: IStorage) {
       }
     }
 
-    // New user with partnerChannelSubscribed = false → show gate
-    const subBtn = lang === "uk" ? "📢 Відкрити канал AlorVPN" : lang === "ru" ? "📢 Открыть канал AlorVPN" : lang === "es" ? "📢 Abrir canal AlorVPN" : lang === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel";
+    // New user with partnerChannelSubscribed = false → show gate (one URL button per channel)
     const okBtn = lang === "uk" ? "✅ Я підписався" : lang === "ru" ? "✅ Я подписался" : lang === "es" ? "✅ Ya me suscribí" : lang === "de" ? "✅ Abonniert" : "✅ I subscribed";
-    const kb = Markup.inlineKeyboard([
-      [Markup.button.url(subBtn, _GATE_CHANNEL_URL)],
-      [Markup.button.callback(okBtn, "bot_partner_gate_check")],
-    ]);
+    const rows: any[][] = cfg.channels.map((c) => [Markup.button.url(`📢 ${c.name}`, c.url)]);
+    rows.push([Markup.button.callback(okBtn, "bot_partner_gate_check")]);
+    const kb = Markup.inlineKeyboard(rows);
+    const text = gateText(lang, cfg.channels);
     if (callbackData) {
       try { await ctx.answerCbQuery(); } catch {}
-      try { await ctx.editMessageText(gateText(lang), { parse_mode: "HTML", ...kb }); } catch {
-        await ctx.reply(gateText(lang), { parse_mode: "HTML", ...kb });
+      try { await ctx.editMessageText(text, { parse_mode: "HTML", ...kb }); } catch {
+        await ctx.reply(text, { parse_mode: "HTML", ...kb });
       }
     } else {
-      await ctx.reply(gateText(lang), { parse_mode: "HTML", ...kb });
+      await ctx.reply(text, { parse_mode: "HTML", ...kb });
     }
   });
 
@@ -812,7 +874,7 @@ ${t(lang, "startWelcome.selectLang")}`;
         ...Markup.inlineKeyboard([
           [urlS(
             langCode === "uk" ? "📢 Відкрити канал AlorVPN" : langCode === "ru" ? "📢 Открыть канал AlorVPN" : langCode === "es" ? "📢 Abrir canal AlorVPN" : langCode === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel",
-            PARTNER_CHANNEL_URL, "primary",
+            "https://t.me/AlorVPN", "primary",
           )],
         ]),
       });
@@ -4274,6 +4336,18 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
     const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 86400000)) : null;
     let devices: any[] = [];
     try { devices = await storage.listVpnDevices(user.id); } catch {}
+    // Collapse by device NAME so the slot count + list match how the proxy enforces limits
+    // (a single phone can leave several fingerprint rows behind over time). listVpnDevices is
+    // ordered by lastSeen desc; prefer a non-revoked representative per name.
+    const _normName = (n: any) => (n && String(n).trim()) ? String(n).trim() : "VPN client";
+    const _byName = new Map<string, any>();
+    for (const d of devices) {
+      const key = _normName(d.deviceName);
+      const ex = _byName.get(key);
+      if (!ex) _byName.set(key, d);
+      else if (ex.revokedAt && !d.revokedAt) _byName.set(key, d);
+    }
+    devices = Array.from(_byName.values());
     const active = devices.filter((d) => !d.revokedAt);
 
     const T = {

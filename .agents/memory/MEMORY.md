@@ -4,3 +4,4 @@
 - [VPN tier device limits](vpn-device-limits.md) — vpnDeviceLimit("FREE")=0 means "no cap" in the proxy guard; FREE active-VPN users need an explicit cap.
 - [Referral credit idempotency](referral-credit-idempotency.md) — gate all referral rewards on createReferral's boolean insert (unique referred_id), not on "no error"; 3 paths race.
 - [SEO JSON-LD conventions](seo-jsonld-conventions.md) — sitewide schemas in index.html; route schemas (esp. FAQPage) only via seoConfig+Seo; one FAQPage per URL.
+- [VPN device limit by name](vpn-device-limit-by-name.md) — limit counts DISTINCT active deviceName (not fp rows); collapse-by-name must stay in sync across proxy + /api/alor-vpn/devices + bot list.

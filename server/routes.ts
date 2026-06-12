@@ -3454,12 +3454,27 @@ ${urlEntries}
       dailyEmailBody: settingsMap['daily_email_body'] || '',
       dailyEmailLastSent: settingsMap['daily_email_last_sent'] || null,
       dailyEmailLastReach: parseInt(settingsMap['daily_email_last_reach'] || '0'),
+      partnerGateEnabled: settingsMap['partner_gate_enabled'] == null ? true : settingsMap['partner_gate_enabled'] === 'true',
+      partnerChannels: (() => {
+        const raw = settingsMap['partner_channels'];
+        // Never configured → reflect the legacy @AlorVPN default the bot enforces.
+        if (raw == null) return [{ handle: '@AlorVPN', url: 'https://t.me/AlorVPN', name: 'AlorVPN' }];
+        try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; }
+      })(),
     });
   });
 
+  // Normalize + validate a partner-channel handle. Returns "" if invalid.
+  const normGateHandle = (h: any): string => {
+    let s = String(h || '').trim();
+    if (!s) return '';
+    if (!s.startsWith('@')) s = '@' + s.replace(/^@+/, '');
+    return /^@[A-Za-z0-9_]{4,}$/.test(s) ? s : '';
+  };
+
   // Update admin settings
   app.post("/api/admin/settings", requireAdmin, async (req, res) => {
-    const { proPrice, enterprisePrice, dailyBroadcastEnabled, dailyEmailEnabled, dailyEmailSubject, dailyEmailTitle, dailyEmailBody } = req.body;
+    const { proPrice, enterprisePrice, dailyBroadcastEnabled, dailyEmailEnabled, dailyEmailSubject, dailyEmailTitle, dailyEmailBody, partnerGateEnabled, partnerChannels } = req.body;
     if (proPrice) await storage.setAdminSetting('pro_price', proPrice.toString());
     if (enterprisePrice) await storage.setAdminSetting('enterprise_price', enterprisePrice.toString());
     if (dailyBroadcastEnabled !== undefined) {
@@ -3471,6 +3486,24 @@ ${urlEntries}
     if (dailyEmailSubject !== undefined) await storage.setAdminSetting('daily_email_subject', dailyEmailSubject);
     if (dailyEmailTitle !== undefined) await storage.setAdminSetting('daily_email_title', dailyEmailTitle);
     if (dailyEmailBody !== undefined) await storage.setAdminSetting('daily_email_body', dailyEmailBody);
+    if (partnerGateEnabled !== undefined) {
+      await storage.setAdminSetting('partner_gate_enabled', partnerGateEnabled ? 'true' : 'false');
+    }
+    if (partnerChannels !== undefined) {
+      const arr = Array.isArray(partnerChannels) ? partnerChannels : [];
+      const clean = arr
+        .map((c: any) => {
+          const handle = normGateHandle(c?.handle);
+          const bare = handle.replace(/^@/, '');
+          return {
+            handle,
+            url: String(c?.url || (bare ? `https://t.me/${bare}` : '')).trim(),
+            name: (String(c?.name || handle).trim()) || handle,
+          };
+        })
+        .filter((c: any) => !!c.handle && !!c.url);
+      await storage.setAdminSetting('partner_channels', JSON.stringify(clean));
+    }
     res.json({ success: true });
   });
 

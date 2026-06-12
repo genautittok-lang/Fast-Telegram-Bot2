@@ -184,10 +184,23 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
       const userId = req.user!.id;
       // Best-effort: keep VPN expiry in sync with main subscription before reporting.
       try { await syncAlorVpnWithSubscription(userId); } catch {}
-      const devices = await storage.listVpnDevices(userId);
+      const rawDevices = await storage.listVpnDevices(userId);
       const user = await storage.getUserById(userId);
       const tier = (user?.tier || "FREE").toUpperCase();
       const limit = vpnDeviceLimit(tier);
+      // Collapse rows by device NAME so the list (and count) matches how the proxy enforces
+      // limits — a single phone can leave several fingerprint rows behind. rawDevices is
+      // ordered by lastSeen desc, so the first row per name is the most recent; prefer a
+      // non-revoked representative when one exists.
+      const normName = (n: any) => (n && String(n).trim()) ? String(n).trim() : "VPN client";
+      const byName = new Map<string, any>();
+      for (const d of rawDevices) {
+        const key = normName(d.deviceName);
+        const existing = byName.get(key);
+        if (!existing) byName.set(key, d);
+        else if (existing.revokedAt && !d.revokedAt) byName.set(key, d);
+      }
+      const devices = Array.from(byName.values());
       const active = devices.filter((d: any) => !d.revokedAt);
       // Source of truth for days-left: the LATER of main subscription and VPN expiry,
       // because we always extend the VPN to match the main subscription.
