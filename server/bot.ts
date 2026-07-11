@@ -5358,10 +5358,16 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
     await showBroadcastPreview(ctx, tgId, lang, state.data);
   });
 
+  // Escape Markdown v1 special characters in user-supplied text so it never breaks
+  // the preview message (the actual broadcast is sent separately with its own retry logic)
+  function escapeMd(text: string): string {
+    return text.replace(/([_*`\[])/g, "\\$1");
+  }
+
   async function showBroadcastPreview(ctx: any, tgId: string, lang: Language, data: any) {
     const btnsText = data.buttons?.length
       ? "\n\n🔘 " + (lang === "uk" ? "Кнопки" : lang === "ru" ? "Кнопки" : "Buttons") + ":\n" +
-        data.buttons.map((b: any, i: number) => `  ${i + 1}. [${b.text}](${b.url})`).join("\n")
+        data.buttons.map((b: any, i: number) => `  ${i + 1}. ${escapeMd(b.text)} → ${escapeMd(b.url)}`).join("\n")
       : "";
 
     const typeLabel = data.type === "photo"
@@ -5372,10 +5378,14 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       ? (lang === "uk" ? "🆕 Тільки нові (після останньої розсилки)" : lang === "ru" ? "🆕 Только новые (после последней рассылки)" : "🆕 New only (since last broadcast)")
       : (lang === "uk" ? "👥 Всі користувачі" : lang === "ru" ? "👥 Все пользователи" : "👥 All users");
 
+    // Escape user-supplied text so unbalanced * _ ` don't crash the preview
+    const rawMessage = data.message || (lang === "uk" ? "(без тексту)" : lang === "ru" ? "(без текста)" : "(no text)");
+    const escapedMessage = escapeMd(rawMessage);
+
     const previewText = `👁 *${lang === "uk" ? "Попередній перегляд" : lang === "ru" ? "Предпросмотр" : "Preview"}*\n\n` +
       `${lang === "uk" ? "Тип" : lang === "ru" ? "Тип" : "Type"}: ${typeLabel}\n` +
       `${lang === "uk" ? "Аудиторія" : lang === "ru" ? "Аудитория" : "Audience"}: ${audienceLabel}\n\n` +
-      `${lang === "uk" ? "Повідомлення" : lang === "ru" ? "Сообщение" : "Message"}:\n${data.message || (lang === "uk" ? "(без тексту)" : lang === "ru" ? "(без текста)" : "(no text)")}` +
+      `${lang === "uk" ? "Повідомлення" : lang === "ru" ? "Сообщение" : "Message"}:\n${escapedMessage}` +
       btnsText + "\n\n" +
       `${lang === "uk" ? "Підтвердити відправку?" : lang === "ru" ? "Подтвердить отправку?" : "Confirm sending?"}`;
 
