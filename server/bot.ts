@@ -2674,7 +2674,7 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
     const parts = ctx.match.input.split('_');
     const module = parts[2];
     const target = parts.slice(3).join('_');
-    const webBase = process.env.WEB_BASE_URL || `https://${process.env.REPLIT_DEV_DOMAIN || ""}`;
+    const webBase = process.env.WEB_DOMAIN || process.env.WEB_BASE_URL || "https://www.darkshare.store";
     const url = `${webBase}/pricing?single=1&type=${encodeURIComponent(module)}&t=${encodeURIComponent(target)}`;
     await ctx.answerCbQuery();
     const title = lang === "uk" ? "🔓 Повний звіт — $3" : lang === "ru" ? "🔓 Полный отчёт — $3" : lang === "es" ? "🔓 Informe completo — $3" : lang === "de" ? "🔓 Vollständiger Bericht — $3" : "🔓 Full report — $3";
@@ -2699,7 +2699,7 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
     const tgId = ctx.from!.id.toString();
     const user = await storage.getUserByTgId(tgId);
     const lang = getUserLang(user?.lang);
-    const webBase = process.env.WEB_BASE_URL || `https://${process.env.REPLIT_DEV_DOMAIN || ""}`;
+    const webBase = process.env.WEB_DOMAIN || process.env.WEB_BASE_URL || "https://www.darkshare.store";
     const url = `${webBase}/pricing?plan=PRO`;
     await ctx.answerCbQuery();
     const title = lang === "uk" ? "💎 PRO — $9/міс" : lang === "ru" ? "💎 PRO — $9/мес" : lang === "es" ? "💎 PRO — $9/mes" : lang === "de" ? "💎 PRO — $9/Monat" : "💎 PRO — $9/mo";
@@ -5502,21 +5502,54 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Поділись посиланням �
       : undefined;
     const replyMarkup = inlineButtons ? Markup.inlineKeyboard(inlineButtons).reply_markup : undefined;
     
-    for (const u of allUsers) {
-      
-      try {
+    // Pre-detect if message has Markdown issues by checking for common problematic patterns
+    // We'll try Markdown first, and fall back to plain text on parse errors
+    const sendToUser = async (tgId: string) => {
+      const tryWithMarkdown = async () => {
         if (data.type === "photo" && data.photoId) {
-          await ctx.telegram.sendPhoto(u.tgId, data.photoId, {
+          await ctx.telegram.sendPhoto(tgId, data.photoId, {
             caption: data.message || undefined,
             parse_mode: "Markdown",
             reply_markup: replyMarkup
           });
         } else {
-          await ctx.telegram.sendMessage(u.tgId, data.message || "", {
+          await ctx.telegram.sendMessage(tgId, data.message || "", {
             parse_mode: "Markdown",
             reply_markup: replyMarkup
           });
         }
+      };
+
+      const tryWithoutMarkdown = async () => {
+        if (data.type === "photo" && data.photoId) {
+          await ctx.telegram.sendPhoto(tgId, data.photoId, {
+            caption: data.message || undefined,
+            reply_markup: replyMarkup
+          });
+        } else {
+          await ctx.telegram.sendMessage(tgId, data.message || "", {
+            reply_markup: replyMarkup
+          });
+        }
+      };
+
+      try {
+        await tryWithMarkdown();
+      } catch (e: any) {
+        const desc = (e?.response?.description || e?.message || "").toLowerCase();
+        // Retry without parse_mode if it's a Markdown parse error
+        if (desc.includes("can't parse entities") || desc.includes("parse entities") || desc.includes("entity")) {
+          await tryWithoutMarkdown();
+        } else {
+          throw e;
+        }
+      }
+    };
+
+    for (const u of allUsers) {
+      
+      try {
+        await sendToUser(u.tgId);
         successCount++;
       } catch (e: any) {
         failCount++;
