@@ -2249,6 +2249,13 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
       return ctx.reply(t(lang, "common.useMenu"));
     }
 
+    // Guard: admin workflow states must never fall through to the check handler.
+    // Any admin_* module that is not already handled above would cause
+    // performCheck("admin_broadcast", ...) etc. which throws "Unknown check type".
+    if (state.module.startsWith("admin_")) {
+      return; // silently ignore stray messages during admin flows
+    }
+
     // Check daily limits per tier
     if (user) {
       const userTier = (user.tier || "FREE").toUpperCase();
