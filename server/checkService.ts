@@ -1664,9 +1664,9 @@ async function checkEmail(value: string, timestamp: Date): Promise<CheckResult> 
     }
   }
   
-  // Local fallback: check against known major breaches
+  // Fallback: reference well-known public breach incidents (historical, public knowledge)
   if (!breachCheckSuccess) {
-    sources.push("Локальна база витоків");
+    sources.push("Відомі публічні інциденти (історія)");
     
     const knownBreachDomains: Record<string, { name: string; date: string; records: string }> = {
       "linkedin.com": { name: "LinkedIn", date: "2021", records: "700M" },
