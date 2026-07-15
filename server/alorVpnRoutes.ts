@@ -485,11 +485,17 @@ export async function syncAlorVpnWithSubscription(userId: number, force = false)
     ? new Date((user as any).alorVpnExpiresAt)
     : null;
 
+  // A paid tier WITHOUT subscriptionExpiresAt = manually granted / lifetime access.
+  // Treat it as a rolling 30-day window so the VPN keeps auto-renewing.
+  const effMainExpMs = (mainExp && mainExp.getTime() > Date.now())
+    ? mainExp.getTime()
+    : (!mainExp ? Date.now() + 30 * 86400000 : 0);
+
   // If the main sub is active, verify the VPN really covers it. IMPORTANT: do not
   // trust the LOCAL alorVpnExpiresAt alone — older code bumped it blindly on renewal
   // while the upstream expiry (fixed at creation, no extend API) stayed in the past.
   // So under the cooldown we also ask upstream for the REAL expiry.
-  if (mainExp && mainExp.getTime() > Date.now()) {
+  if (effMainExpMs > Date.now()) {
     // Cooldown: skip if we tried recently (prevents hammering Alor API when extension fails).
     const last = lastSyncAt.get(userId) || 0;
     if (!force && Date.now() - last < SYNC_COOLDOWN_MS) {
@@ -514,11 +520,11 @@ export async function syncAlorVpnWithSubscription(userId: number, force = false)
     }
 
     // Nothing to do if the REAL VPN expiry already covers the main subscription (±1d).
-    if (realVpnExpMs && mainExp.getTime() - realVpnExpMs <= 86400000) {
+    if (realVpnExpMs && effMainExpMs - realVpnExpMs <= 86400000) {
       return { extended: false, expiresAt: new Date(realVpnExpMs).toISOString() };
     }
 
-    const days = Math.ceil((mainExp.getTime() - Date.now()) / 86400000);
+    const days = Math.ceil((effMainExpMs - Date.now()) / 86400000);
     if (days > 0) {
       const beforeExp = realVpnExpMs;
       await autoProvisionAlorVpn(userId, tier, days);
