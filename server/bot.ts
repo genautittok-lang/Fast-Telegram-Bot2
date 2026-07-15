@@ -861,20 +861,20 @@ ${t(lang, "startWelcome.selectLang")}`;
     try {
       const softText =
         langCode === "uk"
-          ? `🤝 <b>До речі…</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>AlorVPN</b>. Підпишись на їхній канал, щоб першим дізнаватись про нові локації та апдейти — це не обов'язково, але приємний бонус 🎁`
+          ? `🤝 <b>До речі…</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>FronVPN</b>. Підпишись на їхній канал, щоб першим дізнаватись про нові локації та апдейти — це не обов'язково, але приємний бонус 🎁`
           : langCode === "ru"
-          ? `🤝 <b>Кстати…</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>AlorVPN</b>. Подпишись на их канал, чтобы первым узнавать о новых локациях и апдейтах — это необязательно, но приятный бонус 🎁`
+          ? `🤝 <b>Кстати…</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>FronVPN</b>. Подпишись на их канал, чтобы первым узнавать о новых локациях и апдейтах — это необязательно, но приятный бонус 🎁`
           : langCode === "es"
-          ? `🤝 <b>Por cierto…</b>\n\nDARKSHARE VPN funciona sobre la infraestructura de nuestro socio <b>AlorVPN</b>. Suscríbete a su canal para enterarte primero de nuevas ubicaciones y novedades — opcional, pero un buen extra 🎁`
+          ? `🤝 <b>Por cierto…</b>\n\nDARKSHARE VPN funciona sobre la infraestructura de nuestro socio <b>FronVPN</b>. Suscríbete a su canal para enterarte primero de nuevas ubicaciones y novedades — opcional, pero un buen extra 🎁`
           : langCode === "de"
-          ? `🤝 <b>Übrigens…</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>AlorVPN</b>. Abonniere ihren Kanal, um neue Standorte und Updates zuerst zu erfahren — optional, aber ein netter Bonus 🎁`
-          : `🤝 <b>By the way…</b>\n\nDARKSHARE VPN runs on our partner <b>AlorVPN</b>'s infrastructure. Subscribe to their channel to be first to hear about new locations and updates — optional, but a nice bonus 🎁`;
+          ? `🤝 <b>Übrigens…</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>FronVPN</b>. Abonniere ihren Kanal, um neue Standorte und Updates zuerst zu erfahren — optional, aber ein netter Bonus 🎁`
+          : `🤝 <b>By the way…</b>\n\nDARKSHARE VPN runs on our partner <b>FronVPN</b>'s infrastructure. Subscribe to their channel to be first to hear about new locations and updates — optional, but a nice bonus 🎁`;
       await ctx.reply(softText, {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
           [urlS(
-            langCode === "uk" ? "📢 Відкрити канал AlorVPN" : langCode === "ru" ? "📢 Открыть канал AlorVPN" : langCode === "es" ? "📢 Abrir canal AlorVPN" : langCode === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel",
-            "https://t.me/AlorVPN", "primary",
+            langCode === "uk" ? "📢 Відкрити канал FronVPN" : langCode === "ru" ? "📢 Открыть канал FronVPN" : langCode === "es" ? "📢 Abrir canal FronVPN" : langCode === "de" ? "📢 FronVPN-Kanal öffnen" : "📢 Open FronVPN channel",
+            "https://t.me/Fron_VPN", "primary",
           )],
         ]),
       });
