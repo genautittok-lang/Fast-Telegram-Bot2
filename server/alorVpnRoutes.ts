@@ -485,8 +485,11 @@ export async function syncAlorVpnWithSubscription(userId: number, force = false)
     ? new Date((user as any).alorVpnExpiresAt)
     : null;
 
-  // If main sub is longer than VPN sub by more than 1 day, extend.
-  if (mainExp && (!vpnExp || mainExp.getTime() - (vpnExp?.getTime() || 0) > 86400000)) {
+  // If the main sub is active, verify the VPN really covers it. IMPORTANT: do not
+  // trust the LOCAL alorVpnExpiresAt alone — older code bumped it blindly on renewal
+  // while the upstream expiry (fixed at creation, no extend API) stayed in the past.
+  // So under the cooldown we also ask upstream for the REAL expiry.
+  if (mainExp && mainExp.getTime() > Date.now()) {
     // Cooldown: skip if we tried recently (prevents hammering Alor API when extension fails).
     const last = lastSyncAt.get(userId) || 0;
     if (!force && Date.now() - last < SYNC_COOLDOWN_MS) {
@@ -494,9 +497,30 @@ export async function syncAlorVpnWithSubscription(userId: number, force = false)
     }
     lastSyncAt.set(userId, Date.now());
 
+    // Real upstream expiry (falls back to local if status call fails).
+    let realVpnExpMs = vpnExp ? vpnExp.getTime() : 0;
+    if ((user as any).alorVpnToken) {
+      try {
+        const status = await getAlorStatus(upstreamAlorToken(user)!);
+        realVpnExpMs = new Date(status.expires_at).getTime();
+        // Heal the local record if it was overstated by old code.
+        if (vpnExp && Math.abs(realVpnExpMs - vpnExp.getTime()) > 3600000) {
+          await storage.updateUser(userId, { alorVpnExpiresAt: new Date(realVpnExpMs) });
+        }
+      } catch {
+        // upstream token likely dead — treat as expired so we rotate below
+        realVpnExpMs = 0;
+      }
+    }
+
+    // Nothing to do if the REAL VPN expiry already covers the main subscription (±1d).
+    if (realVpnExpMs && mainExp.getTime() - realVpnExpMs <= 86400000) {
+      return { extended: false, expiresAt: new Date(realVpnExpMs).toISOString() };
+    }
+
     const days = Math.ceil((mainExp.getTime() - Date.now()) / 86400000);
     if (days > 0) {
-      const beforeExp = vpnExp ? vpnExp.getTime() : 0;
+      const beforeExp = realVpnExpMs;
       await autoProvisionAlorVpn(userId, tier, days);
       const refreshed = await storage.getUserById(userId);
       const afterExp = (refreshed as any)?.alorVpnExpiresAt
