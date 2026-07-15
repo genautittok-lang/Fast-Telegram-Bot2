@@ -529,7 +529,9 @@ export async function setupBot(storage: IStorage) {
         // Persist to DB so they never see the gate again
         if (user) await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
         try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : "✅ Thanks!"); } catch {}
-        return next();
+        // Open the panel right away instead of leaving the user on the gate screen.
+        try { await showDashboard(ctx, tgId, false); } catch {}
+        return;
       } else {
         try {
           await ctx.answerCbQuery(
