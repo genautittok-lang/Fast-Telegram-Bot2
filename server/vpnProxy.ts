@@ -629,7 +629,24 @@ export function registerVpnProxy(app: Express) {
         }
       }
 
-      let upstreamUrl: string | undefined = (user as any)?.alorVpnSubscriptionUrl;
+      // Self-healing: when the VPN client refreshes the subscription, verify the
+      // upstream really covers the user's paid DarkShare subscription and rotate
+      // it if it expired (60s cooldown inside sync prevents API hammering).
+      // Re-read the user afterwards so THIS response already serves the new config.
+      let freshUser = user;
+      if (user?.id) {
+        try {
+          const { syncAlorVpnWithSubscription } = await import("./alorVpnRoutes");
+          const syncRes = await syncAlorVpnWithSubscription(user.id);
+          if (syncRes.extended) {
+            freshUser = (await storage.getUserById(user.id)) || user;
+          }
+        } catch (e: any) {
+          console.warn("[vpnProxy] inline VPN sync failed:", e?.message);
+        }
+      }
+
+      let upstreamUrl: string | undefined = (freshUser as any)?.alorVpnSubscriptionUrl;
 
       // Fallback: only when we have no stored subscription URL. After an upstream
       // rotation the public token differs from the upstream token, so this raw-token
