@@ -4223,9 +4223,9 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
     const token = (user as any).alorVpnToken;
     if (token) {
       try {
-        const { getAlorStatus, isAlorConfigured } = await import("./alorVpn");
+        const { getAlorStatus, isAlorConfigured, upstreamAlorToken } = await import("./alorVpn");
         if (isAlorConfigured()) {
-          const status = await getAlorStatus(token);
+          const status = await getAlorStatus(upstreamAlorToken(user)!);
           await storage.updateUser(user.id, { alorVpnExpiresAt: new Date(status.expires_at) } as any);
         }
       } catch (e) {
@@ -4361,7 +4361,8 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
       const { createAlorSubscription, vpnDeviceLimit } = await import("./alorVpn");
       const sub = await createAlorSubscription(30);
       await storage.updateUser(user.id, {
-        alorVpnToken: sub.token,
+        // Keep an existing public token stable so a previously imported sub URL keeps working.
+        ...( (user as any).alorVpnToken ? {} : { alorVpnToken: sub.token } ),
         alorVpnUuid: sub.uuid,
         alorVpnSubscriptionUrl: sub.subscription_url,
         alorVpnExpiresAt: new Date(sub.expires_at),
@@ -4412,7 +4413,8 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
       const { createAlorSubscription } = await import("./alorVpn");
       const sub = await createAlorSubscription(1);
       await storage.updateUser(user.id, {
-        alorVpnToken: sub.token,
+        // Keep an existing public token stable so a previously imported sub URL keeps working.
+        ...( (user as any).alorVpnToken ? {} : { alorVpnToken: sub.token } ),
         alorVpnUuid: sub.uuid,
         alorVpnSubscriptionUrl: sub.subscription_url,
         alorVpnExpiresAt: new Date(sub.expires_at),
