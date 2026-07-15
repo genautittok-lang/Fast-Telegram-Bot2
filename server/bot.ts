@@ -493,6 +493,13 @@ export async function setupBot(storage: IStorage) {
     return `🤝 <b>Mandatory subscription</b>\n\nDARKSHARE works together with our partners. To use the bot, subscribe to ${channels.length > 1 ? "all the channels" : "the channel"} below — it's required.\n\n${list}\n\nThen tap <b>"✅ I subscribed"</b>.`;
   }
 
+  function partnerGateKeyboard(lang: string, channels: GateChannel[]) {
+    const okBtn = lang === "uk" ? "✅ Я підписався" : lang === "ru" ? "✅ Я подписался" : lang === "es" ? "✅ Ya me suscribí" : lang === "de" ? "✅ Abonniert" : "✅ I subscribed";
+    const rows: any[][] = channels.map((c) => [Markup.button.url(`📢 ${c.name}`, c.url)]);
+    rows.push([Markup.button.callback(okBtn, "bot_partner_gate_check")]);
+    return Markup.inlineKeyboard(rows);
+  }
+
   bot.use(async (ctx, next) => {
     // Only gate private chats (no action in groups/channels)
     if (!ctx.from || ctx.chat?.type !== "private") return next();
@@ -507,6 +514,9 @@ export async function setupBot(storage: IStorage) {
     const user = await storage.getUserByTgId(tgId);
     // Existing users (partnerChannelSubscribed = true) always pass through
     if (user?.partnerChannelSubscribed) return next();
+    // Brand-new users who haven't picked a language yet must see language
+    // selection FIRST. The gate is shown right after they choose (in the lang_ handler).
+    if (!user?.langSet) return next();
 
     const lang = getUserLang(user?.lang);
     const callbackData = (ctx as any).callbackQuery?.data as string | undefined;
@@ -855,6 +865,22 @@ ${t(lang, "startWelcome.selectLang")}`;
     await ctx.editMessageText(startText, 
       Markup.inlineKeyboard([[cb(langCode === "uk" ? "Увійти в панель" : langCode === "ru" ? "Войти в панель" : langCode === "es" ? "Entrar al panel" : langCode === "de" ? "Panel öffnen" : "Enter Panel", "enter_panel_first", "success", E.rocket)]])
     );
+
+    // Mandatory partner-subscription gate — shown right AFTER language selection
+    // (the middleware lets brand-new users reach language selection first).
+    try {
+      if (!isAdmin(tgId)) {
+        const gate = await loadGateConfig();
+        const alreadyIn = user?.partnerChannelSubscribed;
+        if (gate.enabled && gate.channels.length > 0 && !alreadyIn) {
+          await ctx.reply(gateText(langCode, gate.channels), {
+            parse_mode: "HTML",
+            ...partnerGateKeyboard(langCode, gate.channels),
+          });
+          return; // don't also show the soft optional prompt
+        }
+      }
+    } catch {}
 
     // Soft, one-time partner prompt for NEW bot users only. Informational —
     // it does NOT block usage (the VPN itself is no longer gated by this).
