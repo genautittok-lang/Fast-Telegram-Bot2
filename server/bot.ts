@@ -1236,7 +1236,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       await bot.telegram.sendMessage(tgId, welcomeText, {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [cb(lang === "uk" ? "💎 Активувати промокод" : lang === "ru" ? "💎 Активировать промокод" : lang === "es" ? "💎 Activar código" : lang === "de" ? "💎 Code aktivieren" : "💎 Activate promo", "pricing", "success", E.gift)],
+          [cb(lang === "uk" ? "💎 Активувати промокод" : lang === "ru" ? "💎 Активировать промокод" : lang === "es" ? "💎 Activar código" : lang === "de" ? "💎 Code aktivieren" : "💎 Activate promo", "welcome_promo", "success", E.gift)],
         ])
       });
     } catch (e) {
@@ -2752,6 +2752,83 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
       ...Markup.inlineKeyboard([
         [Markup.button.url(lang === "uk" ? "Оформити PRO" : lang === "ru" ? "Оформить PRO" : lang === "es" ? "Activar PRO" : lang === "de" ? "PRO aktivieren" : "Activate PRO", url)],
       ]),
+    });
+  });
+
+  // Welcome promo: opens tier selection with the DARKNEU discount auto-applied.
+  const WELCOME_PROMO_CODE = "DARKNEU";
+  bot.action("welcome_promo", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    await ctx.answerCbQuery();
+
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    let discount = 50;
+    try {
+      const coupon = await storage.getCouponByCode(WELCOME_PROMO_CODE);
+      if (coupon && coupon.isActive && coupon.value) discount = coupon.value;
+    } catch {}
+
+    const disc = (t: string) => Math.round(uahPrices[t] * (1 - discount / 100));
+    const title = lang === "uk" ? `🎁 Промокод ${WELCOME_PROMO_CODE} — -${discount}%`
+      : lang === "ru" ? `🎁 Промокод ${WELCOME_PROMO_CODE} — -${discount}%`
+      : lang === "es" ? `🎁 Código ${WELCOME_PROMO_CODE} — -${discount}%`
+      : lang === "de" ? `🎁 Promo-Code ${WELCOME_PROMO_CODE} — -${discount}%`
+      : `🎁 Promo ${WELCOME_PROMO_CODE} — -${discount}%`;
+    const pick = lang === "uk" ? "Оберіть тариф — знижка застосується автоматично:"
+      : lang === "ru" ? "Выберите тариф — скидка применится автоматически:"
+      : lang === "es" ? "Elige el plan — el descuento se aplica automáticamente:"
+      : lang === "de" ? "Tarif wählen — der Rabatt wird automatisch angewendet:"
+      : "Choose a plan — the discount is applied automatically:";
+
+    const kb = Markup.inlineKeyboard([
+      [cb(`PRO — ${uahPrices.PRO}→${disc("PRO")} UAH`, "welcome_promo_PRO", "success", E.money)],
+      [cb(`ENTERPRISE — ${uahPrices.ENTERPRISE}→${disc("ENTERPRISE")} UAH`, "welcome_promo_ENTERPRISE", "success", E.money)],
+      [cb(`GROUPS — ${uahPrices.GROUPS}→${disc("GROUPS")} UAH`, "welcome_promo_GROUPS", "success", E.money)],
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+    ]);
+    await ctx.reply(`*${title}*\n\n${pick}`, { parse_mode: "Markdown", ...kb });
+  });
+
+  bot.action(/^welcome_promo_(PRO|ENTERPRISE|GROUPS)$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    await ctx.answerCbQuery();
+
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
+
+    let discount = 50;
+    let couponId: string | null = null;
+    try {
+      const coupon = await storage.getCouponByCode(WELCOME_PROMO_CODE);
+      if (coupon && coupon.isActive) {
+        if (coupon.value) discount = coupon.value;
+        couponId = coupon.id;
+        // If this coupon is tier-restricted and doesn't match, fall back to no discount screen.
+        if (coupon.tier && coupon.tier !== tier) {
+          await ctx.reply(lang === "uk" ? "❗ Промокод не діє для цього тарифу." : lang === "ru" ? "❗ Промокод не действует для этого тарифа." : "❗ Promo not valid for this plan.");
+          return;
+        }
+      }
+    } catch {}
+
+    const basePrice = uahPrices[tier];
+    const discountedPrice = Math.round(basePrice * (1 - discount / 100));
+    const discountedStars = Math.round(starPrices[tier] * (1 - discount / 100));
+
+    const promoText = `✅ *${lang === "uk" ? "Промокод активовано!" : lang === "ru" ? "Промокод активирован!" : lang === "es" ? "¡Código activado!" : lang === "de" ? "Promo-Code aktiviert!" : "Promo activated!"}*\n\n🎁 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : lang === "es" ? "Descuento" : lang === "de" ? "Rabatt" : "Discount"}: -${discount}%\n💰 ${lang === "uk" ? "Нова ціна" : lang === "ru" ? "Новая цена" : lang === "es" ? "Nuevo precio" : lang === "de" ? "Neuer Preis" : "New price"}: ~~${basePrice}~~ ${discountedPrice} UAH\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : lang === "es" ? "Seleccione método de pago:" : lang === "de" ? "Zahlungsmethode wählen:" : "Select payment method:"}`;
+
+    await ctx.reply(promoText, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [cb(`⭐ Telegram Stars (${discountedStars} ⭐)`, `bot_pay_method_${tier}_stars_promo_${discount}`, "primary", E.star)],
+        [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
+        [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+        [cb(t(lang, "buttons.back"), "welcome_promo", "danger", E.back)]
+      ])
     });
   });
 
