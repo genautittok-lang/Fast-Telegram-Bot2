@@ -408,7 +408,7 @@ export async function setupBot(storage: IStorage) {
   // Config lives in ds_admin_settings: `partner_gate_enabled` ("true"/"false") and
   // `partner_channels` (JSON array of {handle, url, name}). Manage it from the web admin.
   type GateChannel = { handle: string; url: string; name: string };
-  const LEGACY_GATE_DEFAULT: GateChannel[] = [{ handle: "@AlorVPN", url: "https://t.me/AlorVPN", name: "AlorVPN" }];
+  const LEGACY_GATE_DEFAULT: GateChannel[] = [{ handle: "@Fron_VPN", url: "https://t.me/Fron_VPN", name: "FronVPN" }];
   // Per-(user, channel) membership cache so we don't hammer the Telegram API.
   const _gateCache = new Map<string, { ok: boolean; at: number }>();
   const _GATE_CACHE_MS = 10 * 60 * 1000; // 10 min
