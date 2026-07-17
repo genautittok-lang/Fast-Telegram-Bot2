@@ -581,14 +581,17 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+    // Log ALL requests for full audit trail
+    let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (path.startsWith("/api") && capturedJsonResponse) {
+      // For API routes, include response body (but strip sensitive fields)
+      const safe = { ...capturedJsonResponse };
+      for (const k of ["token", "password", "secret", "cardToken", "tgHash"]) delete safe[k];
+      if (Object.keys(safe).length > 0) {
+        logLine += ` :: ${JSON.stringify(safe)}`;
       }
-
-      log(logLine);
     }
+    log(logLine);
   });
 
   next();

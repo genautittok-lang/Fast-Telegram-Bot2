@@ -1298,10 +1298,15 @@ ${urlEntries}
     let dailyRemaining = Infinity;
 
     if (dailyLimit !== Infinity) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const userReports = await storage.getReports(user.id);
-      const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
+      // Count today's checks from activity_log (no target stored — privacy safe)
+      let todayChecks = 0;
+      if (pool) {
+        const countResult = await pool.query(
+          `SELECT COUNT(*) AS cnt FROM ds_activity_log WHERE user_id = $1 AND event_type = 'check' AND created_at >= CURRENT_DATE`,
+          [user.id]
+        );
+        todayChecks = parseInt(countResult.rows[0]?.cnt || "0", 10);
+      }
       dailyRemaining = Math.max(0, dailyLimit - todayChecks);
       const bonusLeft = user.requestsLeft || 0;
 
@@ -1324,7 +1329,8 @@ ${urlEntries}
       const result = await performCheck(type, value);
       
       addActivity(type, value, result.riskLevel);
-      storage.logActivity({ eventType: "check", userId: authReq.user!.id, username: authReq.user!.username || null, details: `Check: ${type}`, meta: { type, riskLevel: result.riskLevel, riskScore: result.riskScore } }).catch(() => {});
+      // Log check event for quota tracking (NO target value stored — privacy policy)
+      storage.logActivity({ eventType: "check", userId: authReq.user!.id, username: null, details: null, meta: { type } }).catch(() => {});
 
       if (authReq.user!.pendingRefCode) {
         try {
@@ -1351,22 +1357,8 @@ ${urlEntries}
         }
       }
 
-      const verificationId = generateVerificationId();
-
-      await storage.createReport({
-        userId: authReq.user!.id,
-        objectType: type,
-        verificationId,
-        dataJson: {
-          target: value,
-          riskScore: result.riskScore,
-          riskLevel: result.riskLevel,
-          findings: result.findings,
-          details: result.details,
-          sources: result.sources,
-          summary: result.summary,
-        },
-      });
+      // Reports are NOT stored in DB for user privacy (no-log policy)
+      // verificationId omitted since reports are not persisted
 
       res.json({
         ...result,
@@ -1402,19 +1394,7 @@ ${urlEntries}
         await storage.updateUser(user.id, { requestsLeft: Math.max(0, (user.requestsLeft || 0) - 1) });
       }
 
-      await storage.createReport({
-        userId: user.id,
-        objectType: "exif",
-        dataJson: {
-          target: req.file.originalname,
-          riskScore: result.riskScore,
-          riskLevel: result.riskLevel,
-          findings: result.findings,
-          details: result.details,
-          sources: result.sources,
-          summary: result.summary,
-        },
-      });
+      // EXIF reports are NOT stored in DB for user privacy (no-log policy)
 
       fs.unlinkSync(req.file.path);
 
@@ -1598,10 +1578,15 @@ ${urlEntries}
     const dailyLimit = DAILY_LIMITS[userTier] || 1;
     
     if (dailyLimit !== Infinity) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const userReports = await storage.getReports(user.id);
-      const todayChecks = userReports.filter(r => r.generatedAt && new Date(r.generatedAt) >= today).length;
+      // Count today's checks from activity_log (no target stored — privacy safe)
+      let todayChecks = 0;
+      if (pool) {
+        const countResult = await pool.query(
+          `SELECT COUNT(*) AS cnt FROM ds_activity_log WHERE user_id = $1 AND event_type = 'check' AND created_at >= CURRENT_DATE`,
+          [user.id]
+        );
+        todayChecks = parseInt(countResult.rows[0]?.cnt || "0", 10);
+      }
       const dailyRemaining = Math.max(0, dailyLimit - todayChecks);
       const bonusLeft = user.requestsLeft || 0;
       const totalAvailable = dailyRemaining + bonusLeft;
@@ -1666,24 +1651,8 @@ ${urlEntries}
         // Add to activity feed
         addActivity(type, value, result.riskLevel);
 
-        // Generate unique verificationId for QR code verification
-        const verificationId = generateVerificationId();
-
-        // Store report using authenticated user
-        await storage.createReport({
-          userId: authReq.user!.id,
-          objectType: type,
-          verificationId,
-          dataJson: {
-            target: value,
-            riskScore: result.riskScore,
-            riskLevel: result.riskLevel,
-            findings: result.findings,
-            details: result.details,
-            sources: result.sources,
-            summary: result.summary,
-          },
-        });
+        // Log for quota tracking (NO target stored — privacy policy)
+        storage.logActivity({ eventType: "check", userId: authReq.user!.id, username: null, details: null, meta: { type } }).catch(() => {});
 
         results.push({
           ...result,
@@ -2437,23 +2406,16 @@ ${urlEntries}
     }
   });
 
-  // ==================== MONOPAY (MONOBANK) ROUTES ====================
+  // ==================== SINGLE AUDIT (CRYPTO ONLY) ====================
 
-  const UAH_PER_USD = 41;
-  const MONOPAY_PRICES_UAH: Record<string, Record<string, number>> = {
-    PRO: { monthly: 410, yearly: 4100 },
-    ENTERPRISE: { monthly: 1435, yearly: 14309 },
-    GROUPS: { monthly: 2255, yearly: 22509 },
-  };
   const SINGLE_AUDIT_USD = 3;
-  const SINGLE_AUDIT_UAH = 123;
   const SINGLE_AUDIT_CREDITS = 5;
 
   app.post("/api/payments/single-audit/create", loadUser, requireAuth, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     const { method } = req.body || {};
-    if (!method || !["monobank", "crypto"].includes(method)) {
-      return res.status(400).json({ error: "Invalid payment method" });
+    if (method !== "crypto") {
+      return res.status(400).json({ error: "Invalid payment method. Only crypto is supported." });
     }
     try {
       const payment = await storage.createPayment({
@@ -2465,43 +2427,10 @@ ${urlEntries}
         status: "pending",
       });
       const appUrl = process.env.APP_URL || 'https://darkshare.store';
-      const reference = `DS-AUDIT-${payment.id}`;
-
-      if (method === "monobank") {
-        const monoToken = process.env.MONOBANK_TOKEN;
-        if (!monoToken) {
-          return res.status(503).json({ error: "Card payment is not configured. Please use Crypto Pay." });
-        }
-        const monoResponse = await fetch("https://api.monobank.ua/api/merchant/invoice/create", {
-          method: "POST",
-          headers: { "X-Token": monoToken, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: SINGLE_AUDIT_UAH * 100,
-            ccy: 980,
-            merchantPaymInfo: {
-              reference,
-              destination: `DARKSHARE single audit (${SINGLE_AUDIT_CREDITS} checks)`,
-              comment: "DARKSHARE one-time audit",
-            },
-            redirectUrl: `${appUrl}/?audit=success`,
-            webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
-          }),
-        });
-        if (!monoResponse.ok) {
-          const errorText = await monoResponse.text();
-          console.error("Monobank single-audit error:", monoResponse.status, errorText);
-          return res.status(502).json({ error: "Failed to create card invoice" });
-        }
-        const monoData = await monoResponse.json();
-        if (monoData.invoiceId && pool) {
-          await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
-        }
-        return res.json({ pageUrl: monoData.pageUrl, invoiceId: monoData.invoiceId });
-      }
 
       const cryptoToken = process.env.CRYPTOPAY_TOKEN || process.env.CRYPTO_PAY_TOKEN;
       if (!cryptoToken) {
-        return res.status(503).json({ error: "Crypto Pay is not configured. Please try card payment." });
+        return res.status(503).json({ error: "Crypto Pay is not configured. Please try again later." });
       }
       const cryptoResponse = await fetch("https://pay.crypt.bot/api/createInvoice", {
         method: "POST",
@@ -2530,432 +2459,8 @@ ${urlEntries}
     }
   });
 
-  app.post("/api/payments/monopay/create", loadUser, requireAuth, async (req, res) => {
-    const authReq = req as AuthenticatedRequest;
-    const { tier, period, promoCode } = req.body;
+  // ==================== SUBSCRIPTION LIFECYCLE SCHEDULER ====================
 
-    if (!tier || !["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) {
-      return res.status(400).json({ error: "Invalid tier" });
-    }
-    if (!period || !["monthly", "yearly"].includes(period)) {
-      return res.status(400).json({ error: "Invalid period" });
-    }
-
-    const monoToken = process.env.MONOBANK_TOKEN;
-    if (!monoToken) {
-      return res.status(503).json({ error: "MonoPay is not configured yet. Please use another payment method." });
-    }
-
-    const normalizedTier = tier.toUpperCase();
-    let amountUAH = MONOPAY_PRICES_UAH[normalizedTier]?.[period] || 0;
-    if (!amountUAH) {
-      return res.status(400).json({ error: "Could not calculate price" });
-    }
-
-    let promoValid = false;
-    let promoDiscountValue = 0;
-    if (promoCode) {
-      try {
-        const coupon = await storage.getCouponByCode(promoCode.toUpperCase());
-        if (coupon && coupon.isActive && (coupon.usedCount ?? 0) < (coupon.maxUses ?? 0) &&
-            (!coupon.expiresAt || new Date(coupon.expiresAt) >= new Date()) &&
-            (!coupon.tier || coupon.tier === normalizedTier)) {
-          const alreadyUsed = await storage.hasUserUsedCoupon(coupon.id, authReq.user!.id);
-          if (!alreadyUsed) {
-            promoDiscountValue = coupon.value || 0;
-            amountUAH = Math.round(amountUAH * (1 - promoDiscountValue / 100));
-            await storage.useCoupon(coupon.id, authReq.user!.id);
-            promoValid = true;
-          }
-        }
-      } catch (promoError) {
-        console.error("MonoPay promo code error:", promoError);
-      }
-    }
-
-    const amountUSD = (amountUAH / UAH_PER_USD).toFixed(2);
-
-    try {
-      const payment = await storage.createPayment({
-        userId: authReq.user!.id,
-        tier: normalizedTier,
-        amountUsdt: amountUSD,
-        txHash: null,
-        period,
-        status: "pending",
-      });
-
-      const appUrl = process.env.APP_URL || 'https://darkshare.store';
-      const reference = `DS-${payment.id}`;
-
-      const monoResponse = await fetch("https://api.monobank.ua/api/merchant/invoice/create", {
-        method: "POST",
-        headers: {
-          "X-Token": monoToken,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: amountUAH * 100,
-          ccy: 980,
-          merchantPaymInfo: {
-            reference,
-            destination: `DARKSHARE ${normalizedTier} ${period}`,
-            comment: "DARKSHARE subscription",
-          },
-          redirectUrl: `${appUrl}/pricing?payment=success`,
-          webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
-          saveCardData: {
-            saveCard: true,
-            walletId: `darkshare_${authReq.user!.id}`,
-          },
-        }),
-      });
-
-      if (!monoResponse.ok) {
-        const errorText = await monoResponse.text();
-        console.error("Monobank API error:", monoResponse.status, errorText);
-        return res.status(502).json({ error: "Failed to create MonoPay invoice" });
-      }
-
-      const monoData = await monoResponse.json();
-
-      if (monoData.invoiceId && pool) {
-        await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
-      }
-
-      if (botInstance) {
-        const user = authReq.user!;
-        const msgText = `\u{1F4B3} MonoPay заявка #${payment.id}\n\n` +
-          `\u{1F464} @${user.username || "\u2014"} (TG: ${user.tgId})\n` +
-          `\u{1F4E6} ${normalizedTier} (${period === "yearly" ? "рік" : "місяць"})\n` +
-          `\u{1F4B0} ${amountUAH} UAH (~$${amountUSD})\n` +
-          `${promoCode ? `\u{1F3AB} Промокод: ${promoCode}${promoValid ? " \u2705" : " \u274C"}\n` : ""}` +
-          `\u{1F517} Invoice: ${monoData.invoiceId || "—"}`;
-
-        for (const adminId of ADMIN_IDS) {
-          try {
-            await botInstance.telegram.sendMessage(adminId, msgText);
-          } catch (e) {
-            console.log(`Failed to notify admin ${adminId}:`, e);
-          }
-        }
-      }
-
-      res.json({ invoiceId: monoData.invoiceId, pageUrl: monoData.pageUrl });
-    } catch (err: any) {
-      console.error("MonoPay create error:", err);
-      res.status(500).json({ error: "Failed to create MonoPay payment" });
-    }
-  });
-
-  app.post("/api/payments/monopay/bot-create", async (req, res) => {
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const authHeader = req.headers["x-bot-token"];
-    if (!botToken || authHeader !== botToken) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const { tier, period, tgId } = req.body;
-
-    if (!tgId) {
-      return res.status(400).json({ error: "Missing tgId" });
-    }
-    if (!tier || !["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) {
-      return res.status(400).json({ error: "Invalid tier" });
-    }
-
-    const paymentPeriod = period || "monthly";
-    if (!["monthly", "yearly"].includes(paymentPeriod)) {
-      return res.status(400).json({ error: "Invalid period" });
-    }
-
-    const monoToken = process.env.MONOBANK_TOKEN;
-    if (!monoToken) {
-      return res.status(503).json({ error: "MonoPay is not configured yet. Please use another payment method." });
-    }
-
-    const user = await storage.getUserByTgId(tgId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const normalizedTier = tier.toUpperCase();
-    let amountUAH = MONOPAY_PRICES_UAH[normalizedTier]?.[paymentPeriod] || 0;
-    if (!amountUAH) {
-      return res.status(400).json({ error: "Could not calculate price" });
-    }
-
-    const amountUSD = (amountUAH / UAH_PER_USD).toFixed(2);
-
-    try {
-      const payment = await storage.createPayment({
-        userId: user.id,
-        tier: normalizedTier,
-        amountUsdt: amountUSD,
-        txHash: null,
-        period: paymentPeriod,
-        status: "pending",
-      });
-
-      const appUrl = process.env.APP_URL || 'https://darkshare.store';
-      const reference = `DS-${payment.id}`;
-
-      const monoResponse = await fetch("https://api.monobank.ua/api/merchant/invoice/create", {
-        method: "POST",
-        headers: {
-          "X-Token": monoToken,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: amountUAH * 100,
-          ccy: 980,
-          merchantPaymInfo: {
-            reference,
-            destination: `DARKSHARE ${normalizedTier} ${paymentPeriod}`,
-            comment: "DARKSHARE subscription",
-          },
-          redirectUrl: `${appUrl}/pricing?payment=success`,
-          webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
-          saveCardData: {
-            saveCard: true,
-            walletId: `darkshare_${user.id}`,
-          },
-        }),
-      });
-
-      if (!monoResponse.ok) {
-        const errorText = await monoResponse.text();
-        console.error("MonoPay bot API error:", monoResponse.status, errorText);
-        return res.status(502).json({ error: "Failed to create MonoPay invoice" });
-      }
-
-      const monoData = await monoResponse.json();
-
-      if (monoData.invoiceId && pool) {
-        await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [monoData.invoiceId, payment.id]);
-      }
-
-      if (botInstance) {
-        const msgText = `\u{1F4B3} MonoPay \u0437\u0430\u044F\u0432\u043A\u0430 #${payment.id}\n\n` +
-          `\u{1F464} @${user.username || "\u2014"} (TG: ${user.tgId})\n` +
-          `\u{1F4E6} ${normalizedTier} (${paymentPeriod === "yearly" ? "\u0440\u0456\u043A" : "\u043C\u0456\u0441\u044F\u0446\u044C"})\n` +
-          `\u{1F4B0} ${amountUAH} UAH (~$${amountUSD})\n` +
-          `\u{1F517} Invoice: ${monoData.invoiceId || "\u2014"}\n` +
-          `\u{1F4F1} Source: Bot`;
-
-        for (const adminId of ADMIN_IDS) {
-          try {
-            await botInstance.telegram.sendMessage(adminId, msgText);
-          } catch (e) {
-            console.log(`Failed to notify admin ${adminId}:`, e);
-          }
-        }
-      }
-
-      res.json({ invoiceId: monoData.invoiceId, pageUrl: monoData.pageUrl });
-    } catch (err: any) {
-      console.error("MonoPay bot create error:", err);
-      res.status(500).json({ error: "Failed to create MonoPay payment" });
-    }
-  });
-
-  app.post("/api/payments/monopay/webhook", async (req, res) => {
-    const { invoiceId, status, amount, ccy, reference } = req.body;
-    console.log("MonoPay webhook received:", JSON.stringify({ invoiceId, status, amount, ccy, reference }));
-
-    try {
-      if (status === "success" && reference) {
-        const paymentIdMatch = reference.match(/^DS-(?:AUDIT-)?(\d+)$/);
-        const isAuditPayment = /^DS-AUDIT-/.test(reference);
-        if (paymentIdMatch) {
-          const paymentId = parseInt(paymentIdMatch[1]);
-          const payment = await storage.getPaymentById(paymentId);
-
-          if (payment && payment.status === "pending") {
-            const MONO_TOKEN = process.env.MONOBANK_TOKEN;
-            if (MONO_TOKEN) {
-              try {
-                const verifyResp = await fetch(`https://api.monobank.ua/api/merchant/invoice/status?invoiceId=${invoiceId}`, {
-                  headers: { "X-Token": MONO_TOKEN },
-                });
-                const verifyData = await verifyResp.json() as any;
-                if (verifyData.status !== "success") {
-                  console.error("MonoPay webhook: API verification failed, status:", verifyData.status);
-                  return res.status(403).json({ error: "Payment not verified" });
-                }
-              } catch (verifyErr) {
-                console.error("MonoPay webhook: API verification error — rejecting:", verifyErr);
-                return res.status(500).json({ error: "Payment verification failed" });
-              }
-            } else {
-              console.error("MonoPay webhook: MONOBANK_TOKEN not set — cannot verify payment");
-              return res.status(500).json({ error: "Payment verification unavailable" });
-            }
-            await storage.updatePaymentStatus(paymentId, "approved");
-
-            if (payment.userId && isAuditPayment) {
-              const buyer = await storage.getUserById(payment.userId);
-              const newCredits = (buyer?.requestsLeft || 0) + SINGLE_AUDIT_CREDITS;
-              await storage.updateUser(payment.userId, { requestsLeft: newCredits } as any);
-              if (buyer && botInstance) {
-                try {
-                  const lang = buyer.lang || "uk";
-                  const m: Record<string, string> = {
-                    uk: `🧾 *Оплату підтверджено!*\n\nДодано *${SINGLE_AUDIT_CREDITS}* перевірок до твого балансу.\nЗагалом доступно: *${newCredits}*`,
-                    ru: `🧾 *Оплата подтверждена!*\n\nДобавлено *${SINGLE_AUDIT_CREDITS}* проверок к твоему балансу.\nВсего доступно: *${newCredits}*`,
-                    en: `🧾 *Payment confirmed!*\n\nAdded *${SINGLE_AUDIT_CREDITS}* checks to your balance.\nTotal available: *${newCredits}*`,
-                    es: `🧾 *Pago confirmado!*\n\nAñadidas *${SINGLE_AUDIT_CREDITS}* comprobaciones.\nDisponibles: *${newCredits}*`,
-                    de: `🧾 *Zahlung bestätigt!*\n\n*${SINGLE_AUDIT_CREDITS}* Checks gutgeschrieben.\nVerfügbar: *${newCredits}*`,
-                  };
-                  await botInstance.telegram.sendMessage(buyer.tgId, m[lang] || m.en, { parse_mode: "Markdown" });
-                } catch { /* ignore */ }
-              }
-            } else if (payment.userId) {
-              const tier = payment.tier?.toUpperCase() || "PRO";
-              const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
-              const periodDays = (payment as any).period === "yearly" ? 365 : 30;
-              const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
-              const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
-
-              if (req.body.cardToken) {
-                updateData.cardToken = req.body.cardToken;
-              }
-
-              await storage.updateUser(payment.userId, updateData);
-              autoProvisionAlorVpn(payment.userId, tier, periodDays).catch(() => {});
-
-              const user = await storage.getUserById(payment.userId);
-              if (user && botInstance) {
-                try {
-                  const lang = user.lang || "uk";
-                  const expiryStr = expiryDate.toLocaleDateString("uk-UA");
-                  const amountUAH_display = amount ? (amount / 100).toFixed(2) : "?";
-                  const receiptTexts: Record<string, string> = {
-                    uk: `🧾 *КВИТАНЦІЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплату підтверджено!\n\n📦 Тариф: *${tier}*\n💰 Сума: ${amountUAH_display} UAH\n🔢 Запитів: ${requests}/день\n📅 Діє до: ${expiryStr}\n🔄 Автоподовження: увімкнено\n\n━━━━━━━━━━━━━━━━━━━━\nДякуємо за довіру! 🙏`,
-                    ru: `🧾 *КВИТАНЦИЯ DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Оплата подтверждена!\n\n📦 Тариф: *${tier}*\n💰 Сумма: ${amountUAH_display} UAH\n🔢 Запросов: ${requests}/день\n📅 Действует до: ${expiryStr}\n🔄 Автопродление: включено\n\n━━━━━━━━━━━━━━━━━━━━\nСпасибо за доверие! 🙏`,
-                    en: `🧾 *DARKSHARE RECEIPT*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Payment confirmed!\n\n📦 Plan: *${tier}*\n💰 Amount: ${amountUAH_display} UAH\n🔢 Requests: ${requests}/day\n📅 Valid until: ${expiryStr}\n🔄 Auto-renewal: enabled\n\n━━━━━━━━━━━━━━━━━━━━\nThank you for your trust! 🙏`,
-                    es: `🧾 *RECIBO DARKSHARE*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ ¡Pago confirmado!\n\n📦 Plan: *${tier}*\n💰 Monto: ${amountUAH_display} UAH\n🔢 Solicitudes: ${requests}/día\n📅 Válido hasta: ${expiryStr}\n🔄 Renovación automática: activada\n\n━━━━━━━━━━━━━━━━━━━━\n¡Gracias por su confianza! 🙏`,
-                    de: `🧾 *DARKSHARE QUITTUNG*\n━━━━━━━━━━━━━━━━━━━━\n\n✅ Zahlung bestätigt!\n\n📦 Tarif: *${tier}*\n💰 Betrag: ${amountUAH_display} UAH\n🔢 Anfragen: ${requests}/Tag\n📅 Gültig bis: ${expiryStr}\n🔄 Automatische Verlängerung: aktiviert\n\n━━━━━━━━━━━━━━━━━━━━\nVielen Dank für Ihr Vertrauen! 🙏`,
-                  };
-                  const receiptText = receiptTexts[lang] || receiptTexts["en"];
-                  await botInstance.telegram.sendMessage(user.tgId, receiptText, { parse_mode: "Markdown" });
-                } catch (e) { /* ignore */ }
-              }
-            }
-
-            if (botInstance) {
-              const amountUAH = amount ? (amount / 100).toFixed(2) : "?";
-              const msgText = `\u2705 MonoPay оплата #${paymentId} підтверджена\n\n` +
-                `\u{1F4B0} ${amountUAH} UAH\n` +
-                `\u{1F4E6} ${payment.tier}\n` +
-                `\u{1F517} Invoice: ${invoiceId || "—"}`;
-              for (const adminId of ADMIN_IDS) {
-                try {
-                  await botInstance.telegram.sendMessage(adminId, msgText);
-                } catch (e) {
-                  console.log(`Failed to notify admin ${adminId}:`, e);
-                }
-              }
-            }
-          }
-        }
-      }
-
-      res.json({ status: "ok" });
-    } catch (err: any) {
-      console.error("MonoPay webhook error:", err);
-      res.status(500).json({ error: "Webhook processing failed" });
-    }
-  });
-
-  async function processAutoRenewals() {
-    try {
-      const monoToken = process.env.MONOBANK_TOKEN;
-      if (!monoToken) return;
-
-      if (!pool) return;
-      
-      const result = await pool.query(
-        `SELECT u.* FROM ds_users u WHERE u.auto_renew = true AND u.card_token IS NOT NULL AND u.subscription_expires_at IS NOT NULL AND u.subscription_expires_at <= NOW() + INTERVAL '1 day' AND u.tier != 'FREE' AND NOT EXISTS (SELECT 1 FROM ds_payments p WHERE p.user_id = u.id AND p.status = 'pending' AND p.created_at > NOW() - INTERVAL '2 days')`
-      );
-      
-      const usersToRenew = result.rows;
-      
-      for (const user of usersToRenew) {
-        try {
-          const tier = user.tier || "PRO";
-          const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
-          const amountUAH = uahPrices[tier] || 410;
-          const amountUSD = (amountUAH / 41).toFixed(2);
-          
-          const payment = await storage.createPayment({
-            userId: user.id,
-            tier,
-            amountUsdt: amountUSD,
-            txHash: null,
-            status: "pending",
-          });
-          
-          const appUrl = process.env.APP_URL || 'https://darkshare.store';
-          const reference = `DS-${payment.id}`;
-          
-          const monoResponse = await fetch("https://api.monobank.ua/api/merchant/wallet/payment", {
-            method: "POST",
-            headers: {
-              "X-Token": monoToken,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              cardToken: user.card_token,
-              amount: amountUAH * 100,
-              ccy: 980,
-              initiationKind: "merchant",
-              webHookUrl: `${appUrl}/api/payments/monopay/webhook`,
-              merchantPaymInfo: {
-                reference,
-                destination: `DARKSHARE ${tier} auto-renewal`,
-                comment: "DARKSHARE subscription auto-renewal",
-              },
-            }),
-          });
-          
-          if (!monoResponse.ok) {
-            const errorText = await monoResponse.text();
-            console.error(`Auto-renewal failed for user ${user.id}:`, errorText);
-            
-            if (botInstance) {
-              const lang = user.lang || "uk";
-              const failTexts: Record<string, string> = {
-                uk: `⚠️ *Автоподовження не вдалося*\n\nВаша підписка ${tier} не була автоматично подовжена. Будь ласка, оновіть спосіб оплати.`,
-                ru: `⚠️ *Автопродление не удалось*\n\nВаша подписка ${tier} не была автоматически продлена. Пожалуйста, обновите способ оплаты.`,
-                en: `⚠️ *Auto-renewal failed*\n\nYour ${tier} subscription could not be automatically renewed. Please update your payment method.`,
-                es: `⚠️ *Renovación automática fallida*\n\nSu suscripción ${tier} no pudo renovarse automáticamente. Actualice su método de pago.`,
-                de: `⚠️ *Automatische Verlängerung fehlgeschlagen*\n\nIhr ${tier}-Abonnement konnte nicht automatisch verlängert werden. Bitte aktualisieren Sie Ihre Zahlungsmethode.`,
-              };
-              const failText = failTexts[lang] || failTexts["en"];
-              try {
-                await botInstance.telegram.sendMessage(user.tg_id, failText, { parse_mode: "Markdown" });
-              } catch (e) { /* ignore */ }
-            }
-            
-            await storage.updateUser(user.id, { autoRenew: false });
-            continue;
-          }
-          
-          console.log(`Auto-renewal initiated for user ${user.id}, tier ${tier}, payment #${payment.id}`);
-          
-        } catch (err) {
-          console.error(`Auto-renewal error for user ${user.id}:`, err);
-        }
-      }
-    } catch (err) {
-      console.error("Auto-renewal scheduler error:", err);
-    }
-  }
-
-  setInterval(processAutoRenewals, 60 * 60 * 1000);
-
-  // --- Subscription expiry checker + 5-day reminder ---
   async function checkSubscriptionExpiry() {
     if (!pool) return;
     try {
@@ -2966,15 +2471,14 @@ ${urlEntries}
         try {
           await storage.updateUser(user.id, { tier: "FREE", requestsLeft: 5, autoRenew: false } as any);
           console.log(`Subscription expired for user ${user.id}, downgraded to FREE`);
-
           if (botInstance && user.tg_id) {
             const lang = user.lang || "uk";
             const expiredTexts: Record<string, string> = {
-              uk: `⚠️ *Підписка закінчилась*\n\nВаш тариф *${user.tier}* закінчився. Ви переведені на безкоштовний план (1 перевірка/день + 5 бонусних).\n\n💡 Поновіть підписку, щоб продовжити користуватися всіма функціями.`,
-              ru: `⚠️ *Подписка истекла*\n\nВаш тариф *${user.tier}* истёк. Вы переведены на бесплатный план (1 проверка/день + 5 бонусных).\n\n💡 Обновите подписку, чтобы продолжить использование всех функций.`,
-              en: `⚠️ *Subscription expired*\n\nYour *${user.tier}* plan has expired. You've been downgraded to the free plan (1 check/day + 5 bonus).\n\n💡 Renew your subscription to keep using all features.`,
-              es: `⚠️ *Suscripción expirada*\n\nSu plan *${user.tier}* ha expirado. Ha sido degradado al plan gratuito (1 verificación/día + 5 de bono).\n\n💡 Renueve su suscripción para seguir usando todas las funciones.`,
-              de: `⚠️ *Abonnement abgelaufen*\n\nIhr *${user.tier}*-Plan ist abgelaufen. Sie wurden auf den kostenlosen Plan herabgestuft (1 Prüfung/Tag + 5 Bonus).\n\n💡 Verlängern Sie Ihr Abonnement, um alle Funktionen weiterhin nutzen zu können.`,
+              uk: `⚠️ *Підписка закінчилась*\n\nВаш тариф *${user.tier}* закінчився. Ви переведені на безкоштовний план.\n\n💡 Поновіть підписку, щоб продовжити користуватися всіма функціями.`,
+              ru: `⚠️ *Подписка истекла*\n\nВаш тариф *${user.tier}* истёк. Вы переведены на бесплатный план.\n\n💡 Обновите подписку, чтобы продолжить использование.`,
+              en: `⚠️ *Subscription expired*\n\nYour *${user.tier}* plan has expired. You've been downgraded to the free plan.\n\n💡 Renew your subscription to keep using all features.`,
+              es: `⚠️ *Suscripción expirada*\n\nSu plan *${user.tier}* ha expirado. Ha sido degradado al plan gratuito.\n\n💡 Renueve su suscripción para seguir usando todas las funciones.`,
+              de: `⚠️ *Abonnement abgelaufen*\n\nIhr *${user.tier}*-Plan ist abgelaufen. Sie wurden auf den kostenlosen Plan herabgestuft.\n\n💡 Verlängern Sie Ihr Abonnement, um alle Funktionen zu nutzen.`,
             };
             try {
               await botInstance.telegram.sendMessage(user.tg_id, expiredTexts[lang] || expiredTexts["en"], { parse_mode: "Markdown" });
@@ -2995,11 +2499,11 @@ ${urlEntries}
             const daysLeft = Math.ceil((new Date(user.subscription_expires_at).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
             const expiryStr = new Date(user.subscription_expires_at).toLocaleDateString("uk-UA");
             const reminderTexts: Record<string, string> = {
-              uk: `🔔 *Нагадування про підписку*\n\nВаш тариф *${user.tier}* закінчується через *${daysLeft}* ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дні" : "днів"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 Автоподовження увімкнено — оплата буде списана автоматично." : "💡 Поновіть підписку, щоб не втратити доступ до функцій.\n\n/buy — оновити тариф"}`,
-              ru: `🔔 *Напоминание о подписке*\n\nВаш тариф *${user.tier}* заканчивается через *${daysLeft}* ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дня" : "дней"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 Автопродление включено — оплата будет списана автоматически." : "💡 Обновите подписку, чтобы не потерять доступ к функциям.\n\n/buy — обновить тариф"}`,
-              en: `🔔 *Subscription reminder*\n\nYour *${user.tier}* plan expires in *${daysLeft}* day${daysLeft === 1 ? "" : "s"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 Auto-renewal is enabled — you'll be charged automatically." : "💡 Renew your subscription to keep access to all features.\n\n/buy — upgrade plan"}`,
-              es: `🔔 *Recordatorio de suscripción*\n\nSu plan *${user.tier}* vence en *${daysLeft}* día${daysLeft === 1 ? "" : "s"} (${expiryStr}).\n\n${user.auto_renew ? "🔄 La renovación automática está activada." : "💡 Renueve su suscripción para mantener el acceso.\n\n/buy — actualizar plan"}`,
-              de: `🔔 *Abonnement-Erinnerung*\n\nIhr *${user.tier}*-Plan läuft in *${daysLeft}* Tag${daysLeft === 1 ? "" : "en"} ab (${expiryStr}).\n\n${user.auto_renew ? "🔄 Automatische Verlängerung ist aktiviert." : "💡 Verlängern Sie Ihr Abonnement, um den Zugang zu behalten.\n\n/buy — Plan erneuern"}`,
+              uk: `🔔 *Нагадування про підписку*\n\nВаш тариф *${user.tier}* закінчується через *${daysLeft}* ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дні" : "днів"} (${expiryStr}).\n\n💡 Поновіть підписку, щоб не втратити доступ.\n\n/buy — оновити тариф`,
+              ru: `🔔 *Напоминание о подписке*\n\nВаш тариф *${user.tier}* заканчивается через *${daysLeft}* ${daysLeft === 1 ? "день" : daysLeft < 5 ? "дня" : "дней"} (${expiryStr}).\n\n💡 Обновите подписку, чтобы не потерять доступ.\n\n/buy — обновить тариф`,
+              en: `🔔 *Subscription reminder*\n\nYour *${user.tier}* plan expires in *${daysLeft}* day${daysLeft === 1 ? "" : "s"} (${expiryStr}).\n\n💡 Renew your subscription to keep access to all features.\n\n/buy — upgrade plan`,
+              es: `🔔 *Recordatorio de suscripción*\n\nSu plan *${user.tier}* vence en *${daysLeft}* día${daysLeft === 1 ? "" : "s"} (${expiryStr}).\n\n💡 Renueve su suscripción para mantener el acceso.\n\n/buy — actualizar plan`,
+              de: `🔔 *Abonnement-Erinnerung*\n\nIhr *${user.tier}*-Plan läuft in *${daysLeft}* Tag${daysLeft === 1 ? "" : "en"} ab (${expiryStr}).\n\n💡 Verlängern Sie Ihr Abonnement, um den Zugang zu behalten.\n\n/buy — Plan erneuern`,
             };
             try {
               await botInstance.telegram.sendMessage(user.tg_id, reminderTexts[lang] || reminderTexts["en"], { parse_mode: "Markdown" });
@@ -3011,17 +2515,9 @@ ${urlEntries}
         }
       }
 
-      // --- Free VPN trial / referral-day expiry notification ---
-      // When a FREE user's VPN day is about to end, nudge them once to either
-      // buy a DarkShare subscription or invite 3 friends for +1 day.
+      // VPN free-trial expiry notification
       const vpnEndResult = await pool.query(
-        `SELECT * FROM ds_users
-         WHERE tier = 'FREE'
-           AND alor_vpn_token IS NOT NULL
-           AND vpn_trial_expiry_notified = false
-           AND alor_vpn_expires_at IS NOT NULL
-           AND alor_vpn_expires_at > NOW()
-           AND alor_vpn_expires_at <= NOW() + INTERVAL '6 hours'`
+        `SELECT * FROM ds_users WHERE tier = 'FREE' AND alor_vpn_token IS NOT NULL AND vpn_trial_expiry_notified = false AND alor_vpn_expires_at IS NOT NULL AND alor_vpn_expires_at > NOW() AND alor_vpn_expires_at <= NOW() + INTERVAL '6 hours'`
       );
       let botUsernameForVpn = "";
       if (vpnEndResult.rows.length > 0 && botInstance) {
@@ -3041,19 +2537,15 @@ ${urlEntries}
               es: `⏳ <b>Tu día gratis de VPN está terminando</b>\n\nPara mantener el acceso:\n• 💎 Suscríbete a DARKSHARE\n• 👥 O invita a <b>3 amigos</b> y obtén <b>+1 día</b> gratis`,
               de: `⏳ <b>Dein Gratis-VPN-Tag endet bald</b>\n\nUm den Zugang zu behalten:\n• 💎 DARKSHARE-Abo abschließen\n• 👥 Oder lade <b>3 Freunde</b> ein für <b>+1 Tag</b> gratis`,
             };
-            const inviteBtn: Record<string, string> = {
-              uk: "👥 Запросити друзів", ru: "👥 Пригласить друзей", en: "👥 Invite friends", es: "👥 Invitar amigos", de: "👥 Freunde einladen",
-            };
-            const buyBtn: Record<string, string> = {
-              uk: "💎 Оформити підписку", ru: "💎 Оформить подписку", en: "💎 Subscribe", es: "💎 Suscribirse", de: "💎 Abo abschließen",
-            };
             const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent("🛡️ DARKSHARE VPN")}`;
+            const inviteBtn: Record<string, string> = { uk: "👥 Запросити друзів", ru: "👥 Пригласить друзей", en: "👥 Invite friends", es: "👥 Invitar amigos", de: "👥 Freunde einladen" };
+            const buyBtn: Record<string, string> = { uk: "💎 Оформити підписку", ru: "💎 Оформить подписку", en: "💎 Subscribe", es: "💎 Suscribirse", de: "💎 Abo abschließen" };
             await botInstance.telegram.sendMessage(user.tg_id, vpnEndTexts[lang] || vpnEndTexts["en"], {
               parse_mode: "HTML",
               reply_markup: {
                 inline_keyboard: [
-                  [{ text: (inviteBtn[lang] || inviteBtn["en"]), url: shareUrl }],
-                  [{ text: (buyBtn[lang] || buyBtn["en"]), url: "https://www.darkshare.store/pricing?src=vpn_expiry" }],
+                  [{ text: inviteBtn[lang] || inviteBtn["en"], url: shareUrl }],
+                  [{ text: buyBtn[lang] || buyBtn["en"], url: "https://www.darkshare.store/pricing?src=vpn_expiry" }],
                 ],
               },
             });
@@ -3070,194 +2562,6 @@ ${urlEntries}
 
   setInterval(checkSubscriptionExpiry, 60 * 60 * 1000);
   setTimeout(checkSubscriptionExpiry, 30000);
-
-  app.post("/api/payments/monopay/check-status", async (req, res) => {
-    const botToken = req.headers["x-bot-token"];
-    const isBot = botToken === process.env.TELEGRAM_BOT_TOKEN;
-    const isAuthenticated = req.session?.userId;
-    if (!isBot && !isAuthenticated) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const { paymentId, tgId } = req.body;
-    const monoToken = process.env.MONOBANK_TOKEN;
-    if (!monoToken) return res.status(503).json({ error: "MonoPay not configured" });
-
-    try {
-      let payment: any;
-      if (paymentId) {
-        payment = await storage.getPaymentById(paymentId);
-      } else if (tgId) {
-        const user = await storage.getUserByTgId(tgId);
-        if (!user) return res.status(404).json({ error: "User not found" });
-        if (pool) {
-          const result = await pool.query(
-            `SELECT * FROM ds_payments WHERE user_id = $1 AND status = 'pending' AND invoice_id IS NOT NULL ORDER BY created_at DESC LIMIT 1`,
-            [user.id]
-          );
-          if (result.rows.length > 0) {
-            const row = result.rows[0];
-            payment = {
-              id: row.id,
-              userId: row.user_id,
-              tier: row.tier,
-              amountUsdt: row.amount_usdt,
-              txHash: row.tx_hash,
-              screenshotUrl: row.screenshot_url,
-              invoiceId: row.invoice_id,
-              period: row.period,
-              status: row.status,
-              createdAt: row.created_at,
-            };
-          }
-        }
-      }
-
-      if (!payment || !payment.invoiceId) {
-        return res.status(404).json({ error: "No pending payment found" });
-      }
-
-      if (payment.status !== "pending") {
-        return res.json({ status: payment.status, alreadyProcessed: true });
-      }
-
-      const statusResponse = await fetch(`https://api.monobank.ua/api/merchant/invoice/status?invoiceId=${payment.invoiceId}`, {
-        headers: { "X-Token": monoToken },
-      });
-
-      if (!statusResponse.ok) {
-        return res.status(502).json({ error: "Failed to check MonoPay status" });
-      }
-
-      const statusData = await statusResponse.json();
-      console.log("MonoPay status check:", JSON.stringify({ invoiceId: payment.invoiceId, status: statusData.status }));
-
-      if (statusData.status === "success") {
-        await storage.updatePaymentStatus(payment.id, "approved");
-
-        if (payment.userId) {
-          const tier = payment.tier?.toUpperCase() || "PRO";
-          const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
-          const periodDays = payment.period === "yearly" ? 365 : 30;
-          const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
-          const updateData: any = { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true };
-
-          await storage.updateUser(payment.userId, updateData);
-          autoProvisionAlorVpn(payment.userId, tier, periodDays).catch(() => {});
-
-          const user = await storage.getUserById(payment.userId);
-          if (user && botInstance) {
-            try {
-              const lang = user.lang || "uk";
-              const expiryStr = expiryDate.toLocaleDateString("uk-UA");
-              const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "\u221E" : "50";
-              const amountDisplay = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${payment.amountUsdt} USD`;
-              const receiptTexts: Record<string, string> = {
-                uk: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0406\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0438\u0442\u0456\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0456\u0454 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0456\u0436: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0414\u044F\u043A\u0443\u0454\u043C\u043E \u0437\u0430 \u0434\u043E\u0432\u0456\u0440\u0443! \u{1F64F}`,
-                ru: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0418\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0440\u043E\u0441\u043E\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0451\u0436: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0437\u0430 \u0434\u043E\u0432\u0435\u0440\u0438\u0435! \u{1F64F}`,
-                en: `\u{1F9FE} *DARKSHARE RECEIPT*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Payment confirmed!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Amount: ${amountDisplay}\n\u{1F522} Requests: ${requestsDisplay}/day\n\u{1F4C5} Valid until: ${expiryStr}\n\u{1F194} Payment: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nThank you for your trust! \u{1F64F}`,
-                es: `\u{1F9FE} *RECIBO DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u00A1Pago confirmado!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Monto: ${amountDisplay}\n\u{1F522} Solicitudes: ${requestsDisplay}/d\u00EDa\n\u{1F4C5} V\u00E1lido hasta: ${expiryStr}\n\u{1F194} Pago: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u00A1Gracias por su confianza! \u{1F64F}`,
-                de: `\u{1F9FE} *DARKSHARE QUITTUNG*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Zahlung best\u00E4tigt!\n\n\u{1F4E6} Tarif: *${tier}*\n\u{1F4B0} Betrag: ${amountDisplay}\n\u{1F522} Anfragen: ${requestsDisplay}/Tag\n\u{1F4C5} G\u00FCltig bis: ${expiryStr}\n\u{1F194} Zahlung: #${payment.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nVielen Dank f\u00FCr Ihr Vertrauen! \u{1F64F}`,
-              };
-              const receiptText = receiptTexts[lang] || receiptTexts["en"];
-              await botInstance.telegram.sendMessage(user.tgId, receiptText, { parse_mode: "Markdown" });
-            } catch (e) { console.log("Failed to send receipt:", e); }
-          }
-
-          if (botInstance) {
-            const amountStr = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${payment.amountUsdt}`;
-            const msgText = `\u2705 MonoPay \u043E\u043F\u043B\u0430\u0442\u0430 #${payment.id} \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u0430 (manual check)\n\n\u{1F4B0} ${amountStr}\n\u{1F4E6} ${payment.tier}\n\u{1F517} Invoice: ${payment.invoiceId || "\u2014"}`;
-            for (const adminId of ADMIN_IDS) {
-              try { await botInstance.telegram.sendMessage(adminId, msgText); } catch (e) {}
-            }
-          }
-        }
-
-        return res.json({ status: "success", processed: true });
-      } else if (statusData.status === "expired" || statusData.status === "failure") {
-        await storage.updatePaymentStatus(payment.id, "expired");
-        return res.json({ status: statusData.status, processed: false });
-      }
-
-      return res.json({ status: statusData.status || "pending", processed: false });
-    } catch (err: any) {
-      console.error("MonoPay status check error:", err);
-      res.status(500).json({ error: "Status check failed" });
-    }
-  });
-
-  async function checkPendingMonoPayments() {
-    const monoToken = process.env.MONOBANK_TOKEN;
-    if (!monoToken || !pool) return;
-
-    try {
-      const result = await pool.query(
-        `SELECT * FROM ds_payments WHERE status = 'pending' AND invoice_id IS NOT NULL AND created_at > NOW() - INTERVAL '1 hour'`
-      );
-
-      for (const row of result.rows) {
-        try {
-          const statusResponse = await fetch(`https://api.monobank.ua/api/merchant/invoice/status?invoiceId=${row.invoice_id}`, {
-            headers: { "X-Token": monoToken },
-          });
-
-          if (!statusResponse.ok) continue;
-          const statusData = await statusResponse.json();
-
-          if (statusData.status === "success") {
-            await storage.updatePaymentStatus(row.id, "approved");
-
-            if (row.user_id) {
-              const tier = row.tier?.toUpperCase() || "PRO";
-              const requests = TIER_REQUESTS[tier] || TIER_REQUESTS.PRO;
-              const periodDays = row.period === "yearly" ? 365 : 30;
-              const expiryDate = new Date(Date.now() + periodDays * 24 * 60 * 60 * 1000);
-
-              await storage.updateUser(row.user_id, { tier, requestsLeft: requests, subscriptionExpiresAt: expiryDate, autoRenew: true } as any);
-              autoProvisionAlorVpn(row.user_id, tier, periodDays).catch(() => {});
-
-              const user = await storage.getUserById(row.user_id);
-              if (user && botInstance) {
-                try {
-                  const lang = user.lang || "uk";
-                  const expiryStr = expiryDate.toLocaleDateString("uk-UA");
-                  const requestsDisplay = tier === "ENTERPRISE" || tier === "GROUPS" ? "\u221E" : "50";
-                  const amountDisplay = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${row.amount_usdt} USD`;
-                  const receiptTexts: Record<string, string> = {
-                    uk: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0406\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0438\u0442\u0456\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0456\u0454 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0456\u0436: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0414\u044F\u043A\u0443\u0454\u043C\u043E \u0437\u0430 \u0434\u043E\u0432\u0456\u0440\u0443! \u{1F64F}`,
-                    ru: `\u{1F9FE} *\u041A\u0412\u0418\u0422\u0410\u041D\u0426\u0418\u042F DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430!\n\n\u{1F4E6} \u0422\u0430\u0440\u0438\u0444: *${tier}*\n\u{1F4B0} \u0421\u0443\u043C\u043C\u0430: ${amountDisplay}\n\u{1F522} \u0417\u0430\u043F\u0440\u043E\u0441\u043E\u0432: ${requestsDisplay}/\u0434\u0435\u043D\u044C\n\u{1F4C5} \u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0434\u043E: ${expiryStr}\n\u{1F194} \u041F\u043B\u0430\u0442\u0451\u0436: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0437\u0430 \u0434\u043E\u0432\u0435\u0440\u0438\u0435! \u{1F64F}`,
-                    en: `\u{1F9FE} *DARKSHARE RECEIPT*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Payment confirmed!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Amount: ${amountDisplay}\n\u{1F522} Requests: ${requestsDisplay}/day\n\u{1F4C5} Valid until: ${expiryStr}\n\u{1F194} Payment: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nThank you for your trust! \u{1F64F}`,
-                    es: `\u{1F9FE} *RECIBO DARKSHARE*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 \u00A1Pago confirmado!\n\n\u{1F4E6} Plan: *${tier}*\n\u{1F4B0} Monto: ${amountDisplay}\n\u{1F522} Solicitudes: ${requestsDisplay}/d\u00EDa\n\u{1F4C5} V\u00E1lido hasta: ${expiryStr}\n\u{1F194} Pago: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u00A1Gracias por su confianza! \u{1F64F}`,
-                    de: `\u{1F9FE} *DARKSHARE QUITTUNG*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n\u2705 Zahlung best\u00E4tigt!\n\n\u{1F4E6} Tarif: *${tier}*\n\u{1F4B0} Betrag: ${amountDisplay}\n\u{1F522} Anfragen: ${requestsDisplay}/Tag\n\u{1F4C5} G\u00FCltig bis: ${expiryStr}\n\u{1F194} Zahlung: #${row.id}\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nVielen Dank f\u00FCr Ihr Vertrauen! \u{1F64F}`,
-                  };
-                  const receiptText = receiptTexts[lang] || receiptTexts["en"];
-                  await botInstance.telegram.sendMessage(user.tgId, receiptText, { parse_mode: "Markdown" });
-                } catch (e) { console.log("Failed to send auto-receipt:", e); }
-              }
-
-              if (botInstance) {
-                const amountStr = statusData.amount ? (statusData.amount / 100).toFixed(2) + " UAH" : `$${row.amount_usdt}`;
-                const msgText = `\u2705 MonoPay \u043E\u043F\u043B\u0430\u0442\u0430 #${row.id} \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u0430 (auto-check)\n\n\u{1F4B0} ${amountStr}\n\u{1F4E6} ${row.tier}`;
-                for (const adminId of ADMIN_IDS) {
-                  try { await botInstance.telegram.sendMessage(adminId, msgText); } catch (e) {}
-                }
-              }
-            }
-          } else if (statusData.status === "expired" || statusData.status === "failure") {
-            await storage.updatePaymentStatus(row.id, "expired");
-          }
-
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (e) {
-          console.log(`Failed to check payment ${row.id}:`, e);
-        }
-      }
-    } catch (err) {
-      console.error("Pending payments check error:", err);
-    }
-  }
-
-  setInterval(checkPendingMonoPayments, 2 * 60 * 1000);
 
   // ==================== ADMIN API ROUTES ====================
   

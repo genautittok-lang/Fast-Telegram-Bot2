@@ -243,7 +243,7 @@ export async function setupBot(storage: IStorage) {
           { tag: "li", children: ["Everything from Enterprise + up to 10 team members"] },
           { tag: "li", children: ["Team analytics + shared reports + team chat"] },
         ]},
-        { tag: "p", children: ["Payment methods: Crypto (TON -5%, USDT, ETH, BTC), MonoPay (Monobank), promo codes."] },
+        { tag: "p", children: ["Payment methods: Crypto (TON -5%, USDT, ETH, BTC), Telegram Stars, promo codes."] },
 
         { tag: "h3", children: [tl("💡 Поради безпеки", "💡 Советы безопасности", "💡 Security Tips", pl)] },
         { tag: "ul", children: [
@@ -262,7 +262,7 @@ export async function setupBot(storage: IStorage) {
         { tag: "h3", children: [tl("❓ Часті питання", "❓ Частые вопросы", "❓ FAQ", pl)] },
         { tag: "p", children: [{ tag: "b", children: ["How many free checks total?"] }, " — FREE plan: 3 trial checks (lifetime). Earn +5 more via referrals."] },
         { tag: "p", children: [{ tag: "b", children: ["How does inline mode work?"] }, " — In any Telegram chat, type @DarkShare1Bot + check type + value. Result appears as sendable inline message."] },
-        { tag: "p", children: [{ tag: "b", children: ["How to pay?"] }, " — Crypto (TON, USDT, ETH, BTC), MonoPay, or promo codes. Available in bot and on website /pricing page."] },
+        { tag: "p", children: [{ tag: "b", children: ["How to pay?"] }, " — Crypto (TON, USDT, ETH, BTC), Telegram Stars, or promo codes. Available in bot and on website /pricing page."] },
         { tag: "p", children: [{ tag: "b", children: ["Is my data safe?"] }, " — Yes. No raw data stored. Results encrypted. 2FA available. Sessions manageable from Account page."] },
         { tag: "p", children: [{ tag: "b", children: ["What is Bulk mode?"] }, " — Check up to 50 targets at once. Paste a list (one per line) and get a bulk report."] },
         { tag: "p", children: [{ tag: "b", children: ["How does monitoring work?"] }, " — Add targets to monitoring. System auto-checks at chosen intervals (1/6/24h) and notifies via Telegram."] },
@@ -1726,7 +1726,6 @@ ${referralStats.count >= 5 ? pe("check") : "⬜"} ${pe("people")} 5+`;
           parse_mode: "Markdown",
           ...Markup.inlineKeyboard([
             [cb(`⭐ Telegram Stars (${discountedStars} ⭐)`, `bot_pay_method_${tier}_stars_promo_${coupon.value}`, "primary", E.star)],
-            [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
             [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
             [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
           ])
@@ -3093,7 +3092,6 @@ ${faqText}`;
     
     const keyboard = Markup.inlineKeyboard([
       [cb(`⭐ Telegram Stars (${starPrices[tier]} ⭐)`, `bot_pay_method_${tier}_stars`, "primary", E.star)],
-      [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
       [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
       [cb((lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : lang === "es" ? "Código promo" : lang === "de" ? "Promo-Code" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
       [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
@@ -3285,118 +3283,7 @@ ${faqText}`;
     }
   });
 
-  bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_monobank$/, async (ctx) => {
-    const tier = ctx.match[1];
-    const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
-    
-    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
-    
-    try {
-      const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/payments/monopay/bot-create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Bot-Token": process.env.TELEGRAM_BOT_TOKEN || "",
-        },
-        body: JSON.stringify({
-          tier,
-          period: "monthly",
-          tgId
-        }),
-      });
-      
-      const data = await response.json();
-      if (response.ok && data.pageUrl) {
-        const methodName = lang === "uk" ? "Google Pay / Apple Pay" : lang === "ru" ? "Google Pay / Apple Pay" : "Google Pay / Apple Pay";
-        const amountLabel = lang === "uk" ? "Сума" : lang === "ru" ? "Сумма" : lang === "es" ? "Monto" : lang === "de" ? "Betrag" : "Amount";
-        const clickText = lang === "uk" ? "Натисніть кнопку нижче для оплати:" : lang === "ru" ? "Нажмите кнопку ниже для оплаты:" : lang === "es" ? "Pulsa el botón para pagar:" : lang === "de" ? "Tippe auf den Button zum Bezahlen:" : "Click the button below to pay:";
-        const text =
-          `${pe("card")} <b>${escHtml(methodName)}</b>\n\n` +
-          `${pe("money")} ${escHtml(amountLabel)}: <b>${uahPrices[tier]} UAH</b>\n\n` +
-          `${pe("rocket")} ${escHtml(clickText)}`;
-        
-        const keyboard = Markup.inlineKeyboard([
-          [urlS(`💳 ${lang === "uk" ? "Оплатити" : lang === "ru" ? "Оплатить" : "Pay"} ${uahPrices[tier]} UAH`, data.pageUrl, "success", E.money)],
-          [cb(`✅ ${lang === "uk" ? "Я оплатив" : lang === "ru" ? "Я оплатил" : "I paid"}`, `check_mono_payment`, "success", E.check)],
-          [cb(t(lang, "buttons.back"), `bot_pay_tier_${tier}`, "danger", E.back)]
-        ]);
-        
-        try {
-          await ctx.editMessageText(text, { parse_mode: "HTML", ...keyboard });
-        } catch {
-          await ctx.reply(text, { parse_mode: "HTML", ...keyboard });
-        }
-      } else {
-        const errorText = lang === "uk" ? "❌ Помилка створення платежу. Спробуйте інший спосіб оплати." : lang === "ru" ? "❌ Ошибка создания платежа. Попробуйте другой способ оплаты." : "❌ Payment creation failed. Try another payment method.";
-        await ctx.answerCbQuery(errorText, { show_alert: true });
-      }
-    } catch {
-      const errorText = lang === "uk" ? "❌ Помилка з'єднання з платіжною системою." : lang === "ru" ? "❌ Ошибка соединения с платёжной системой." : "❌ Payment system connection error.";
-      await ctx.answerCbQuery(errorText, { show_alert: true });
-    }
-  });
-
-  bot.action("check_mono_payment", async (ctx) => {
-    const tgId = ctx.from!.id.toString();
-    const lang = await getLang(tgId);
-    
-    try {
-      const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/payments/monopay/check-status`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Bot-Token": process.env.TELEGRAM_BOT_TOKEN || "",
-        },
-        body: JSON.stringify({ tgId }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.status === "success" && data.processed) {
-        const successText = lang === "uk" ? "\u2705 \u041E\u043F\u043B\u0430\u0442\u0443 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043E! \u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u043D\u043E\u0432\u043B\u0435\u043D\u043E. \u041A\u0432\u0438\u0442\u0430\u043D\u0446\u0456\u044E \u043D\u0430\u0434\u0456\u0441\u043B\u0430\u043D\u043E \u0432\u0438\u0449\u0435." :
-                            lang === "ru" ? "\u2705 \u041E\u043F\u043B\u0430\u0442\u0430 \u043F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0430! \u0412\u0430\u0448 \u0442\u0430\u0440\u0438\u0444 \u043E\u0431\u043D\u043E\u0432\u043B\u0451\u043D. \u041A\u0432\u0438\u0442\u0430\u043D\u0446\u0438\u044F \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0430 \u0432\u044B\u0448\u0435." :
-                            "\u2705 Payment confirmed! Your plan has been upgraded. Receipt sent above.";
-        await ctx.answerCbQuery(successText, { show_alert: true });
-        
-        const doneTitle = lang === "uk" ? "Оплату підтверджено!" : lang === "ru" ? "Оплата подтверждена!" : lang === "es" ? "¡Pago confirmado!" : lang === "de" ? "Zahlung bestätigt!" : "Payment confirmed!";
-        const doneSub = lang === "uk" ? "Ваш тариф оновлено автоматично." : lang === "ru" ? "Ваш тариф обновлён автоматически." : lang === "es" ? "Tu plan se ha actualizado automáticamente." : lang === "de" ? "Dein Tarif wurde automatisch aktualisiert." : "Your plan has been upgraded automatically.";
-        const doneText = `${pe("check")} <b>${escHtml(doneTitle)}</b>\n\n${pe("rocket_up")} ${escHtml(doneSub)}`;
-        const keyboard = Markup.inlineKeyboard([
-          [cb("\u{1F3E0} " + (lang === "uk" ? "\u041C\u0435\u043D\u044E" : lang === "ru" ? "\u041C\u0435\u043D\u044E" : "Menu"), "dashboard", "primary", E.home)]
-        ]);
-        try {
-          await ctx.editMessageText(doneText, { parse_mode: "HTML", ...keyboard });
-        } catch { }
-      } else if (data.status === "expired" || data.status === "failure") {
-        const failText = lang === "uk" ? "\u274C \u041F\u043B\u0430\u0442\u0456\u0436 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E \u0430\u0431\u043E \u0447\u0430\u0441 \u043C\u0438\u043D\u0443\u0432. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437." :
-                         lang === "ru" ? "\u274C \u041F\u043B\u0430\u0442\u0451\u0436 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0451\u043D \u0438\u043B\u0438 \u0432\u0440\u0435\u043C\u044F \u0438\u0441\u0442\u0435\u043A\u043B\u043E. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0441\u043D\u043E\u0432\u0430." :
-                         "\u274C Payment not completed or expired. Please try again.";
-        await ctx.answerCbQuery(failText, { show_alert: true });
-      } else if (data.alreadyProcessed) {
-        const alreadyText = lang === "uk" ? "\u2705 \u0426\u0435\u0439 \u043F\u043B\u0430\u0442\u0456\u0436 \u0432\u0436\u0435 \u043E\u0431\u0440\u043E\u0431\u043B\u0435\u043D\u043E." :
-                            lang === "ru" ? "\u2705 \u042D\u0442\u043E\u0442 \u043F\u043B\u0430\u0442\u0451\u0436 \u0443\u0436\u0435 \u043E\u0431\u0440\u0430\u0431\u043E\u0442\u0430\u043D." :
-                            "\u2705 This payment has already been processed.";
-        await ctx.answerCbQuery(alreadyText, { show_alert: true });
-      } else if (data.error === "No pending payment found") {
-        const noPaymentText = lang === "uk" ? "\u23F3 \u041D\u0435 \u0437\u043D\u0430\u0439\u0434\u0435\u043D\u043E \u0430\u043A\u0442\u0438\u0432\u043D\u0438\u0445 \u043F\u043B\u0430\u0442\u0435\u0436\u0456\u0432. \u0421\u0442\u0432\u043E\u0440\u0456\u0442\u044C \u043D\u043E\u0432\u0438\u0439." :
-                              lang === "ru" ? "\u23F3 \u0410\u043A\u0442\u0438\u0432\u043D\u044B\u0445 \u043F\u043B\u0430\u0442\u0435\u0436\u0435\u0439 \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D\u043E. \u0421\u043E\u0437\u0434\u0430\u0439\u0442\u0435 \u043D\u043E\u0432\u044B\u0439." :
-                              "\u23F3 No active payments found. Create a new one.";
-        await ctx.answerCbQuery(noPaymentText, { show_alert: true });
-      } else {
-        const pendingText = lang === "uk" ? "\u23F3 \u041E\u043F\u043B\u0430\u0442\u0443 \u0449\u0435 \u043D\u0435 \u043E\u0442\u0440\u0438\u043C\u0430\u043D\u043E. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0447\u0435\u0440\u0435\u0437 \u0445\u0432\u0438\u043B\u0438\u043D\u0443." :
-                            lang === "ru" ? "\u23F3 \u041E\u043F\u043B\u0430\u0442\u0430 \u0435\u0449\u0451 \u043D\u0435 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0430. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u0447\u0435\u0440\u0435\u0437 \u043C\u0438\u043D\u0443\u0442\u0443." :
-                            "\u23F3 Payment not received yet. Try again in a minute.";
-        await ctx.answerCbQuery(pendingText, { show_alert: true });
-      }
-    } catch (err) {
-      console.error("Check mono payment error:", err);
-      const errorText = lang === "uk" ? "\u274C \u041F\u043E\u043C\u0438\u043B\u043A\u0430 \u043F\u0435\u0440\u0435\u0432\u0456\u0440\u043A\u0438. \u0421\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u0456\u0437\u043D\u0456\u0448\u0435." :
-                        lang === "ru" ? "\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0438. \u041F\u043E\u043F\u0440\u043E\u0431\u0443\u0439\u0442\u0435 \u043F\u043E\u0437\u0436\u0435." :
-                        "\u274C Check failed. Try again later.";
-      await ctx.answerCbQuery(errorText, { show_alert: true });
-    }
-  });
+  // MonoPay payment handlers removed — MonoPay is no longer supported
 
   bot.action(/^bot_pay_method_(PRO|ENTERPRISE|GROUPS)_crypto$/, async (ctx) => {
     const tier = ctx.match[1];
@@ -3522,7 +3409,6 @@ ${faqText}`;
     
     const keyboard = Markup.inlineKeyboard([
       [cb(`⭐ Telegram Stars (${starPrices[tier]} ⭐)`, `bot_pay_method_${tier}_stars`, "primary", E.star)],
-      [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
       [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
       [cb((lang === "uk" ? "Промокод" : lang === "ru" ? "Промокод" : "Promo code"), `bot_pay_promo_${tier}`, "success", E.gift)],
       [cb(t(lang, "buttons.back"), "bot_payment", "danger", E.back)]
