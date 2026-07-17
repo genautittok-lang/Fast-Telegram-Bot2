@@ -1,4 +1,6 @@
-# Stage 1: Build
+# ─────────────────────────────────────────────────────────
+# Stage 1: Build — compile client (Vite) + server (esbuild)
+# ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -9,24 +11,24 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 2: Production
+# ─────────────────────────────────────────────────────────
+# Stage 2: Runtime — minimal image, no devDeps, no source
+# ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
+# Only install production dependencies
 COPY package*.json ./
-COPY drizzle.config.ts ./
-COPY shared ./shared
+RUN npm ci --omit=dev
 
-# Install all dependencies (need drizzle-kit for migrations)
-RUN npm ci
-
+# Copy compiled output (server bundle + client assets + OG fonts)
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 8080
-
+# Railway injects PORT at runtime; 5000 is the local fallback
+EXPOSE 5000
 ENV NODE_ENV=production
-ENV PORT=8080
 
-# Run migrations (non-interactive, forced) then start the app
-CMD ["sh", "-c", "npm run db:push -- --force && node dist/index.cjs"]
+# Table creation/migrations run automatically inside the app on startup
+# (server/index.ts → ensureTablesExist). No separate db:push step needed.
+CMD ["node", "dist/index.cjs"]
