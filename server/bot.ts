@@ -408,7 +408,7 @@ export async function setupBot(storage: IStorage) {
   // Config lives in ds_admin_settings: `partner_gate_enabled` ("true"/"false") and
   // `partner_channels` (JSON array of {handle, url, name}). Manage it from the web admin.
   type GateChannel = { handle: string; url: string; name: string };
-  const LEGACY_GATE_DEFAULT: GateChannel[] = [{ handle: "@AlorVPN", url: "https://t.me/AlorVPN", name: "AlorVPN" }];
+  const LEGACY_GATE_DEFAULT: GateChannel[] = [{ handle: "@Fron_VPN", url: "https://t.me/Fron_VPN", name: "FronVPN" }];
   // Per-(user, channel) membership cache so we don't hammer the Telegram API.
   const _gateCache = new Map<string, { ok: boolean; at: number }>();
   const _GATE_CACHE_MS = 10 * 60 * 1000; // 10 min
@@ -493,6 +493,13 @@ export async function setupBot(storage: IStorage) {
     return `🤝 <b>Mandatory subscription</b>\n\nDARKSHARE works together with our partners. To use the bot, subscribe to ${channels.length > 1 ? "all the channels" : "the channel"} below — it's required.\n\n${list}\n\nThen tap <b>"✅ I subscribed"</b>.`;
   }
 
+  function partnerGateKeyboard(lang: string, channels: GateChannel[]) {
+    const okBtn = lang === "uk" ? "✅ Я підписався" : lang === "ru" ? "✅ Я подписался" : lang === "es" ? "✅ Ya me suscribí" : lang === "de" ? "✅ Abonniert" : "✅ I subscribed";
+    const rows: any[][] = channels.map((c) => [Markup.button.url(`📢 ${c.name}`, c.url)]);
+    rows.push([Markup.button.callback(okBtn, "bot_partner_gate_check")]);
+    return Markup.inlineKeyboard(rows);
+  }
+
   bot.use(async (ctx, next) => {
     // Only gate private chats (no action in groups/channels)
     if (!ctx.from || ctx.chat?.type !== "private") return next();
@@ -507,6 +514,9 @@ export async function setupBot(storage: IStorage) {
     const user = await storage.getUserByTgId(tgId);
     // Existing users (partnerChannelSubscribed = true) always pass through
     if (user?.partnerChannelSubscribed) return next();
+    // Brand-new users who haven't picked a language yet must see language
+    // selection FIRST. The gate is shown right after they choose (in the lang_ handler).
+    if (!user?.langSet) return next();
 
     const lang = getUserLang(user?.lang);
     const callbackData = (ctx as any).callbackQuery?.data as string | undefined;
@@ -519,7 +529,9 @@ export async function setupBot(storage: IStorage) {
         // Persist to DB so they never see the gate again
         if (user) await storage.updateUser(user.id, { partnerChannelSubscribed: true } as any);
         try { await ctx.answerCbQuery(lang === "uk" ? "✅ Дякуємо!" : lang === "ru" ? "✅ Спасибо!" : "✅ Thanks!"); } catch {}
-        return next();
+        // Open the panel right away instead of leaving the user on the gate screen.
+        try { await showDashboard(ctx, tgId, false); } catch {}
+        return;
       } else {
         try {
           await ctx.answerCbQuery(
@@ -856,25 +868,41 @@ ${t(lang, "startWelcome.selectLang")}`;
       Markup.inlineKeyboard([[cb(langCode === "uk" ? "Увійти в панель" : langCode === "ru" ? "Войти в панель" : langCode === "es" ? "Entrar al panel" : langCode === "de" ? "Panel öffnen" : "Enter Panel", "enter_panel_first", "success", E.rocket)]])
     );
 
+    // Mandatory partner-subscription gate — shown right AFTER language selection
+    // (the middleware lets brand-new users reach language selection first).
+    try {
+      if (!isAdmin(tgId)) {
+        const gate = await loadGateConfig();
+        const alreadyIn = user?.partnerChannelSubscribed;
+        if (gate.enabled && gate.channels.length > 0 && !alreadyIn) {
+          await ctx.reply(gateText(langCode, gate.channels), {
+            parse_mode: "HTML",
+            ...partnerGateKeyboard(langCode, gate.channels),
+          });
+          return; // don't also show the soft optional prompt
+        }
+      }
+    } catch {}
+
     // Soft, one-time partner prompt for NEW bot users only. Informational —
     // it does NOT block usage (the VPN itself is no longer gated by this).
     try {
       const softText =
         langCode === "uk"
-          ? `🤝 <b>До речі…</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>AlorVPN</b>. Підпишись на їхній канал, щоб першим дізнаватись про нові локації та апдейти — це не обов'язково, але приємний бонус 🎁`
+          ? `🤝 <b>До речі…</b>\n\nDARKSHARE VPN працює на інфраструктурі нашого партнера <b>FronVPN</b>. Підпишись на їхній канал, щоб першим дізнаватись про нові локації та апдейти — це не обов'язково, але приємний бонус 🎁`
           : langCode === "ru"
-          ? `🤝 <b>Кстати…</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>AlorVPN</b>. Подпишись на их канал, чтобы первым узнавать о новых локациях и апдейтах — это необязательно, но приятный бонус 🎁`
+          ? `🤝 <b>Кстати…</b>\n\nDARKSHARE VPN работает на инфраструктуре нашего партнёра <b>FronVPN</b>. Подпишись на их канал, чтобы первым узнавать о новых локациях и апдейтах — это необязательно, но приятный бонус 🎁`
           : langCode === "es"
-          ? `🤝 <b>Por cierto…</b>\n\nDARKSHARE VPN funciona sobre la infraestructura de nuestro socio <b>AlorVPN</b>. Suscríbete a su canal para enterarte primero de nuevas ubicaciones y novedades — opcional, pero un buen extra 🎁`
+          ? `🤝 <b>Por cierto…</b>\n\nDARKSHARE VPN funciona sobre la infraestructura de nuestro socio <b>FronVPN</b>. Suscríbete a su canal para enterarte primero de nuevas ubicaciones y novedades — opcional, pero un buen extra 🎁`
           : langCode === "de"
-          ? `🤝 <b>Übrigens…</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>AlorVPN</b>. Abonniere ihren Kanal, um neue Standorte und Updates zuerst zu erfahren — optional, aber ein netter Bonus 🎁`
-          : `🤝 <b>By the way…</b>\n\nDARKSHARE VPN runs on our partner <b>AlorVPN</b>'s infrastructure. Subscribe to their channel to be first to hear about new locations and updates — optional, but a nice bonus 🎁`;
+          ? `🤝 <b>Übrigens…</b>\n\nDARKSHARE VPN läuft auf der Infrastruktur unseres Partners <b>FronVPN</b>. Abonniere ihren Kanal, um neue Standorte und Updates zuerst zu erfahren — optional, aber ein netter Bonus 🎁`
+          : `🤝 <b>By the way…</b>\n\nDARKSHARE VPN runs on our partner <b>FronVPN</b>'s infrastructure. Subscribe to their channel to be first to hear about new locations and updates — optional, but a nice bonus 🎁`;
       await ctx.reply(softText, {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
           [urlS(
-            langCode === "uk" ? "📢 Відкрити канал AlorVPN" : langCode === "ru" ? "📢 Открыть канал AlorVPN" : langCode === "es" ? "📢 Abrir canal AlorVPN" : langCode === "de" ? "📢 AlorVPN-Kanal öffnen" : "📢 Open AlorVPN channel",
-            "https://t.me/AlorVPN", "primary",
+            langCode === "uk" ? "📢 Відкрити канал FronVPN" : langCode === "ru" ? "📢 Открыть канал FronVPN" : langCode === "es" ? "📢 Abrir canal FronVPN" : langCode === "de" ? "📢 FronVPN-Kanal öffnen" : "📢 Open FronVPN channel",
+            "https://t.me/Fron_VPN", "primary",
           )],
         ]),
       });
@@ -1208,7 +1236,7 @@ ${pe("bulb")} ${escHtml(lang === "uk" ? "Натисни «Перевірка» �
       await bot.telegram.sendMessage(tgId, welcomeText, {
         parse_mode: "HTML",
         ...Markup.inlineKeyboard([
-          [cb(lang === "uk" ? "💎 Активувати промокод" : lang === "ru" ? "💎 Активировать промокод" : lang === "es" ? "💎 Activar código" : lang === "de" ? "💎 Code aktivieren" : "💎 Activate promo", "pricing", "success", E.gift)],
+          [cb(lang === "uk" ? "💎 Активувати промокод" : lang === "ru" ? "💎 Активировать промокод" : lang === "es" ? "💎 Activar código" : lang === "de" ? "💎 Code aktivieren" : "💎 Activate promo", "welcome_promo", "success", E.gift)],
         ])
       });
     } catch (e) {
@@ -2726,6 +2754,83 @@ ${pe("link")} ${escHtml(checkResult.sources.slice(0, 3).join(" · "))}`;
     });
   });
 
+  // Welcome promo: opens tier selection with the DARKNEU discount auto-applied.
+  const WELCOME_PROMO_CODE = "DARKNEU";
+  bot.action("welcome_promo", async (ctx) => {
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    await ctx.answerCbQuery();
+
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    let discount = 50;
+    try {
+      const coupon = await storage.getCouponByCode(WELCOME_PROMO_CODE);
+      if (coupon && coupon.isActive && coupon.value) discount = coupon.value;
+    } catch {}
+
+    const disc = (t: string) => Math.round(uahPrices[t] * (1 - discount / 100));
+    const title = lang === "uk" ? `🎁 Промокод ${WELCOME_PROMO_CODE} — -${discount}%`
+      : lang === "ru" ? `🎁 Промокод ${WELCOME_PROMO_CODE} — -${discount}%`
+      : lang === "es" ? `🎁 Código ${WELCOME_PROMO_CODE} — -${discount}%`
+      : lang === "de" ? `🎁 Promo-Code ${WELCOME_PROMO_CODE} — -${discount}%`
+      : `🎁 Promo ${WELCOME_PROMO_CODE} — -${discount}%`;
+    const pick = lang === "uk" ? "Оберіть тариф — знижка застосується автоматично:"
+      : lang === "ru" ? "Выберите тариф — скидка применится автоматически:"
+      : lang === "es" ? "Elige el plan — el descuento se aplica automáticamente:"
+      : lang === "de" ? "Tarif wählen — der Rabatt wird automatisch angewendet:"
+      : "Choose a plan — the discount is applied automatically:";
+
+    const kb = Markup.inlineKeyboard([
+      [cb(`PRO — ${uahPrices.PRO}→${disc("PRO")} UAH`, "welcome_promo_PRO", "success", E.money)],
+      [cb(`ENTERPRISE — ${uahPrices.ENTERPRISE}→${disc("ENTERPRISE")} UAH`, "welcome_promo_ENTERPRISE", "success", E.money)],
+      [cb(`GROUPS — ${uahPrices.GROUPS}→${disc("GROUPS")} UAH`, "welcome_promo_GROUPS", "success", E.money)],
+      [cb(t(lang, "buttons.back"), "back_to_dashboard", "danger", E.back)]
+    ]);
+    await ctx.reply(`*${title}*\n\n${pick}`, { parse_mode: "Markdown", ...kb });
+  });
+
+  bot.action(/^welcome_promo_(PRO|ENTERPRISE|GROUPS)$/, async (ctx) => {
+    const tier = ctx.match[1];
+    const tgId = ctx.from!.id.toString();
+    const lang = await getLang(tgId);
+    const user = await storage.getUserByTgId(tgId);
+    await ctx.answerCbQuery();
+
+    const uahPrices: Record<string, number> = { PRO: 410, ENTERPRISE: 1435, GROUPS: 2255 };
+    const starPrices: Record<string, number> = { PRO: 500, ENTERPRISE: 1750, GROUPS: 2750 };
+
+    let discount = 50;
+    let couponId: string | null = null;
+    try {
+      const coupon = await storage.getCouponByCode(WELCOME_PROMO_CODE);
+      if (coupon && coupon.isActive) {
+        if (coupon.value) discount = coupon.value;
+        couponId = coupon.id;
+        // If this coupon is tier-restricted and doesn't match, fall back to no discount screen.
+        if (coupon.tier && coupon.tier !== tier) {
+          await ctx.reply(lang === "uk" ? "❗ Промокод не діє для цього тарифу." : lang === "ru" ? "❗ Промокод не действует для этого тарифа." : "❗ Promo not valid for this plan.");
+          return;
+        }
+      }
+    } catch {}
+
+    const basePrice = uahPrices[tier];
+    const discountedPrice = Math.round(basePrice * (1 - discount / 100));
+    const discountedStars = Math.round(starPrices[tier] * (1 - discount / 100));
+
+    const promoText = `✅ *${lang === "uk" ? "Промокод активовано!" : lang === "ru" ? "Промокод активирован!" : lang === "es" ? "¡Código activado!" : lang === "de" ? "Promo-Code aktiviert!" : "Promo activated!"}*\n\n🎁 ${lang === "uk" ? "Знижка" : lang === "ru" ? "Скидка" : lang === "es" ? "Descuento" : lang === "de" ? "Rabatt" : "Discount"}: -${discount}%\n💰 ${lang === "uk" ? "Нова ціна" : lang === "ru" ? "Новая цена" : lang === "es" ? "Nuevo precio" : lang === "de" ? "Neuer Preis" : "New price"}: ~~${basePrice}~~ ${discountedPrice} UAH\n\n${lang === "uk" ? "Оберіть спосіб оплати:" : lang === "ru" ? "Выберите способ оплаты:" : lang === "es" ? "Seleccione método de pago:" : lang === "de" ? "Zahlungsmethode wählen:" : "Select payment method:"}`;
+
+    await ctx.reply(promoText, {
+      parse_mode: "Markdown",
+      ...Markup.inlineKeyboard([
+        [cb(`⭐ Telegram Stars (${discountedStars} ⭐)`, `bot_pay_method_${tier}_stars_promo_${discount}`, "primary", E.star)],
+        [cb("Google Pay / Apple Pay", `bot_pay_method_${tier}_monobank`, "primary", E.card)],
+        [cb("Crypto Pay", `bot_pay_method_${tier}_crypto`, "success", E.money)],
+        [cb(t(lang, "buttons.back"), "welcome_promo", "danger", E.back)]
+      ])
+    });
+  });
+
   bot.action(/^gen_pdf_/, async (ctx) => {
     const parts = ctx.match.input.split('_');
     const module = parts[2];
@@ -4004,9 +4109,9 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
     const token = (user as any).alorVpnToken;
     if (token) {
       try {
-        const { getAlorStatus, isAlorConfigured } = await import("./alorVpn");
+        const { getAlorStatus, isAlorConfigured, upstreamAlorToken } = await import("./alorVpn");
         if (isAlorConfigured()) {
-          const status = await getAlorStatus(token);
+          const status = await getAlorStatus(upstreamAlorToken(user)!);
           await storage.updateUser(user.id, { alorVpnExpiresAt: new Date(status.expires_at) } as any);
         }
       } catch (e) {
@@ -4142,7 +4247,8 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
       const { createAlorSubscription, vpnDeviceLimit } = await import("./alorVpn");
       const sub = await createAlorSubscription(30);
       await storage.updateUser(user.id, {
-        alorVpnToken: sub.token,
+        // Keep an existing public token stable so a previously imported sub URL keeps working.
+        ...( (user as any).alorVpnToken ? {} : { alorVpnToken: sub.token } ),
         alorVpnUuid: sub.uuid,
         alorVpnSubscriptionUrl: sub.subscription_url,
         alorVpnExpiresAt: new Date(sub.expires_at),
@@ -4193,7 +4299,8 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
       const { createAlorSubscription } = await import("./alorVpn");
       const sub = await createAlorSubscription(1);
       await storage.updateUser(user.id, {
-        alorVpnToken: sub.token,
+        // Keep an existing public token stable so a previously imported sub URL keeps working.
+        ...( (user as any).alorVpnToken ? {} : { alorVpnToken: sub.token } ),
         alorVpnUuid: sub.uuid,
         alorVpnSubscriptionUrl: sub.subscription_url,
         alorVpnExpiresAt: new Date(sub.expires_at),

@@ -505,6 +505,27 @@ function rewriteBody(text: string, tier?: string): string {
     } catch {}
   }
 
+  // Drop upstream "subscription expired" notice entries (fake servers whose
+  // remark says "Подписка истекла" / "Обновите подписку @alorvpnbot" etc.).
+  // These leak upstream branding and confuse users; expiry is handled on our side.
+  working = working
+    .split(/\r?\n/)
+    .filter((line) => {
+      const t = line.trim();
+      if (!t || !/^(vless|vmess|trojan|ss):\/\//.test(t)) return true;
+      let remark = "";
+      if (t.startsWith("vmess://")) {
+        try {
+          const json = JSON.parse(Buffer.from(t.slice(8).trim(), "base64").toString("utf8"));
+          remark = String(json.ps || "");
+        } catch { remark = ""; }
+      } else {
+        remark = extractRemark(t);
+      }
+      return !/истекла|истекл|закінчилась|подписк|підписк|обновите|поновіть|expired|renew\s+subscription|alorvpnbot/i.test(remark);
+    })
+    .join("\n");
+
   // Apply tier country filter AFTER base64 decode so PRO restrictions
   // are enforced on subscriptions delivered as base64 wrappers.
   const filtered = tier ? filterByTier(working, tier) : working;
@@ -608,9 +629,29 @@ export function registerVpnProxy(app: Express) {
         }
       }
 
-      let upstreamUrl: string | undefined = (user as any)?.alorVpnSubscriptionUrl;
+      // Self-healing: when the VPN client refreshes the subscription, verify the
+      // upstream really covers the user's paid DarkShare subscription and rotate
+      // it if it expired (60s cooldown inside sync prevents API hammering).
+      // Re-read the user afterwards so THIS response already serves the new config.
+      let freshUser = user;
+      if (user?.id) {
+        try {
+          const { syncAlorVpnWithSubscription } = await import("./alorVpnRoutes");
+          const syncRes = await syncAlorVpnWithSubscription(user.id);
+          if (syncRes.extended) {
+            freshUser = (await storage.getUserById(user.id)) || user;
+          }
+        } catch (e: any) {
+          console.warn("[vpnProxy] inline VPN sync failed:", e?.message);
+        }
+      }
 
-      // Fallback: lookup by scanning is expensive; if storage method missing, just use token via AlorVPN convention
+      let upstreamUrl: string | undefined = (freshUser as any)?.alorVpnSubscriptionUrl;
+
+      // Fallback: only when we have no stored subscription URL. After an upstream
+      // rotation the public token differs from the upstream token, so this raw-token
+      // fallback is only safe for legacy users whose URL was never stored (their
+      // public token IS the upstream token by construction).
       if (!upstreamUrl) {
         // AlorVPN subscription_url pattern: https://sub.alorvpn.fun/sub/<token>
         upstreamUrl = `https://sub.alorvpn.fun/sub/${encodeURIComponent(token)}`;

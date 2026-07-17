@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 modules = ["nodejs-20", "web", "python-base-3.13"]
+=======
+modules = ["nodejs-20", "web", "postgresql-16"]
+>>>>>>> 1ba3d7d15b59864f08f0bce8633b1b707bf858ca
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 

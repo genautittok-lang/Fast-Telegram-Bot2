@@ -7,6 +7,7 @@ import {
   isAlorConfigured,
   vpnDeviceLimit,
   vpnPlanDays,
+  upstreamAlorToken,
 } from "./alorVpn";
 import { buildPublicSubUrl } from "./vpnProxy";
 import { buildDeepLinks } from "./vpnDeepLinks";
@@ -52,7 +53,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       if (configured && user.alorVpnToken) {
         try {
-          const status = await getAlorStatus(user.alorVpnToken);
+          const status = await getAlorStatus(upstreamAlorToken(user)!);
           isActive = status.is_active;
           expiresAt = new Date(status.expires_at);
           await storage.updateUser(user.id, { alorVpnExpiresAt: expiresAt });
@@ -100,7 +101,8 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       if (user.alorVpnToken) {
         try {
-          const status = await getAlorStatus(user.alorVpnToken);
+          const upTok = upstreamAlorToken(user)!;
+          const status = await getAlorStatus(upTok);
           if (status.is_active) {
             return res.json({
               ok: true,
@@ -110,16 +112,22 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
               uuid: user.alorVpnUuid,
             });
           }
-          await toggleAlorSubscription(user.alorVpnToken, true);
-          const newExpiry = new Date(Date.now() + planDays * 86400000);
-          await storage.updateUser(user.id, { alorVpnExpiresAt: newExpiry });
-          return res.json({
-            ok: true,
-            reactivated: true,
-            subscriptionUrl: publicSubUrl(req, user.alorVpnToken),
-            expiresAt: newExpiry.toISOString(),
-            uuid: user.alorVpnUuid,
-          });
+          // Upstream expiry is FIXED at creation (no extend API). Only reactivate
+          // via toggle when the upstream expiry still covers the requested period;
+          // otherwise rotate (create a fresh upstream subscription below).
+          const upstreamExpMs = new Date(status.expires_at).getTime();
+          if (upstreamExpMs >= Date.now() + (planDays - 1) * 86400000) {
+            await toggleAlorSubscription(upTok, true);
+            await storage.updateUser(user.id, { alorVpnExpiresAt: new Date(upstreamExpMs) });
+            return res.json({
+              ok: true,
+              reactivated: true,
+              subscriptionUrl: publicSubUrl(req, user.alorVpnToken),
+              expiresAt: new Date(upstreamExpMs).toISOString(),
+              uuid: user.alorVpnUuid,
+            });
+          }
+          // fallthrough to rotate upstream subscription
         } catch {
           // fallthrough to create new subscription
         }
@@ -127,7 +135,8 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       const sub = await createAlorSubscription(planDays);
       await storage.updateUser(user.id, {
-        alorVpnToken: sub.token,
+        // Keep an existing public token stable so the user's imported sub URL keeps working.
+        ...(user.alorVpnToken ? {} : { alorVpnToken: sub.token }),
         alorVpnUuid: sub.uuid,
         alorVpnSubscriptionUrl: sub.subscription_url,
         alorVpnExpiresAt: new Date(sub.expires_at),
@@ -143,7 +152,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
 
       return res.json({
         ok: true,
-        subscriptionUrl: publicSubUrl(req, sub.token),
+        subscriptionUrl: publicSubUrl(req, user.alorVpnToken || sub.token),
         expiresAt: sub.expires_at,
         uuid: sub.uuid,
       });
@@ -163,7 +172,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
         return res.status(503).json({ error: "vpn_not_configured" });
       }
 
-      const status = await getAlorStatus(user.alorVpnToken);
+      const status = await getAlorStatus(upstreamAlorToken(user)!);
       await storage.updateUser(user.id, { alorVpnExpiresAt: new Date(status.expires_at) });
 
       return res.json({
@@ -306,7 +315,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
       const isActive = Boolean(req.body?.is_active);
       const user = await storage.getUserById(id);
       if (!user || !(user as any).alorVpnToken) return res.status(404).json({ error: "no_subscription" });
-      const result = await toggleAlorSubscription((user as any).alorVpnToken, isActive);
+      const result = await toggleAlorSubscription(upstreamAlorToken(user)!, isActive);
       res.json({ ok: true, is_active: result.is_active });
     } catch (err: any) {
       console.error("[AlorVPN admin] toggle error:", err);
@@ -366,7 +375,7 @@ export function registerAlorVpnRoutes(app: Express, loadUser: any, requireAuth: 
       }
 
       const isActive = Boolean(req.body?.is_active);
-      const result = await toggleAlorSubscription(user.alorVpnToken, isActive);
+      const result = await toggleAlorSubscription(upstreamAlorToken(user)!, isActive);
       return res.json({ ok: true, is_active: result.is_active });
     } catch (err: any) {
       console.error("[AlorVPN] toggle error:", err);
@@ -391,7 +400,19 @@ function effectivePlanDays(user: any, periodDays: number): number {
   return days;
 }
 
+// Per-user provisioning lock: overlapping triggers (payment webhook + lazy sync)
+// must not both create upstream subscriptions, or one gets orphaned.
+const provisionLocks: Map<number, Promise<void>> = new Map();
+
 export async function autoProvisionAlorVpn(userId: number, tier: string, periodDays: number): Promise<void> {
+  const prev = provisionLocks.get(userId) || Promise.resolve();
+  const run = prev.then(() => autoProvisionAlorVpnInner(userId, tier, periodDays)).catch(() => {});
+  provisionLocks.set(userId, run);
+  await run;
+  if (provisionLocks.get(userId) === run) provisionLocks.delete(userId);
+}
+
+async function autoProvisionAlorVpnInner(userId: number, tier: string, periodDays: number): Promise<void> {
   if (!isAlorConfigured()) return;
   if (!["PRO", "ENTERPRISE", "GROUPS"].includes(tier.toUpperCase())) return;
 
@@ -400,27 +421,43 @@ export async function autoProvisionAlorVpn(userId: number, tier: string, periodD
     if (!user) return;
 
     const planDays = effectivePlanDays(user, periodDays);
+    const neededExpiryMs = Date.now() + planDays * 86400000;
 
     if (user.alorVpnToken) {
+      // AlorVPN has NO "extend" API (only create/status/toggle), so the upstream
+      // subscription has a FIXED expiry set at creation. If the upstream expiry
+      // covers the needed period, just make sure it's toggled on. Otherwise we
+      // must ROTATE: create a fresh upstream subscription for the needed days.
+      // The user's public token (their /vpn/sub/<token> URL) stays the same —
+      // the proxy fetches upstream via alorVpnSubscriptionUrl.
+      const upTok = upstreamAlorToken(user)!;
       try {
-        await toggleAlorSubscription(user.alorVpnToken, true);
-        const newExpiry = new Date(Date.now() + planDays * 86400000);
-        await storage.updateUser(userId, { alorVpnExpiresAt: newExpiry });
-        console.log(`[AlorVPN] Reactivated subscription for user ${userId} (+${planDays}d)`);
-        return;
+        const status = await getAlorStatus(upTok);
+        const upstreamExpMs = new Date(status.expires_at).getTime();
+        // Allow 1 day of slack to avoid rotating on rounding differences.
+        if (upstreamExpMs >= neededExpiryMs - 86400000) {
+          if (!status.is_active) await toggleAlorSubscription(upTok, true);
+          await storage.updateUser(userId, { alorVpnExpiresAt: new Date(upstreamExpMs) });
+          console.log(`[AlorVPN] Reactivated subscription for user ${userId} (upstream valid until ${status.expires_at})`);
+          return;
+        }
+        console.log(`[AlorVPN] Upstream expiry ${status.expires_at} too short for user ${userId} (need ${planDays}d) — rotating upstream token`);
+        // fallthrough to create a new upstream subscription
       } catch {
-        // fallthrough to create new
+        // status failed (token dead/expired upstream) — fallthrough to create new
       }
     }
 
     const sub = await createAlorSubscription(planDays);
     await storage.updateUser(userId, {
-      alorVpnToken: sub.token,
+      // Keep the user's existing public token stable so their imported
+      // subscription URL keeps working; only set it for first-time provisioning.
+      ...(user.alorVpnToken ? {} : { alorVpnToken: sub.token }),
       alorVpnUuid: sub.uuid,
       alorVpnSubscriptionUrl: sub.subscription_url,
       alorVpnExpiresAt: new Date(sub.expires_at),
     });
-    console.log(`[AlorVPN] Created subscription for user ${userId}, expires ${sub.expires_at} (${planDays}d)`);
+    console.log(`[AlorVPN] ${user.alorVpnToken ? "Rotated" : "Created"} subscription for user ${userId}, expires ${sub.expires_at} (${planDays}d)`);
   } catch (err: any) {
     console.error(`[AlorVPN] Auto-provision failed for user ${userId}:`, err.message);
   }
@@ -448,8 +485,17 @@ export async function syncAlorVpnWithSubscription(userId: number, force = false)
     ? new Date((user as any).alorVpnExpiresAt)
     : null;
 
-  // If main sub is longer than VPN sub by more than 1 day, extend.
-  if (mainExp && (!vpnExp || mainExp.getTime() - (vpnExp?.getTime() || 0) > 86400000)) {
+  // A paid tier WITHOUT subscriptionExpiresAt = manually granted / lifetime access.
+  // Treat it as a rolling 30-day window so the VPN keeps auto-renewing.
+  const effMainExpMs = (mainExp && mainExp.getTime() > Date.now())
+    ? mainExp.getTime()
+    : (!mainExp ? Date.now() + 30 * 86400000 : 0);
+
+  // If the main sub is active, verify the VPN really covers it. IMPORTANT: do not
+  // trust the LOCAL alorVpnExpiresAt alone — older code bumped it blindly on renewal
+  // while the upstream expiry (fixed at creation, no extend API) stayed in the past.
+  // So under the cooldown we also ask upstream for the REAL expiry.
+  if (effMainExpMs > Date.now()) {
     // Cooldown: skip if we tried recently (prevents hammering Alor API when extension fails).
     const last = lastSyncAt.get(userId) || 0;
     if (!force && Date.now() - last < SYNC_COOLDOWN_MS) {
@@ -457,9 +503,30 @@ export async function syncAlorVpnWithSubscription(userId: number, force = false)
     }
     lastSyncAt.set(userId, Date.now());
 
-    const days = Math.ceil((mainExp.getTime() - Date.now()) / 86400000);
+    // Real upstream expiry (falls back to local if status call fails).
+    let realVpnExpMs = vpnExp ? vpnExp.getTime() : 0;
+    if ((user as any).alorVpnToken) {
+      try {
+        const status = await getAlorStatus(upstreamAlorToken(user)!);
+        realVpnExpMs = new Date(status.expires_at).getTime();
+        // Heal the local record if it was overstated by old code.
+        if (vpnExp && Math.abs(realVpnExpMs - vpnExp.getTime()) > 3600000) {
+          await storage.updateUser(userId, { alorVpnExpiresAt: new Date(realVpnExpMs) });
+        }
+      } catch {
+        // upstream token likely dead — treat as expired so we rotate below
+        realVpnExpMs = 0;
+      }
+    }
+
+    // Nothing to do if the REAL VPN expiry already covers the main subscription (±1d).
+    if (realVpnExpMs && effMainExpMs - realVpnExpMs <= 86400000) {
+      return { extended: false, expiresAt: new Date(realVpnExpMs).toISOString() };
+    }
+
+    const days = Math.ceil((effMainExpMs - Date.now()) / 86400000);
     if (days > 0) {
-      const beforeExp = vpnExp ? vpnExp.getTime() : 0;
+      const beforeExp = realVpnExpMs;
       await autoProvisionAlorVpn(userId, tier, days);
       const refreshed = await storage.getUserById(userId);
       const afterExp = (refreshed as any)?.alorVpnExpiresAt

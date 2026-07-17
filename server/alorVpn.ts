@@ -76,6 +76,21 @@ export async function toggleAlorSubscription(token: string, isActive: boolean): 
   return res.json();
 }
 
+// The user's PUBLIC token (alorVpnToken, used in their /vpn/sub/<token> URL) stays
+// stable forever. When we rotate the upstream subscription (AlorVPN has no "extend"
+// API — only create/status/toggle), the CURRENT upstream token lives inside
+// alorVpnSubscriptionUrl. Always use this helper for upstream status/toggle calls.
+export function upstreamAlorToken(user: any): string | null {
+  const url: string | undefined = user?.alorVpnSubscriptionUrl;
+  if (url) {
+    const m = String(url).match(/\/sub\/([^/?#]+)/);
+    if (m) {
+      try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+    }
+  }
+  return user?.alorVpnToken || null;
+}
+
 export function isAlorConfigured(): boolean {
   const key = getApiKey();
   return Boolean(key && key.length > 10);
