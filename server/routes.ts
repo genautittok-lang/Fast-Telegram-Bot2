@@ -721,7 +721,10 @@ ${urlEntries}
       return res.status(500).json({ error: "Bot not configured" });
     }
 
-    const telegramData = req.body;
+    // Strip client-added fields before HMAC verification (Telegram hash only covers Telegram-provided fields)
+    const { termsAcceptedAt: rawTermsAt, termsVersion: rawTermsVersion, ...telegramData } = req.body;
+    const termsAcceptedAt = rawTermsAt ? new Date(String(rawTermsAt)) : new Date();
+    const termsVersion = typeof rawTermsVersion === "string" ? rawTermsVersion.slice(0, 16) : "1.0";
     
     if (!verifyTelegramAuth(telegramData, botToken)) {
       return res.status(401).json({ error: "Invalid Telegram authentication" });
@@ -770,6 +773,11 @@ ${urlEntries}
           user = { ...user, ...updates };
         }
       }
+      // Record terms acceptance (legal proof of consent — GDPR Art. 7, ЗУ "Про захист ПД")
+      pool!.query(
+        `UPDATE ds_users SET terms_accepted_at = $1, terms_version = $2 WHERE id = $3`,
+        [termsAcceptedAt, termsVersion, user.id]
+      ).catch(() => {});
     } catch (dbError: any) {
       console.error("Database error during auth:", dbError.message);
       return res.status(500).json({ error: "Database not ready. Please try again in a moment." });
@@ -4379,6 +4387,65 @@ ${urlEntries}
     } catch (err: any) {
       console.error("Data deletion request error:", err);
       return res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  // ============ GDPR Art. 15 — Right of Access / Data Portability ============
+  app.get("/api/my-data", loadUser, requireAuth, async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
+    const userId = authReq.user!.id;
+    try {
+      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0] || req.ip || "anon";
+      if (rateLimit(`mydata:${ip}`, 5, 60 * 60 * 1000)) {
+        return res.status(429).json({ error: "Too many requests. Try again in an hour." });
+      }
+
+      const { db: dbConn } = await import("./db");
+      const schema = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+
+      // Fetch all data scoped to this user — no OSINT results (not stored)
+      const [userRows, watches, payments, activityRows, deletionRequests] = await Promise.all([
+        pool!.query(
+          `SELECT id, tg_id, username, lang, tier, streak_days, ref_code, notifs_on, digests_on,
+                  last_login, created_at, terms_accepted_at, terms_version, subscription_expires_at,
+                  auto_renew, company_name, payout_currency
+           FROM ds_users WHERE id = $1`, [userId]
+        ),
+        dbConn ? dbConn.select({
+          id: schema.watches.id, type: schema.watches.objectType,
+          value: schema.watches.value, status: schema.watches.status,
+          alertsOn: schema.watches.alertsOn, lastCheck: schema.watches.lastCheck,
+        }).from(schema.watches).where(eq(schema.watches.userId, userId)) : [],
+        pool!.query(
+          `SELECT id, tier, amount_usdt, status, period, created_at FROM ds_payments WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
+          [userId]
+        ),
+        pool!.query(
+          `SELECT event_type, created_at FROM ds_activity_log WHERE user_id = $1 AND event_type != 'check' ORDER BY created_at DESC LIMIT 200`,
+          [userId]
+        ),
+        pool!.query(
+          `SELECT id, email, identifier, reason, status, created_at FROM ds_data_deletion_requests WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20`,
+          [userId]
+        ),
+      ]);
+
+      const profile = userRows.rows[0] ?? null;
+
+      res.json({
+        exportedAt: new Date().toISOString(),
+        legalBasis: "GDPR Art. 15 / ЗУ 'Про захист персональних даних' Art. 8",
+        profile,
+        activeMonitors: watches,
+        paymentHistory: payments.rows,
+        activityTimestamps: activityRows.rows,
+        gdprRequests: deletionRequests.rows,
+        note: "Search queries and OSINT targets are never stored (no-log policy). This export contains all data DARKSHARE holds about your account.",
+      });
+    } catch (err: any) {
+      console.error("[my-data] error:", err.message);
+      res.status(500).json({ error: "Failed to export data" });
     }
   });
 

@@ -80,6 +80,9 @@ async function ensureTablesExist() {
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS card_token TEXT`);
     await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS auto_renew BOOLEAN DEFAULT false`);
+    // Legal compliance: record when user accepted Terms of Service
+    await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP`);
+    await pool.query(`ALTER TABLE ds_users ADD COLUMN IF NOT EXISTS terms_version TEXT DEFAULT '1.0'`);
     
     // Create dependent tables with ds_ prefix
     await pool.query(`

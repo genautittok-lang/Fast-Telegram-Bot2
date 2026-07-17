@@ -89,7 +89,8 @@ export default function Login() {
     if (!pendingTgUser || !termsAccepted) return;
     setTermsLoading(true);
     try {
-      await login(pendingTgUser);
+      // Include terms acceptance timestamp so server can persist it as legal proof
+      await login({ ...pendingTgUser, termsAcceptedAt: new Date().toISOString(), termsVersion: "1.0" });
     } catch {
       toast({ title: t("auth.loginError"), description: t("auth.telegramFailed"), variant: "destructive" });
     } finally {
