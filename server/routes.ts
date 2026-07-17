@@ -737,6 +737,7 @@ ${urlEntries}
     }
 
     let user;
+    let isNewUser = false;
     try {
       user = await storage.getUserByTgId(tgId);
       
@@ -744,7 +745,6 @@ ${urlEntries}
         return res.status(403).json({ error: "Account is blocked. Contact support." });
       }
 
-      let isNewUser = false;
       if (!user) {
         isNewUser = true;
         user = await storage.createUser({
@@ -947,7 +947,7 @@ ${urlEntries}
       const sessions: any[] = [];
 
       if (pool) {
-        const result = await pool.query(
+        const result = await pool!.query(
           `SELECT sid, sess, expire FROM "session" WHERE expire > NOW()`
         );
         for (const row of result.rows) {
@@ -1302,7 +1302,7 @@ ${urlEntries}
       // Count today's checks from activity_log (no target stored — privacy safe)
       let todayChecks = 0;
       if (pool) {
-        const countResult = await pool.query(
+        const countResult = await pool!.query(
           `SELECT COUNT(*) AS cnt FROM ds_activity_log WHERE user_id = $1 AND event_type = 'check' AND created_at >= CURRENT_DATE`,
           [user.id]
         );
@@ -1582,7 +1582,7 @@ ${urlEntries}
       // Count today's checks from activity_log (no target stored — privacy safe)
       let todayChecks = 0;
       if (pool) {
-        const countResult = await pool.query(
+        const countResult = await pool!.query(
           `SELECT COUNT(*) AS cnt FROM ds_activity_log WHERE user_id = $1 AND event_type = 'check' AND created_at >= CURRENT_DATE`,
           [user.id]
         );
@@ -2072,7 +2072,7 @@ ${urlEntries}
     }
     try {
       if (pool) {
-        const result = await pool.query(
+        const result = await pool!.query(
           `SELECT sess FROM "session" WHERE sid = $1`,
           [sessionId]
         );
@@ -2090,7 +2090,7 @@ ${urlEntries}
           return res.status(403).json({ error: "Cannot terminate another user's session" });
         }
         
-        await pool.query(`DELETE FROM "session" WHERE sid = $1`, [sessionId]);
+        await pool!.query(`DELETE FROM "session" WHERE sid = $1`, [sessionId]);
       }
       res.json({ message: "Session terminated" });
     } catch (error) {
@@ -2277,7 +2277,7 @@ ${urlEntries}
       const invoice = invoiceData.result;
 
       if (pool) {
-        await pool.query(
+        await pool!.query(
           `UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`,
           [String(invoice.invoice_id), payment.id]
         );
@@ -2324,7 +2324,7 @@ ${urlEntries}
           if (payment && payment.status === "pending") {
             await storage.updatePaymentStatus(meta.paymentId, "approved");
             if (pool) {
-              await pool.query(`UPDATE ds_payments SET tx_hash = $1 WHERE id = $2`, [invoice.hash || invoice.invoice_id?.toString() || "cryptopay", meta.paymentId]);
+              await pool!.query(`UPDATE ds_payments SET tx_hash = $1 WHERE id = $2`, [invoice.hash || invoice.invoice_id?.toString() || "cryptopay", meta.paymentId]);
             }
             const credits = Number(meta.credits) || 5;
             const buyer = await storage.getUserById(meta.userId);
@@ -2357,7 +2357,7 @@ ${urlEntries}
           await storage.updatePaymentStatus(paymentId, "approved");
 
           if (pool) {
-            await pool.query(
+            await pool!.query(
               `UPDATE ds_payments SET tx_hash = $1 WHERE id = $2`,
               [invoice.hash || invoice.invoice_id?.toString() || "cryptopay", paymentId]
             );
@@ -2451,7 +2451,7 @@ ${urlEntries}
         return res.status(502).json({ error: "Failed to create crypto invoice" });
       }
       if (pool) {
-        await pool.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [String(cryptoData.result.invoice_id), payment.id]);
+        await pool!.query(`UPDATE ds_payments SET invoice_id = $1 WHERE id = $2`, [String(cryptoData.result.invoice_id), payment.id]);
       }
       return res.json({ pageUrl: cryptoData.result.pay_url, invoiceId: cryptoData.result.invoice_id });
     } catch (err: any) {
@@ -2465,7 +2465,7 @@ ${urlEntries}
   async function checkSubscriptionExpiry() {
     if (!pool) return;
     try {
-      const expiredResult = await pool.query(
+      const expiredResult = await pool!.query(
         `SELECT * FROM ds_users WHERE tier != 'FREE' AND subscription_expires_at IS NOT NULL AND subscription_expires_at < NOW() AND auto_renew = false`
       );
       for (const user of expiredResult.rows) {
@@ -2490,7 +2490,7 @@ ${urlEntries}
         }
       }
 
-      const reminderResult = await pool.query(
+      const reminderResult = await pool!.query(
         `SELECT * FROM ds_users WHERE tier != 'FREE' AND subscription_expires_at IS NOT NULL AND subscription_expires_at > NOW() AND subscription_expires_at <= NOW() + INTERVAL '5 days' AND (last_reminder_sent IS NULL OR last_reminder_sent < NOW() - INTERVAL '24 hours')`
       );
       for (const user of reminderResult.rows) {
@@ -2508,7 +2508,7 @@ ${urlEntries}
             };
             try {
               await botInstance.telegram.sendMessage(user.tg_id, reminderTexts[lang] || reminderTexts["en"], { parse_mode: "Markdown" });
-              await pool.query(`UPDATE ds_users SET last_reminder_sent = NOW() WHERE id = $1`, [user.id]);
+              await pool!.query(`UPDATE ds_users SET last_reminder_sent = NOW() WHERE id = $1`, [user.id]);
             } catch (e) { /* ignore */ }
           }
         } catch (err) {
@@ -2517,7 +2517,7 @@ ${urlEntries}
       }
 
       // VPN free-trial expiry notification
-      const vpnEndResult = await pool.query(
+      const vpnEndResult = await pool!.query(
         `SELECT * FROM ds_users WHERE tier = 'FREE' AND alor_vpn_token IS NOT NULL AND vpn_trial_expiry_notified = false AND alor_vpn_expires_at IS NOT NULL AND alor_vpn_expires_at > NOW() AND alor_vpn_expires_at <= NOW() + INTERVAL '6 hours'`
       );
       let botUsernameForVpn = "";
@@ -2551,7 +2551,7 @@ ${urlEntries}
               },
             });
           }
-          await pool.query(`UPDATE ds_users SET vpn_trial_expiry_notified = true WHERE id = $1`, [user.id]);
+          await pool!.query(`UPDATE ds_users SET vpn_trial_expiry_notified = true WHERE id = $1`, [user.id]);
         } catch (e) {
           console.error(`Failed to send VPN expiry notice to user ${user.id}:`, e);
         }
@@ -3216,7 +3216,7 @@ ${urlEntries}
 
   app.get("/api/admin/email-subscribers", requireAdmin, async (_req, res) => {
     try {
-      const result = await pool.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != '' ORDER BY created_at DESC");
+      const result = await pool!.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != '' ORDER BY created_at DESC");
       const emails = result.rows.map((r: any) => r.email);
       res.json({ emails, total: emails.length });
     } catch (err: any) {
@@ -3239,7 +3239,7 @@ ${urlEntries}
       if (recipients && Array.isArray(recipients) && recipients.length > 0) {
         targetEmails = recipients;
       } else {
-        const result = await pool.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != ''");
+        const result = await pool!.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != ''");
         targetEmails = result.rows.map((r: any) => r.email);
       }
 
@@ -3315,7 +3315,7 @@ ${urlEntries}
 
   app.get("/api/banners", async (_req, res) => {
     try {
-      const result = await pool.query(`SELECT * FROM ds_ad_banners WHERE is_active = true AND position = 'dashboard' ORDER BY priority DESC`);
+      const result = await pool!.query(`SELECT * FROM ds_ad_banners WHERE is_active = true AND position = 'dashboard' ORDER BY priority DESC`);
       res.json(result.rows.map((r: any) => ({
         id: r.id, title: r.title, description: r.description, imageUrl: r.image_url,
         mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient,
@@ -3329,7 +3329,7 @@ ${urlEntries}
 
   app.get("/api/admin/banners", requireAdmin, async (_req, res) => {
     try {
-      const result = await pool.query(`SELECT * FROM ds_ad_banners ORDER BY created_at DESC`);
+      const result = await pool!.query(`SELECT * FROM ds_ad_banners ORDER BY created_at DESC`);
       res.json(result.rows.map((r: any) => ({
         id: r.id, title: r.title, description: r.description, imageUrl: r.image_url,
         mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient,
@@ -3364,7 +3364,7 @@ ${urlEntries}
       if (linkUrl && linkUrl.length > 0 && !/^https?:\/\//i.test(linkUrl)) return res.status(400).json({ error: "Link URL must start with http:// or https://" });
       const validMediaTypes = ["image", "video"];
       const safeMediaType = validMediaTypes.includes(mediaType) ? mediaType : "image";
-      const result = await pool.query(
+      const result = await pool!.query(
         `INSERT INTO ds_ad_banners (title, description, image_url, media_type, link_url, link_text, bg_gradient, position, is_active, priority, show_for_tiers) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
         [title, description || null, imageUrl || null, safeMediaType, linkUrl || null, linkText || null, bgGradient || 'from-purple-600/20 via-pink-500/10 to-transparent', position || 'dashboard', isActive !== false, priority || 0, showForTiers || ['FREE','PRO']]
       );
@@ -3388,7 +3388,7 @@ ${urlEntries}
       }
       if (fields.length === 0) return res.status(400).json({ error: "No fields to update" });
       values.push(id);
-      const result = await pool.query(`UPDATE ds_ad_banners SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`, values);
+      const result = await pool!.query(`UPDATE ds_ad_banners SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`, values);
       const r = result.rows[0];
       res.json({ id: r.id, title: r.title, description: r.description, imageUrl: r.image_url, mediaType: r.media_type, linkUrl: r.link_url, linkText: r.link_text, bgGradient: r.bg_gradient, position: r.position, isActive: r.is_active, priority: r.priority, showForTiers: r.show_for_tiers, createdAt: r.created_at });
     } catch (err: any) {
@@ -3399,7 +3399,7 @@ ${urlEntries}
   app.delete("/api/admin/banners/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      await pool.query(`DELETE FROM ds_ad_banners WHERE id = $1`, [id]);
+      await pool!.query(`DELETE FROM ds_ad_banners WHERE id = $1`, [id]);
       res.json({ success: true });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
@@ -4269,7 +4269,7 @@ ${urlEntries}
       const { sendEmailBroadcast, buildBroadcastHtml } = await import("./emailService");
       const html = buildBroadcastHtml(title, body);
 
-      const emailResult = await pool.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != ''");
+      const emailResult = await pool!.query("SELECT email FROM auth_users WHERE email IS NOT NULL AND email != ''");
       const emails = emailResult.rows.map((r: any) => r.email);
 
       if (emails.length === 0) {

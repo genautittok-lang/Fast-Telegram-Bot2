@@ -297,7 +297,7 @@ function fallbackCopy(url){
       if (!token) return res.status(404).send("Not found");
 
       const subUrl = buildPublicSubUrl(req, token);
-      const png = await QRCode.toBuffer(subUrl, {
+      const png = await (QRCode as any).toBuffer(subUrl, {
         type: "png",
         errorCorrectionLevel: "M",
         margin: 2,

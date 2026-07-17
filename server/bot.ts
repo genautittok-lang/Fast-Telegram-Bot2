@@ -3920,7 +3920,7 @@ ${faqText}`;
       ]);
       rows.push([
         cb(`🔄 ${p({ uk: "Оновити статус", ru: "Обновить статус", es: "Actualizar", de: "Aktualisieren", en: "Refresh status" })}`, "vpn_refresh", "primary", E.bolt),
-        urlS(`🌐 ${p({ uk: "Веб-кабінет", ru: "Веб-кабинет", es: "Panel web", de: "Web-Panel", en: "Web panel" })}`, `${webUrl}/vpn`, "default", E.globe),
+        urlS(`🌐 ${p({ uk: "Веб-кабінет", ru: "Веб-кабинет", es: "Panel web", de: "Web-Panel", en: "Web panel" })}`, `${webUrl}/vpn`, "primary", E.globe),
       ]);
     } else {
       rows.push([cb(`⚡ ${p({ uk: "Активувати VPN", ru: "Активировать VPN", es: "Activar VPN", de: "VPN aktivieren", en: "Activate VPN" })}`, "vpn_activate", "success")]);
@@ -4115,8 +4115,8 @@ ${escHtml(p({ uk: "Натисни, щоб скопіювати, і поділи�
       [urlS(`🍎 Shadowrocket (iOS)`, bridge("shadowrocket"), "primary"), urlS(`🤖 v2rayNG (Android)`, bridge("v2rayng"), "primary")],
       [urlS(`💻 Clash Verge`, bridge("clashverge"), "primary"), urlS(`🪟 v2rayN (Win)`, bridge("v2rayn"), "primary")],
       [
-        cb(`📷 QR`, "vpn_qr", "default"),
-        cb(`🔗 ${c.lang === "uk" ? "Лінк" : c.lang === "ru" ? "Линк" : c.lang === "es" ? "Enlace" : c.lang === "de" ? "Link" : "Link"}`, "vpn_copy_link", "default"),
+        cb(`📷 QR`, "vpn_qr", "primary"),
+        cb(`🔗 ${c.lang === "uk" ? "Лінк" : c.lang === "ru" ? "Линк" : c.lang === "es" ? "Enlace" : c.lang === "de" ? "Link" : "Link"}`, "vpn_copy_link", "primary"),
       ],
       [cb(vpnT(c.lang as any, "back"), "vpn_menu", "danger", E.back)],
     ]);

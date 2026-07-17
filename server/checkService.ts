@@ -4292,7 +4292,7 @@ export async function extractExifFromBuffer(buffer: Buffer, filename: string): P
       iptc: true,
       xmp: true,
       tiff: true,
-    });
+    } as any);
 
     if (!exifData || Object.keys(exifData).length === 0) {
       findings.push("No EXIF metadata found — file may have been stripped");
