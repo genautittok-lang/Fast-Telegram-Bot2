@@ -58,11 +58,15 @@ function TermsContent() {
       content: "We reserve the right to modify these Terms at any time. Material changes will be communicated through the Service interface or via email. Your continued use of the Service after such modifications constitutes your acceptance of the revised Terms. We encourage you to review these Terms periodically."
     },
     {
-      title: "12. Governing Law",
-      content: "These Terms shall be governed by and construed in accordance with applicable international laws. Any disputes arising under these Terms shall be resolved through binding arbitration, unless otherwise required by applicable law."
+      title: "12. Governing Law & Ukrainian Compliance",
+      content: "These Terms are governed by applicable international law. For users in Ukraine, the Service is operated in compliance with the Law of Ukraine \"On Personal Data Protection\" (ЗУ \"Про захист персональних даних\", No. 2297-VI). The collection and processing of personal data is performed on a lawful basis, with appropriate technical and organizational measures. Any disputes shall be resolved through binding arbitration or the competent courts of the applicable jurisdiction."
     },
     {
-      title: "13. Contact Information",
+      title: "13. OSINT & Third-Party Data Disclaimer",
+      content: "DARKSHARE aggregates publicly available data only. The platform does not access, intercept, or store private communications. All data sources are publicly accessible databases, breach notification services, and open-source intelligence feeds. Users are solely responsible for ensuring their investigations comply with applicable law, including but not limited to GDPR, Ukrainian data protection law, and local privacy regulations. Using this Service to build profiles on individuals without legitimate legal basis may itself constitute a violation of applicable law."
+    },
+    {
+      title: "14. Contact Information",
       content: "For questions about these Terms of Service, please contact us at darkshare.store@gmail.com or through our Telegram bot @DarkShare1Bot."
     },
   ];
@@ -86,7 +90,7 @@ function TermsContent() {
           <ScrollText className="w-7 h-7 text-primary" />
         </div>
         <h1 className="text-2xl font-bold" data-testid="text-terms-title">Terms of Service</h1>
-        <p className="text-muted-foreground text-sm">Last updated: February 2025</p>
+        <p className="text-muted-foreground text-sm">Last updated: July 2025</p>
       </div>
 
       <Card className="border-border/50 bg-card/50">

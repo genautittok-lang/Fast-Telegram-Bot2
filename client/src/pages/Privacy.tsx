@@ -22,7 +22,15 @@ function PrivacyContent() {
         "\u2022 Payment Data: When you subscribe to a paid plan, payment processing is handled by CryptoBot (for crypto) and Telegram Stars. We do not store your card numbers on our servers."
     },
     {
-      title: "2. How We Use Information",
+      title: "2. Legal Basis for Processing (GDPR Art. 6 / Ukrainian Law)",
+      content: "We process your personal data only where a lawful basis exists under GDPR Art. 6 and the Law of Ukraine \"On Personal Data Protection\" (ЗУ \"Про захист персональних даних\"):\n\n" +
+        "\u2022 Contract performance (Art. 6(1)(b)): Processing your account identifiers and subscription data to deliver the Service you signed up for.\n\n" +
+        "\u2022 Legitimate interest (Art. 6(1)(f)): Security logging (IP, session) to detect fraud and abuse; activity timestamps (no query content) for quota enforcement. Our legitimate interest does not override your rights — you may object at any time.\n\n" +
+        "\u2022 Legal obligation (Art. 6(1)(c)): Retaining payment records for 7 years as required by financial regulations.\n\n" +
+        "\u2022 Consent (Art. 6(1)(a)): Sending optional service updates and newsletters. You may withdraw consent at any time without affecting prior processing."
+    },
+    {
+      title: "3. How We Use Information",
       content: "Your information is used for the following purposes:\n\n" +
         "\u2022 Providing and operating the OSINT analysis service, including generating risk scores, threat assessments, and intelligence reports.\n\n" +
         "\u2022 Authenticating your identity and managing your account and subscription.\n\n" +
@@ -33,7 +41,7 @@ function PrivacyContent() {
         "\u2022 Complying with legal obligations and responding to lawful requests from authorities."
     },
     {
-      title: "3. Data Storage & Security",
+      title: "4. Data Storage & Security",
       content: "We implement industry-standard security measures to protect your data:\n\n" +
         "\u2022 All data is stored in encrypted PostgreSQL databases with regular backups.\n\n" +
         "\u2022 Communication between your browser and our servers is encrypted using TLS/SSL.\n\n" +
@@ -42,7 +50,7 @@ function PrivacyContent() {
         "\u2022 Access to production systems is restricted and monitored. While we take extensive precautions, no method of electronic transmission or storage is 100% secure."
     },
     {
-      title: "4. Third-Party Services",
+      title: "5. Third-Party Services",
       content: "DARKSHARE integrates with the following third-party services to provide OSINT analysis. Each service has its own privacy policy:\n\n" +
         "\u2022 ip-api.com \u2014 IP geolocation and ISP lookup data.\n\n" +
         "\u2022 Shodan \u2014 Internet-connected device scanning and vulnerability intelligence.\n\n" +
@@ -55,7 +63,7 @@ function PrivacyContent() {
         "When you perform an OSINT query, relevant data may be sent to these third-party services to generate results. We only share the minimum information necessary to fulfill your request."
     },
     {
-      title: "5. Telegram Data",
+      title: "6. Telegram Data",
       content: "When you authenticate via our Telegram bot or use Telegram login:\n\n" +
         "\u2022 We receive your Telegram user ID, username, first name, and profile photo URL.\n\n" +
         "\u2022 We do not access your Telegram messages, contacts, or any private conversations.\n\n" +
@@ -63,7 +71,7 @@ function PrivacyContent() {
         "\u2022 You can revoke Telegram access at any time by blocking the bot and deleting your account."
     },
     {
-      title: "6. Cookies & Sessions",
+      title: "7. Cookies & Sessions",
       content: "We use the following types of cookies and session data:\n\n" +
         "\u2022 Authentication Cookies: Secure, HTTP-only session cookies to maintain your logged-in state. These are essential for the Service to function.\n\n" +
         "\u2022 Preference Cookies: Local storage for language preference and UI settings (theme, layout preferences).\n\n" +
@@ -71,7 +79,7 @@ function PrivacyContent() {
         "\u2022 You can clear cookies at any time through your browser settings, which will require you to log in again."
     },
     {
-      title: "7. Data Retention",
+      title: "8. Data Retention",
       content: "We retain your data according to the following policies:\n\n" +
         "\u2022 Account Data: Retained for the duration of your account and up to 30 days after account deletion.\n\n" +
         "\u2022 Search History: Not stored. DARKSHARE has a strict no-log policy — investigation queries are processed in real-time only and never written to disk.\n\n" +
@@ -80,7 +88,7 @@ function PrivacyContent() {
         "\u2022 Server Logs: Retained for 90 days for security and debugging purposes."
     },
     {
-      title: "8. User Rights",
+      title: "9. User Rights",
       content: "Depending on your jurisdiction, you may have the following rights regarding your personal data:\n\n" +
         "\u2022 Right to Access: Request a copy of all personal data we hold about you.\n\n" +
         "\u2022 Right to Deletion: Request deletion of your account and associated data. You can initiate this from your account settings or by contacting us.\n\n" +
@@ -91,19 +99,19 @@ function PrivacyContent() {
         "To exercise any of these rights, please contact us at darkshare.store@gmail.com. We will respond to requests within 30 days."
     },
     {
-      title: "9. Children's Privacy",
+      title: "10. Children's Privacy",
       content: "The DARKSHARE platform is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from minors. If we become aware that a user is under 18, we will take steps to promptly delete their account and associated data. If you believe a minor has provided us with personal information, please contact us immediately at darkshare.store@gmail.com."
     },
     {
-      title: "10. International Data Transfers",
+      title: "11. International Data Transfers",
       content: "Your data may be transferred to and processed in countries other than your country of residence. These countries may have different data protection laws. By using the Service, you consent to such transfers. We take appropriate safeguards to ensure your data remains protected in accordance with this Privacy Policy."
     },
     {
-      title: "11. Changes to This Policy",
+      title: "12. Changes to This Policy",
       content: "We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or legal requirements. Material changes will be communicated through the Service interface or via the email associated with your account. Your continued use of the Service after any modifications indicates your acceptance of the updated Privacy Policy."
     },
     {
-      title: "12. Contact Information",
+      title: "13. Contact Information",
       content: "For questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us:\n\n" +
         "\u2022 Email: darkshare.store@gmail.com\n\n" +
         "\u2022 Telegram: @DarkShare1Bot\n\n" +

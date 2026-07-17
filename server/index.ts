@@ -587,12 +587,18 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    // Log ALL requests for full audit trail
     let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-    if (path.startsWith("/api") && capturedJsonResponse) {
-      // For API routes, include response body (but strip sensitive fields)
+
+    // PRIVACY: never log response bodies for check/OSINT endpoints — they
+    // contain third-party PII (emails, IPs, phones, usernames) and must not
+    // be retained in logs under our no-log policy.
+    const isOsintEndpoint =
+      /^\/api\/(check|osint|scan|lookup|report|history|search)/.test(path);
+
+    if (path.startsWith("/api") && capturedJsonResponse && !isOsintEndpoint) {
+      // For non-OSINT API routes, include response body (strip sensitive fields)
       const safe = { ...capturedJsonResponse };
-      for (const k of ["token", "password", "secret", "cardToken", "tgHash"]) delete safe[k];
+      for (const k of ["token", "password", "secret", "cardToken", "tgHash", "totpSecret", "encryptionKey"]) delete safe[k];
       if (Object.keys(safe).length > 0) {
         logLine += ` :: ${JSON.stringify(safe)}`;
       }
