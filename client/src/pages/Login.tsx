@@ -54,6 +54,11 @@ export default function Login() {
   const { data: platformStats } = useStats();
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [twoFactorLoading, setTwoFactorLoading] = useState(false);
+
+  // Terms acceptance state
+  const [pendingTgUser, setPendingTgUser] = useState<any>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsLoading, setTermsLoading] = useState(false);
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,17 +85,22 @@ export default function Login() {
     }
   };
 
+  const handleTermsLogin = async () => {
+    if (!pendingTgUser || !termsAccepted) return;
+    setTermsLoading(true);
+    try {
+      await login(pendingTgUser);
+    } catch {
+      toast({ title: t("auth.loginError"), description: t("auth.telegramFailed"), variant: "destructive" });
+    } finally {
+      setTermsLoading(false);
+      setPendingTgUser(null);
+    }
+  };
+
   useEffect(() => {
     window.onTelegramAuth = async (telegramUser: any) => {
-      try {
-        await login(telegramUser);
-      } catch (err: any) {
-        toast({
-          title: t("auth.loginError"),
-          description: t("auth.telegramFailed"),
-          variant: "destructive",
-        });
-      }
+      setPendingTgUser(telegramUser);
     };
 
     if (telegramRef.current && !telegramRef.current.querySelector("script,iframe")) {
@@ -306,6 +316,69 @@ export default function Login() {
           </motion.div>
         </div>
       </div>
+
+      {/* Terms acceptance modal — shown after Telegram widget fires */}
+      {pendingTgUser && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+        >
+          <div className="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl p-6 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <div className="font-semibold text-base">Угода користувача</div>
+                <div className="text-xs text-zinc-500">Terms of Service</div>
+              </div>
+            </div>
+
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              DARKSHARE — платформа для OSINT-аналізу публічних даних. Використовуй сервіс лише в законних цілях. Заборонено стеження, переслідування та незаконний збір інформації.
+            </p>
+
+            <label className="flex items-start gap-3 cursor-pointer group" data-testid="terms-checkbox-label">
+              <div
+                onClick={() => setTermsAccepted(v => !v)}
+                className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${termsAccepted ? "bg-primary border-primary" : "border-white/20 group-hover:border-white/40"}`}
+                data-testid="terms-checkbox"
+              >
+                {termsAccepted && <CheckCircle className="w-3.5 h-3.5 text-black" />}
+              </div>
+              <span className="text-sm text-zinc-300 leading-relaxed">
+                Я погоджуюсь з{" "}
+                <Link href="/terms" className="text-primary underline underline-offset-2">Умовами використання</Link>
+                {" "}та{" "}
+                <Link href="/privacy" className="text-primary underline underline-offset-2">Політикою конфіденційності</Link>.
+                Я підтверджую, що мені виповнилось 18 років.
+              </span>
+            </label>
+
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                className="flex-1 border border-white/10"
+                onClick={() => setPendingTgUser(null)}
+              >
+                Скасувати
+              </Button>
+              <Button
+                className="flex-1"
+                disabled={!termsAccepted || termsLoading}
+                onClick={handleTermsLogin}
+                data-testid="button-terms-confirm"
+              >
+                {termsLoading
+                  ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  : "Увійти"
+                }
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

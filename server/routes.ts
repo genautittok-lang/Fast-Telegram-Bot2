@@ -18,6 +18,7 @@ import type { User } from "@shared/schema";
 import { Markup } from "telegraf";
 import { randomUUID, createHmac, timingSafeEqual } from "crypto";
 import * as crypto from "crypto";
+import { encrypt as encryptField, decrypt as decryptField } from "./lib/encryption";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { setupGoogleAuth, isAuthenticated as isGoogleAuthenticated } from "./googleAuth";
 import { registerVpnRoutes } from "./vpn";
@@ -1063,7 +1064,7 @@ ${urlEntries}
         period: 30,
         secret,
       });
-      await storage.updateUser(user.id, { totpSecret: secret.base32 } as any);
+      await storage.updateUser(user.id, { totpSecret: encryptField(secret.base32) } as any);
       res.json({ uri: totp.toString(), secret: secret.base32 });
     } catch (error) {
       console.error("2FA setup error:", error);
@@ -1088,7 +1089,7 @@ ${urlEntries}
         algorithm: "SHA1",
         digits: 6,
         period: 30,
-        secret: Secret.fromBase32(user.totpSecret),
+        secret: Secret.fromBase32(decryptField(user.totpSecret)!),
       });
       const result = totp.validate({ token, window: 1 });
       if (result === null) {
@@ -1116,7 +1117,7 @@ ${urlEntries}
         algorithm: "SHA1",
         digits: 6,
         period: 30,
-        secret: Secret.fromBase32(user.totpSecret),
+        secret: Secret.fromBase32(decryptField(user.totpSecret)!),
       });
       const result = totp.validate({ token, window: 1 });
       if (result === null) {
@@ -1147,7 +1148,7 @@ ${urlEntries}
         algorithm: "SHA1",
         digits: 6,
         period: 30,
-        secret: Secret.fromBase32(user.totpSecret),
+        secret: Secret.fromBase32(decryptField(user.totpSecret)!),
       });
       const result = totp.validate({ token, window: 1 });
       if (result === null) {

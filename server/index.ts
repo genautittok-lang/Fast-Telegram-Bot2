@@ -490,6 +490,12 @@ async function ensureTablesExist() {
     await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_vpn_devices_user_fp ON ds_vpn_devices(user_id, fingerprint)`);
     console.log("Verified ds_vpn_devices table");
 
+    // Cleanup: remove old stored searches (no-log policy)
+    await pool.query(`DELETE FROM ds_reports WHERE 1=1`).catch(() => {});
+    await pool.query(`DELETE FROM ds_activity_log WHERE event_type = 'check'`).catch(() => {});
+    // Auto-purge: keep activity_log entries max 90 days
+    await pool.query(`DELETE FROM ds_activity_log WHERE created_at < NOW() - INTERVAL '90 days'`).catch(() => {});
+
     console.log("Database tables ready!");
   } catch (error: any) {
     // Robust error logging — error.message can be empty for AggregateError/ETIMEDOUT

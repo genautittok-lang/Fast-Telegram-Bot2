@@ -16,9 +16,8 @@ DARKSHARE is a professional OSINT platform offering AI-enhanced security intelli
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GOOGLE_SAFE_BROWSING_KEY` — URL safety checks (optional)
 - `RESEND_API_KEY` — email sending (optional)
-- `MONOBANK_TOKEN` — MonoPay payments (optional)
 - `CRYPTO_PAY_API_TOKEN` — CryptoPay payments (optional)
-- `STRIPE_WEBHOOK_SECRET` — Stripe webhook verification (Stripe via Replit connector)
+- `ENCRYPTION_KEY` — 64-char hex key for AES-256-GCM field encryption (generate with: `openssl rand -hex 32`)
 
 ## Stack
 
@@ -27,7 +26,7 @@ DARKSHARE is a professional OSINT platform offering AI-enhanced security intelli
 - **Database**: PostgreSQL (Replit built-in), Drizzle ORM
 - **Telegram Bot**: Telegraf
 - **PDF**: pdfkit
-- **Payments**: Stripe (via Replit connector), CryptoPay, MonoPay
+- **Payments**: CryptoPay, Telegram Stars
 - **Email**: Resend
 - **Validation**: Zod
 - **Build Tool**: Vite (frontend), esbuild (backend)
@@ -56,7 +55,7 @@ DARKSHARE is a professional OSINT platform offering AI-enhanced security intelli
 - **Verifiable PDF Reports**: Multi-page reports with AI analysis, branding, and verification ID.
 - **Real-time Monitoring**: Watchlist alerts via Web Push and Telegram.
 - **Telegram Bot**: Full-featured bot with multi-language support (5 languages).
-- **Payment System**: Stripe, CryptoPay, MonoPay with subscription tiers (FREE/PRO/Enterprise/Groups).
+- **Payment System**: CryptoPay, Telegram Stars with subscription tiers (FREE/PRO/Enterprise/Groups).
 - **WireGuard VPN**: PRO+ feature, 6 regions, server-side key generation, no logs.
 - **White-label Reports**: Enterprise/Groups custom branding on PDFs.
 

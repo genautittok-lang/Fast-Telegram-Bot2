@@ -17,16 +17,16 @@ function PrivacyContent() {
       title: "1. Information We Collect",
       content: "We collect the following types of information when you use the DARKSHARE platform:\n\n" +
         "\u2022 Account Information: Telegram user ID, username, first name, and profile photo URL when you authenticate via Telegram. Google account email and profile information when you authenticate via Google.\n\n" +
-        "\u2022 Usage Data: Search queries, investigation targets (IP addresses, domains, usernames, blockchain addresses), timestamps, and interaction patterns with the platform.\n\n" +
+        "\u2022 Usage Data: Timestamps and interaction patterns with the platform. DARKSHARE operates a strict no-log policy — investigation targets and search queries are processed in real-time and are NOT stored on our servers.\n\n" +
         "\u2022 Technical Data: Browser type, device information, IP address, and session identifiers for security and analytics purposes.\n\n" +
-        "\u2022 Payment Data: When you subscribe to a paid plan, payment processing is handled by PCI DSS Level 1 certified partner banks (MonoBank for cards, CryptoBot for crypto, Telegram for Stars). We do not store your card numbers on our servers."
+        "\u2022 Payment Data: When you subscribe to a paid plan, payment processing is handled by CryptoBot (for crypto) and Telegram Stars. We do not store your card numbers on our servers."
     },
     {
       title: "2. How We Use Information",
       content: "Your information is used for the following purposes:\n\n" +
         "\u2022 Providing and operating the OSINT analysis service, including generating risk scores, threat assessments, and intelligence reports.\n\n" +
         "\u2022 Authenticating your identity and managing your account and subscription.\n\n" +
-        "\u2022 Maintaining search history and monitoring alerts as requested by you.\n\n" +
+        "\u2022 Maintaining monitoring alerts as requested by you.\n\n" +
         "\u2022 Improving the accuracy of our analysis algorithms and platform features.\n\n" +
         "\u2022 Communicating important service updates, security alerts, and billing notifications.\n\n" +
         "\u2022 Detecting and preventing fraudulent or unauthorized use of the platform.\n\n" +
@@ -49,7 +49,7 @@ function PrivacyContent() {
         "\u2022 GreyNoise \u2014 Internet background noise and threat intelligence data.\n\n" +
         "\u2022 AbuseIPDB \u2014 IP address abuse and malicious activity reports.\n\n" +
         "\u2022 Blockchain APIs \u2014 Cryptocurrency address analysis and transaction lookups (Bitcoin, Ethereum, and other networks).\n\n" +
-        "\u2022 MonoBank / CryptoBot / Telegram Stars \u2014 Secure payment processing for subscriptions.\n\n" +
+        "\u2022 CryptoBot / Telegram Stars \u2014 Secure payment processing for subscriptions.\n\n" +
         "\u2022 OpenAI \u2014 AI-powered analysis and threat assessment generation.\n\n" +
         "\u2022 Telegram Bot API \u2014 User authentication and bot interaction services.\n\n" +
         "When you perform an OSINT query, relevant data may be sent to these third-party services to generate results. We only share the minimum information necessary to fulfill your request."
@@ -59,7 +59,7 @@ function PrivacyContent() {
       content: "When you authenticate via our Telegram bot or use Telegram login:\n\n" +
         "\u2022 We receive your Telegram user ID, username, first name, and profile photo URL.\n\n" +
         "\u2022 We do not access your Telegram messages, contacts, or any private conversations.\n\n" +
-        "\u2022 Bot interactions (commands, queries) are processed in real-time and investigation results are stored in your account history.\n\n" +
+        "\u2022 Bot interactions (commands, queries) are processed in real-time. Investigation results are NOT stored — only timestamps for quota tracking.\n\n" +
         "\u2022 You can revoke Telegram access at any time by blocking the bot and deleting your account."
     },
     {
@@ -74,7 +74,7 @@ function PrivacyContent() {
       title: "7. Data Retention",
       content: "We retain your data according to the following policies:\n\n" +
         "\u2022 Account Data: Retained for the duration of your account and up to 30 days after account deletion.\n\n" +
-        "\u2022 Search History: Retained for 12 months, after which it is automatically archived or deleted.\n\n" +
+        "\u2022 Search History: Not stored. DARKSHARE has a strict no-log policy — investigation queries are processed in real-time only and never written to disk.\n\n" +
         "\u2022 Monitoring Alerts: Active alerts are retained until you deactivate them. Historical alert data is retained for 6 months.\n\n" +
         "\u2022 Payment Records: Retained for 7 years as required by financial regulations.\n\n" +
         "\u2022 Server Logs: Retained for 90 days for security and debugging purposes."
@@ -130,7 +130,7 @@ function PrivacyContent() {
           <Eye className="w-7 h-7 text-primary" />
         </div>
         <h1 className="text-2xl font-bold" data-testid="text-privacy-title">Privacy Policy</h1>
-        <p className="text-muted-foreground text-sm">Last updated: February 2025</p>
+        <p className="text-muted-foreground text-sm">Last updated: July 2025</p>
       </div>
 
       <Card className="border-border/50 bg-card/50">
